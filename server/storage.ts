@@ -79,10 +79,16 @@ export async function createUser(userData: {
   role?: 'admin' | 'partner' | 'customer';
 }): Promise<User> {
   try {
+    console.log('👤 Creating user:', userData.username, userData.email);
+    
     const hashedPassword = await bcrypt.hash(userData.password, 10);
+    console.log('🔐 Password hashed successfully');
+    
+    const userId = nanoid();
+    console.log('🆔 Generated user ID:', userId);
     
     const [user] = await db.insert(users).values({
-      id: nanoid(),
+      id: userId,
       username: userData.username,
       email: userData.email,
       password: hashedPassword,
@@ -95,8 +101,16 @@ export async function createUser(userData: {
       updatedAt: new Date()
     }).returning();
     
+    console.log('✅ User created successfully:', user.id);
     return user;
   } catch (error: any) {
+    console.error('❌ Create user error:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      code: error.code,
+      constraint: error.constraint
+    });
+    
     if (error.code === '23505' || error.message?.includes('UNIQUE constraint')) {
       throw new StorageError('Username yoki email allaqachon mavjud', 'DUPLICATE_USER');
     }
@@ -168,8 +182,18 @@ export async function createPartner(partnerData: {
   notes?: string;
 }): Promise<Partner> {
   try {
+    console.log('📝 Creating partner with data:', {
+      userId: partnerData.userId,
+      businessName: partnerData.businessName,
+      phone: partnerData.phone,
+      pricingTier: partnerData.pricingTier
+    });
+    
+    const partnerId = nanoid();
+    console.log('🆔 Generated partner ID:', partnerId);
+    
     const [partner] = await db.insert(partners).values({
-      id: nanoid(),
+      id: partnerId,
       userId: partnerData.userId,
       businessName: partnerData.businessName || 'Yangi Biznes',
       businessCategory: partnerData.businessCategory as any,
@@ -181,9 +205,15 @@ export async function createPartner(partnerData: {
       notes: partnerData.notes
     }).returning();
     
+    console.log('✅ Partner created successfully:', partner.id);
     return partner;
   } catch (error: any) {
     console.error('❌ Create partner error:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
     throw new StorageError(`Hamkor yaratishda xatolik: ${error.message}`, 'CREATE_PARTNER_ERROR');
   }
 }
