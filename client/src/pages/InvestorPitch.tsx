@@ -67,9 +67,13 @@ export default function InvestorPitch() {
             
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 max-w-md mx-auto">
               <div className="text-xl text-white font-bold mb-2">Jo'liyev G'ayratjon</div>
-              <div className="text-lg text-gray-300">Founder & CEO</div>
-              <div className="text-lg text-blue-400 mt-2">+998 33 445 36 36</div>
-              <div className="text-sm text-gray-400 mt-1">Toshkent, O'zbekiston</div>
+              <div className="text-lg text-gray-300 mb-3">Founder & CEO</div>
+              <div className="space-y-1">
+                <div className="text-lg text-blue-400">📞 +998 33 445 36 36</div>
+                <div className="text-lg text-blue-400">🌐 SellerCloudX.com</div>
+                <div className="text-lg text-blue-400">✉️ sellercloudx@gmail.com</div>
+              </div>
+              <div className="text-sm text-gray-400 mt-3">Toshkent, O'zbekiston</div>
             </div>
           </div>
         </div>
@@ -265,17 +269,17 @@ export default function InvestorPitch() {
     {
       id: 'unit-economics',
       content: (
-        <div className="h-screen flex items-center justify-center bg-gradient-to-br from-yellow-900 via-slate-900 to-green-900 pb-24">
+        <div className="h-screen flex items-center justify-center bg-gradient-to-br from-yellow-900 via-slate-900 to-green-900 py-16">
           <div className="max-w-6xl px-8 w-full">
-            <div className="text-center mb-8">
-              <h2 className="text-7xl font-black text-yellow-400 mb-4">Unit Economics</h2>
-              <p className="text-3xl text-gray-300">Foyda 2x oshadi: 52-74M → 141M so'm/oy</p>
+            <div className="text-center mb-6">
+              <h2 className="text-6xl font-black text-yellow-400 mb-3">Unit Economics</h2>
+              <p className="text-2xl text-gray-300">Foyda 2x oshadi: 52-74M → 141M so'm/oy</p>
             </div>
             
             <div className="grid grid-cols-2 gap-6">
-              <div className="bg-red-500/10 border-2 border-red-500 rounded-3xl p-6">
-                <h3 className="text-3xl font-bold text-white mb-4 text-center">OLDIN (Oddiy)</h3>
-                <div className="space-y-2 text-lg">
+              <div className="bg-red-500/10 border-2 border-red-500 rounded-3xl p-5">
+                <h3 className="text-2xl font-bold text-white mb-3 text-center">OLDIN (Oddiy)</h3>
+                <div className="space-y-1.5 text-base">
                   <div className="flex justify-between text-gray-300">
                     <span>GMV:</span>
                     <span className="text-white font-bold">800M so'm</span>
@@ -312,16 +316,16 @@ export default function InvestorPitch() {
                     <span>Qo'shimcha:</span>
                     <span className="text-red-400">-10-15M</span>
                   </div>
-                  <div className="flex justify-between font-bold text-xl border-t-2 border-red-500 pt-2 mt-2">
+                  <div className="flex justify-between font-bold text-lg border-t-2 border-red-500 pt-2 mt-2">
                     <span className="text-white">SOF FOYDA:</span>
                     <span className="text-red-400">52-74M</span>
                   </div>
                 </div>
               </div>
               
-              <div className="bg-green-500/10 border-2 border-green-500 rounded-3xl p-6">
-                <h3 className="text-3xl font-bold text-white mb-4 text-center">KEYIN (BiznesYordam)</h3>
-                <div className="space-y-2 text-lg">
+              <div className="bg-green-500/10 border-2 border-green-500 rounded-3xl p-5">
+                <h3 className="text-2xl font-bold text-white mb-3 text-center">KEYIN (SellerCloudX)</h3>
+                <div className="space-y-1.5 text-base">
                   <div className="flex justify-between text-gray-300">
                     <span>GMV:</span>
                     <span className="text-white font-bold">800M so'm</span>
@@ -362,7 +366,7 @@ export default function InvestorPitch() {
                     <span>Profit share (10%):</span>
                     <span>18M</span>
                   </div>
-                  <div className="flex justify-between font-bold text-xl border-t-2 border-green-500 pt-2 mt-2">
+                  <div className="flex justify-between font-bold text-lg border-t-2 border-green-500 pt-2 mt-2">
                     <span className="text-white">SOF FOYDA:</span>
                     <span className="text-green-400">141M</span>
                   </div>
@@ -370,8 +374,8 @@ export default function InvestorPitch() {
               </div>
             </div>
             
-            <div className="mt-6 bg-gradient-to-r from-green-600 to-emerald-600 rounded-3xl p-6 text-center">
-              <p className="text-3xl font-black text-white">
+            <div className="mt-4 bg-gradient-to-r from-green-600 to-emerald-600 rounded-3xl p-4 text-center">
+              <p className="text-2xl font-black text-white">
                 ✅ Foyda +67-89M so'm/oy (+129-171%) • ✅ Vaqt tejash 6-8 soat/kun • ✅ Xatolar 0%
               </p>
             </div>
@@ -393,7 +397,7 @@ export default function InvestorPitch() {
             
             <div className="grid grid-cols-3 gap-6 mb-6">
               <div className="bg-blue-500/10 border-2 border-blue-500 rounded-3xl p-6 text-center">
-                <div className="text-sm text-blue-400 font-bold mb-2">YEAR 1 (2025)</div>
+                <div className="text-sm text-blue-400 font-bold mb-2">YEAR 1 (2026)</div>
                 <div className="text-5xl font-black text-white mb-4">$2-4M</div>
                 <div className="space-y-2 text-sm text-gray-300">
                   <div>Fulfillment: 20-30</div>
@@ -403,7 +407,7 @@ export default function InvestorPitch() {
               </div>
               
               <div className="bg-purple-500/10 border-2 border-purple-500 rounded-3xl p-6 text-center">
-                <div className="text-sm text-purple-400 font-bold mb-2">YEAR 2 (2026)</div>
+                <div className="text-sm text-purple-400 font-bold mb-2">YEAR 2 (2027)</div>
                 <div className="text-5xl font-black text-white mb-4">$8-14M</div>
                 <div className="space-y-2 text-sm text-gray-300">
                   <div>Fulfillment: 35-50</div>
@@ -413,7 +417,7 @@ export default function InvestorPitch() {
               </div>
               
               <div className="bg-green-500/10 border-2 border-green-500 rounded-3xl p-6 text-center">
-                <div className="text-sm text-green-400 font-bold mb-2">YEAR 3 (2027)</div>
+                <div className="text-sm text-green-400 font-bold mb-2">YEAR 3 (2028)</div>
                 <div className="text-5xl font-black text-white mb-4">$16-40M</div>
                 <div className="space-y-2 text-sm text-gray-300">
                   <div>Fulfillment: 45-60</div>
@@ -681,20 +685,20 @@ export default function InvestorPitch() {
     {
       id: 'roadmap',
       content: (
-        <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-slate-900 to-green-900 pb-24">
+        <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-slate-900 to-green-900 py-16">
           <div className="max-w-6xl px-8 w-full">
-            <div className="text-center mb-8">
-              <h2 className="text-7xl font-black text-blue-400 mb-4">Roadmap</h2>
-              <p className="text-3xl text-gray-300">O'zbekiston → Regional kengayish</p>
+            <div className="text-center mb-6">
+              <h2 className="text-6xl font-black text-blue-400 mb-3">Roadmap</h2>
+              <p className="text-2xl text-gray-300">O'zbekiston → Regional kengayish</p>
             </div>
             
-            <div className="space-y-6">
-              <div className="bg-gradient-to-r from-blue-600/20 to-blue-800/20 backdrop-blur-lg rounded-3xl p-6 border border-blue-500/30">
-                <div className="flex items-center gap-6">
-                  <div className="text-6xl font-black text-blue-400">Q1-Q2</div>
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-blue-600/20 to-blue-800/20 backdrop-blur-lg rounded-3xl p-4 border border-blue-500/30">
+                <div className="flex items-center gap-4">
+                  <div className="text-5xl font-black text-blue-400">Q1-Q2</div>
                   <div className="flex-1">
-                    <h3 className="text-3xl font-bold text-white mb-3">2025: Launch (O'zbekiston)</h3>
-                    <div className="grid grid-cols-3 gap-4 text-lg text-gray-300">
+                    <h3 className="text-2xl font-bold text-white mb-2">2026: Launch (O'zbekiston)</h3>
+                    <div className="grid grid-cols-3 gap-3 text-base text-gray-300">
                       <div>
                         <div className="text-2xl font-bold text-white">10-15</div>
                         <div>Premium fulfillment</div>
@@ -712,12 +716,12 @@ export default function InvestorPitch() {
                 </div>
               </div>
               
-              <div className="bg-gradient-to-r from-purple-600/20 to-purple-800/20 backdrop-blur-lg rounded-3xl p-6 border border-purple-500/30">
-                <div className="flex items-center gap-6">
-                  <div className="text-6xl font-black text-purple-400">Q3-Q4</div>
+              <div className="bg-gradient-to-r from-purple-600/20 to-purple-800/20 backdrop-blur-lg rounded-3xl p-4 border border-purple-500/30">
+                <div className="flex items-center gap-4">
+                  <div className="text-5xl font-black text-purple-400">Q3-Q4</div>
                   <div className="flex-1">
-                    <h3 className="text-3xl font-bold text-white mb-3">2025: Scale (O'zbekiston)</h3>
-                    <div className="grid grid-cols-3 gap-4 text-lg text-gray-300">
+                    <h3 className="text-2xl font-bold text-white mb-2">2026: Scale (O'zbekiston)</h3>
+                    <div className="grid grid-cols-3 gap-3 text-base text-gray-300">
                       <div>
                         <div className="text-2xl font-bold text-white">20-30</div>
                         <div>Premium hamkor</div>
@@ -735,12 +739,12 @@ export default function InvestorPitch() {
                 </div>
               </div>
               
-              <div className="bg-gradient-to-r from-green-600/20 to-green-800/20 backdrop-blur-lg rounded-3xl p-6 border border-green-500/30">
-                <div className="flex items-center gap-6">
-                  <div className="text-6xl font-black text-green-400">2026</div>
+              <div className="bg-gradient-to-r from-green-600/20 to-green-800/20 backdrop-blur-lg rounded-3xl p-4 border border-green-500/30">
+                <div className="flex items-center gap-4">
+                  <div className="text-5xl font-black text-green-400">2027</div>
                   <div className="flex-1">
-                    <h3 className="text-3xl font-bold text-white mb-3">Regional Expansion (RU/KZ)</h3>
-                    <div className="grid grid-cols-3 gap-4 text-lg text-gray-300">
+                    <h3 className="text-2xl font-bold text-white mb-2">Regional Expansion (RU/KZ)</h3>
+                    <div className="grid grid-cols-3 gap-3 text-base text-gray-300">
                       <div>
                         <div className="text-2xl font-bold text-white">Faqat SaaS</div>
                         <div>Premium yo'q</div>
@@ -758,12 +762,12 @@ export default function InvestorPitch() {
                 </div>
               </div>
               
-              <div className="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 backdrop-blur-lg rounded-3xl p-6 border border-yellow-500/30">
-                <div className="flex items-center gap-6">
-                  <div className="text-6xl font-black text-yellow-400">2027</div>
+              <div className="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 backdrop-blur-lg rounded-3xl p-4 border border-yellow-500/30">
+                <div className="flex items-center gap-4">
+                  <div className="text-5xl font-black text-yellow-400">2028</div>
                   <div className="flex-1">
-                    <h3 className="text-3xl font-bold text-white mb-3">Full Regional (AZ/TR/KG)</h3>
-                    <div className="grid grid-cols-3 gap-4 text-lg text-gray-300">
+                    <h3 className="text-2xl font-bold text-white mb-2">Full Regional (AZ/TR/KG)</h3>
+                    <div className="grid grid-cols-3 gap-3 text-base text-gray-300">
                       <div>
                         <div className="text-2xl font-bold text-white">2,500-4,500</div>
                         <div>Jami SaaS</div>
