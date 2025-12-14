@@ -38,6 +38,8 @@ export const partners = sqliteTable('partners', {
   profitSharePercent: integer('profit_share_percent'),
   aiEnabled: integer('ai_enabled', { mode: 'boolean' }).default(false),
   warehouseSpaceKg: integer('warehouse_space_kg'),
+  anydeskId: text('anydesk_id'),
+  anydeskPassword: text('anydesk_password'),
   notes: text('notes'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
   lastActivityAt: integer('last_activity_at', { mode: 'timestamp' }),

@@ -111,10 +111,16 @@ async function requirePartnerWithData(req: Request, res: Response, next: NextFun
   const user = req.session.user;
   (req as any).user = user;
   
-  // Get partner data
+  // Admin can access without partner data
+  if (user.role === 'admin') {
+    return next();
+  }
+  
+  // Get partner data for non-admin users
   try {
     const partner = await storage.getPartnerByUserId(user.id);
     if (!partner) {
+      console.error(`Partner not found for user ${user.id}`);
       return res.status(404).json({ 
         message: "Hamkor ma'lumotlari topilmadi",
         code: "PARTNER_NOT_FOUND"
@@ -782,7 +788,49 @@ export function registerRoutes(app: express.Application): Server {
   app.put("/api/admin/partners/:id/approve", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     
+    console.log(`[ADMIN] Approving partner ${id} by admin ${req.session!.user!.id}`);
+    
     const partner = await storage.approvePartner(id, req.session!.user!.id);
+    if (!partner) {
+      console.error(`[ADMIN] Partner ${id} not found`);
+      return res.status(404).json({ 
+        message: "Hamkor topilmadi",
+        code: "PARTNER_NOT_FOUND"
+      });
+    }
+
+    console.log(`[ADMIN] Partner ${id} approved successfully:`, {
+      id: partner.id,
+      approved: partner.approved,
+      businessName: partner.businessName
+    });
+
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: 'PARTNER_APPROVED',
+      entityType: 'partner',
+      entityId: id
+    });
+
+    res.json(partner);
+  }));
+
+  app.put("/api/admin/partners/:id/anydesk", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { anydeskId, anydeskPassword } = req.body;
+    
+    if (!anydeskId) {
+      return res.status(400).json({ 
+        message: "AnyDesk ID talab qilinadi",
+        code: "VALIDATION_ERROR"
+      });
+    }
+    
+    const partner = await storage.updatePartner(id, { 
+      anydeskId,
+      anydeskPassword: anydeskPassword || null
+    });
+    
     if (!partner) {
       return res.status(404).json({ 
         message: "Hamkor topilmadi",
@@ -792,7 +840,7 @@ export function registerRoutes(app: express.Application): Server {
 
     await storage.createAuditLog({
       userId: req.session!.user!.id,
-      action: 'PARTNER_APPROVED',
+      action: 'ANYDESK_UPDATED',
       entityType: 'partner',
       entityId: id
     });
