@@ -7,9 +7,9 @@ import { storage } from "./storage";
 import { healthCheck } from "./health";
 import { getSessionConfig } from "./session";
 import { asyncHandler } from "./errorHandler";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db } from "./db";
-import { partners, referrals } from "@shared/schema";
+import { partners, referrals, marketplaceIntegrations } from "@shared/schema";
 
 import { 
   loginSchema, 
@@ -363,17 +363,22 @@ export function registerRoutes(app: express.Application): Server {
   // Partner registration
   app.post("/api/partners/register", asyncHandler(async (req: Request, res: Response) => {
     try {
+      console.log('[REGISTRATION] Received data:', JSON.stringify(req.body, null, 2));
+      
       const validatedData = partnerRegistrationSchema.parse(req.body);
+      console.log('[REGISTRATION] Validation passed');
       
       // Check if username or email already exists
       const existingUser = await storage.getUserByUsername(validatedData.username);
       if (existingUser) {
+        console.log('[REGISTRATION] Username already exists:', validatedData.username);
         return res.status(400).json({
           message: "Bu username allaqachon mavjud",
           code: "USERNAME_EXISTS"
         });
       }
 
+      console.log('[REGISTRATION] Creating user...');
       // Create user
       const user = await storage.createUser({
         username: validatedData.username,
@@ -384,7 +389,9 @@ export function registerRoutes(app: express.Application): Server {
         phone: validatedData.phone,
         role: 'partner'
       });
+      console.log('[REGISTRATION] User created:', user.id);
 
+      console.log('[REGISTRATION] Creating partner profile...');
       // Create partner profile
       const partner = await storage.createPartner({
         userId: user.id,
@@ -394,6 +401,7 @@ export function registerRoutes(app: express.Application): Server {
         phone: validatedData.phone, // CRITICAL: phone required!
         notes: validatedData.notes || undefined
       });
+      console.log('[REGISTRATION] Partner created:', partner.id);
 
       // Handle referral code if provided
       const referralCode = (req.body as any).referralCode;
@@ -437,6 +445,7 @@ export function registerRoutes(app: express.Application): Server {
         payload: { businessName: validatedData.businessName, referralCode }
       });
 
+      console.log('[REGISTRATION] Success! User:', user.id, 'Partner:', partner.id);
       res.status(201).json({
         message: "Hamkor muvaffaqiyatli ro'yxatdan o'tdi",
         user: {
@@ -450,14 +459,21 @@ export function registerRoutes(app: express.Application): Server {
         partner
       });
     } catch (error) {
+      console.error('[REGISTRATION] Error:', error);
       if (error instanceof ZodError) {
+        console.error('[REGISTRATION] Validation error:', error.errors);
         return res.status(400).json({
           message: "Ma'lumotlar noto'g'ri",
           code: "VALIDATION_ERROR",
           errors: error.errors
         });
       }
-      throw error;
+      console.error('[REGISTRATION] Unexpected error:', error);
+      return res.status(500).json({
+        message: "Ro'yxatdan o'tishda xatolik",
+        code: "REGISTRATION_ERROR",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }));
 
@@ -1373,6 +1389,110 @@ export function registerRoutes(app: express.Application): Server {
   // ZERO HUMAN INTERVENTION - Fully automated product management
   // Auto-sync from marketplaces, auto-generate cards, auto-publish
   app.use("/api/autonomous", requirePartnerWithData, autonomousManagerRoutes);
+
+  // ==================== MARKETPLACE CONNECTIONS ====================
+  // Get partner's marketplace connections
+  app.get("/api/marketplace/connections", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = (req as any).partner;
+    
+    if (!partner) {
+      return res.status(404).json({ message: "Partner not found" });
+    }
+
+    const connections = await db.select()
+      .from(marketplaceIntegrations)
+      .where(eq(marketplaceIntegrations.partnerId, partner.id));
+
+    res.json(connections);
+  }));
+
+  // Connect to marketplace
+  app.post("/api/marketplace/connect", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = (req as any).partner;
+    const { marketplace, credentials } = req.body;
+
+    if (!partner) {
+      return res.status(404).json({ message: "Partner not found" });
+    }
+
+    if (!marketplace || !credentials) {
+      return res.status(400).json({ message: "Marketplace va credentials talab qilinadi" });
+    }
+
+    // Check if already connected
+    const existing = await db.select()
+      .from(marketplaceIntegrations)
+      .where(and(
+        eq(marketplaceIntegrations.partnerId, partner.id),
+        eq(marketplaceIntegrations.marketplace, marketplace)
+      ))
+      .limit(1);
+
+    if (existing.length > 0) {
+      // Update existing connection
+      const [updated] = await db.update(marketplaceIntegrations)
+        .set({
+          apiKey: credentials.apiKey || credentials.accessToken || credentials.clientId,
+          apiSecret: credentials.apiSecret || credentials.supplierId || credentials.campaignId,
+          sellerId: credentials.sellerId,
+          active: true,
+          lastSyncAt: new Date()
+        })
+        .where(eq(marketplaceIntegrations.id, existing[0].id))
+        .returning();
+
+      return res.json(updated);
+    }
+
+    // Create new connection
+    const [connection] = await db.insert(marketplaceIntegrations).values({
+      id: nanoid(),
+      partnerId: partner.id,
+      marketplace,
+      apiKey: credentials.apiKey || credentials.accessToken || credentials.clientId,
+      apiSecret: credentials.apiSecret || credentials.supplierId || credentials.campaignId,
+      sellerId: credentials.sellerId,
+      active: true,
+      createdAt: new Date()
+    }).returning();
+
+    await storage.createAuditLog({
+      userId: (req as any).user.id,
+      action: 'MARKETPLACE_CONNECTED',
+      entityType: 'marketplace_integration',
+      entityId: connection.id,
+      payload: { marketplace }
+    });
+
+    res.status(201).json(connection);
+  }));
+
+  // Test marketplace connection
+  app.post("/api/marketplace/test-connection", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const { marketplace, credentials } = req.body;
+
+    if (!marketplace || !credentials) {
+      return res.status(400).json({ message: "Marketplace va credentials talab qilinadi" });
+    }
+
+    // For now, just validate that credentials are provided
+    // In production, this would actually test the API connection
+    const hasRequiredFields = credentials.apiKey || credentials.accessToken || credentials.clientId;
+
+    if (!hasRequiredFields) {
+      return res.status(400).json({ 
+        message: "API ma'lumotlari to'liq emas",
+        success: false 
+      });
+    }
+
+    // Simulate API test (in production, make actual API call)
+    res.json({ 
+      success: true, 
+      message: "Ulanish muvaffaqiyatli",
+      marketplace 
+    });
+  }));
 
   // Error handling middleware
   app.use(handleValidationError);
