@@ -31,49 +31,49 @@ export default function InvestorPitch() {
     {
       id: 'title',
       content: (
-        <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-slate-900 to-purple-900 pb-24">
+        <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-slate-900 to-purple-900 py-12">
           <div className="text-center max-w-5xl px-8">
-            <div className="inline-block px-6 py-2 bg-green-500/20 border border-green-500/50 rounded-full mb-8">
-              <span className="text-green-400 font-bold text-xl">💰 SEED ROUND: $150,000</span>
+            <div className="inline-block px-5 py-1.5 bg-green-500/20 border border-green-500/50 rounded-full mb-5">
+              <span className="text-green-400 font-bold text-lg">💰 SEED ROUND: $150,000</span>
             </div>
             
-            <h1 className="text-8xl font-black text-white mb-6">
+            <h1 className="text-7xl font-black text-white mb-4">
               Seller<span className="text-blue-400">Cloud</span><span className="text-green-400">X</span>
             </h1>
             
-            <p className="text-4xl text-blue-300 font-bold mb-4">
+            <p className="text-3xl text-blue-300 font-bold mb-3">
               AI Fulfillment Operator + SaaS
             </p>
             
-            <p className="text-2xl text-gray-300 mb-12">
+            <p className="text-xl text-gray-300 mb-8">
               Profit-share Fulfillment (O'zbekiston) +<br />
               AI Marketplace Manager SaaS (UZ/RU/KZ/AZ/TR/KG)
             </p>
             
-            <div className="grid grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-                <div className="text-5xl font-black text-green-400 mb-2">$40M</div>
-                <div className="text-lg text-gray-300">ARR (Year 3)</div>
+            <div className="grid grid-cols-3 gap-4 max-w-4xl mx-auto mb-8">
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 border border-white/20">
+                <div className="text-4xl font-black text-green-400 mb-1">$40M</div>
+                <div className="text-base text-gray-300">ARR (Year 3)</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-                <div className="text-5xl font-black text-blue-400 mb-2">100%</div>
-                <div className="text-lg text-gray-300">Platform Tayyor</div>
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 border border-white/20">
+                <div className="text-4xl font-black text-blue-400 mb-1">100%</div>
+                <div className="text-base text-gray-300">Platform Tayyor</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-                <div className="text-5xl font-black text-purple-400 mb-2">3-4 oy</div>
-                <div className="text-lg text-gray-300">Break-even</div>
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 border border-white/20">
+                <div className="text-4xl font-black text-purple-400 mb-1">3-4 oy</div>
+                <div className="text-base text-gray-300">Break-even</div>
               </div>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 max-w-md mx-auto">
-              <div className="text-xl text-white font-bold mb-2">Jo'liyev G'ayratjon</div>
-              <div className="text-lg text-gray-300 mb-3">Founder & CEO</div>
-              <div className="space-y-1">
-                <div className="text-lg text-blue-400">📞 +998 33 445 36 36</div>
-                <div className="text-lg text-blue-400">🌐 SellerCloudX.com</div>
-                <div className="text-lg text-blue-400">✉️ sellercloudx@gmail.com</div>
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 border border-white/20 max-w-md mx-auto">
+              <div className="text-lg text-white font-bold mb-1">Jo'liyev G'ayratjon</div>
+              <div className="text-base text-gray-300 mb-2">Founder & CEO</div>
+              <div className="space-y-0.5">
+                <div className="text-base text-blue-400">📞 +998 33 445 36 36</div>
+                <div className="text-base text-blue-400">🌐 SellerCloudX.com</div>
+                <div className="text-base text-blue-400">✉️ sellercloudx@gmail.com</div>
               </div>
-              <div className="text-sm text-gray-400 mt-3">Toshkent, O'zbekiston</div>
+              <div className="text-xs text-gray-400 mt-2">Toshkent, O'zbekiston</div>
             </div>
           </div>
         </div>
