@@ -1390,6 +1390,39 @@ export function registerRoutes(app: express.Application): Server {
   // Auto-sync from marketplaces, auto-generate cards, auto-publish
   app.use("/api/autonomous", requirePartnerWithData, autonomousManagerRoutes);
 
+  // ==================== AI PRODUCT RECOGNITION ====================
+  // Recognize product from image
+  app.post("/api/ai/recognize-product", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const { image } = req.body;
+
+    if (!image) {
+      return res.status(400).json({ message: "Rasm talab qilinadi" });
+    }
+
+    try {
+      const { productRecognitionService } = await import('./services/productRecognition');
+      const result = await productRecognitionService.recognizeProduct(image);
+
+      await storage.createAuditLog({
+        userId: (req as any).user.id,
+        action: 'PRODUCT_RECOGNIZED',
+        entityType: 'product',
+        payload: { 
+          productName: result.name,
+          confidence: result.confidence
+        }
+      });
+
+      res.json(result);
+    } catch (error: any) {
+      console.error('Product recognition error:', error);
+      return res.status(500).json({ 
+        message: "Mahsulotni tanib bo'lmadi",
+        error: error.message 
+      });
+    }
+  }));
+
   // ==================== MARKETPLACE CONNECTIONS ====================
   // Get partner's marketplace connections
   app.get("/api/marketplace/connections", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
