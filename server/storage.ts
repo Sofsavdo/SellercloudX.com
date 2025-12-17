@@ -1360,6 +1360,26 @@ export async function getProductById(productId: string): Promise<any> {
   }
 }
 
+export async function getProductByBarcode(barcode: string): Promise<Product | null> {
+  try {
+    const [product] = await db.select().from(products).where(eq(products.barcode, barcode)).limit(1);
+    return product || null;
+  } catch (error: any) {
+    console.error('Error getting product by barcode:', error);
+    return null;
+  }
+}
+
+export async function getProductBySku(sku: string): Promise<Product | null> {
+  try {
+    const [product] = await db.select().from(products).where(eq(products.sku, sku)).limit(1);
+    return product || null;
+  } catch (error: any) {
+    console.error('Error getting product by SKU:', error);
+    return null;
+  }
+}
+
 export async function getOrdersByProduct(productId: string, days: number): Promise<any[]> {
   try {
     const daysAgo = new Date();
@@ -1435,6 +1455,8 @@ export const storage = {
   createProduct,
   getProductsByPartnerId,
   getProductById,
+  getProductByBarcode,
+  getProductBySku,
   createFulfillmentRequest,
   getFulfillmentRequestsByPartnerId,
   getAllFulfillmentRequests,

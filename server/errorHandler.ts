@@ -25,21 +25,25 @@ export const errorHandler = (
     timestamp: new Date().toISOString()
   });
 
-  // Mongoose bad ObjectId
-  if (err.name === 'CastError') {
-    const message = 'Resource not found';
-    error = { message, statusCode: 404 } as AppError;
+  // SQLite/Drizzle errors
+  if ((err as any).code === 'SQLITE_CONSTRAINT') {
+    const message = 'Database constraint violation';
+    error = { message, statusCode: 400 } as AppError;
   }
 
-  // Mongoose duplicate key
-  if (err.name === 'MongoError' && (err as any).code === 11000) {
+  if ((err as any).code === 'SQLITE_CONSTRAINT_UNIQUE') {
     const message = 'Duplicate field value entered';
     error = { message, statusCode: 400 } as AppError;
   }
 
-  // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    const message = Object.values((err as any).errors).map((val: any) => val.message).join(', ');
+  if ((err as any).code === 'SQLITE_CONSTRAINT_FOREIGNKEY') {
+    const message = 'Referenced record not found';
+    error = { message, statusCode: 400 } as AppError;
+  }
+
+  // Drizzle validation errors
+  if (err.name === 'ZodError') {
+    const message = 'Validation error';
     error = { message, statusCode: 400 } as AppError;
   }
 

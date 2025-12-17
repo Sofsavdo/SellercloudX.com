@@ -2,6 +2,9 @@
 // Handles all AI operations asynchronously
 
 import { db } from '../db';
+import { aiTasks } from '@shared/schema';
+import { eq, desc } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
 import { 
   generateReviewResponse,
   createProductCard,
@@ -23,10 +26,11 @@ export type AITaskType =
   | 'report_generation';
 
 export interface AITask {
-  id?: number;
-  accountId: number;
+  id?: string;
+  partnerId: string;
+  accountId?: string;
   taskType: AITaskType;
-  priority: number; // 1-10 (10 = highest)
+  priority: 'low' | 'medium' | 'high';
   status: 'pending' | 'processing' | 'completed' | 'failed';
   inputData: any;
   outputData?: any;
@@ -40,44 +44,47 @@ const taskQueue: AITask[] = [];
 let isProcessing = false;
 
 // Add task to queue
-export async function addAITask(task: Omit<AITask, 'id' | 'status' | 'createdAt'>): Promise<number> {
+export async function addAITask(task: Omit<AITask, 'id' | 'status' | 'createdAt'>): Promise<string> {
+  const taskId = nanoid();
   const createdAt = new Date();
   const newTask: AITask = {
     ...task,
+    id: taskId,
     status: 'pending',
     createdAt,
   };
 
-  // Save to database
-  const result = await db.run(
-    `INSERT INTO ai_tasks (account_id, task_type, priority, status, input_data, created_at)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [
-      newTask.accountId,
-      newTask.taskType,
-      newTask.priority,
-      newTask.status,
-      JSON.stringify(newTask.inputData),
-      createdAt.toISOString(),
-    ]
-  );
-
-  const taskId = result.lastID!;
-  newTask.id = taskId;
-  
-  // Add to in-memory queue
-  taskQueue.push(newTask);
-  
-  // Sort by priority (highest first)
-  taskQueue.sort((a, b) => b.priority - a.priority);
-  
-  // Start processing if not already
-  if (!isProcessing) {
-    processQueue();
+  try {
+    // Save to database using Drizzle ORM
+    await db.insert(aiTasks).values({
+      id: taskId,
+      partnerId: newTask.partnerId,
+      accountId: newTask.accountId,
+      taskType: newTask.taskType,
+      priority: newTask.priority,
+      status: newTask.status,
+      inputData: JSON.stringify(newTask.inputData),
+      createdAt: createdAt,
+    });
+    
+    // Add to in-memory queue
+    taskQueue.push(newTask);
+    
+    // Sort by priority (high > medium > low)
+    const priorityOrder = { high: 3, medium: 2, low: 1 };
+    taskQueue.sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority]);
+    
+    // Start processing if not already
+    if (!isProcessing) {
+      processQueue();
+    }
+    
+    console.log(`✅ AI Task added: ${task.taskType} (Priority: ${task.priority})`);
+    return taskId;
+  } catch (error) {
+    console.error('❌ Error adding AI task:', error);
+    throw error;
   }
-  
-  console.log(`✅ AI Task added: ${task.taskType} (Priority: ${task.priority})`);
-  return taskId;
 }
 
 // Process queue
@@ -108,15 +115,22 @@ async function processQueue() {
 async function processTask(task: AITask) {
   console.log(`⚙️  Processing task ${task.id}: ${task.taskType}`);
   
-  // Update status to processing
-  await db.run(
-    `UPDATE ai_tasks SET status = 'processing' WHERE id = ?`,
-    [task.id]
-  );
-
-  let result: any;
+  if (!task.id) {
+    console.error('❌ Task ID is missing');
+    return;
+  }
 
   try {
+    // Update status to processing
+    await db.update(aiTasks)
+      .set({ 
+        status: 'processing',
+        startedAt: new Date()
+      })
+      .where(eq(aiTasks.id, task.id));
+
+    let result: any;
+
     switch (task.taskType) {
       case 'review_response':
         result = await handleReviewResponse(task);
@@ -151,12 +165,14 @@ async function processTask(task: AITask) {
     }
 
     // Mark as completed
-    await markTaskCompleted(task.id!, result);
+    await markTaskCompleted(task.id, result);
     console.log(`✅ Task ${task.id} completed`);
     
   } catch (error) {
     console.error(`❌ Task ${task.id} failed:`, error);
-    throw error;
+    if (task.id) {
+      await markTaskFailed(task.id, error instanceof Error ? error.message : 'Unknown error');
+    }
   }
 }
 
@@ -233,94 +249,121 @@ async function handleReportGeneration(task: AITask) {
 }
 
 // Mark task as completed
-async function markTaskCompleted(taskId: number, result: any) {
-  await db.run(
-    `UPDATE ai_tasks 
-     SET status = 'completed', 
-         output_data = ?,
-         completed_at = ?
-     WHERE id = ?`,
-    [JSON.stringify(result), new Date().toISOString(), taskId]
-  );
+async function markTaskCompleted(taskId: string, result: any) {
+  try {
+    await db.update(aiTasks)
+      .set({
+        status: 'completed',
+        outputData: JSON.stringify(result),
+        completedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(aiTasks.id, taskId));
+  } catch (error) {
+    console.error('❌ Error marking task as completed:', error);
+  }
 }
 
 // Mark task as failed
-async function markTaskFailed(taskId: number, error: string) {
-  await db.run(
-    `UPDATE ai_tasks 
-     SET status = 'failed', 
-         error_message = ?,
-         completed_at = ?
-     WHERE id = ?`,
-    [error, new Date().toISOString(), taskId]
-  );
+async function markTaskFailed(taskId: string, error: string) {
+  try {
+    await db.update(aiTasks)
+      .set({
+        status: 'failed',
+        errorMessage: error,
+        completedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(aiTasks.id, taskId));
+  } catch (err) {
+    console.error('❌ Error marking task as failed:', err);
+  }
 }
 
 // Get task status
-export async function getTaskStatus(taskId: number): Promise<AITask | null> {
-  const task = await db.get(
-    `SELECT * FROM ai_tasks WHERE id = ?`,
-    [taskId]
-  );
+export async function getTaskStatus(taskId: string): Promise<AITask | null> {
+  try {
+    const [task] = await db.select()
+      .from(aiTasks)
+      .where(eq(aiTasks.id, taskId))
+      .limit(1);
 
-  if (!task) return null;
+    if (!task) return null;
 
-  return {
-    id: task.id,
-    accountId: task.account_id,
-    taskType: task.task_type,
-    priority: task.priority,
-    status: task.status,
-    inputData: JSON.parse(task.input_data),
-    outputData: task.output_data ? JSON.parse(task.output_data) : undefined,
-    error: task.error_message,
-    createdAt: new Date(task.created_at),
-    completedAt: task.completed_at ? new Date(task.completed_at) : undefined,
-  };
+    return {
+      id: task.id,
+      partnerId: task.partnerId,
+      accountId: task.accountId || undefined,
+      taskType: task.taskType as AITaskType,
+      priority: task.priority as 'low' | 'medium' | 'high',
+      status: task.status as 'pending' | 'processing' | 'completed' | 'failed',
+      inputData: task.inputData ? JSON.parse(task.inputData) : {},
+      outputData: task.outputData ? JSON.parse(task.outputData) : undefined,
+      error: task.errorMessage || undefined,
+      createdAt: task.createdAt || undefined,
+      completedAt: task.completedAt || undefined,
+    };
+  } catch (error) {
+    console.error('❌ Error getting task status:', error);
+    return null;
+  }
 }
 
 // Get pending tasks count
 export async function getPendingTasksCount(): Promise<number> {
-  const result = await db.get(
-    `SELECT COUNT(*) as count FROM ai_tasks WHERE status = 'pending'`
-  );
-  return result.count;
+  try {
+    const result = await db.select()
+      .from(aiTasks)
+      .where(eq(aiTasks.status, 'pending'));
+    return result.length;
+  } catch (error) {
+    console.error('❌ Error getting pending tasks count:', error);
+    return 0;
+  }
 }
 
-// Get tasks by account
-export async function getAccountTasks(
-  accountId: number,
+// Get tasks by partner
+export async function getPartnerTasks(
+  partnerId: string,
   limit: number = 50
 ): Promise<AITask[]> {
-  const tasks = await db.all(
-    `SELECT * FROM ai_tasks 
-     WHERE account_id = ? 
-     ORDER BY created_at DESC 
-     LIMIT ?`,
-    [accountId, limit]
-  );
+  try {
+    const tasks = await db.select()
+      .from(aiTasks)
+      .where(eq(aiTasks.partnerId, partnerId))
+      .orderBy(desc(aiTasks.createdAt))
+      .limit(limit);
 
-  return tasks.map((task: any) => ({
-    id: task.id,
-    accountId: task.account_id,
-    taskType: task.task_type,
-    priority: task.priority,
-    status: task.status,
-    inputData: JSON.parse(task.input_data),
-    outputData: task.output_data ? JSON.parse(task.output_data) : undefined,
-    error: task.error_message,
-    createdAt: new Date(task.created_at),
-    completedAt: task.completed_at ? new Date(task.completed_at) : undefined,
-  }));
+    return tasks.map((task) => ({
+      id: task.id,
+      partnerId: task.partnerId,
+      accountId: task.accountId || undefined,
+      taskType: task.taskType as AITaskType,
+      priority: task.priority as 'low' | 'medium' | 'high',
+      status: task.status as 'pending' | 'processing' | 'completed' | 'failed',
+      inputData: task.inputData ? JSON.parse(task.inputData) : {},
+      outputData: task.outputData ? JSON.parse(task.outputData) : undefined,
+      error: task.errorMessage || undefined,
+      createdAt: task.createdAt || undefined,
+      completedAt: task.completedAt || undefined,
+    }));
+  } catch (error) {
+    console.error('❌ Error getting partner tasks:', error);
+    return [];
+  }
 }
 
 // Batch add tasks (for multiple marketplaces)
-export async function addBatchTasks(tasks: Omit<AITask, 'id' | 'status' | 'createdAt'>[]): Promise<number[]> {
-  const taskIds: number[] = [];
+export async function addBatchTasks(tasks: Omit<AITask, 'id' | 'status' | 'createdAt'>[]): Promise<string[]> {
+  const taskIds: string[] = [];
   
   for (const task of tasks) {
-    const id = await addAITask(task);
-    taskIds.push(id);
+    try {
+      const id = await addAITask(task);
+      taskIds.push(id);
+    } catch (error) {
+      console.error('❌ Error adding batch task:', error);
+    }
   }
   
   return taskIds;

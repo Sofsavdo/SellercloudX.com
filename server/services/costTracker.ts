@@ -2,6 +2,10 @@
 // Track, limit, and optimize AI costs per partner
 
 import { storage } from '../storage';
+import { db } from '../db';
+import { aiCostRecords } from '@shared/schema';
+import { eq, and, gte, lte, sql } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
 
 export interface CostRecord {
   id: string;
@@ -44,21 +48,43 @@ const costCache = new Map<string, CostRecord[]>();
 // ========================================
 
 export async function logCost(record: Omit<CostRecord, 'id' | 'timestamp'>): Promise<void> {
+  const recordId = nanoid();
+  const timestamp = new Date();
+  
   const fullRecord: CostRecord = {
     ...record,
-    id: `cost_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    timestamp: new Date(),
+    id: recordId,
+    timestamp,
   };
 
-  // Add to cache
-  const partnerCosts = costCache.get(record.partnerId) || [];
-  partnerCosts.push(fullRecord);
-  costCache.set(record.partnerId, partnerCosts);
+  try {
+    // Save to database
+    await db.insert(aiCostRecords).values({
+      id: recordId,
+      partnerId: record.partnerId,
+      operation: record.operation,
+      model: record.model,
+      tokensUsed: record.tokensUsed,
+      imagesGenerated: record.imagesGenerated,
+      cost: record.cost,
+      tier: record.tier,
+      metadata: record.metadata ? JSON.stringify(record.metadata) : null,
+      createdAt: timestamp,
+    });
 
-  // TODO: Save to database
-  // await storage.createCostRecord(fullRecord);
+    // Add to cache for quick access
+    const partnerCosts = costCache.get(record.partnerId) || [];
+    partnerCosts.push(fullRecord);
+    costCache.set(record.partnerId, partnerCosts);
 
-  console.log(`📊 Cost logged: ${record.partnerId} | ${record.operation} | $${record.cost.toFixed(4)}`);
+    console.log(`📊 Cost logged: ${record.partnerId} | ${record.operation} | $${record.cost.toFixed(4)}`);
+  } catch (error) {
+    console.error('Error logging cost:', error);
+    // Still add to cache even if DB fails
+    const partnerCosts = costCache.get(record.partnerId) || [];
+    partnerCosts.push(fullRecord);
+    costCache.set(record.partnerId, partnerCosts);
+  }
 }
 
 // ========================================
@@ -70,44 +96,83 @@ export async function getUsageSummary(
   periodStart: Date,
   periodEnd: Date
 ): Promise<UsageSummary> {
-  // Get partner tier
-  const partner = await storage.getPartnerById(partnerId);
-  const tier = partner?.pricingTier || 'starter_pro';
-  const budgetLimit = TIER_LIMITS[tier] || 10;
+  try {
+    // Get partner tier
+    const partner = await storage.getPartnerById(partnerId);
+    const tier = partner?.pricingTier || 'starter_pro';
+    const budgetLimit = TIER_LIMITS[tier] || 10;
 
-  // Get costs from cache (or database)
-  const costs = costCache.get(partnerId) || [];
-  const periodCosts = costs.filter(
-    c => c.timestamp >= periodStart && c.timestamp <= periodEnd
-  );
+    // Get costs from database
+    const dbCosts = await db.select()
+      .from(aiCostRecords)
+      .where(
+        and(
+          eq(aiCostRecords.partnerId, partnerId),
+          gte(aiCostRecords.createdAt, periodStart),
+          lte(aiCostRecords.createdAt, periodEnd)
+        )
+      );
 
-  // Calculate totals
-  const totalCost = periodCosts.reduce((sum, c) => sum + c.cost, 0);
+    // Convert to CostRecord format
+    const periodCosts: CostRecord[] = dbCosts.map(c => ({
+      id: c.id,
+      partnerId: c.partnerId,
+      operation: c.operation,
+      model: c.model,
+      tokensUsed: c.tokensUsed || undefined,
+      imagesGenerated: c.imagesGenerated || undefined,
+      cost: c.cost,
+      tier: c.tier,
+      timestamp: c.createdAt || new Date(),
+      metadata: c.metadata ? JSON.parse(c.metadata) : undefined,
+    }));
 
-  // Breakdown by operation
-  const operationBreakdown: Record<string, { count: number; cost: number }> = {};
-  periodCosts.forEach(c => {
-    if (!operationBreakdown[c.operation]) {
-      operationBreakdown[c.operation] = { count: 0, cost: 0 };
-    }
-    operationBreakdown[c.operation].count++;
-    operationBreakdown[c.operation].cost += c.cost;
-  });
+    // Calculate totals
+    const totalCost = periodCosts.reduce((sum, c) => sum + c.cost, 0);
 
-  const remainingBudget = Math.max(0, budgetLimit - totalCost);
-  const utilizationPercent = (totalCost / budgetLimit) * 100;
+    // Breakdown by operation
+    const operationBreakdown: Record<string, { count: number; cost: number }> = {};
+    periodCosts.forEach(c => {
+      if (!operationBreakdown[c.operation]) {
+        operationBreakdown[c.operation] = { count: 0, cost: 0 };
+      }
+      operationBreakdown[c.operation].count++;
+      operationBreakdown[c.operation].cost += c.cost;
+    });
 
-  return {
-    partnerId,
-    tier,
-    periodStart,
-    periodEnd,
-    totalCost,
-    operationBreakdown,
-    remainingBudget,
-    budgetLimit,
-    utilizationPercent,
-  };
+    const remainingBudget = Math.max(0, budgetLimit - totalCost);
+    const utilizationPercent = (totalCost / budgetLimit) * 100;
+
+    return {
+      partnerId,
+      tier,
+      periodStart,
+      periodEnd,
+      totalCost,
+      operationBreakdown,
+      remainingBudget,
+      budgetLimit,
+      utilizationPercent,
+    };
+  } catch (error) {
+    console.error('Error getting usage summary:', error);
+    // Return empty summary on error
+    const partner = await storage.getPartnerById(partnerId);
+    const tier = partner?.pricingTier || 'starter_pro';
+    const budgetLimit = TIER_LIMITS[tier] || 10;
+    
+    return {
+      partnerId,
+      tier,
+      periodStart,
+      periodEnd,
+      totalCost: 0,
+      operationBreakdown: {},
+      remainingBudget: budgetLimit,
+      budgetLimit,
+      utilizationPercent: 0,
+    };
+  }
 }
 
 // ========================================

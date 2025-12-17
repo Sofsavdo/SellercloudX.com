@@ -182,14 +182,8 @@ export function useWebSocket(): UseWebSocketReturn {
     return () => {
       disconnect();
     };
-  }, [user?.id, connect, disconnect]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      disconnect();
-    };
-  }, [disconnect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, user?.role]);
 
   return {
     isConnected,
