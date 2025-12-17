@@ -250,6 +250,21 @@ export const aiMarketplaceAccounts = sqliteTable('ai_marketplace_accounts', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }),
 });
 
+// ==================== AI COST TRACKING ====================
+
+export const aiCostRecords = sqliteTable('ai_cost_records', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => partners.id),
+  operation: text('operation').notNull(),
+  model: text('model').notNull(),
+  tokensUsed: integer('tokens_used'),
+  imagesGenerated: integer('images_generated'),
+  cost: real('cost').notNull(),
+  tier: text('tier').notNull(),
+  metadata: text('metadata'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+});
+
 // ==================== REMOTE ACCESS ====================
 
 export const remoteAccessSessions = sqliteTable('remote_access_sessions', {
@@ -582,6 +597,7 @@ export type Order = typeof orders.$inferSelect;
 export type Analytics = typeof analytics.$inferSelect;
 export type AITask = typeof aiTasks.$inferSelect;
 export type AIProductCard = typeof aiProductCards.$inferSelect;
+export type AICostRecord = typeof aiCostRecords.$inferSelect;
 export type Referral = typeof referrals.$inferSelect;
 export type ReferralEarning = typeof referralEarnings.$inferSelect;
 export type Withdrawal = typeof withdrawals.$inferSelect;

@@ -102,17 +102,25 @@ class WarehouseManagement {
   // Scan barcode and get product info
   async scanBarcode(barcode: string): Promise<BarcodeData | null> {
     try {
-      // TODO: Query database for product by barcode
-      // For now, mock data
       console.log(`📷 Scanning barcode: ${barcode}`);
       
-      // Mock product lookup
+      // Query database for product by barcode
+      const product = await storage.getProductByBarcode(barcode);
+      
+      if (!product) {
+        console.log(`❌ Product not found for barcode: ${barcode}`);
+        return null;
+      }
+
+      // Get warehouse location for product
+      const location = await this.getProductLocationFromDB(product.id);
+      
       return {
-        productId: 'prod-123',
-        sku: 'SKU-123',
-        barcode,
-        name: 'iPhone 15 Pro',
-        location: 'A-01-05'
+        productId: product.id,
+        sku: product.sku || '',
+        barcode: product.barcode || barcode,
+        name: product.name,
+        location: location || 'Unknown'
       };
     } catch (error) {
       console.error('Error scanning barcode:', error);
@@ -125,26 +133,33 @@ class WarehouseManagement {
   // Generate pick list for order
   async generatePickList(orderId: string): Promise<PickList> {
     try {
-      // TODO: Get order from database
-      const order: any = { 
-        id: orderId, 
-        orderNumber: 'ORD-123',
-        items: [
-          { productId: 'prod-1', sku: 'SKU-1', name: 'Product 1', quantity: 2 },
-          { productId: 'prod-2', sku: 'SKU-2', name: 'Product 2', quantity: 1 }
-        ]
-      };
+      // Get order from database
+      const order = await storage.getOrderById(orderId);
+      
+      if (!order) {
+        throw new Error(`Order not found: ${orderId}`);
+      }
 
-      const pickListItems: PickListItem[] = order.items.map((item: any) => ({
-        productId: item.productId,
-        sku: item.sku,
-        name: item.name,
-        quantity: item.quantity,
-        location: this.getProductLocation(item.productId),
-        barcode: this.generateBarcode(item.productId, item.sku),
-        picked: false,
-        pickedQuantity: 0
-      }));
+      // Get order items
+      const orderItems = await storage.getOrderItems(orderId);
+
+      const pickListItems: PickListItem[] = await Promise.all(
+        orderItems.map(async (item) => {
+          const product = await storage.getProductById(item.productId);
+          const location = await this.getProductLocationFromDB(item.productId);
+          
+          return {
+            productId: item.productId,
+            sku: product?.sku || '',
+            name: product?.name || 'Unknown Product',
+            quantity: item.quantity,
+            location: location || this.getProductLocation(item.productId),
+            barcode: product?.barcode || this.generateBarcode(item.productId, product?.sku || ''),
+            picked: false,
+            pickedQuantity: 0
+          };
+        })
+      );
 
       const pickList: PickList = {
         id: nanoid(),
@@ -163,13 +178,36 @@ class WarehouseManagement {
     }
   }
 
-  // Get product location in warehouse
+  // Get product location from database
+  private async getProductLocationFromDB(productId: string): Promise<string | null> {
+    try {
+      // Query warehouse stock for product location
+      const warehouses = await storage.getAllWarehouses();
+      
+      for (const warehouse of warehouses) {
+        const stock = await storage.getWarehouseStock(warehouse.id);
+        const productStock = stock.find(s => s.productId === productId);
+        
+        if (productStock && productStock.location) {
+          return productStock.location;
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error getting product location:', error);
+      return null;
+    }
+  }
+
+  // Get product location in warehouse (fallback to generated location)
   private getProductLocation(productId: string): string {
-    // TODO: Get from database
-    // For now, generate mock location
-    const zone = String.fromCharCode(65 + Math.floor(Math.random() * 5)); // A-E
-    const aisle = String(Math.floor(Math.random() * 20) + 1).padStart(2, '0');
-    const shelf = String(Math.floor(Math.random() * 10) + 1).padStart(2, '0');
+    // Generate location based on product ID hash for consistency
+    const hash = this.hashProductId(productId);
+    const zoneNum = parseInt(hash.substring(0, 1)) % 5;
+    const zone = String.fromCharCode(65 + zoneNum); // A-E
+    const aisle = hash.substring(1, 3);
+    const shelf = hash.substring(3, 5);
     return `${zone}-${aisle}-${shelf}`;
   }
 
@@ -190,7 +228,57 @@ class WarehouseManagement {
   // Generate packing slip
   async generatePackingSlip(orderId: string): Promise<PackingSlip> {
     try {
-      // TODO: Get order from database
+      // Get order from database
+      const order = await storage.getOrderById(orderId);
+      
+      if (!order) {
+        throw new Error(`Order not found: ${orderId}`);
+      }
+
+      // Get order items
+      const orderItems = await storage.getOrderItems(orderId);
+      
+      const packingSlipItems: PackingSlipItem[] = await Promise.all(
+        orderItems.map(async (item) => {
+          const product = await storage.getProductById(item.productId);
+          
+          return {
+            sku: product?.sku || '',
+            name: product?.name || 'Unknown Product',
+            quantity: item.quantity,
+            weight: parseFloat(product?.weight || '0')
+          };
+        })
+      );
+
+      const totalWeight = packingSlipItems.reduce((sum, item) => 
+        sum + (item.weight * item.quantity), 0
+      );
+
+      const packingSlip: PackingSlip = {
+        id: nanoid(),
+        orderId,
+        orderNumber: order.orderNumber,
+        customerName: order.customerName,
+        shippingAddress: order.shippingAddress || '',
+        items: packingSlipItems,
+        totalWeight,
+        shippingMethod: 'Standard', // Default shipping method
+        trackingNumber: order.trackingNumber,
+        createdAt: new Date()
+      };
+
+      console.log(`📦 Packing slip generated for order ${order.orderNumber}`);
+      return packingSlip;
+    } catch (error) {
+      console.error('Error generating packing slip:', error);
+      throw error;
+    }
+  }
+
+  // Old mock implementation removed
+  async _generatePackingSlipOld(orderId: string): Promise<PackingSlip> {
+    try {
       const order: any = {
         id: orderId,
         orderNumber: 'ORD-123',
