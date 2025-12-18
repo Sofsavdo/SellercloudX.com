@@ -43,6 +43,10 @@ import autonomousManagerRoutes from "./routes/autonomousManager";
 import fulfillmentAIIntegration from "./services/fulfillmentAIIntegration";
 import appConfig from "./config";
 import { uploadLimiter } from "./middleware/rateLimiter";
+import paymentRoutes from "./routes/paymentRoutes";
+import whatsappRoutes from "./routes/whatsappRoutes";
+import telegramRoutes from "./routes/telegramRoutes";
+import premiumFeaturesRoutes from "./routes/premiumFeaturesRoutes";
 
 // Enhanced authentication middleware with better error handling
 function requireAuth(req: Request, res: Response, next: NextFunction) {
@@ -1389,6 +1393,18 @@ export function registerRoutes(app: express.Application): Server {
   // ZERO HUMAN INTERVENTION - Fully automated product management
   // Auto-sync from marketplaces, auto-generate cards, auto-publish
   app.use("/api/autonomous", requirePartnerWithData, autonomousManagerRoutes);
+
+  // ==================== PAYMENT SYSTEM ====================
+  app.use("/api/payment", paymentRoutes);
+
+  // ==================== WHATSAPP BUSINESS ====================
+  app.use("/api/whatsapp", whatsappRoutes);
+
+  // ==================== TELEGRAM BOT ====================
+  app.use("/api/telegram", telegramRoutes);
+
+  // ==================== PREMIUM FEATURES ====================
+  app.use("/api/premium", premiumFeaturesRoutes);
 
   // ==================== AI PRODUCT RECOGNITION ====================
   // Recognize product from image
