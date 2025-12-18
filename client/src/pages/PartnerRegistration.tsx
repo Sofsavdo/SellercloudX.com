@@ -1,5 +1,5 @@
-// SIMPLE PARTNER REGISTRATION - SellerCloudX
-// Fast onboarding - Admin activates later
+// PROFESSIONAL PARTNER REGISTRATION - SellerCloudX
+// Single screen, compact form
 
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { Rocket, ArrowRight, CheckCircle, Sparkles, Gift, Home } from 'lucide-react';
+import { Rocket, ArrowRight, CheckCircle, Sparkles, Gift, Home, User, Building, Mail, Phone, Lock, Tag } from 'lucide-react';
 
 export default function PartnerRegistration() {
   const { toast } = useToast();

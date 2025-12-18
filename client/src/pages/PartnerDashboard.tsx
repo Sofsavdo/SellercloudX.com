@@ -18,6 +18,7 @@ import { PartnerTierInfo } from '@/components/PartnerTierInfo';
 import { AIUsageTracker } from '@/components/AIUsageTracker';
 import { DataExportButton } from '@/components/DataExportButton';
 import { ComprehensiveAnalytics } from '@/components/ComprehensiveAnalytics';
+import PartnerVerificationSection from '@/components/PartnerVerificationSection';
 import { InventoryManagement } from '@/components/InventoryManagement';
 import { OrderManagement } from '@/components/OrderManagement';
 import { StockAlerts } from '@/components/StockAlerts';
@@ -365,6 +366,14 @@ export default function PartnerDashboard() {
 
 
             <TabsContent value="overview" className="space-y-6">
+              {/* Partner Verification Section */}
+              {partner && !partner.approved && (
+                <PartnerVerificationSection 
+                  partner={partner} 
+                  onUpdate={() => queryClient.invalidateQueries({ queryKey: ['/api/user'] })}
+                />
+              )}
+
               {/* Partner Tier / Plan Info Card */}
               {partner && (() => {
                 const planType = (partner as any).planType || 'local_full_service';
