@@ -188,3 +188,7 @@ uploads/
 # Environment files
 *.env
 *.env.*
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
