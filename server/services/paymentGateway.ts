@@ -512,6 +512,116 @@ class PaymentGatewayService {
       return { success: false, error: error.message };
     }
   }
+
+  // ==================== PREMIUM FEATURES PAYMENT ====================
+
+  /**
+   * Process premium feature payment
+   */
+  async processPremiumFeaturePayment(params: {
+    partnerId: string;
+    featureId: string;
+    amount: number;
+    provider: PaymentProvider;
+    description?: string;
+  }): Promise<{
+    success: boolean;
+    paymentUrl?: string;
+    transactionId?: string;
+    error?: string;
+  }> {
+    try {
+      const { partnerId, featureId, amount, provider, description } = params;
+
+      // Generate unique transaction ID
+      const transactionId = `PREMIUM-${featureId}-${partnerId}-${Date.now()}`;
+
+      // Generate payment URL based on provider
+      let paymentUrl: string;
+      
+      switch (provider) {
+        case PaymentProvider.CLICK:
+          paymentUrl = this.generateClickPaymentUrl({
+            amount,
+            orderId: transactionId,
+            partnerId,
+            returnUrl: `${process.env.FRONTEND_URL}/premium/payment/success`
+          });
+          break;
+        
+        case PaymentProvider.PAYME:
+          paymentUrl = this.generatePaymePaymentUrl({
+            amount,
+            orderId: transactionId,
+            partnerId
+          });
+          break;
+        
+        default:
+          return { success: false, error: 'Unsupported payment provider' };
+      }
+
+      // Create payment record
+      await this.createTransaction({
+        transactionId,
+        orderId: transactionId,
+        partnerId,
+        amount,
+        provider,
+        status: PaymentStatus.PENDING,
+        metadata: { 
+          featureId, 
+          description,
+          type: 'premium_feature'
+        },
+        createdAt: new Date()
+      });
+
+      return {
+        success: true,
+        paymentUrl,
+        transactionId
+      };
+    } catch (error: any) {
+      console.error('Premium feature payment error:', error);
+      return {
+        success: false,
+        error: error.message || 'Payment processing failed'
+      };
+    }
+  }
+
+  /**
+   * Check payment status
+   */
+  async checkPaymentStatus(transactionId: string): Promise<{
+    status: string;
+    completed: boolean;
+    error?: string;
+  }> {
+    try {
+      const transaction = await this.getTransactionById(transactionId);
+
+      if (!transaction) {
+        return { 
+          status: 'not_found', 
+          completed: false,
+          error: 'Transaction not found'
+        };
+      }
+
+      return {
+        status: transaction.status,
+        completed: transaction.status === PaymentStatus.COMPLETED
+      };
+    } catch (error: any) {
+      return {
+        status: 'error',
+        completed: false,
+        error: error.message
+      };
+    }
+  }
 }
 
 export const paymentGateway = new PaymentGatewayService();

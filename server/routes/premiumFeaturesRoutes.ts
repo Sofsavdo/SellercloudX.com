@@ -3,8 +3,11 @@ import { requireAuth } from '../middleware/auth';
 import { videoGenerationService } from '../services/videoGenerationService';
 import { competitorIntelligence } from '../services/competitorIntelligence';
 import { smsService } from '../services/smsService';
+import { paymentGateway, PaymentProvider } from '../services/paymentGateway';
+import multer from 'multer';
 
 const router = Router();
+const upload = multer({ dest: 'uploads/' });
 
 // ==================== VIDEO GENERATION ====================
 
@@ -191,6 +194,142 @@ router.post('/sms/send-otp', requireAuth, async (req, res) => {
     const result = await smsService.sendOTP(phone, code);
 
     res.json(result);
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// ==================== BULK PROCESSING ====================
+
+/**
+ * Process bulk products from Excel
+ */
+router.post('/bulk/process', requireAuth, upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No file uploaded'
+      });
+    }
+
+    // TODO: Implement bulk processing logic
+    // For now, return mock response
+    res.json({
+      success: true,
+      batchId: `batch_${Date.now()}`,
+      totalProducts: 100,
+      message: 'Batch processing started'
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * Check bulk processing status
+ */
+router.get('/bulk/status/:batchId', requireAuth, async (req, res) => {
+  try {
+    const { batchId } = req.params;
+
+    // TODO: Implement status checking logic
+    // For now, return mock response
+    res.json({
+      status: 'processing',
+      totalProducts: 100,
+      processedProducts: 50,
+      successCount: 48,
+      errorCount: 2
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// ==================== PREMIUM PAYMENTS ====================
+
+/**
+ * Create premium feature payment
+ */
+router.post('/payment/create', requireAuth, async (req, res) => {
+  try {
+    const { featureId, amount, provider, description } = req.body;
+    const partnerId = req.user!.id;
+
+    if (!featureId || !amount || !provider) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields'
+      });
+    }
+
+    const result = await paymentGateway.processPremiumFeaturePayment({
+      partnerId,
+      featureId,
+      amount,
+      provider: provider as PaymentProvider,
+      description
+    });
+
+    res.json(result);
+  } catch (error: any) {
+    console.error('Premium payment error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Payment creation failed'
+    });
+  }
+});
+
+/**
+ * Check premium payment status
+ */
+router.get('/payment/status/:transactionId', requireAuth, async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+
+    const status = await paymentGateway.checkPaymentStatus(transactionId);
+
+    res.json(status);
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * Get premium usage statistics
+ */
+router.get('/usage/stats', requireAuth, async (req, res) => {
+  try {
+    const partnerId = req.user!.id;
+
+    // TODO: Implement usage tracking
+    // For now, return mock data
+    res.json({
+      success: true,
+      data: {
+        totalSpent: 0,
+        featuresUsed: 0,
+        videoGeneration: { count: 0, spent: 0 },
+        competitorAnalysis: { count: 0, spent: 0 },
+        bulkProcessing: { count: 0, spent: 0 },
+        premiumSEO: { count: 0, spent: 0 },
+        trendReports: { count: 0, spent: 0 }
+      }
+    });
   } catch (error: any) {
     res.status(500).json({
       success: false,
