@@ -47,6 +47,7 @@ import paymentRoutes from "./routes/paymentRoutes";
 import whatsappRoutes from "./routes/whatsappRoutes";
 import telegramRoutes from "./routes/telegramRoutes";
 import premiumFeaturesRoutes from "./routes/premiumFeaturesRoutes";
+import advancedFeaturesRoutes from "./routes/advancedFeaturesRoutes";
 
 // Enhanced authentication middleware with better error handling
 function requireAuth(req: Request, res: Response, next: NextFunction) {
@@ -1405,6 +1406,9 @@ export function registerRoutes(app: express.Application): Server {
 
   // ==================== PREMIUM FEATURES ====================
   app.use("/api/premium", premiumFeaturesRoutes);
+
+  // ==================== ADVANCED FEATURES ====================
+  app.use("/api/advanced", advancedFeaturesRoutes);
 
   // ==================== AI PRODUCT RECOGNITION ====================
   // Recognize product from image
