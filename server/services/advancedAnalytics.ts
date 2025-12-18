@@ -1,7 +1,11 @@
 import { db } from '../db';
 import { orders, products, partners } from '@shared/schema';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
-import { openai } from './openaiService';
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || ''
+});
 
 interface PredictionResult {
   metric: string;

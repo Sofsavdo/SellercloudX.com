@@ -1,5 +1,9 @@
 import axios from 'axios';
-import { openai } from './openaiService';
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || ''
+});
 
 // AI Video Generation Service
 class VideoGenerationService {
