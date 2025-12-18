@@ -1,0 +1,24 @@
+# Railway ignore file
+# Force fresh build
+
+# Development files
+*.log
+*.md
+.git/
+.github/
+.vscode/
+.idea/
+
+# Test files
+**/__tests__/
+*.test.ts
+*.test.tsx
+
+# Documentation (not needed for runtime)
+docs/
+*.md
+!README.md
+
+# Cache directories
+.cache/
+.temp/
