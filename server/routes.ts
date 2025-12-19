@@ -124,13 +124,28 @@ async function requirePartnerWithData(req: Request, res: Response, next: NextFun
   
   // Get partner data for non-admin users
   try {
-    const partner = await storage.getPartnerByUserId(user.id);
+    let partner = await storage.getPartnerByUserId(user.id);
+    
+    // Auto-create partner if missing (for legacy users)
     if (!partner) {
-      console.error(`Partner not found for user ${user.id}`);
-      return res.status(404).json({ 
-        message: "Hamkor ma'lumotlari topilmadi",
-        code: "PARTNER_NOT_FOUND"
-      });
+      console.warn(`Partner not found for user ${user.id}, auto-creating...`);
+      try {
+        partner = await storage.createPartner({
+          userId: user.id,
+          businessName: user.username || 'Default Business',
+          businessCategory: 'general',
+          monthlyRevenue: '0',
+          phone: user.phone || '+998000000000',
+          notes: 'Auto-created partner profile'
+        });
+        console.log(`✅ Auto-created partner ${partner.id} for user ${user.id}`);
+      } catch (createError) {
+        console.error(`Failed to auto-create partner for user ${user.id}:`, createError);
+        return res.status(404).json({ 
+          message: "Hamkor ma'lumotlari topilmadi va yaratib bo'lmadi",
+          code: "PARTNER_NOT_FOUND"
+        });
+      }
     }
     
     // Attach partner data to req.user
