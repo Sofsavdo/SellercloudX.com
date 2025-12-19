@@ -12,11 +12,11 @@ import {
   Copy, 
   Share2, 
   TrendingUp, 
-  DollarSign, 
   Users, 
   CheckCircle, 
   Clock 
 } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 
 export function ReferralDashboard() {
   const { toast } = useToast();
