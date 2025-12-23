@@ -88,6 +88,9 @@ interface Partner {
   };
 }
 
+// FULFILLMENT FEATURE - Hidden for SaaS-only mode
+// Uncomment when fulfillment services are ready
+/*
 interface FulfillmentRequest {
   id: string;
   partnerId: string;
@@ -106,6 +109,7 @@ interface FulfillmentRequest {
   createdAt: string;
   updatedAt: string;
 }
+*/
 
 interface TierUpgradeRequest {
   id: string;
@@ -182,6 +186,9 @@ export default function AdminPanel() {
     enabled: !!user && user.role === 'admin',
   });
 
+  // FULFILLMENT FEATURE - Hidden for SaaS-only mode
+  // Uncomment when fulfillment services are ready
+  /*
   const { data: fulfillmentRequests = [], isLoading: requestsLoading } = useQuery<FulfillmentRequest[]>({
     queryKey: ['/api/fulfillment-requests'],
     queryFn: async () => {
@@ -190,6 +197,9 @@ export default function AdminPanel() {
     },
     enabled: !!user && user.role === 'admin',
   });
+  */
+  const fulfillmentRequests: any[] = [];
+  const requestsLoading = false;
 
   const { data: tierUpgradeRequests = [], isLoading: tierRequestsLoading } = useQuery<TierUpgradeRequest[]>({
     queryKey: ['/api/admin/tier-upgrade-requests'],
@@ -222,6 +232,8 @@ export default function AdminPanel() {
     },
   });
 
+  // FULFILLMENT FEATURE - Hidden for SaaS-only mode
+  /*
   const updateFulfillmentRequestMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
       const response = await apiRequest('PUT', `/api/fulfillment-requests/${id}`, updates);
@@ -242,6 +254,7 @@ export default function AdminPanel() {
       });
     },
   });
+  */
 
   const updateTierRequestMutation = useMutation({
     mutationFn: async ({ id, status, adminNotes }: { id: string; status: string; adminNotes?: string }) => {
@@ -617,6 +630,8 @@ export default function AdminPanel() {
                         <Badge className="bg-orange-500">{partners.filter(p => !p.isApproved).length}</Badge>
                       </div>
                       
+                      {/* FULFILLMENT FEATURE - Hidden for SaaS-only mode */}
+                      {false && (
                       <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer" onClick={() => setSelectedTab('requests')}>
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
@@ -629,6 +644,7 @@ export default function AdminPanel() {
                         </div>
                         <Badge className="bg-blue-500">{fulfillmentRequests.filter(r => r.status === 'pending').length}</Badge>
                       </div>
+                      )}
 
                       <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-100 hover:bg-purple-100 transition-colors cursor-pointer" onClick={() => setSelectedTab('tiers')}>
                         <div className="flex items-center gap-3">
@@ -716,10 +732,13 @@ export default function AdminPanel() {
                     <Crown className="w-4 h-4 mr-2" />
                     Tariflar
                   </TabsTrigger>
+                  {/* FULFILLMENT FEATURE - Hidden for SaaS-only mode */}
+                  {false && (
                   <TabsTrigger value="requests">
                     <Package className="w-4 h-4 mr-2" />
                     So'rovlar
                   </TabsTrigger>
+                  )}
                 </TabsList>
 
                 <TabsContent value="list">
@@ -831,6 +850,8 @@ export default function AdminPanel() {
                   </div>
                 </TabsContent>
 
+                {/* FULFILLMENT FEATURE - Hidden for SaaS-only mode */}
+                {false && (
                 <TabsContent value="requests">
                   {/* Fulfillment Requests */}
                   <div className="space-y-6">
@@ -924,117 +945,12 @@ export default function AdminPanel() {
                     </div>
                   </div>
                 </TabsContent>
+                )}
+
               </Tabs>
             </TabsContent>
 
-            {/* Fulfillment Requests Tab */}
-            <TabsContent value="requests" className="space-y-6">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-bold">Fulfillment So'rovlari</h2>
-                  <p className="text-muted-foreground">Hamkorlardan kelgan so'rovlarni boshqarish</p>
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="So'rov qidirish..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-64"
-                  />
-                  <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="px-3 py-2 border border-input rounded-lg bg-background"
-                  >
-                    <option value="all">Barchasi</option>
-                    <option value="pending">Kutilayotgan</option>
-                    <option value="approved">Tasdiqlangan</option>
-                    <option value="in_progress">Jarayonda</option>
-                    <option value="completed">Yakunlangan</option>
-                  </select>
-                </div>
-              </div>
-              <div className="grid gap-6">
-                {filteredRequests.map((request) => (
-                  <Card key={request.id} className="shadow-elegant hover-lift">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-lg font-semibold">{request.title}</h3>
-                            <Badge className={getPriorityColor(request.priority)}>
-                              {request.priority}
-                            </Badge>
-                          </div>
-                          <p className="text-muted-foreground mb-3">{request.description}</p>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                            <div>
-                              <p className="text-muted-foreground">Turi:</p>
-                              <p className="font-medium">{request.requestType}</p>
-                            </div>
-                            <div>
-                              <p className="text-muted-foreground">Taxminiy xarajat:</p>
-                              <p className="font-medium">
-                                {request.estimatedCost ? formatCurrency(parseFloat(request.estimatedCost)) : 'Belgilanmagan'}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-muted-foreground">Yaratilgan:</p>
-                              <p className="font-medium">
-                                {new Date(request.createdAt).toLocaleDateString('uz-UZ')}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {getStatusBadge(request.status)}
-                        </div>
-                      </div>
-                      {request.status === 'pending' && (
-                        <div className="flex gap-2 pt-4 border-t">
-                          <Button
-                            onClick={() => updateFulfillmentRequestMutation.mutate({
-                              id: request.id,
-                              updates: { status: 'approved' }
-                            })}
-                            disabled={updateFulfillmentRequestMutation.isPending}
-                            variant="success"
-                            size="sm"
-                          >
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Tasdiqlash
-                          </Button>
-                          <Button
-                            onClick={() => updateFulfillmentRequestMutation.mutate({
-                              id: request.id,
-                              updates: { status: 'in_progress' }
-                            })}
-                            disabled={updateFulfillmentRequestMutation.isPending}
-                            variant="outline"
-                            size="sm"
-                          >
-                            <RefreshCw className="w-4 h-4 mr-2" />
-                            Jarayonga o'tkazish
-                          </Button>
-                          <Button
-                            onClick={() => updateFulfillmentRequestMutation.mutate({
-                              id: request.id,
-                              updates: { status: 'cancelled' }
-                            })}
-                            disabled={updateFulfillmentRequestMutation.isPending}
-                            variant="destructive"
-                            size="sm"
-                          >
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Bekor qilish
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
+            {/* FULFILLMENT FEATURE - Removed duplicate, already hidden inside nested Tabs */}
 
             {/* Tier Upgrade Requests Tab */}
             <TabsContent value="tiers" className="space-y-6">

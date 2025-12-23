@@ -116,6 +116,9 @@ export const marketplaceApiConfigs = sqliteTable('marketplace_api_configs', {
 });
 
 // ==================== FULFILLMENT ====================
+// FUTURE FEATURE: Fulfillment services (warehousing, logistics)
+// Currently hidden for SaaS-only mode
+// Uncomment when fulfillment services are ready to launch
 
 export const fulfillmentRequests = sqliteTable('fulfillment_requests', {
   id: text('id').primaryKey(),
@@ -132,6 +135,7 @@ export const fulfillmentRequests = sqliteTable('fulfillment_requests', {
   completedAt: integer('completed_at', { mode: 'timestamp' }),
 });
 
+// FUTURE FEATURE: Warehouse management
 export const warehouses = sqliteTable('warehouses', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
@@ -142,6 +146,7 @@ export const warehouses = sqliteTable('warehouses', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 });
 
+// FUTURE FEATURE: Warehouse stock tracking
 export const warehouseStock = sqliteTable('warehouse_stock', {
   id: text('id').primaryKey(),
   warehouseId: text('warehouse_id').notNull().references(() => warehouses.id),

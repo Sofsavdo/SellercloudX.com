@@ -9,7 +9,8 @@ import { Navigation } from '@/components/Navigation';
 import { LoginForm } from '@/components/LoginForm';
 import { PartnerStats } from '@/components/PartnerStats';
 import { ProductForm } from '@/components/ProductForm';
-import { FulfillmentRequestForm } from '@/components/FulfillmentRequestForm';
+// FULFILLMENT FEATURE - Hidden for SaaS-only mode
+// import { FulfillmentRequestForm } from '@/components/FulfillmentRequestForm';
 import { ProfitDashboard } from '@/components/ProfitDashboard';
 import { TrendingProducts } from '@/components/TrendingProducts';
 import { TrendingProductsDashboard } from '@/components/TrendingProductsDashboard';
@@ -44,7 +45,8 @@ import {
 } from 'lucide-react';
 
 interface Product { id: string; name: string; category: string; description: string; price: string; costPrice: string; sku: string; barcode: string; weight: string; isActive: boolean; createdAt: string; }
-interface FulfillmentRequest { id: string; title: string; description: string; status: string; priority: string; estimatedCost: string; actualCost: string; createdAt: string; }
+// FULFILLMENT FEATURE - Hidden for SaaS-only mode
+// interface FulfillmentRequest { id: string; title: string; description: string; status: string; priority: string; estimatedCost: string; actualCost: string; createdAt: string; }
 interface Analytics { id: string; date: string; revenue: string; orders: number; profit: string; commissionPaid: string; marketplace: string; category: string; }
 
 export default function PartnerDashboard() {
@@ -93,6 +95,8 @@ export default function PartnerDashboard() {
     enabled: !!user,
   });
 
+  // FULFILLMENT FEATURE - Hidden for SaaS-only mode
+  /*
   const { data: fulfillmentRequests = [], isLoading: requestsLoading } = useQuery<FulfillmentRequest[]>({
     queryKey: ['/api/fulfillment-requests'],
     queryFn: async () => {
@@ -101,6 +105,9 @@ export default function PartnerDashboard() {
     },
     enabled: !!user,
   });
+  */
+  const fulfillmentRequests: any[] = [];
+  const requestsLoading = false;
 
   const { data: analytics = [], isLoading: analyticsLoading } = useQuery<Analytics[]>({
     queryKey: ['/api/analytics'],
