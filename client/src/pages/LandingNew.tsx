@@ -18,7 +18,31 @@ export default function LandingNew() {
   const [showLoginMenu, setShowLoginMenu] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+        @keyframes pulse-glow {
+          0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+          50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8); }
+        }
+        @keyframes gradient-shift {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+        .animate-pulse-glow {
+          animation: pulse-glow 2s ease-in-out infinite;
+        }
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient-shift 5s ease infinite;
+        }
+      `}</style>
       
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b shadow-sm">
@@ -78,8 +102,15 @@ export default function LandingNew() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <div className="max-w-7xl mx-auto">
+      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}}></div>
+          <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-pink-400/20 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
             <Badge className="mb-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 text-base font-semibold shadow-lg">
               <Zap className="w-4 h-4 mr-2" />
@@ -95,16 +126,16 @@ export default function LandingNew() {
             </h1>
             
             <p className="text-xl sm:text-2xl text-gray-700 mb-10 max-w-4xl mx-auto leading-relaxed">
-              Marketplace'da savdo qilish uchun <span className="font-bold text-blue-600">kuniga 15 daqiqa</span> kifoya.
+              <span className="font-bold text-blue-600">8-10 soat</span> ish o'rniga kuniga faqat <span className="font-bold text-green-600">15-30 daqiqa</span>.
               <br />
-              Qolgan ishlarni AI 24/7 bajaradi. Siz faqat natijani ko'rasiz.
+              Qolgan ishlarni AI 24/7 avtomatik bajaradi. <span className="font-bold text-purple-600">10 ta mahsulot bilan bepul sinab ko'ring!</span>
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
               <Button 
                 size="lg"
                 onClick={() => setLocation('/partner-registration')}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-xl px-12 py-8 shadow-2xl hover:shadow-blue-500/50 transition-all hover:scale-105"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-xl px-12 py-8 shadow-2xl hover:shadow-blue-500/50 transition-all hover:scale-105 animate-pulse-glow"
               >
                 <Rocket className="w-6 h-6 mr-3" />
                 Bepul Boshlash
@@ -125,15 +156,15 @@ export default function LandingNew() {
             <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-600">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="font-semibold">100% BEPUL boshlash</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
                 <span>Kredit karta kerak emas</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
-                <span>14 kun bepul sinov</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span>Istalgan vaqt bekor qilish</span>
+                <span>10 ta mahsulot bepul</span>
               </div>
             </div>
           </div>
@@ -175,8 +206,8 @@ export default function LandingNew() {
               {
                 icon: Clock,
                 title: '95% Vaqt Tejash',
-                description: 'Kuniga 8 soat ish o\'rniga faqat 30 daqiqa. AI qolgan ishlarni bajaradi.',
-                metric: '7.5 soat/kun',
+                description: '8-10 soat ish o\'rniga kuniga faqat 15-30 daqiqa. AI qolgan ishlarni avtomatik bajaradi.',
+                metric: '8-10 soat → 15-30 daq',
                 color: 'blue'
               },
               {
@@ -190,13 +221,13 @@ export default function LandingNew() {
                 icon: DollarSign,
                 title: '80% Xarajat Kamayishi',
                 description: 'Xodim, ofis, dasturlar uchun xarajatlar yo\'q. Faqat natija uchun to\'lov.',
-                metric: '₩ 15M/oy tejash',
+                metric: '15-55 mln so\'m/oy tejash',
                 color: 'purple'
               }
             ].map((item, i) => (
-              <Card key={i} className="border-2 hover:border-blue-400 transition-all hover:shadow-xl">
+              <Card key={i} className="border-2 hover:border-blue-400 transition-all hover:shadow-xl transform hover:scale-105 animate-float" style={{animationDelay: `${i * 0.2}s`}}>
                 <CardHeader>
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-${item.color}-500 to-${item.color}-600 flex items-center justify-center mb-4`}>
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-${item.color}-500 to-${item.color}-600 flex items-center justify-center mb-4 animate-gradient`}>
                     <item.icon className="w-8 h-8 text-white" />
                   </div>
                   <CardTitle className="text-2xl">{item.title}</CardTitle>
@@ -236,7 +267,7 @@ export default function LandingNew() {
                 step: '2',
                 icon: Bot,
                 title: 'AI\'ni Sozlang',
-                description: 'Mahsulot rasmini yuklang. AI qolgan ishlarni bajaradi.',
+                description: 'Mahsulotingizni oddiy rasmga oling va AI hamma ishni o\'zi bajaradi.',
                 time: '5 daqiqa'
               },
               {
@@ -292,18 +323,69 @@ export default function LandingNew() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { icon: ImageIcon, title: 'AI Kartochka Yaratish', desc: '40 soniyada professional mahsulot kartochkasi' },
-              { icon: Globe, title: '3 Tilda Tarjima', desc: 'O\'zbek, Rus, Ingliz tillarida avtomatik' },
-              { icon: BarChart3, title: 'Narx Optimizatsiya', desc: 'AI eng yaxshi narxni topadi' },
-              { icon: Target, title: 'SEO Optimizatsiya', desc: 'Google va marketplace uchun' },
-              { icon: LineChart, title: 'Savdo Tahlili', desc: 'Real-time statistika va prognoz' },
-              { icon: Shield, title: 'Avtomatik Monitoring', desc: '24/7 kuzatuv va ogohlantirishlar' }
+              { 
+                icon: ImageIcon, 
+                title: 'AI Kartochka Yaratish', 
+                desc: '40 soniyada professional mahsulot kartochkasi. Title, description, keywords - hammasi avtomatik.',
+                badge: 'GPT-4 Vision'
+              },
+              { 
+                icon: Globe, 
+                title: '3 Tilda Tarjima', 
+                desc: 'O\'zbek, Rus, Ingliz tillarida avtomatik tarjima. Har bir til uchun SEO optimizatsiya.',
+                badge: 'Neural MT'
+              },
+              { 
+                icon: BarChart3, 
+                title: 'Smart Narx Optimizatsiya', 
+                desc: 'AI raqobatchilarni tahlil qilib, eng optimal narxni tavsiya qiladi. Maksimal foyda.',
+                badge: 'AI Powered'
+              },
+              { 
+                icon: Target, 
+                title: 'SEO Optimizatsiya', 
+                desc: 'Google va marketplace algoritmlari uchun maxsus optimizatsiya. Top pozitsiyalar.',
+                badge: 'Auto SEO'
+              },
+              { 
+                icon: LineChart, 
+                title: 'Savdo Tahlili', 
+                desc: 'Real-time statistika, prognozlar, trend tahlili. Har bir mahsulot uchun batafsil hisobot.',
+                badge: 'Analytics'
+              },
+              { 
+                icon: Shield, 
+                title: 'Avtomatik Monitoring', 
+                desc: '24/7 narx kuzatuv, stok monitoring, raqobatchi tahlili. Telegram orqali ogohlantirishlar.',
+                badge: '24/7 Active'
+              },
+              { 
+                icon: Bot, 
+                title: 'Bulk Operatsiyalar', 
+                desc: 'Yuzlab mahsulotni bir vaqtda yuklash, yangilash, narx o\'zgartirish. Excel import/export.',
+                badge: 'Bulk Actions'
+              },
+              { 
+                icon: Infinity, 
+                title: '4 Marketplace Integratsiya', 
+                desc: 'Uzum, Asaxiy, Olcha, Mediapark - barchasi bitta platformada. Sinxronizatsiya avtomatik.',
+                badge: 'Multi-channel'
+              },
+              { 
+                icon: Award, 
+                title: 'Smart Recommendations', 
+                desc: 'AI sizga eng yaxshi mahsulotlar, kategoriyalar va strategiyalarni tavsiya qiladi.',
+                badge: 'AI Insights'
+              }
             ].map((feature, i) => (
-              <Card key={i} className="border hover:border-blue-400 transition-all hover:shadow-lg">
+              <Card key={i} className="border-2 hover:border-blue-400 transition-all hover:shadow-xl group transform hover:scale-105">
                 <CardContent className="p-6">
-                  <feature.icon className="w-10 h-10 text-blue-600 mb-4" />
+                  <div className="flex items-start justify-between mb-4">
+                    <feature.icon className="w-12 h-12 text-blue-600 group-hover:scale-110 transition-transform" />
+                    <Badge className="bg-blue-100 text-blue-700 text-xs">{feature.badge}</Badge>
+                  </div>
                   <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
-                  <p className="text-gray-600 text-sm">{feature.desc}</p>
+                  <p className="text-gray-600 text-sm leading-relaxed">{feature.desc}</p>
                 </CardContent>
               </Card>
             ))}
@@ -316,125 +398,208 @@ export default function LandingNew() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-black mb-6">
-              Faqat Natija Uchun To'lov
+              Oddiy va Shaffof Narxlar
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Foyda bo'lmasa - to'lov yo'q! Biz sizning muvaffaqiyatingizga qiziqamiz.
+              Faqat 2 ta tarif. Hech qanday yashirin to'lovlar yo'q. Istalgan vaqt o'zgartirish mumkin.
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-4 gap-6">
+          <div className="grid lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
             {[
               { 
-                name: 'Starter Pro', 
-                price: '240K', 
-                commission: '1.5%',
-                sku: '100',
-                revenue: '~₩ 5M',
-                profit: '~₩ 1.5M',
-                popular: false 
+                name: 'Free Starter', 
+                price: '0', 
+                commission: '2%',
+                sku: '10 ta',
+                features: [
+                  '10 ta mahsulot (SKU limit)',
+                  '1 marketplace (Yandex Market)',
+                  'AI kartochka yaratish (10 ta)',
+                  'Trend Hunter (10 marta/oy)',
+                  '3 tilda tarjima',
+                  'Basic savdo statistikasi',
+                  'Ombor monitoring',
+                  'Admin chat support',
+                  'Email support'
+                ],
+                excluded: [
+                  'Sof foyda analizi',
+                  'Narx monitoring',
+                  'SEO optimizatsiya',
+                  'Bulk operatsiyalar',
+                  'Telegram notifications'
+                ],
+                popular: false,
+                description: 'Sinab ko\'rish uchun',
+                cta: 'Bepul Boshlash'
               },
               { 
-                name: 'Business', 
-                price: '640K', 
-                commission: '1.2%',
-                sku: '500',
-                revenue: '~₩ 25M',
-                profit: '~₩ 7.5M',
-                popular: true 
+                name: 'Starter', 
+                price: '240,000', 
+                commission: '1.5%',
+                sku: 'Cheksiz',
+                features: [
+                  'Cheksiz mahsulotlar',
+                  '4 Marketplace (Uzum, Asaxiy, Olcha, Yandex)',
+                  'AI kartochka (cheksiz)',
+                  'Trend Hunter (cheksiz)',
+                  '3 tilda tarjima',
+                  'SEO optimizatsiya',
+                  'Narx monitoring',
+                  'Sof foyda analizi',
+                  'Savdo tahlili',
+                  'Ombor monitoring',
+                  'Bulk operatsiyalar',
+                  'Telegram notifications',
+                  '24/7 monitoring',
+                  'Email support'
+                ],
+                excluded: [],
+                popular: true,
+                description: 'Biznes o\'stirish uchun',
+                cta: 'Boshlash'
               },
               { 
                 name: 'Professional', 
-                price: '1.44M', 
+                price: '640,000', 
                 commission: '1%',
-                sku: '2,000',
-                revenue: '~₩ 100M',
-                profit: '~₩ 30M',
-                popular: false 
-              },
-              { 
-                name: 'Enterprise', 
-                price: 'Maxsus', 
-                commission: '0.8%',
                 sku: 'Cheksiz',
-                revenue: '₩ 100M+',
-                profit: '₩ 30M+',
-                popular: false 
+                features: [
+                  'Starter\'dagi hamma narsa',
+                  'Priority support (1 soat ichida)',
+                  'Shaxsiy menejer',
+                  'Advanced analytics & AI insights',
+                  'Custom integrations',
+                  'API access',
+                  'White-label branding',
+                  'Shaxsiy training & onboarding',
+                  'Maxsus savdo strategiyasi',
+                  'Raqobatchi tahlili (deep dive)',
+                  'A/B testing tools'
+                ],
+                excluded: [],
+                popular: false,
+                description: 'Katta biznes uchun',
+                cta: 'Boshlash'
               }
             ].map((tier, i) => (
-              <Card key={i} className={`border-2 transition-all ${
-                tier.popular ? 'border-blue-500 shadow-2xl scale-105' : 'border-gray-200 hover:border-blue-300'
+              <Card key={i} className={`border-2 transition-all relative transform hover:scale-105 ${
+                tier.popular ? 'border-blue-500 shadow-2xl lg:scale-110 animate-pulse-glow' : 'border-gray-200 hover:border-blue-300'
               }`}>
                 {tier.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1">
-                      <Crown className="w-3 h-3 mr-1" />
-                      Mashhur
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                    <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 text-base shadow-lg">
+                      <Crown className="w-4 h-4 mr-2" />
+                      Eng Mashhur
                     </Badge>
                   </div>
                 )}
-                <CardHeader className="text-center">
-                  <CardTitle className="text-2xl font-bold">{tier.name}</CardTitle>
-                  <div className="mt-4">
-                    <span className="text-4xl font-black text-gray-900">{tier.price}</span>
-                    {tier.price !== 'Maxsus' && <span className="text-lg text-gray-600">/oy</span>}
+                <CardHeader className="text-center pb-6">
+                  <div className="mb-3">
+                    <Badge className={tier.price === '0' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}>
+                      {tier.description}
+                    </Badge>
                   </div>
-                  <p className="text-sm text-blue-600 font-semibold mt-2">+ {tier.commission} savdodan</p>
+                  <CardTitle className="text-2xl font-bold mb-4">{tier.name}</CardTitle>
+                  <div className="mb-4">
+                    <div className="flex items-baseline justify-center gap-2">
+                      {tier.price === '0' ? (
+                        <span className="text-5xl font-black text-green-600">BEPUL</span>
+                      ) : (
+                        <>
+                          <span className="text-4xl font-black text-gray-900">{tier.price}</span>
+                          <span className="text-lg text-gray-600">so'm/oy</span>
+                        </>
+                      )}
+                    </div>
+                    <p className="text-sm text-blue-600 font-semibold mt-2">
+                      + {tier.commission} savdodan
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                    <Package className="w-4 h-4" />
+                    <span>{tier.sku} mahsulot</span>
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3 mb-6">
-                    <div className="p-3 bg-green-50 rounded-lg">
-                      <div className="text-xs text-gray-600">Oylik daromad:</div>
-                      <div className="text-lg font-bold text-green-600">{tier.revenue}</div>
-                    </div>
-                    <div className="p-3 bg-blue-50 rounded-lg">
-                      <div className="text-xs text-gray-600">Sof foyda:</div>
-                      <div className="text-lg font-bold text-blue-600">{tier.profit}</div>
-                    </div>
-                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm">SKU:</span>
-                      <span className="font-bold">{tier.sku}</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2 mb-6">
-                    {[
-                      'AI Manager FULL',
-                      '4 Marketplace',
-                      '24/7 Monitoring',
-                      'Analitika'
-                    ].map((f, j) => (
-                      <div key={j} className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                        <span className="text-sm">{f}</span>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    {tier.features.map((f, j) => (
+                      <div key={j} className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                        <span className="text-xs leading-relaxed">{f}</span>
                       </div>
                     ))}
                   </div>
+                  
+                  {tier.excluded && tier.excluded.length > 0 && (
+                    <div className="pt-4 border-t space-y-2">
+                      <p className="text-xs font-semibold text-gray-500 mb-2">Yo'q:</p>
+                      {tier.excluded.map((f, j) => (
+                        <div key={j} className="flex items-start gap-2">
+                          <span className="text-gray-400 text-xs">✕</span>
+                          <span className="text-xs text-gray-500 line-through">{f}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
                   <Button 
-                    className="w-full"
-                    variant={tier.popular ? 'default' : 'outline'}
+                    className={`w-full py-5 text-base ${
+                      tier.popular 
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
+                        : tier.price === '0'
+                        ? 'bg-green-600 hover:bg-green-700 text-white'
+                        : ''
+                    }`}
+                    variant={tier.popular || tier.price === '0' ? 'default' : 'outline'}
                     onClick={() => setLocation('/partner-registration')}
                   >
-                    Boshlash
+                    <Rocket className="w-4 h-4 mr-2" />
+                    {tier.cta}
+                    <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          <div className="mt-12 text-center">
-            <p className="text-gray-600 mb-4">
-              💡 <span className="font-semibold">Hisob-kitob:</span> O'rtacha mahsulot narxi ₩ 50,000, oyiga 100 ta savdo
-            </p>
-            <p className="text-sm text-gray-500">
-              Barcha tariflar 14 kun bepul sinov bilan. Istalgan vaqt bekor qilish mumkin.
-            </p>
+          <div className="mt-12 text-center space-y-4">
+            <div className="flex items-center justify-center gap-8 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span>14 kun bepul sinov</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span>Kredit karta kerak emas</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span>Istalgan vaqt bekor qilish</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-gray-600 font-semibold">
+                💡 Free Starter bilan sinab ko'ring, natija yoqsa Starter'ga o'ting
+              </p>
+              <p className="text-xs text-gray-500">
+                Barcha tariflarda 14 kun bepul sinov. Istalgan vaqt bekor qilish yoki o'zgartirish mumkin.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <div className="max-w-4xl mx-auto text-center">
+      <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white overflow-hidden animate-gradient">
+        {/* Animated Background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-10 left-10 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute bottom-10 right-10 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-float" style={{animationDelay: '1.5s'}}></div>
+        </div>
+        
+        <div className="max-w-4xl mx-auto text-center relative z-10">
           <h2 className="text-4xl sm:text-5xl font-black mb-6">
             Bugun Boshlang, Ertaga Natija Ko'ring
           </h2>
@@ -445,7 +610,7 @@ export default function LandingNew() {
             <Button 
               size="lg"
               onClick={() => setLocation('/partner-registration')}
-              className="bg-white text-blue-600 hover:bg-gray-100 text-xl px-12 py-8 shadow-2xl"
+              className="bg-white text-blue-600 hover:bg-gray-100 text-xl px-12 py-8 shadow-2xl animate-pulse-glow transform hover:scale-105 transition-all"
             >
               <Rocket className="w-6 h-6 mr-3" />
               Bepul Boshlash
