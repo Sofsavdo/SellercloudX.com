@@ -17,7 +17,7 @@ import {
 
 export default function Landing() {
   const [, setLocation] = useLocation();
-  const [selectedModel, setSelectedModel] = useState<'saas' | 'fulfillment'>('fulfillment');
+  const [selectedModel, setSelectedModel] = useState<'saas' | 'fulfillment'>('saas');  // Changed to 'saas' as default
   const [showLoginMenu, setShowLoginMenu] = useState(false);
 
   return (
@@ -199,7 +199,9 @@ export default function Landing() {
               </CardContent>
             </Card>
 
-            {/* Fulfillment Model */}
+            {/* Fulfillment Model - HIDDEN for IT Park compliance */}
+            {/* Fulfillment services provided through partner company, not shown on public site */}
+            {false && (
             <Card 
               className={`border-4 cursor-pointer transition-all ${
                 selectedModel === 'fulfillment' ? 'border-purple-500 shadow-2xl scale-105' : 'border-gray-200 hover:border-purple-300'
@@ -235,6 +237,7 @@ export default function Landing() {
                 <Badge className="w-full justify-center py-2 bg-purple-100 text-purple-700">To'liq operatsion xizmat</Badge>
               </CardContent>
             </Card>
+            )}
           </div>
         </div>
       </section>
@@ -387,8 +390,8 @@ export default function Landing() {
         </section>
       )}
 
-      {/* Fulfillment Pricing */}
-      {selectedModel === 'fulfillment' && (
+      {/* Fulfillment Pricing - HIDDEN for IT Park compliance */}
+      {false && selectedModel === 'fulfillment' && (
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-purple-50 to-pink-50">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">
@@ -511,7 +514,8 @@ export default function Landing() {
               </CardContent>
             </Card>
 
-            {/* Fulfillment Process */}
+            {/* Fulfillment Process - HIDDEN for IT Park compliance */}
+            {false && (
             <Card className="border-2 border-purple-300 bg-gradient-to-br from-purple-50 to-white">
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center gap-2">
@@ -545,6 +549,7 @@ export default function Landing() {
                 </div>
               </CardContent>
             </Card>
+            )}
           </div>
         </div>
       </section>
