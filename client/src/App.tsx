@@ -9,6 +9,7 @@ import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 
 // Pages
 import Landing from "@/pages/Landing";
+import LandingNew from "@/pages/LandingNew";
 import Login from "@/pages/Login";
 import AdminLogin from "@/pages/AdminLogin";
 import PartnerDashboard from "@/pages/PartnerDashboard";
@@ -25,7 +26,8 @@ import NotFound from "@/pages/not-found";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Landing} />
+      <Route path="/" component={LandingNew} />
+      <Route path="/landing-old" component={Landing} />
       <Route path="/login" component={Login} />
       <Route path="/admin-login" component={AdminLogin} />
       <Route path="/partner-registration" component={PartnerRegistration} />
