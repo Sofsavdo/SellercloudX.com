@@ -396,13 +396,17 @@ export default function LandingNew() {
       {/* Pricing */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-purple-50">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="text-4xl sm:text-5xl font-black mb-6">
               Har Bir Biznes Uchun Tarif
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-4">
               Bepuldan boshlab, biznesingiz o'sishi bilan tarifni oshiring. Hech qanday yashirin to'lovlar yo'q.
             </p>
+            <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-800 px-4 py-2 rounded-lg text-sm font-semibold">
+              <TrendingUp className="w-4 h-4" />
+              <span>Har bir tarifda SKU va oylik savdo limiti bor</span>
+            </div>
           </div>
 
           <div className="grid lg:grid-cols-4 gap-4 max-w-7xl mx-auto">
@@ -413,8 +417,11 @@ export default function LandingNew() {
                 currency: '$',
                 commission: '2%',
                 sku: '10',
+                salesLimit: '15 mln',
+                salesLimitFull: '15,000,000',
                 features: [
                   '10 ta mahsulot',
+                  '📊 Oylik savdo: 15 mln so\'m gacha',
                   '1 marketplace (Yandex Market)',
                   'AI kartochka (10 ta)',
                   'Trend Hunter (10 marta/oy)',
@@ -434,7 +441,8 @@ export default function LandingNew() {
                 popular: false,
                 description: 'Sinab ko\'rish',
                 cta: 'Bepul Boshlash',
-                highlight: false
+                highlight: false,
+                limitWarning: 'Limit to\'lsa tarif almashtirish kerak'
               },
               { 
                 name: 'Basic', 
@@ -442,8 +450,11 @@ export default function LandingNew() {
                 currency: '$',
                 commission: '1.8%',
                 sku: '69',
+                salesLimit: '69 mln',
+                salesLimitFull: '69,000,000',
                 features: [
                   '69 ta mahsulot',
+                  '📊 Oylik savdo: 69 mln so\'m gacha',
                   '1 marketplace (Yandex Market)',
                   'AI kartochka (69 ta)',
                   'Trend Hunter (69 marta/oy)',
@@ -463,7 +474,8 @@ export default function LandingNew() {
                 popular: false,
                 description: 'Kichik biznes',
                 cta: 'Boshlash',
-                highlight: false
+                highlight: false,
+                limitWarning: 'Limit to\'lsa tarif almashtirish kerak'
               },
               { 
                 name: 'Starter', 
@@ -471,8 +483,11 @@ export default function LandingNew() {
                 currency: '$',
                 commission: '1.5%',
                 sku: '400',
+                salesLimit: '200 mln',
+                salesLimitFull: '200,000,000',
                 features: [
                   '400 ta mahsulot (100/marketplace)',
+                  '📊 Oylik savdo: 200 mln so\'m gacha',
                   '4 marketplace (Uzum, Yandex, Wildberries, Ozon)',
                   'Cheksiz AI kartochka',
                   'Cheksiz Trend Hunter',
@@ -491,7 +506,8 @@ export default function LandingNew() {
                 popular: true,
                 description: 'O\'sish uchun',
                 cta: 'Boshlash',
-                highlight: true
+                highlight: true,
+                limitWarning: 'Limit to\'lsa tarif almashtirish kerak'
               },
               { 
                 name: 'Professional', 
@@ -499,8 +515,11 @@ export default function LandingNew() {
                 currency: '$',
                 commission: '1%',
                 sku: '∞',
+                salesLimit: '♾️ Cheksiz',
+                salesLimitFull: 'unlimited',
                 features: [
                   '♾️ Cheksiz mahsulotlar',
+                  '📊 Oylik savdo: Cheksiz',
                   '4+ marketplace (barcha mavjud)',
                   'Cheksiz AI kartochka',
                   'Cheksiz Trend Hunter',
@@ -521,7 +540,8 @@ export default function LandingNew() {
                 popular: false,
                 description: 'Enterprise',
                 cta: 'Boshlash',
-                highlight: false
+                highlight: false,
+                limitWarning: null
               }
             ].map((tier, i) => (
               <Card key={i} className={`border-2 transition-all relative transform hover:scale-105 flex flex-col h-full ${
@@ -562,9 +582,15 @@ export default function LandingNew() {
                       + {tier.commission} savdodan
                     </p>
                   </div>
-                  <div className="flex items-center justify-center gap-1 text-xs text-gray-600">
-                    <Package className="w-3 h-3" />
-                    <span className="font-semibold">{tier.sku} mahsulot</span>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-center gap-1 text-xs text-gray-600">
+                      <Package className="w-3 h-3" />
+                      <span className="font-semibold">{tier.sku} mahsulot</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-1 text-xs font-bold text-orange-600">
+                      <TrendingUp className="w-3 h-3" />
+                      <span>{tier.salesLimit}/oy</span>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="flex flex-col flex-grow p-4">
@@ -586,6 +612,17 @@ export default function LandingNew() {
                           <span className="text-xs text-gray-500 line-through">{f}</span>
                         </div>
                       ))}
+                    </div>
+                  )}
+                  
+                  {tier.limitWarning && (
+                    <div className="pt-3 border-t mt-3">
+                      <div className="bg-orange-50 rounded-lg p-2">
+                        <p className="text-xs text-orange-700 font-semibold flex items-start gap-1">
+                          <span>⚠️</span>
+                          <span>{tier.limitWarning}</span>
+                        </p>
+                      </div>
                     </div>
                   )}
                   
@@ -626,15 +663,172 @@ export default function LandingNew() {
                 <span>Darhol boshlash</span>
               </div>
             </div>
-            <div className="bg-blue-50 rounded-xl p-6 max-w-3xl mx-auto">
-              <p className="text-base text-gray-800 font-semibold mb-2">
-                🎯 Tavsiya: Free Starter → Basic ($69) → Starter ($349)
-              </p>
-              <p className="text-sm text-gray-600">
-                Bepul sinab ko'ring, biznesingiz o'sishi bilan tarifni oshiring. Istalgan vaqt o'zgartirish mumkin.
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-8 max-w-5xl mx-auto border-2 border-blue-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">
+                ⚠️ Muhim: Oylik Limitlar
+              </h3>
+              
+              <div className="grid md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-white rounded-lg p-4 text-center border-2 border-green-200">
+                  <div className="text-2xl font-black text-green-600 mb-1">15 mln</div>
+                  <div className="text-xs text-gray-600">Free Starter</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 text-center border-2 border-orange-200">
+                  <div className="text-2xl font-black text-orange-600 mb-1">69 mln</div>
+                  <div className="text-xs text-gray-600">Basic</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 text-center border-2 border-blue-200">
+                  <div className="text-2xl font-black text-blue-600 mb-1">200 mln</div>
+                  <div className="text-xs text-gray-600">Starter</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 text-center border-2 border-purple-200">
+                  <div className="text-2xl font-black text-purple-600 mb-1">♾️</div>
+                  <div className="text-xs text-gray-600">Professional</div>
+                </div>
+              </div>
+              
+              <div className="bg-orange-100 rounded-lg p-4 mb-4">
+                <p className="text-sm text-orange-900 font-semibold mb-2">
+                  🚨 Limit to'lganda nima bo'ladi?
+                </p>
+                <ul className="text-xs text-orange-800 space-y-1">
+                  <li>• SKU limiti yoki oylik savdo limiti to'lsa platforma bloklanadi</li>
+                  <li>• Tarifni oshirish so'rovi keladi</li>
+                  <li>• Yangi oy boshlanguncha yoki to'lov qilinguncha ishlamaydi</li>
+                  <li>• Mavjud mahsulotlar marketplace'da qoladi, lekin yangilarini qo'sha olmaysiz</li>
+                </ul>
+              </div>
+              
+              <p className="text-sm text-gray-700 text-center">
+                <span className="font-semibold">🎯 Tavsiya:</span> Biznesingiz o'sishini oldindan rejalashtiring va limitga yaqinlashganda tarifni oshiring
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Limits Explanation */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-black mb-4">
+              Limitlar Qanday Ishlaydi?
+            </h2>
+            <p className="text-lg text-gray-600">
+              Har bir tarif 2 ta limit bilan cheklangan: SKU soni va oylik savdo hajmi
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            <Card className="border-2 border-blue-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-blue-600">
+                  <Package className="w-6 h-6" />
+                  SKU Limiti
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-gray-700">
+                  Platformada yarata oladigan mahsulotlar soni. Masalan:
+                </p>
+                <ul className="text-sm text-gray-600 space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 font-bold">✓</span>
+                    <span>Free: 10 ta mahsulot yaratdingiz → 11-chisini yarata olmaysiz</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 font-bold">✓</span>
+                    <span>Basic: 69 ta mahsulot yaratdingiz → 70-chisini yarata olmaysiz</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-orange-600 font-bold">⚠️</span>
+                    <span>Limit to'lsa tarif oshirish kerak</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-orange-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-orange-600">
+                  <TrendingUp className="w-6 h-6" />
+                  Oylik Savdo Limiti
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-gray-700">
+                  Bir oyda qila oladigan savdo hajmi (so'm). Masalan:
+                </p>
+                <ul className="text-sm text-gray-600 space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 font-bold">✓</span>
+                    <span>Free: 9 ta mahsulot bor, lekin savdo 15 mln so'mga yetdi → bloklanadi</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 font-bold">✓</span>
+                    <span>Basic: 50 ta mahsulot bor, lekin savdo 69 mln so'mga yetdi → bloklanadi</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-orange-600 font-bold">⚠️</span>
+                    <span>Har oy 1-sanada limit qayta tiklanadi</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="border-2 border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-600">
+                <Shield className="w-6 h-6" />
+                Bloklanish Holatlari
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <p className="font-semibold text-gray-900 mb-2">Platforma qachon bloklanadi?</p>
+                  <ul className="text-sm text-gray-700 space-y-2">
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600">1.</span>
+                      <span>SKU limiti to'lsa (masalan, Free'da 10 ta mahsulot yaratilgan)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600">2.</span>
+                      <span>Oylik savdo limiti to'lsa (masalan, Free'da 15 mln so'm savdo bo'lgan)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600">3.</span>
+                      <span>Ikkalasi ham to'lsa</span>
+                    </li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <p className="font-semibold text-gray-900 mb-2">Bloklanishdan qanday qutulish mumkin?</p>
+                  <ul className="text-sm text-gray-700 space-y-2">
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600">✓</span>
+                      <span><strong>Tarifni oshirish</strong> - darhol blok ochiladi, yangi limitlar qo'llaniladi</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600">✓</span>
+                      <span><strong>Yangi oy kutish</strong> - faqat savdo limiti uchun (SKU limiti qoladi)</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="bg-white rounded-lg p-4 border-2 border-orange-300">
+                  <p className="text-sm font-semibold text-orange-900 mb-2">
+                    💡 Maslahat: Limitga 80% yetganda tarifni oshiring
+                  </p>
+                  <p className="text-xs text-orange-800">
+                    Kutilmagan bloklanishdan qochish uchun limitingizni kuzatib boring va oldindan rejalashtiring.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
