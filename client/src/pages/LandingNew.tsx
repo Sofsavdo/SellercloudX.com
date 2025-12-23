@@ -398,60 +398,87 @@ export default function LandingNew() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-black mb-6">
-              Oddiy va Shaffof Narxlar
+              Har Bir Biznes Uchun Tarif
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Faqat 2 ta tarif. Hech qanday yashirin to'lovlar yo'q. Istalgan vaqt o'zgartirish mumkin.
+              Bepuldan boshlab, biznesingiz o'sishi bilan tarifni oshiring. Hech qanday yashirin to'lovlar yo'q.
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-4 gap-4 max-w-7xl mx-auto">
             {[
               { 
                 name: 'Free Starter', 
                 price: '0', 
                 currency: '$',
                 commission: '2%',
-                sku: '10 ta',
-                trial: false,
+                sku: '10',
                 features: [
-                  '10 ta mahsulot (SKU limit)',
+                  '10 ta mahsulot',
                   '1 marketplace (Yandex Market)',
-                  'AI kartochka yaratish (10 ta)',
+                  'AI kartochka (10 ta)',
                   'Trend Hunter (10 marta/oy)',
-                  '3 tilda tarjima (O\'zbek, Rus, Ingliz)',
+                  '3 tilda tarjima',
                   'Asosiy savdo statistikasi',
                   'Ombor monitoring',
-                  'Admin bilan chat',
+                  'Admin chat',
                   'Email yordam'
                 ],
                 excluded: [
                   'Sof foyda tahlili',
-                  'Narx kuzatuv',
+                  'Narx monitoring',
                   'SEO optimizatsiya',
-                  'Ommaviy operatsiyalar',
-                  'Telegram xabarnomalar',
-                  'Ko\'p marketplace integratsiya'
+                  'Ko\'p marketplace',
+                  'Telegram xabarnomalar'
                 ],
                 popular: false,
-                description: 'Sinab ko\'rish uchun',
-                cta: 'Bepul Boshlash'
+                description: 'Sinab ko\'rish',
+                cta: 'Bepul Boshlash',
+                highlight: false
+              },
+              { 
+                name: 'Basic', 
+                price: '69', 
+                currency: '$',
+                commission: '1.8%',
+                sku: '69',
+                features: [
+                  '69 ta mahsulot',
+                  '1 marketplace (Yandex Market)',
+                  'AI kartochka (69 ta)',
+                  'Trend Hunter (69 marta/oy)',
+                  '3 tilda tarjima',
+                  '✨ Sof foyda tahlili',
+                  'To\'liq savdo statistikasi',
+                  'Ombor boshqaruvi',
+                  'Telegram xabarnomalar',
+                  'Email yordam'
+                ],
+                excluded: [
+                  'Ko\'p marketplace',
+                  'SEO optimizatsiya',
+                  'Narx monitoring',
+                  'Ommaviy operatsiyalar'
+                ],
+                popular: false,
+                description: 'Kichik biznes',
+                cta: 'Boshlash',
+                highlight: false
               },
               { 
                 name: 'Starter', 
                 price: '349', 
                 currency: '$',
                 commission: '1.5%',
-                sku: 'Cheksiz',
-                trial: true,
+                sku: '400',
                 features: [
-                  'Cheksiz mahsulotlar',
-                  '4 Marketplace (Uzum, Yandex, Wildberries, Ozon)',
-                  'AI kartochka (cheksiz)',
-                  'Trend Hunter (cheksiz)',
-                  '3 tilda tarjima (O\'zbek, Rus, Ingliz)',
+                  '400 ta mahsulot (100/marketplace)',
+                  '4 marketplace (Uzum, Yandex, Wildberries, Ozon)',
+                  'Cheksiz AI kartochka',
+                  'Cheksiz Trend Hunter',
+                  '3 tilda tarjima',
                   'SEO optimizatsiya',
-                  'Narx kuzatuv va monitoring',
+                  'Narx monitoring',
                   'Sof foyda tahlili',
                   'To\'liq savdo tahlili',
                   'Ombor boshqaruvi',
@@ -462,95 +489,99 @@ export default function LandingNew() {
                 ],
                 excluded: [],
                 popular: true,
-                description: 'Biznes o\'stirish uchun',
-                cta: '14 Kun Bepul Sinab Ko\'ring'
+                description: 'O\'sish uchun',
+                cta: 'Boshlash',
+                highlight: true
               },
               { 
                 name: 'Professional', 
                 price: '899', 
                 currency: '$',
                 commission: '1%',
-                sku: 'Cheksiz',
-                trial: true,
+                sku: '∞',
                 features: [
-                  'Starter\'dagi barcha imkoniyatlar',
-                  'Tezkor yordam (1 soat ichida)',
+                  '♾️ Cheksiz mahsulotlar',
+                  '4+ marketplace (barcha mavjud)',
+                  'Cheksiz AI kartochka',
+                  'Cheksiz Trend Hunter',
+                  '3 tilda tarjima',
+                  'SEO optimizatsiya',
+                  'Narx monitoring',
+                  'Sof foyda tahlili',
+                  'Kengaytirilgan AI tahlil',
+                  'Tezkor yordam (1 soat)',
                   'Shaxsiy menejer',
-                  'Kengaytirilgan tahlil va AI ko\'rsatkichlar',
-                  'Maxsus integratsiyalar',
                   'API kirish',
-                  'O\'z brendingiz (White-label)',
-                  'Shaxsiy o\'qitish va yo\'llanma',
-                  'Maxsus savdo strategiyasi',
-                  'Chuqur raqobatchi tahlili',
-                  'A/B test vositalari',
-                  'Xalqaro kengayish yordami'
+                  'White-label branding',
+                  'Maxsus integratsiyalar',
+                  'A/B testing',
+                  'Xalqaro kengayish'
                 ],
                 excluded: [],
                 popular: false,
-                description: 'Katta biznes uchun',
-                cta: '14 Kun Bepul Sinab Ko\'ring'
+                description: 'Enterprise',
+                cta: 'Boshlash',
+                highlight: false
               }
             ].map((tier, i) => (
               <Card key={i} className={`border-2 transition-all relative transform hover:scale-105 flex flex-col h-full ${
-                tier.popular ? 'border-blue-500 shadow-2xl lg:scale-110 animate-pulse-glow' : 'border-gray-200 hover:border-blue-300'
+                tier.highlight ? 'border-blue-500 shadow-2xl lg:scale-105 animate-pulse-glow' : 'border-gray-200 hover:border-blue-300'
               }`}>
                 {tier.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                    <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 text-base shadow-lg">
-                      <Crown className="w-4 h-4 mr-2" />
-                      Eng Mashhur
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                    <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1 text-sm shadow-lg">
+                      <Crown className="w-3 h-3 mr-1" />
+                      Mashhur
                     </Badge>
                   </div>
                 )}
-                <CardHeader className="text-center pb-6">
-                  <div className="mb-3">
-                    <Badge className={tier.price === '0' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}>
+                <CardHeader className="text-center pb-4">
+                  <div className="mb-2">
+                    <Badge className={
+                      tier.price === '0' ? 'bg-green-100 text-green-700 text-xs' : 
+                      tier.price === '69' ? 'bg-orange-100 text-orange-700 text-xs' :
+                      'bg-blue-100 text-blue-700 text-xs'
+                    }>
                       {tier.description}
                     </Badge>
                   </div>
-                  <CardTitle className="text-2xl font-bold mb-4">{tier.name}</CardTitle>
-                  <div className="mb-4">
+                  <CardTitle className="text-xl font-bold mb-3">{tier.name}</CardTitle>
+                  <div className="mb-3">
                     <div className="flex items-baseline justify-center gap-1">
                       {tier.price === '0' ? (
-                        <span className="text-5xl font-black text-green-600">BEPUL</span>
+                        <span className="text-4xl font-black text-green-600">BEPUL</span>
                       ) : (
                         <>
-                          <span className="text-lg text-gray-600">{tier.currency}</span>
-                          <span className="text-4xl font-black text-gray-900">{tier.price}</span>
-                          <span className="text-lg text-gray-600">/oy</span>
+                          <span className="text-base text-gray-600">{tier.currency}</span>
+                          <span className="text-3xl font-black text-gray-900">{tier.price}</span>
+                          <span className="text-base text-gray-600">/oy</span>
                         </>
                       )}
                     </div>
-                    <p className="text-sm text-blue-600 font-semibold mt-2">
+                    <p className="text-xs text-blue-600 font-semibold mt-1">
                       + {tier.commission} savdodan
                     </p>
-                    {tier.trial && (
-                      <p className="text-xs text-green-600 font-semibold mt-1">
-                        ✓ 14 kun bepul sinov
-                      </p>
-                    )}
                   </div>
-                  <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
-                    <Package className="w-4 h-4" />
-                    <span>{tier.sku} mahsulot</span>
+                  <div className="flex items-center justify-center gap-1 text-xs text-gray-600">
+                    <Package className="w-3 h-3" />
+                    <span className="font-semibold">{tier.sku} mahsulot</span>
                   </div>
                 </CardHeader>
-                <CardContent className="flex flex-col flex-grow">
-                  <div className="space-y-2 flex-grow">
+                <CardContent className="flex flex-col flex-grow p-4">
+                  <div className="space-y-1.5 flex-grow">
                     {tier.features.map((f, j) => (
-                      <div key={j} className="flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-xs leading-relaxed">{f}</span>
+                      <div key={j} className="flex items-start gap-1.5">
+                        <CheckCircle className="w-3 h-3 text-green-600 flex-shrink-0 mt-0.5" />
+                        <span className="text-xs leading-tight">{f}</span>
                       </div>
                     ))}
                   </div>
                   
                   {tier.excluded && tier.excluded.length > 0 && (
-                    <div className="pt-4 border-t space-y-2 mt-4">
-                      <p className="text-xs font-semibold text-gray-500 mb-2">Yo'q:</p>
+                    <div className="pt-3 border-t space-y-1 mt-3">
+                      <p className="text-xs font-semibold text-gray-500 mb-1">Yo'q:</p>
                       {tier.excluded.map((f, j) => (
-                        <div key={j} className="flex items-start gap-2">
+                        <div key={j} className="flex items-start gap-1.5">
                           <span className="text-gray-400 text-xs">✕</span>
                           <span className="text-xs text-gray-500 line-through">{f}</span>
                         </div>
@@ -559,19 +590,21 @@ export default function LandingNew() {
                   )}
                   
                   <Button 
-                    className={`w-full py-5 text-base mt-6 ${
-                      tier.popular 
+                    className={`w-full py-4 text-sm mt-4 ${
+                      tier.highlight
                         ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
                         : tier.price === '0'
                         ? 'bg-green-600 hover:bg-green-700 text-white'
+                        : tier.price === '69'
+                        ? 'bg-orange-600 hover:bg-orange-700 text-white'
                         : ''
                     }`}
-                    variant={tier.popular || tier.price === '0' ? 'default' : 'outline'}
+                    variant={tier.highlight || tier.price === '0' || tier.price === '69' ? 'default' : 'outline'}
                     onClick={() => setLocation('/partner-registration')}
                   >
-                    <Rocket className="w-4 h-4 mr-2" />
+                    <Rocket className="w-3 h-3 mr-1" />
                     {tier.cta}
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                    <ArrowRight className="w-3 h-3 ml-1" />
                   </Button>
                 </CardContent>
               </Card>
@@ -579,7 +612,7 @@ export default function LandingNew() {
           </div>
 
           <div className="mt-12 text-center space-y-4">
-            <div className="flex items-center justify-center gap-8 text-sm text-gray-600">
+            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-600">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
                 <span>Kredit karta kerak emas</span>
@@ -590,15 +623,15 @@ export default function LandingNew() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
-                <span>Pullik tariflarda 14 kun bepul</span>
+                <span>Darhol boshlash</span>
               </div>
             </div>
-            <div className="space-y-2">
-              <p className="text-sm text-gray-600 font-semibold">
-                💡 Free Starter bilan sinab ko'ring, natija yoqsa Starter'ga o'ting
+            <div className="bg-blue-50 rounded-xl p-6 max-w-3xl mx-auto">
+              <p className="text-base text-gray-800 font-semibold mb-2">
+                🎯 Tavsiya: Free Starter → Basic ($69) → Starter ($349)
               </p>
-              <p className="text-xs text-gray-500">
-                Pullik tariflarda 14 kun bepul sinov. Istalgan vaqt bekor qilish yoki o'zgartirish mumkin.
+              <p className="text-sm text-gray-600">
+                Bepul sinab ko'ring, biznesingiz o'sishi bilan tarifni oshiring. Istalgan vaqt o'zgartirish mumkin.
               </p>
             </div>
           </div>
