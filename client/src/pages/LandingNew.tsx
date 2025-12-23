@@ -326,56 +326,56 @@ export default function LandingNew() {
               { 
                 icon: ImageIcon, 
                 title: 'AI Kartochka Yaratish', 
-                desc: '40 soniyada professional mahsulot kartochkasi. Title, description, keywords - hammasi avtomatik.',
-                badge: 'GPT-4 Vision'
+                desc: '40 soniyada professional mahsulot kartochkasi. Sarlavha, tavsif, kalit so\'zlar - hammasi avtomatik.',
+                badge: 'GPT-4 Ko\'rish'
               },
               { 
                 icon: Globe, 
                 title: '3 Tilda Tarjima', 
                 desc: 'O\'zbek, Rus, Ingliz tillarida avtomatik tarjima. Har bir til uchun SEO optimizatsiya.',
-                badge: 'Neural MT'
+                badge: 'Neyron Tarjima'
               },
               { 
                 icon: BarChart3, 
-                title: 'Smart Narx Optimizatsiya', 
+                title: 'Aqlli Narx Optimizatsiya', 
                 desc: 'AI raqobatchilarni tahlil qilib, eng optimal narxni tavsiya qiladi. Maksimal foyda.',
-                badge: 'AI Powered'
+                badge: 'AI Quvvat'
               },
               { 
                 icon: Target, 
                 title: 'SEO Optimizatsiya', 
-                desc: 'Google va marketplace algoritmlari uchun maxsus optimizatsiya. Top pozitsiyalar.',
-                badge: 'Auto SEO'
+                desc: 'Google va marketplace algoritmlari uchun maxsus optimizatsiya. Yuqori o\'rinlar.',
+                badge: 'Avto SEO'
               },
               { 
                 icon: LineChart, 
                 title: 'Savdo Tahlili', 
-                desc: 'Real-time statistika, prognozlar, trend tahlili. Har bir mahsulot uchun batafsil hisobot.',
-                badge: 'Analytics'
+                desc: 'Jonli statistika, prognozlar, trend tahlili. Har bir mahsulot uchun batafsil hisobot.',
+                badge: 'Tahlil'
               },
               { 
                 icon: Shield, 
                 title: 'Avtomatik Monitoring', 
                 desc: '24/7 narx kuzatuv, stok monitoring, raqobatchi tahlili. Telegram orqali ogohlantirishlar.',
-                badge: '24/7 Active'
+                badge: '24/7 Faol'
               },
               { 
                 icon: Bot, 
-                title: 'Bulk Operatsiyalar', 
+                title: 'Ommaviy Operatsiyalar', 
                 desc: 'Yuzlab mahsulotni bir vaqtda yuklash, yangilash, narx o\'zgartirish. Excel import/export.',
-                badge: 'Bulk Actions'
+                badge: 'Ommaviy Amallar'
               },
               { 
                 icon: Infinity, 
-                title: '4 Marketplace Integratsiya', 
-                desc: 'Uzum, Asaxiy, Olcha, Mediapark - barchasi bitta platformada. Sinxronizatsiya avtomatik.',
+                title: 'Xalqaro Marketplace Integratsiya', 
+                desc: 'Uzum, Yandex Market, Wildberries, Ozon - barchasi bitta platformada. O\'zbekiston, Rossiya, Qozog\'iston bozorlari.',
                 badge: 'Multi-channel'
               },
               { 
                 icon: Award, 
-                title: 'Smart Recommendations', 
+                title: 'Aqlli Tavsiyalar', 
                 desc: 'AI sizga eng yaxshi mahsulotlar, kategoriyalar va strategiyalarni tavsiya qiladi.',
-                badge: 'AI Insights'
+                badge: 'AI Tushunchalar'
               }
             ].map((feature, i) => (
               <Card key={i} className="border-2 hover:border-blue-400 transition-all hover:shadow-xl group transform hover:scale-105">
@@ -410,25 +410,28 @@ export default function LandingNew() {
               { 
                 name: 'Free Starter', 
                 price: '0', 
+                currency: '$',
                 commission: '2%',
                 sku: '10 ta',
+                trial: false,
                 features: [
                   '10 ta mahsulot (SKU limit)',
                   '1 marketplace (Yandex Market)',
                   'AI kartochka yaratish (10 ta)',
                   'Trend Hunter (10 marta/oy)',
-                  '3 tilda tarjima',
-                  'Basic savdo statistikasi',
+                  '3 tilda tarjima (O\'zbek, Rus, Ingliz)',
+                  'Asosiy savdo statistikasi',
                   'Ombor monitoring',
-                  'Admin chat support',
-                  'Email support'
+                  'Admin bilan chat',
+                  'Email yordam'
                 ],
                 excluded: [
-                  'Sof foyda analizi',
-                  'Narx monitoring',
+                  'Sof foyda tahlili',
+                  'Narx kuzatuv',
                   'SEO optimizatsiya',
-                  'Bulk operatsiyalar',
-                  'Telegram notifications'
+                  'Ommaviy operatsiyalar',
+                  'Telegram xabarnomalar',
+                  'Ko\'p marketplace integratsiya'
                 ],
                 popular: false,
                 description: 'Sinab ko\'rish uchun',
@@ -436,55 +439,60 @@ export default function LandingNew() {
               },
               { 
                 name: 'Starter', 
-                price: '240,000', 
+                price: '349', 
+                currency: '$',
                 commission: '1.5%',
                 sku: 'Cheksiz',
+                trial: true,
                 features: [
                   'Cheksiz mahsulotlar',
-                  '4 Marketplace (Uzum, Asaxiy, Olcha, Yandex)',
+                  '4 Marketplace (Uzum, Yandex, Wildberries, Ozon)',
                   'AI kartochka (cheksiz)',
                   'Trend Hunter (cheksiz)',
-                  '3 tilda tarjima',
+                  '3 tilda tarjima (O\'zbek, Rus, Ingliz)',
                   'SEO optimizatsiya',
-                  'Narx monitoring',
-                  'Sof foyda analizi',
-                  'Savdo tahlili',
-                  'Ombor monitoring',
-                  'Bulk operatsiyalar',
-                  'Telegram notifications',
+                  'Narx kuzatuv va monitoring',
+                  'Sof foyda tahlili',
+                  'To\'liq savdo tahlili',
+                  'Ombor boshqaruvi',
+                  'Ommaviy operatsiyalar',
+                  'Telegram xabarnomalar',
                   '24/7 monitoring',
-                  'Email support'
+                  'Email yordam'
                 ],
                 excluded: [],
                 popular: true,
                 description: 'Biznes o\'stirish uchun',
-                cta: 'Boshlash'
+                cta: '14 Kun Bepul Sinab Ko\'ring'
               },
               { 
                 name: 'Professional', 
-                price: '640,000', 
+                price: '899', 
+                currency: '$',
                 commission: '1%',
                 sku: 'Cheksiz',
+                trial: true,
                 features: [
-                  'Starter\'dagi hamma narsa',
-                  'Priority support (1 soat ichida)',
+                  'Starter\'dagi barcha imkoniyatlar',
+                  'Tezkor yordam (1 soat ichida)',
                   'Shaxsiy menejer',
-                  'Advanced analytics & AI insights',
-                  'Custom integrations',
-                  'API access',
-                  'White-label branding',
-                  'Shaxsiy training & onboarding',
+                  'Kengaytirilgan tahlil va AI ko\'rsatkichlar',
+                  'Maxsus integratsiyalar',
+                  'API kirish',
+                  'O\'z brendingiz (White-label)',
+                  'Shaxsiy o\'qitish va yo\'llanma',
                   'Maxsus savdo strategiyasi',
-                  'Raqobatchi tahlili (deep dive)',
-                  'A/B testing tools'
+                  'Chuqur raqobatchi tahlili',
+                  'A/B test vositalari',
+                  'Xalqaro kengayish yordami'
                 ],
                 excluded: [],
                 popular: false,
                 description: 'Katta biznes uchun',
-                cta: 'Boshlash'
+                cta: '14 Kun Bepul Sinab Ko\'ring'
               }
             ].map((tier, i) => (
-              <Card key={i} className={`border-2 transition-all relative transform hover:scale-105 ${
+              <Card key={i} className={`border-2 transition-all relative transform hover:scale-105 flex flex-col h-full ${
                 tier.popular ? 'border-blue-500 shadow-2xl lg:scale-110 animate-pulse-glow' : 'border-gray-200 hover:border-blue-300'
               }`}>
                 {tier.popular && (
@@ -503,27 +511,33 @@ export default function LandingNew() {
                   </div>
                   <CardTitle className="text-2xl font-bold mb-4">{tier.name}</CardTitle>
                   <div className="mb-4">
-                    <div className="flex items-baseline justify-center gap-2">
+                    <div className="flex items-baseline justify-center gap-1">
                       {tier.price === '0' ? (
                         <span className="text-5xl font-black text-green-600">BEPUL</span>
                       ) : (
                         <>
+                          <span className="text-lg text-gray-600">{tier.currency}</span>
                           <span className="text-4xl font-black text-gray-900">{tier.price}</span>
-                          <span className="text-lg text-gray-600">so'm/oy</span>
+                          <span className="text-lg text-gray-600">/oy</span>
                         </>
                       )}
                     </div>
                     <p className="text-sm text-blue-600 font-semibold mt-2">
                       + {tier.commission} savdodan
                     </p>
+                    {tier.trial && (
+                      <p className="text-xs text-green-600 font-semibold mt-1">
+                        ✓ 14 kun bepul sinov
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
                     <Package className="w-4 h-4" />
                     <span>{tier.sku} mahsulot</span>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-2">
+                <CardContent className="flex flex-col flex-grow">
+                  <div className="space-y-2 flex-grow">
                     {tier.features.map((f, j) => (
                       <div key={j} className="flex items-start gap-2">
                         <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
@@ -533,7 +547,7 @@ export default function LandingNew() {
                   </div>
                   
                   {tier.excluded && tier.excluded.length > 0 && (
-                    <div className="pt-4 border-t space-y-2">
+                    <div className="pt-4 border-t space-y-2 mt-4">
                       <p className="text-xs font-semibold text-gray-500 mb-2">Yo'q:</p>
                       {tier.excluded.map((f, j) => (
                         <div key={j} className="flex items-start gap-2">
@@ -545,7 +559,7 @@ export default function LandingNew() {
                   )}
                   
                   <Button 
-                    className={`w-full py-5 text-base ${
+                    className={`w-full py-5 text-base mt-6 ${
                       tier.popular 
                         ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
                         : tier.price === '0'
@@ -568,15 +582,15 @@ export default function LandingNew() {
             <div className="flex items-center justify-center gap-8 text-sm text-gray-600">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
-                <span>14 kun bepul sinov</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
                 <span>Kredit karta kerak emas</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
                 <span>Istalgan vaqt bekor qilish</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span>Pullik tariflarda 14 kun bepul</span>
               </div>
             </div>
             <div className="space-y-2">
@@ -584,7 +598,7 @@ export default function LandingNew() {
                 💡 Free Starter bilan sinab ko'ring, natija yoqsa Starter'ga o'ting
               </p>
               <p className="text-xs text-gray-500">
-                Barcha tariflarda 14 kun bepul sinov. Istalgan vaqt bekor qilish yoki o'zgartirish mumkin.
+                Pullik tariflarda 14 kun bepul sinov. Istalgan vaqt bekor qilish yoki o'zgartirish mumkin.
               </p>
             </div>
           </div>
