@@ -23,8 +23,8 @@ interface PartnerTierInfoProps {
 
 export function PartnerTierInfo({ 
   currentTier, 
-  monthlyFee, 
-  profitShareRate,
+  monthlyFee = 0, 
+  profitShareRate = 0,
   monthlyRevenue = 0,
   onUpgradeClick 
 }: PartnerTierInfoProps) {

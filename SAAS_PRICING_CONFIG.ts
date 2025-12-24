@@ -101,12 +101,12 @@ export const SAAS_PRICING_TIERS = {
     badge: 'Arzon'
   },
   
-  starter: {
-    id: 'starter',
-    name: 'Starter',
-    nameUz: 'Starter',
-    nameRu: 'Starter',
-    nameEn: 'Starter',
+  starter_pro: {
+    id: 'starter_pro',
+    name: 'Starter Pro',
+    nameUz: 'Starter Pro',
+    nameRu: 'Starter Pro',
+    nameEn: 'Starter Pro',
     
     // Pricing
     monthlyFee: 4188000, // $349 * 12000

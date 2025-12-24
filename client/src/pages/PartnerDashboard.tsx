@@ -156,6 +156,10 @@ export default function PartnerDashboard() {
 
   const getTierName = (tier: string) => {
     const tierNames = {
+      free_starter: 'Free Starter',
+      basic: 'Basic',
+      starter: 'Starter',
+      professional: 'Professional',
       starter_pro: 'Starter Pro',
       business_standard: 'Business Standard',
       professional_plus: 'Professional Plus',
@@ -186,7 +190,7 @@ export default function PartnerDashboard() {
               <div className="flex items-center gap-3">
                 <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
                   <Crown className="w-3 h-3 mr-1" />
-                  {getTierName(partner?.pricingTier || 'starter_pro')}
+                  {getTierName(partner?.pricingTier || 'free_starter')}
                 </Badge>
                 <Button onClick={() => setShowTierModal(true)} variant="premium" size="sm" className="hover-lift">
                   <Crown className="w-4 h-4 mr-2" />
@@ -411,10 +415,10 @@ export default function PartnerDashboard() {
                         {plan ? (
                           <>
                             <p className="text-sm">
-                              Oylik to'lov: <span className="font-semibold">${plan.monthlyFee}/oy</span>
+                              Oylik to'lov: <span className="font-semibold">${plan.monthlyFee ?? 0}/oy</span>
                             </p>
                             <p className="text-sm">
-                              Komissiya: <span className="font-semibold">{(plan.revenueCommissionRate * 100).toFixed(2)}% savdodan</span>
+                              Komissiya: <span className="font-semibold">{((plan.revenueCommissionRate ?? 0) * 100).toFixed(2)}% savdodan</span>
                             </p>
                           </>
                         ) : (
@@ -427,14 +431,14 @@ export default function PartnerDashboard() {
                   );
                 }
 
-                const tierKey = partner.pricingTier || 'starter_pro';
+                const tierKey = partner.pricingTier || 'free_starter';
                 const tierConfig = NEW_PRICING_TIERS[tierKey as keyof typeof NEW_PRICING_TIERS];
 
                 return (
                   <PartnerTierInfo
                     currentTier={tierKey}
-                    monthlyFee={parseFloat((partner as any).monthlyFee || tierConfig.monthlyFee.toString())}
-                    profitShareRate={parseFloat((partner as any).profitShareRate || (tierConfig.profitShareRate || tierConfig.commissionRate).toString())}
+                    monthlyFee={parseFloat((partner as any).monthlyFee || tierConfig?.monthlyFee?.toString() || '0')}
+                    profitShareRate={parseFloat((partner as any).profitShareRate || (tierConfig?.profitShareRate || tierConfig?.commissionRate)?.toString() || '0')}
                     monthlyRevenue={stats.totalRevenue}
                     onUpgradeClick={() => setShowTierModal(true)}
                   />
@@ -636,7 +640,7 @@ export default function PartnerDashboard() {
           queryClient.invalidateQueries({ queryKey: ['/api/partners/me'] });
           setShowTierModal(false);
         }}
-        currentTier={partner?.pricingTier || 'starter_pro'}
+        currentTier={partner?.pricingTier || 'free_starter'}
       />
     </div>
   );
