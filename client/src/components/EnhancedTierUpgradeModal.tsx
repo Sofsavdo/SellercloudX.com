@@ -33,113 +33,105 @@ interface EnhancedTierUpgradeModalProps {
   currentTier: string;
 }
 
-// YANGI v4.0.0 - Profit Share Model
+// 2024 SaaS Pricing Model - Commission from Sales
 const TIER_DETAILS = {
-  starter_pro: {
-    name: 'Starter Pro',
-    monthlyFee: 3000000, // 3M
-    profitShareRate: 50, // 50% foydadan
-    commissionRate: 50, // Legacy display
-    minRevenue: 20000000,
-    maxRevenue: 50000000,
-    color: 'blue',
+  free_starter: {
+    name: 'Free Starter',
+    monthlyFee: 0,
+    commissionRate: 0.02, // 2% savdodan
+    minRevenue: 0,
+    maxRevenue: 15000000,
+    color: 'green',
     icon: Package,
     popular: false,
-    badge: 'Low Risk',
+    badge: 'Bepul',
     features: [
-      '1 ta marketplace',
-      '100 tagacha mahsulot',
-      'Basic dashboard',
-      'Ombor (100 kg)',
-      'Email yordam (48h)',
-      '50% profit share',
-      'SPT xizmati BEPUL'
+      '10 ta mahsulot',
+      '1 marketplace (Yandex)',
+      'AI kartochka (10 ta)',
+      'Trend Hunter (10 marta/oy)',
+      'Asosiy statistika',
+      'Email yordam'
     ],
     limits: {
       marketplaces: 1,
-      products: 100,
-      warehouse: 100
+      products: 10,
+      aiCards: 10
     }
   },
-  business_standard: {
-    name: 'Business Standard',
-    monthlyFee: 8000000, // 8M
-    profitShareRate: 25, // 25% foydadan
-    commissionRate: 25, // Legacy display
-    minRevenue: 50000000,
-    maxRevenue: 150000000,
-    color: 'green',
+  basic: {
+    name: 'Basic',
+    monthlyFee: 828000, // $69
+    commissionRate: 0.018, // 1.8% savdodan
+    minRevenue: 15000000,
+    maxRevenue: 69000000,
+    color: 'orange',
     icon: TrendingUp,
-    popular: true,
-    badge: 'Recommended',
+    popular: false,
+    badge: 'Arzon',
     features: [
-      '2 ta marketplace',
-      '500 tagacha mahsulot',
-      'To\'liq dashboard + Prognozlar',
-      'Ombor (500 kg)',
-      'Telefon yordam (24h)',
-      'Oylik konsultatsiya (2 soat)',
-      '25% profit share',
-      'SPT xizmati BEPUL'
+      '69 ta mahsulot',
+      '1 marketplace (Yandex)',
+      'AI kartochka (69 ta)',
+      'Trend Hunter (69 marta/oy)',
+      'Sof foyda tahlili',
+      'Telegram xabarnomalar'
     ],
     limits: {
-      marketplaces: 2,
-      products: 500,
-      warehouse: 500
+      marketplaces: 1,
+      products: 69,
+      aiCards: 69
     }
   },
-  professional_plus: {
-    name: 'Professional Plus',
-    monthlyFee: 18000000, // 18M
-    profitShareRate: 15, // 15% foydadan
-    commissionRate: 15, // Legacy display
-    minRevenue: 150000000,
-    maxRevenue: 400000000,
-    color: 'purple',
-    icon: Star,
-    popular: false,
-    badge: 'High Volume',
+  starter_pro: {
+    name: 'Starter Pro',
+    monthlyFee: 4188000, // $349
+    commissionRate: 0.015, // 1.5% savdodan
+    minRevenue: 69000000,
+    maxRevenue: 200000000,
+    color: 'blue',
+    icon: Zap,
+    popular: true,
+    badge: 'Mashhur',
     features: [
-      '4 ta marketplace',
-      '2,000 tagacha mahsulot',
-      'Premium dashboard + AI Tahlil',
-      'Trend Hunter',
-      'Ombor (2,000 kg)',
-      '24/7 yordam + Shaxsiy menejer',
-      '15% profit share',
-      'SPT xizmati BEPUL'
+      '400 ta mahsulot',
+      '4 marketplace (Uzum, Yandex, WB, Ozon)',
+      'Cheksiz AI kartochka',
+      'Cheksiz Trend Hunter',
+      'SEO optimizatsiya',
+      'Narx monitoring',
+      '24/7 monitoring'
     ],
     limits: {
       marketplaces: 4,
-      products: 2000,
-      warehouse: 2000
+      products: 400,
+      aiCards: -1
     }
   },
-  enterprise_elite: {
-    name: 'Enterprise Elite',
-    monthlyFee: 25000000, // 25M
-    profitShareRate: 10, // 10% foydadan
-    commissionRate: 10, // Legacy display
-    minRevenue: 500000000,
+  professional: {
+    name: 'Professional',
+    monthlyFee: 10788000, // $899
+    commissionRate: 0.01, // 1% savdodan
+    minRevenue: 200000000,
     maxRevenue: null,
-    color: 'orange',
+    color: 'purple',
     icon: Crown,
     popular: false,
-    badge: 'VIP',
+    badge: 'Premium',
     features: [
-      'Cheksiz marketplace',
-      'Cheksiz mahsulot',
-      'Enterprise dashboard',
-      'Full AI & Analytics',
-      'Ombor (cheksiz)',
-      'Shaxsiy jamoa + VIP xizmat',
-      '10% profit share',
-      'SPT xizmati BEPUL'
+      '♾️ Cheksiz mahsulotlar',
+      '4+ marketplace (barcha)',
+      'Cheksiz AI kartochka',
+      'Cheksiz Trend Hunter',
+      'Kengaytirilgan AI tahlil',
+      'Shaxsiy menejer',
+      'API kirish',
+      'White-label branding'
     ],
     limits: {
       marketplaces: -1,
       products: -1,
-      warehouse: -1
+      aiCards: -1
     }
   }
 };
@@ -191,24 +183,21 @@ export function EnhancedTierUpgradeModal({ isOpen, onClose, onSuccess, currentTi
     const selectedTierDetails = TIER_DETAILS[selectedTier as keyof typeof TIER_DETAILS];
     const currentRevenue = monthlyRevenue;
     
-    // YANGI v4: Profit Share hisob
-    // Approximate net profit (assume 40% gross margin, 20% MP fees)
-    const approxNetProfit = currentRevenue * 0.20; // ~20% net after all costs
-    
+    // 2024 SaaS Model: Commission from Sales
     const currentCosts = {
       monthly: currentTierDetails.monthlyFee,
-      profitShare: approxNetProfit * (currentTierDetails.profitShareRate / 100),
-      total: currentTierDetails.monthlyFee + (approxNetProfit * (currentTierDetails.profitShareRate / 100))
+      commission: currentRevenue * currentTierDetails.commissionRate,
+      total: currentTierDetails.monthlyFee + (currentRevenue * currentTierDetails.commissionRate)
     };
     
     const newCosts = {
       monthly: selectedTierDetails.monthlyFee,
-      profitShare: approxNetProfit * (selectedTierDetails.profitShareRate / 100),
-      total: selectedTierDetails.monthlyFee + (approxNetProfit * (selectedTierDetails.profitShareRate / 100))
+      commission: currentRevenue * selectedTierDetails.commissionRate,
+      total: selectedTierDetails.monthlyFee + (currentRevenue * selectedTierDetails.commissionRate)
     };
     
     const savings = currentCosts.total - newCosts.total;
-    const savingsPercent = (savings / currentCosts.total) * 100;
+    const savingsPercent = currentCosts.total > 0 ? (savings / currentCosts.total) * 100 : 0;
     
     return {
       currentCosts,
@@ -324,14 +313,14 @@ export function EnhancedTierUpgradeModal({ isOpen, onClose, onSuccess, currentTi
                         <div className="p-4 bg-gradient-to-r from-emerald-50 to-green-100 rounded-xl border-2 border-emerald-200">
                           <div className="flex items-center gap-2 mb-2">
                             <Percent className="w-4 h-4 text-emerald-700" />
-                            <span className="text-xs font-bold text-emerald-700 uppercase">Profit Share</span>
+                            <span className="text-xs font-bold text-emerald-700 uppercase">Komissiya</span>
                           </div>
                           <div className="text-2xl font-bold text-emerald-900">
-                            {tier.profitShareRate}%
-                            <span className="text-sm font-normal text-emerald-700 ml-2">foydadan</span>
+                            {(tier.commissionRate * 100).toFixed(1)}%
+                            <span className="text-sm font-normal text-emerald-700 ml-2">savdodan</span>
                           </div>
                           <div className="text-xs text-emerald-600 mt-1 italic">
-                            Foyda bo'lmasa, to'lov yo'q!
+                            Faqat savdo bo'lganda
                           </div>
                         </div>
                         
@@ -442,8 +431,8 @@ export function EnhancedTierUpgradeModal({ isOpen, onClose, onSuccess, currentTi
                             <span className="font-bold">{formatCurrency(roiCalculation.currentCosts.monthly)}</span>
                           </div>
                           <div className="flex justify-between items-center p-3 bg-emerald-50 rounded">
-                            <span className="text-sm">Profit Share ({currentTierDetails.profitShareRate}%):</span>
-                            <span className="font-bold">{formatCurrency(roiCalculation.currentCosts.profitShare)}</span>
+                            <span className="text-sm">Komissiya ({(currentTierDetails.commissionRate * 100).toFixed(1)}% savdodan):</span>
+                            <span className="font-bold">{formatCurrency(roiCalculation.currentCosts.commission)}</span>
                           </div>
                           <div className="flex justify-between items-center p-3 bg-gray-100 rounded border-2 border-gray-300">
                             <span className="font-semibold">Jami Xarajat:</span>
@@ -466,8 +455,8 @@ export function EnhancedTierUpgradeModal({ isOpen, onClose, onSuccess, currentTi
                             <span className="font-bold">{formatCurrency(roiCalculation.newCosts.monthly)}</span>
                           </div>
                           <div className="flex justify-between items-center p-3 bg-emerald-50 rounded">
-                            <span className="text-sm">Profit Share ({TIER_DETAILS[selectedTier as keyof typeof TIER_DETAILS].profitShareRate}%):</span>
-                            <span className="font-bold">{formatCurrency(roiCalculation.newCosts.profitShare)}</span>
+                            <span className="text-sm">Komissiya ({(TIER_DETAILS[selectedTier as keyof typeof TIER_DETAILS].commissionRate * 100).toFixed(1)}% savdodan):</span>
+                            <span className="font-bold">{formatCurrency(roiCalculation.newCosts.commission)}</span>
                           </div>
                           <div className="flex justify-between items-center p-3 bg-green-100 rounded border-2 border-green-300">
                             <span className="font-semibold text-green-800">Jami Xarajat:</span>
