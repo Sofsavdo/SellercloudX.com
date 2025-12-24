@@ -625,9 +625,12 @@ export default function PartnerDashboard() {
                   </p>
                 </CardContent>
               </Card>
-              <div className="rounded-xl border bg-white shadow-soft h-[640px]">
-                <ChatSystem partnerId={partner?.id} />
+              <div className="rounded-xl border bg-white shadow-soft p-8 text-center">
+                <p className="text-muted-foreground">Chat tizimi vaqtincha o'chirilgan. Yordam uchun admin bilan bog'laning.</p>
               </div>
+              {/* <div className="rounded-xl border bg-white shadow-soft h-[640px]">
+                <ChatSystem partnerId={partner?.id} />
+              </div> */}
             </TabsContent>
           </Tabs>
         </div>

@@ -38,68 +38,80 @@ interface PricingTier {
   isActive: boolean;
 }
 
-// YANGI: To'liq tarif ma'lumotlari
+// YANGI: To'liq tarif ma'lumotlari (2024 SaaS Pricing)
 const TIER_INFO: Record<string, any> = {
-  starter_pro: {
-    name: 'Starter Pro',
-    monthlyFee: 2500000,
-    commissionRate: 25,
-    minRevenue: 10000000,
-    maxRevenue: 30000000,
-    color: 'blue',
+  free_starter: {
+    name: 'Free Starter',
+    monthlyFee: 0,
+    commissionRate: 2,
+    minRevenue: 0,
+    maxRevenue: 15000000,
+    color: 'green',
     icon: Package,
     features: [
-      '1 ta marketplace',
-      '100 tagacha mahsulot',
-      'Basic dashboard',
-      'Ombor xizmati (100 kg)',
-      'Email yordam (48h)'
+      '10 ta mahsulot',
+      '1 marketplace (Yandex)',
+      'AI kartochka (10 ta)',
+      'Trend Hunter (10 marta/oy)',
+      'Asosiy statistika',
+      'Email yordam'
     ]
   },
-  business_standard: {
-    name: 'Business Standard',
-    monthlyFee: 5000000,
-    commissionRate: 20,
-    minRevenue: 30000000,
-    maxRevenue: 100000000,
-    color: 'green',
+  basic: {
+    name: 'Basic',
+    monthlyFee: 828000,
+    commissionRate: 1.8,
+    minRevenue: 15000000,
+    maxRevenue: 69000000,
+    color: 'orange',
     icon: TrendingUp,
+    features: [
+      '69 ta mahsulot',
+      '1 marketplace (Yandex)',
+      'AI kartochka (69 ta)',
+      'Trend Hunter (69 marta/oy)',
+      'Sof foyda tahlili',
+      'Telegram xabarnomalar'
+    ]
+  },
+  starter_pro: {
+    name: 'Starter Pro',
+    monthlyFee: 4188000,
+    commissionRate: 1.5,
+    minRevenue: 69000000,
+    maxRevenue: 200000000,
+    color: 'blue',
+    icon: Sparkles,
     popular: true,
     features: [
-      '2 ta marketplace',
-      '500 tagacha mahsulot',
-      'To\'liq dashboard',
-      'Prognozlar',
-      'Ombor (500 kg)',
-      'Telefon yordam (24h)',
-      'Oylik konsultatsiya'
+      '400 ta mahsulot',
+      '4 marketplace (Uzum, Yandex, WB, Ozon)',
+      'Cheksiz AI kartochka',
+      'Cheksiz Trend Hunter',
+      'SEO optimizatsiya',
+      'Narx monitoring',
+      '24/7 monitoring'
     ]
   },
-  professional_plus: {
-    name: 'Professional Plus',
-    monthlyFee: 10000000,
-    commissionRate: 15,
-    minRevenue: 100000000,
-    maxRevenue: 300000000,
-    color: 'purple',
-    icon: Star,
-    features: [
-      '4 ta marketplace',
-      '2,000 tagacha mahsulot',
-      'Premium dashboard',
-      'AI tahlil va Trend Hunter',
-      'Ombor (2,000 kg)',
-      '24/7 yordam',
-      'Shaxsiy menejer'
-    ]
-  },
-  enterprise_elite: {
-    name: 'Enterprise Elite',
-    monthlyFee: 20000000,
-    commissionRate: 10,
-    minRevenue: 300000000,
+  professional: {
+    name: 'Professional',
+    monthlyFee: 10788000,
+    commissionRate: 1,
+    minRevenue: 200000000,
     maxRevenue: null,
-    color: 'orange',
+    color: 'purple',
+    icon: Crown,
+    features: [
+      '♾️ Cheksiz mahsulotlar',
+      '4+ marketplace (barcha)',
+      'Cheksiz AI kartochka',
+      'Cheksiz Trend Hunter',
+      'Kengaytirilgan AI tahlil',
+      'Shaxsiy menejer',
+      'API kirish',
+      'White-label branding'
+    ]
+  }
     icon: Crown,
     features: [
       'Cheksiz marketplace',
@@ -119,10 +131,10 @@ const getTierDisplayName = (tier: string) => {
 
 const getTierOrder = (tier: string) => {
   const order = {
-    starter_pro: 1,
-    business_standard: 2,
-    professional_plus: 3,
-    enterprise_elite: 4
+    free_starter: 0,
+    basic: 1,
+    starter_pro: 2,
+    professional: 3
   };
   return order[tier as keyof typeof order] || 0;
 };

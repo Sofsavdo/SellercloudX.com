@@ -24,10 +24,10 @@ interface TierData {
 }
 
 const tiers: Record<string, TierData> = {
-  starter_pro: { name: 'Starter Pro', monthlyFee: 2500000, commissionRate: 0.25, color: 'blue' },
-  business_standard: { name: 'Business Standard', monthlyFee: 5000000, commissionRate: 0.20, color: 'green' },
-  professional_plus: { name: 'Professional Plus', monthlyFee: 10000000, commissionRate: 0.15, color: 'purple' },
-  enterprise_elite: { name: 'Enterprise Elite', monthlyFee: 20000000, commissionRate: 0.10, color: 'orange' }
+  free_starter: { name: 'Free Starter', monthlyFee: 0, commissionRate: 0.02, color: 'green' },
+  basic: { name: 'Basic', monthlyFee: 828000, commissionRate: 0.018, color: 'orange' },
+  starter_pro: { name: 'Starter Pro', monthlyFee: 4188000, commissionRate: 0.015, color: 'blue' },
+  professional: { name: 'Professional', monthlyFee: 10788000, commissionRate: 0.01, color: 'purple' }
 };
 
 const formatSom = (value: number): string => {

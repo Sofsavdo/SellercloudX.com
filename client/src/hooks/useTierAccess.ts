@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 
 export interface TierAccess {
-  tier: 'starter_pro' | 'business_standard' | 'professional_plus' | 'enterprise_elite';
+  tier: 'free_starter' | 'basic' | 'starter_pro' | 'professional';
   hasProfitDashboard: boolean;
   hasTrendHunter: boolean;
   canViewFullAnalytics: boolean;
@@ -19,14 +19,14 @@ export function useTierAccess() {
     retry: false,
   });
 
-  const currentTier = (partner as any)?.pricingTier || 'starter_pro';
+  const currentTier = (partner as any)?.pricingTier || 'free_starter';
 
   const access: TierAccess = {
     tier: currentTier,
-    hasProfitDashboard: ['business_standard', 'professional_plus', 'enterprise_elite'].includes(currentTier),
-    hasTrendHunter: ['professional_plus', 'enterprise_elite'].includes(currentTier),
-    canViewFullAnalytics: ['business_standard', 'professional_plus', 'enterprise_elite'].includes(currentTier),
-    canAccessPremiumFeatures: ['enterprise_elite'].includes(currentTier),
+    hasProfitDashboard: ['basic', 'starter_pro', 'professional'].includes(currentTier),
+    hasTrendHunter: ['free_starter', 'basic', 'starter_pro', 'professional'].includes(currentTier), // All tiers have access
+    canViewFullAnalytics: ['starter_pro', 'professional'].includes(currentTier),
+    canAccessPremiumFeatures: ['professional'].includes(currentTier),
   };
 
   return access;
@@ -34,16 +34,16 @@ export function useTierAccess() {
 
 export function getTierName(tier: string): string {
   const tierNames: Record<string, string> = {
+    free_starter: 'Free Starter',
+    basic: 'Basic',
     starter_pro: 'Starter Pro',
-    business_standard: 'Business Standard',
-    professional_plus: 'Professional Plus',
-    enterprise_elite: 'Enterprise Elite',
+    professional: 'Professional',
   };
   return tierNames[tier] || tier;
 }
 
 export function getRequiredTierForFeature(feature: 'profit' | 'trends'): string {
-  if (feature === 'profit') return 'business_standard';
-  if (feature === 'trends') return 'professional_plus';
-  return 'starter_pro';
+  if (feature === 'profit') return 'basic';
+  if (feature === 'trends') return 'free_starter'; // All tiers
+  return 'free_starter';
 }
