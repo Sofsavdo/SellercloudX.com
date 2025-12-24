@@ -10,6 +10,7 @@ import { initializeWebSocket } from "./websocket";
 import { initializeAdmin } from "./initAdmin";
 import { runMigrations } from "./migrate";
 import { initializeAIQueue } from "./services/aiTaskQueue";
+import { startCronJobs } from "./cron/scheduler";
 import helmet from "helmet";
 import * as Sentry from "@sentry/node";
 import winston from "winston";
@@ -210,6 +211,14 @@ app.use((req, res, next) => {
     } catch (error) {
       console.error('AI queue initialization failed:', error);
       console.log('⚠️  Continuing without AI queue');
+    }
+
+    // Start cron jobs for automated billing
+    try {
+      startCronJobs();
+    } catch (error) {
+      console.error('Cron jobs initialization failed:', error);
+      console.log('⚠️  Continuing without cron jobs');
     }
 
     // ✅ Vite faqat developmentda ishlaydi

@@ -50,6 +50,7 @@ import telegramRoutes from "./routes/telegramRoutes";
 import premiumFeaturesRoutes from "./routes/premiumFeaturesRoutes";
 import advancedFeaturesRoutes from "./routes/advancedFeaturesRoutes";
 import smartAIRoutes from "./routes/smartAIRoutes";
+import billingRoutes from "./routes/billingRoutes";
 
 // Enhanced authentication middleware with better error handling
 function requireAuth(req: Request, res: Response, next: NextFunction) {
@@ -1432,6 +1433,9 @@ export function registerRoutes(app: express.Application): Server {
 
   // ==================== SMART AI MANAGER ====================
   app.use("/api/smart-ai", smartAIRoutes);
+
+  // ==================== BILLING & INVOICING ====================
+  app.use("/api/billing", requireAuth, billingRoutes);
 
   // ==================== AI PRODUCT RECOGNITION ====================
   // Recognize product from image

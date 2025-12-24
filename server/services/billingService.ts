@@ -10,6 +10,7 @@ import {
 } from '../../shared/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 import { SAAS_PRICING_TIERS } from '../../SAAS_PRICING_CONFIG';
+import emailService from './emailService';
 
 // ==================== TIER MANAGEMENT ====================
 
@@ -157,6 +158,25 @@ export async function createInvoice(
     dueDate,
     createdAt: new Date(),
   });
+
+  // Send email notification
+  try {
+    const partner = await db.query.partners.findFirst({
+      where: eq(partners.id, partnerId),
+    });
+    
+    if (partner?.email) {
+      await emailService.sendInvoiceCreated(
+        partner.email,
+        partner.businessName || partner.fullName || 'Partner',
+        invoiceId,
+        amount,
+        dueDate.toISOString()
+      );
+    }
+  } catch (error) {
+    console.error('Failed to send invoice email:', error);
+  }
 
   return invoiceId;
 }
@@ -472,6 +492,26 @@ export async function processOverdueInvoices() {
 
   for (const invoice of overdueInvoices) {
     try {
+      const daysPastDue = Math.floor(
+        (now.getTime() - invoice.dueDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      // Get partner info
+      const partner = await db.query.partners.findFirst({
+        where: eq(partners.id, invoice.partnerId),
+      });
+
+      // Send overdue notification
+      if (partner?.email) {
+        await emailService.sendInvoiceOverdue(
+          partner.email,
+          partner.businessName || partner.fullName || 'Partner',
+          invoice.id,
+          invoice.amount,
+          daysPastDue
+        );
+      }
+
       // Get subscription
       if (invoice.subscriptionId) {
         const subscription = await db.query.subscriptions.findFirst({
@@ -480,10 +520,6 @@ export async function processOverdueInvoices() {
 
         if (subscription) {
           // Suspend subscription after 5 days overdue
-          const daysPastDue = Math.floor(
-            (now.getTime() - invoice.dueDate.getTime()) / (1000 * 60 * 60 * 24)
-          );
-
           if (daysPastDue >= 5) {
             await db.update(subscriptions)
               .set({
@@ -491,6 +527,15 @@ export async function processOverdueInvoices() {
                 updatedAt: new Date(),
               })
               .where(eq(subscriptions.id, subscription.id));
+
+            // Send suspension notification
+            if (partner?.email) {
+              await emailService.sendSubscriptionSuspended(
+                partner.email,
+                partner.businessName || partner.fullName || 'Partner',
+                `Payment overdue for ${daysPastDue} days`
+              );
+            }
 
             console.log(`⚠️ Suspended subscription: ${subscription.id}`);
           }
