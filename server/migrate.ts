@@ -20,6 +20,16 @@ async function runSQLiteMigrations() {
   try {
     const db = new Database(dbPath);
     
+    // Check if partners table exists
+    const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='partners'").all() as any[];
+    
+    if (tables.length === 0) {
+      console.log('⚠️  Partners table does not exist. Database needs initialization.');
+      console.log('💡 Run: npm run db:push');
+      db.close();
+      return; // Don't throw error, just skip migration
+    }
+    
     // Check and add anydesk columns
     const tableInfo = db.prepare("PRAGMA table_info(partners)").all() as any[];
     const hasAnydeskId = tableInfo.some((col: any) => col.name === 'anydesk_id');
@@ -45,7 +55,10 @@ async function runSQLiteMigrations() {
     console.log('✅ SQLite migrations completed');
   } catch (error) {
     console.error('❌ SQLite migration failed:', error);
-    throw error;
+    // Don't throw error in production, just log it
+    if (process.env.NODE_ENV !== 'production') {
+      throw error;
+    }
   }
 }
 

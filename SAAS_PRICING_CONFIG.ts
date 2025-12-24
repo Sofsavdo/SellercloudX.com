@@ -206,6 +206,7 @@ export const AI_MANAGER_PLANS = {
     id: 'basic',
     name: 'AI Manager Basic',
     monthlyFee: 0, // Included in tier
+    revenueCommissionRate: 0.02, // 2%
     features: [
       'AI kartochka yaratish',
       'Asosiy tarjima',
@@ -216,6 +217,7 @@ export const AI_MANAGER_PLANS = {
     id: 'advanced',
     name: 'AI Manager Advanced',
     monthlyFee: 0, // Included in tier
+    revenueCommissionRate: 0.018, // 1.8%
     features: [
       'AI kartochka yaratish',
       'Professional tarjima',
@@ -228,6 +230,7 @@ export const AI_MANAGER_PLANS = {
     id: 'premium',
     name: 'AI Manager Premium',
     monthlyFee: 0, // Included in tier
+    revenueCommissionRate: 0.015, // 1.5%
     features: [
       'Barcha Advanced features',
       'Custom AI models',
