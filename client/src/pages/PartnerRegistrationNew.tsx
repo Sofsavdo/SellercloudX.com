@@ -48,6 +48,7 @@ export default function PartnerRegistrationNew() {
           ...data,
           businessCategory: 'general',
           monthlyRevenue: '0',
+          pricingTier: 'free_starter', // Default SaaS tier
           notes: ''
         }),
       });

@@ -44,6 +44,7 @@ import fulfillmentAIIntegration from "./services/fulfillmentAIIntegration";
 import appConfig from "./config";
 import { uploadLimiter } from "./middleware/rateLimiter";
 import paymentRoutes from "./routes/paymentRoutes";
+import paymentIntegrationRoutes from "./routes/paymentIntegration";
 import whatsappRoutes from "./routes/whatsappRoutes";
 import telegramRoutes from "./routes/telegramRoutes";
 import premiumFeaturesRoutes from "./routes/premiumFeaturesRoutes";
@@ -1413,6 +1414,9 @@ export function registerRoutes(app: express.Application): Server {
 
   // ==================== PAYMENT SYSTEM ====================
   app.use("/api/payment", paymentRoutes);
+  
+  // Payment Integration (Click, Payme, Uzcard)
+  app.use("/api/payments", paymentIntegrationRoutes);
 
   // ==================== WHATSAPP BUSINESS ====================
   app.use("/api/whatsapp", whatsappRoutes);

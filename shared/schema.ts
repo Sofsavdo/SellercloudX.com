@@ -33,7 +33,7 @@ export const partners = sqliteTable('partners', {
   website: text('website'),
   monthlyRevenue: text('monthly_revenue'),
   approved: integer('approved', { mode: 'boolean' }).default(false),
-  pricingTier: text('pricing_tier').default('starter_pro'),
+  pricingTier: text('pricing_tier').default('free_starter'), // Updated to SaaS model
   monthlyFee: integer('monthly_fee'),
   profitSharePercent: integer('profit_share_percent'),
   aiEnabled: integer('ai_enabled', { mode: 'boolean' }).default(false),
@@ -113,6 +113,81 @@ export const marketplaceApiConfigs = sqliteTable('marketplace_api_configs', {
   rateLimit: integer('rate_limit'),
   documentation: text('documentation'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+});
+
+// ==================== BILLING & PAYMENTS ====================
+
+// Subscriptions - Partner obunalari
+export const subscriptions = sqliteTable('subscriptions', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => partners.id),
+  tierId: text('tier_id').notNull(), // free_starter, basic, starter, professional
+  status: text('status').notNull().default('active'), // active, cancelled, expired, suspended
+  startDate: integer('start_date', { mode: 'timestamp' }).notNull(),
+  endDate: integer('end_date', { mode: 'timestamp' }),
+  autoRenew: integer('auto_renew', { mode: 'boolean' }).default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }),
+});
+
+// Invoices - Hisob-fakturalar
+export const invoices = sqliteTable('invoices', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => partners.id),
+  subscriptionId: text('subscription_id').references(() => subscriptions.id),
+  amount: real('amount').notNull(),
+  currency: text('currency').default('USD'),
+  status: text('status').notNull().default('pending'), // pending, paid, failed, refunded
+  dueDate: integer('due_date', { mode: 'timestamp' }).notNull(),
+  paidAt: integer('paid_at', { mode: 'timestamp' }),
+  paymentMethod: text('payment_method'), // click, payme, uzcard, manual
+  metadata: text('metadata'), // JSON
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+});
+
+// Payments - To'lovlar
+export const payments = sqliteTable('payments', {
+  id: text('id').primaryKey(),
+  invoiceId: text('invoice_id').notNull().references(() => invoices.id),
+  partnerId: text('partner_id').notNull().references(() => partners.id),
+  amount: real('amount').notNull(),
+  currency: text('currency').default('USD'),
+  paymentMethod: text('payment_method').notNull(), // click, payme, uzcard, manual
+  transactionId: text('transaction_id'), // Gateway transaction ID
+  status: text('status').notNull().default('pending'), // pending, completed, failed, refunded
+  metadata: text('metadata'), // JSON: gateway response
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  completedAt: integer('completed_at', { mode: 'timestamp' }),
+});
+
+// Commission Records - Komissiya yozuvlari
+export const commissionRecords = sqliteTable('commission_records', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => partners.id),
+  orderId: text('order_id'),
+  saleAmount: real('sale_amount').notNull(),
+  commissionRate: real('commission_rate').notNull(),
+  commissionAmount: real('commission_amount').notNull(),
+  status: text('status').notNull().default('pending'), // pending, paid, cancelled
+  periodStart: integer('period_start', { mode: 'timestamp' }).notNull(),
+  periodEnd: integer('period_end', { mode: 'timestamp' }).notNull(),
+  paidAt: integer('paid_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+});
+
+// Sales Limits - Savdo limitlari tracking
+export const salesLimits = sqliteTable('sales_limits', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => partners.id),
+  tierId: text('tier_id').notNull(),
+  month: integer('month').notNull(), // YYYYMM format
+  totalSales: real('total_sales').default(0),
+  salesLimit: real('sales_limit').notNull(),
+  skuCount: integer('sku_count').default(0),
+  skuLimit: integer('sku_limit').notNull(),
+  status: text('status').notNull().default('ok'), // ok, warning, exceeded
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }),
 });
 
 // ==================== FULFILLMENT ====================
