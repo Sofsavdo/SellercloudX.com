@@ -11,16 +11,10 @@ async function runMonthlyBilling() {
   try {
     await billingService.processMonthlyBilling();
     console.log('✅ Monthly billing completed successfully');
-    process.exit(0);
   } catch (error) {
     console.error('❌ Monthly billing failed:', error);
-    process.exit(1);
+    throw error;
   }
-}
-
-// Run if called directly
-if (require.main === module) {
-  runMonthlyBilling();
 }
 
 export default runMonthlyBilling;

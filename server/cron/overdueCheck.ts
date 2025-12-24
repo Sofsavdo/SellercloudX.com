@@ -11,16 +11,10 @@ async function runOverdueCheck() {
   try {
     await billingService.processOverdueInvoices();
     console.log('✅ Overdue check completed successfully');
-    process.exit(0);
   } catch (error) {
     console.error('❌ Overdue check failed:', error);
-    process.exit(1);
+    throw error;
   }
-}
-
-// Run if called directly
-if (require.main === module) {
-  runOverdueCheck();
 }
 
 export default runOverdueCheck;
