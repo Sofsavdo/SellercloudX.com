@@ -32,7 +32,8 @@ import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/currency';
 import { apiRequest } from '@/lib/queryClient';
 import { useQueryClient } from '@tanstack/react-query';
-import { NEW_PRICING_TIERS, AI_MANAGER_PLANS } from '../../../NEW_PRICING_CONFIG';
+// SAAS MODEL: Use new SaaS-only pricing (no fulfillment)
+import { SAAS_PRICING_TIERS as NEW_PRICING_TIERS, AI_MANAGER_PLANS } from '../../../SAAS_PRICING_CONFIG';
 import { ChatSystem } from '@/components/ChatSystem';
 import { ReferralDashboard } from '@/components/ReferralDashboard';
 import { ViralShareButton } from '@/components/ViralShareButton';

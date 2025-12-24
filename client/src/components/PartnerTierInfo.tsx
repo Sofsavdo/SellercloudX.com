@@ -10,7 +10,8 @@ import {
   CheckCircle,
   Info
 } from "lucide-react";
-import { NEW_PRICING_TIERS } from '../../../NEW_PRICING_CONFIG';
+// SAAS MODEL: Use new SaaS-only pricing
+import { SAAS_PRICING_TIERS as NEW_PRICING_TIERS } from '../../../SAAS_PRICING_CONFIG';
 
 interface PartnerTierInfoProps {
   currentTier: string;

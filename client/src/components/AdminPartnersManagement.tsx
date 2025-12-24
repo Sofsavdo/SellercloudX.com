@@ -17,7 +17,8 @@ import {
   Crown, Trash2, ShoppingCart, Zap
 } from 'lucide-react';
 
-import { AI_MANAGER_PLANS } from '../../../NEW_PRICING_CONFIG';
+// SAAS MODEL: Use new SaaS-only pricing
+import { AI_MANAGER_PLANS } from '../../../SAAS_PRICING_CONFIG';
 
 interface Partner {
   id: string;
