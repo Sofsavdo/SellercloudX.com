@@ -14,7 +14,7 @@ import { ProductForm } from '@/components/ProductForm';
 import { ProfitDashboard } from '@/components/ProfitDashboard';
 import { TrendingProducts } from '@/components/TrendingProducts';
 import { TrendingProductsDashboard } from '@/components/TrendingProductsDashboard';
-import { EnhancedTierUpgradeModal } from '@/components/EnhancedTierUpgradeModal';
+import { TierUpgradeRequestForm } from '@/components/TierUpgradeRequestForm';
 import { PartnerTierInfo } from '@/components/PartnerTierInfo';
 import { AIUsageTracker } from '@/components/AIUsageTracker';
 import { DataExportButton } from '@/components/DataExportButton';
@@ -35,7 +35,7 @@ import { useQueryClient } from '@tanstack/react-query';
 // SAAS MODEL: Use new SaaS-only pricing (no fulfillment)
 import { SAAS_PRICING_TIERS as NEW_PRICING_TIERS, AI_MANAGER_PLANS } from '../../../SAAS_PRICING_CONFIG';
 import { ChatSystem } from '@/components/ChatSystem';
-import { ReferralDashboard } from '@/components/ReferralDashboard';
+import { SimpleReferralDashboard } from '@/components/SimpleReferralDashboard';
 import { ViralShareButton } from '@/components/ViralShareButton';
 import { AchievementSystem } from '@/components/AchievementSystem';
 import {
@@ -355,7 +355,7 @@ export default function PartnerDashboard() {
 
             {/* REFERRAL TAB - NEW! */}
             <TabsContent value="referral" className="space-y-6">
-              <ReferralDashboard />
+              <SimpleReferralDashboard />
               <AchievementSystem />
               
               {/* Viral Share Section */}
@@ -636,7 +636,7 @@ export default function PartnerDashboard() {
         </div>
       </div>
 
-      <EnhancedTierUpgradeModal
+      <TierUpgradeRequestForm
         isOpen={showTierModal}
         onClose={() => setShowTierModal(false)}
         onSuccess={() => {

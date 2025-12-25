@@ -274,6 +274,7 @@ export async function approvePartner(partnerId: string, adminId: string): Promis
     const [partner] = await db.update(partners)
       .set({
         approved: true,
+        status: 'active', // ✅ Status ni active qilish
         updatedAt: new Date()
       })
       .where(eq(partners.id, partnerId))
