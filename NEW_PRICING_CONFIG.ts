@@ -387,7 +387,7 @@ export function getAIManagerMonthlyFee(planCode: string): number {
 export function calculateAIManagerCommission(revenue: number, planCode: string): number {
   const plan = getAIManagerPlan(planCode);
   if (!plan) return 0;
-  return revenue * (plan.revenueCommissionRate || 0);
+  return revenue * (plan.revenueCommission || 0);
 }
 
 // Export default

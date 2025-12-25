@@ -132,6 +132,87 @@ export default function AdminPanel() {
   const [selectedTab, setSelectedTab] = useState<string>('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const isAdmin = !!user && user.role === 'admin';
+
+  // Data queries (must be declared before any early returns)
+  const { data: partners = [], isLoading: partnersLoading } = useQuery<Partner[]>({
+    queryKey: ['/api/admin/partners'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/admin/partners');
+      return response.json();
+    },
+    enabled: isAdmin,
+  });
+
+  // FULFILLMENT FEATURE - Hidden for SaaS-only mode
+  // Uncomment when fulfillment services are ready
+  /*
+  const { data: fulfillmentRequests = [], isLoading: requestsLoading } = useQuery<FulfillmentRequest[]>({
+    queryKey: ['/api/fulfillment-requests'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/fulfillment-requests');
+      return response.json();
+    },
+    enabled: isAdmin,
+  });
+  */
+  const fulfillmentRequests: any[] = [];
+  const requestsLoading = false;
+
+  const { data: tierUpgradeRequests = [], isLoading: tierRequestsLoading } = useQuery<TierUpgradeRequest[]>({
+    queryKey: ['/api/admin/tier-upgrade-requests'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/admin/tier-upgrade-requests');
+      return response.json();
+    },
+    enabled: isAdmin,
+  });
+
+  // Mutations (also must be declared before any early returns)
+  const approvePartnerMutation = useMutation({
+    mutationFn: async (partnerId: string) => {
+      const response = await apiRequest('PUT', `/api/admin/partners/${partnerId}/approve`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Hamkor tasdiqlandi",
+        description: "Hamkor muvaffaqiyatli tasdiqlandi",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/partners'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Xatolik",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateTierRequestMutation = useMutation({
+    mutationFn: async ({ id, status, adminNotes }: { id: string; status: string; adminNotes?: string }) => {
+      const response = await apiRequest('PUT', `/api/admin/tier-upgrade-requests/${id}`, {
+        status,
+        adminNotes
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Tarif so'rovi yangilandi",
+        description: "Tarif yangilash so'rovi ko'rib chiqildi",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/tier-upgrade-requests'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Xatolik",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   // Auth tekshiruvi + redirect
   useEffect(() => {
@@ -175,110 +256,6 @@ export default function AdminPanel() {
       </div>
     );
   }
-
-  // Data queries
-  const { data: partners = [], isLoading: partnersLoading } = useQuery<Partner[]>({
-    queryKey: ['/api/admin/partners'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/admin/partners');
-      return response.json();
-    },
-    enabled: !!user && user.role === 'admin',
-  });
-
-  // FULFILLMENT FEATURE - Hidden for SaaS-only mode
-  // Uncomment when fulfillment services are ready
-  /*
-  const { data: fulfillmentRequests = [], isLoading: requestsLoading } = useQuery<FulfillmentRequest[]>({
-    queryKey: ['/api/fulfillment-requests'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/fulfillment-requests');
-      return response.json();
-    },
-    enabled: !!user && user.role === 'admin',
-  });
-  */
-  const fulfillmentRequests: any[] = [];
-  const requestsLoading = false;
-
-  const { data: tierUpgradeRequests = [], isLoading: tierRequestsLoading } = useQuery<TierUpgradeRequest[]>({
-    queryKey: ['/api/admin/tier-upgrade-requests'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/admin/tier-upgrade-requests');
-      return response.json();
-    },
-    enabled: !!user && user.role === 'admin',
-  });
-
-  // Mutations
-  const approvePartnerMutation = useMutation({
-    mutationFn: async (partnerId: string) => {
-      const response = await apiRequest('PUT', `/api/admin/partners/${partnerId}/approve`);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Hamkor tasdiqlandi",
-        description: "Hamkor muvaffaqiyatli tasdiqlandi",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/partners'] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Xatolik",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  // FULFILLMENT FEATURE - Hidden for SaaS-only mode
-  /*
-  const updateFulfillmentRequestMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
-      const response = await apiRequest('PUT', `/api/fulfillment-requests/${id}`, updates);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "So'rov yangilandi",
-        description: "Fulfillment so'rovi muvaffaqiyatli yangilandi",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/fulfillment-requests'] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Xatolik",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-  */
-
-  const updateTierRequestMutation = useMutation({
-    mutationFn: async ({ id, status, adminNotes }: { id: string; status: string; adminNotes?: string }) => {
-      const response = await apiRequest('PUT', `/api/admin/tier-upgrade-requests/${id}`, {
-        status,
-        adminNotes
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Tarif so'rovi yangilandi",
-        description: "Tarif yangilash so'rovi ko'rib chiqildi",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/tier-upgrade-requests'] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Xatolik",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
 
   // Helper functions
   const getStatusBadge = (status: string) => {

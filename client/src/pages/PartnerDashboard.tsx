@@ -58,6 +58,40 @@ export default function PartnerDashboard() {
   const { toast } = useToast();
   const [selectedTab, setSelectedTab] = useState('overview');
   const [showTierModal, setShowTierModal] = useState(false);
+  const isPartner = !!user && user.role === 'partner';
+
+  // Data queries (must be declared before any early returns)
+  const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
+    queryKey: ['/api/products'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/products');
+      return response.json();
+    },
+    enabled: isPartner,
+  });
+
+  // FULFILLMENT FEATURE - Hidden for SaaS-only mode
+  /*
+  const { data: fulfillmentRequests = [], isLoading: requestsLoading } = useQuery<FulfillmentRequest[]>({
+    queryKey: ['/api/fulfillment-requests'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/fulfillment-requests');
+      return response.json();
+    },
+    enabled: isPartner,
+  });
+  */
+  const fulfillmentRequests: any[] = [];
+  const requestsLoading = false;
+
+  const { data: analytics = [], isLoading: analyticsLoading } = useQuery<Analytics[]>({
+    queryKey: ['/api/analytics'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/analytics');
+      return response.json();
+    },
+    enabled: isPartner,
+  });
 
   useEffect(() => {
     if (authLoading) return;
@@ -86,38 +120,6 @@ export default function PartnerDashboard() {
       </div>
     );
   }
-
-  const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
-    queryKey: ['/api/products'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/products');
-      return response.json();
-    },
-    enabled: !!user,
-  });
-
-  // FULFILLMENT FEATURE - Hidden for SaaS-only mode
-  /*
-  const { data: fulfillmentRequests = [], isLoading: requestsLoading } = useQuery<FulfillmentRequest[]>({
-    queryKey: ['/api/fulfillment-requests'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/fulfillment-requests');
-      return response.json();
-    },
-    enabled: !!user,
-  });
-  */
-  const fulfillmentRequests: any[] = [];
-  const requestsLoading = false;
-
-  const { data: analytics = [], isLoading: analyticsLoading } = useQuery<Analytics[]>({
-    queryKey: ['/api/analytics'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/analytics');
-      return response.json();
-    },
-    enabled: !!user,
-  });
 
   const stats = {
     totalRevenue: analytics.reduce((sum, item) => sum + parseFloat(item.revenue || '0'), 0),

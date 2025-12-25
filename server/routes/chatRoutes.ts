@@ -89,6 +89,16 @@ router.get('/messages/:chatRoomId?', asyncHandler(async (req: Request, res: Resp
       return res.json([]);
     }
     roomId = room[0].id;
+  } else if (user.role === 'partner' && chatRoomId) {
+    // SECURITY: partners can only read their own room
+    const room = await db
+      .select({ id: chatRooms.id })
+      .from(chatRooms)
+      .where(and(eq(chatRooms.id, chatRoomId), eq(chatRooms.partnerId, partner.id)))
+      .limit(1);
+    if (room.length === 0) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
   }
 
   if (!roomId) {
@@ -122,7 +132,7 @@ router.get('/messages/:chatRoomId?', asyncHandler(async (req: Request, res: Resp
 router.post('/messages', asyncHandler(async (req: Request, res: Response) => {
   const user = (req as any).user;
   const partner = (req as any).partner;
-  const { content, chatRoomId } = req.body;
+  const { content, chatRoomId, messageType, attachmentUrl, fileName } = req.body;
   
   if (!content || content.trim().length === 0) {
     return res.status(400).json({ message: "Xabar bo'sh bo'lishi mumkin emas" });
@@ -131,7 +141,7 @@ router.post('/messages', asyncHandler(async (req: Request, res: Response) => {
   let roomId = chatRoomId;
 
   // If partner, get their chat room
-  if (user.role === 'partner' && !chatRoomId) {
+  if (user.role === 'partner') {
     let room = await db.select()
       .from(chatRooms)
       .where(eq(chatRooms.partnerId, partner.id))
@@ -151,6 +161,10 @@ router.post('/messages', asyncHandler(async (req: Request, res: Response) => {
       room = [newRoom];
     }
     roomId = room[0].id;
+  } else if (user.role === 'admin') {
+    if (!roomId) {
+      return res.status(400).json({ message: 'Chat room ID required' });
+    }
   }
 
   if (!roomId) {
@@ -163,9 +177,9 @@ router.post('/messages', asyncHandler(async (req: Request, res: Response) => {
     chatRoomId: roomId,
     senderId: user.id,
     senderRole: user.role,
-    content: content.trim(),
-    messageType: 'text',
-    attachmentUrl: null,
+    content: (messageType === 'file' && fileName ? String(fileName) : content.trim()),
+    messageType: (messageType || 'text') as any,
+    attachmentUrl: attachmentUrl || null,
     createdAt: new Date(),
     readAt: null
   };

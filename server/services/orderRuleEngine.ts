@@ -123,10 +123,12 @@ class OrderRuleEngine {
 
       case 'add_tag':
         // Add tag to order
-        const currentTags = order.tags || [];
-        await storage.updateOrder(order.id, { 
-          tags: [...currentTags, action.params.tag] 
-        });
+        {
+          const currentTags = order.tags || [];
+          await storage.updateOrder(order.id, { 
+            tags: [...currentTags, action.params.tag] 
+          });
+        }
         break;
 
       default:

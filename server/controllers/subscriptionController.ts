@@ -75,7 +75,7 @@ export async function subscribeToAddon(req: Request, res: Response) {
     const id = nanoid();
     const now = new Date();
     const startDate = now.toISOString();
-    let endDate = new Date(now);
+    const endDate = new Date(now);
 
     if (billingPeriod === 'monthly') {
       endDate.setMonth(endDate.getMonth() + 1);
