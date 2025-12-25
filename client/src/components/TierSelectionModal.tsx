@@ -38,7 +38,8 @@ interface PricingTier {
   isActive: boolean;
 }
 
-// YANGI: To'liq tarif ma'lumotlari (2024 SaaS Pricing)
+// YANGI: To'liq tarif ma'lumotlari (SaaS Pricing)
+// Backend'dagi `pricing_tiers` va `server/seedData.ts` bilan mos.
 const TIER_INFO: Record<string, any> = {
   free_starter: {
     name: 'Free Starter',
@@ -51,78 +52,83 @@ const TIER_INFO: Record<string, any> = {
     features: [
       '10 ta mahsulot',
       '1 marketplace (Yandex)',
-      'AI kartochka (10 ta)',
-      'Trend Hunter (10 marta/oy)',
       'Asosiy statistika',
-      'Email yordam'
-    ]
-  },
-  basic: {
-    name: 'Basic',
-    monthlyFee: 828000,
-    commissionRate: 1.8,
-    minRevenue: 15000000,
-    maxRevenue: 69000000,
-    color: 'orange',
-    icon: TrendingUp,
-    features: [
-      '69 ta mahsulot',
-      '1 marketplace (Yandex)',
-      'AI kartochka (69 ta)',
-      'Trend Hunter (69 marta/oy)',
-      'Sof foyda tahlili',
-      'Telegram xabarnomalar'
-    ]
+      'Email yordam',
+    ],
   },
   starter_pro: {
     name: 'Starter Pro',
-    monthlyFee: 4188000,
-    commissionRate: 1.5,
-    minRevenue: 69000000,
-    maxRevenue: 200000000,
+    monthlyFee: 2500000,
+    commissionRate: 25,
+    minRevenue: 10000000,
+    maxRevenue: 30000000,
     color: 'blue',
     icon: Sparkles,
     popular: true,
     features: [
-      '400 ta mahsulot',
-      '4 marketplace (Uzum, Yandex, WB, Ozon)',
-      'Cheksiz AI kartochka',
-      'Cheksiz Trend Hunter',
-      'SEO optimizatsiya',
-      'Narx monitoring',
-      '24/7 monitoring'
-    ]
+      "Oylik to'lov: 2,500,000 so'm",
+      'Komissiya: 25% (savdodan)',
+      '1 ta marketplace',
+      '100 tagacha mahsulot',
+      'Basic dashboard',
+      'Ombor xizmati (100 kg)',
+    ],
   },
-  professional: {
-    name: 'Professional',
-    monthlyFee: 10788000,
-    commissionRate: 1,
-    minRevenue: 200000000,
-    maxRevenue: null,
+  business_standard: {
+    name: 'Business Standard',
+    monthlyFee: 5000000,
+    commissionRate: 20,
+    minRevenue: 30000000,
+    maxRevenue: 100000000,
+    color: 'orange',
+    icon: TrendingUp,
+    features: [
+      "Oylik to'lov: 5,000,000 so'm",
+      'Komissiya: 20% (savdodan)',
+      '2 ta marketplace',
+      '500 tagacha mahsulot',
+      "To'liq dashboard",
+      "Foyda/zarar tahlili",
+      'Ombor xizmati (500 kg)',
+    ],
+  },
+  professional_plus: {
+    name: 'Professional Plus',
+    monthlyFee: 10000000,
+    commissionRate: 15,
+    minRevenue: 100000000,
+    maxRevenue: 300000000,
     color: 'purple',
-    icon: Crown,
+    icon: Star,
     features: [
-      '♾️ Cheksiz mahsulotlar',
-      '4+ marketplace (barcha)',
-      'Cheksiz AI kartochka',
-      'Cheksiz Trend Hunter',
-      'Kengaytirilgan AI tahlil',
+      "Oylik to'lov: 10,000,000 so'm",
+      'Komissiya: 15% (savdodan)',
+      '4 ta marketplace',
+      '2,000 tagacha mahsulot',
+      'AI-powered tahlil',
+      'Trend hunter',
       'Shaxsiy menejer',
-      'API kirish',
-      'White-label branding'
-    ]
-  }
+      'Ombor xizmati (2,000 kg)',
+    ],
+  },
+  enterprise_elite: {
+    name: 'Enterprise Elite',
+    monthlyFee: 20000000,
+    commissionRate: 10,
+    minRevenue: 300000000,
+    maxRevenue: null,
+    color: 'black',
     icon: Crown,
     features: [
-      'Cheksiz marketplace',
-      'Cheksiz mahsulot',
+      "Oylik to'lov: 20,000,000 so'm",
+      'Komissiya: 10% (savdodan)',
+      "Barcha marketplace'lar",
+      'Cheksiz mahsulotlar',
       'Enterprise dashboard',
       'Full AI & Analytics',
-      'Ombor (5,000 kg)',
-      'Shaxsiy jamoa',
-      'VIP xizmat'
-    ]
-  }
+      'Shaxsiy jamoa / VIP xizmat',
+    ],
+  },
 };
 
 const getTierDisplayName = (tier: string) => {
@@ -132,9 +138,10 @@ const getTierDisplayName = (tier: string) => {
 const getTierOrder = (tier: string) => {
   const order = {
     free_starter: 0,
-    basic: 1,
-    starter_pro: 2,
-    professional: 3
+    starter_pro: 1,
+    business_standard: 2,
+    professional_plus: 3,
+    enterprise_elite: 4
   };
   return order[tier as keyof typeof order] || 0;
 };

@@ -378,7 +378,7 @@ export async function scanTrendingProducts(params: {
   // 5. Monitor social media (TikTok, Instagram)
 
   // Get trending products from database or use curated list
-  let trendingProducts: string[] = [
+  const trendingProducts: string[] = [
     'Smart Watch with Heart Rate Monitor',
     'Portable Power Bank 20000mAh',
     'LED Strip Lights RGB',
