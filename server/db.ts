@@ -419,4 +419,13 @@ export function getDatabaseInfo() {
   };
 }
 
+// Export sqlite instance for services that need direct access
+// Note: This will be null in PostgreSQL mode
+let sqliteInstance: Database.Database | null = null;
+if (!hasPostgresUrl) {
+  const Database = require('better-sqlite3');
+  sqliteInstance = new Database('dev.db');
+}
+
 export { db, dbType };
+export const sqlite = sqliteInstance; // For backward compatibility
