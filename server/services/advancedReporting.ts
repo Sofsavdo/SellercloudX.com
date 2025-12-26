@@ -298,9 +298,11 @@ class AdvancedReporting {
           period = date.toISOString().split('T')[0];
           break;
         case 'week':
-          const weekStart = new Date(date);
-          weekStart.setDate(date.getDate() - date.getDay());
-          period = weekStart.toISOString().split('T')[0];
+          {
+            const weekStart = new Date(date);
+            weekStart.setDate(date.getDate() - date.getDay());
+            period = weekStart.toISOString().split('T')[0];
+          }
           break;
         case 'month':
           period = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;

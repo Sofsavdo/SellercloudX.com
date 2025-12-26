@@ -418,7 +418,6 @@ export const partnerContracts = sqliteTable('partner_contracts', {
   signedAt: integer('signed_at', { mode: 'timestamp' }),
 });
 
-export type Referral = typeof referrals.$inferSelect;
 export type ReferralBonus = typeof referralBonuses.$inferSelect;
 export type ReferralWithdrawal = typeof referralWithdrawals.$inferSelect;
 export type PartnerContract = typeof partnerContracts.$inferSelect;
@@ -681,3 +680,27 @@ export type AICostRecord = typeof aiCostRecords.$inferSelect;
 export type Referral = typeof referrals.$inferSelect;
 export type ReferralEarning = typeof referralEarnings.$inferSelect;
 export type Withdrawal = typeof withdrawals.$inferSelect;
+
+// Additional type exports (used across server/services)
+export type FulfillmentRequest = typeof fulfillmentRequests.$inferSelect;
+export type Message = typeof messages.$inferSelect;
+export type PricingTier = typeof pricingTiers.$inferSelect;
+export type TierUpgradeRequest = typeof tierUpgradeRequests.$inferSelect;
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type SptCost = typeof sptCosts.$inferSelect;
+export type CommissionSetting = typeof commissionSettings.$inferSelect;
+export type MarketplaceApiConfig = typeof marketplaceApiConfigs.$inferSelect;
+export type ExcelImport = typeof excelImports.$inferSelect;
+export type ExcelTemplate = typeof excelTemplates.$inferSelect;
+export type ProfitBreakdown = typeof profitBreakdown.$inferSelect;
+export type TrendingProduct = typeof trendingProducts.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type AdminPermission = typeof adminPermissions.$inferSelect;
+export type Warehouse = typeof warehouses.$inferSelect;
+export type WarehouseStock = typeof warehouseStock.$inferSelect;
+export type StockMovement = typeof stockMovements.$inferSelect;
+export type OrderItem = typeof orderItems.$inferSelect;
+export type Customer = typeof customers.$inferSelect;
+export type StockAlert = typeof stockAlerts.$inferSelect;
+export type InventoryReport = typeof inventoryReports.$inferSelect;

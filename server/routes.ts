@@ -1103,6 +1103,29 @@ export function registerRoutes(app: express.Application): Server {
   // Referral System Routes
   app.use("/api/referrals", requireAuth, referralRoutes);
 
+  // Chat uploads (files/images) - used by ChatSystem UI
+  app.post(
+    "/api/chat/upload",
+    requirePartnerWithData,
+    uploadLimiter,
+    upload.single("file"),
+    asyncHandler(async (req: Request, res: Response) => {
+      const file = (req as any).file as Express.Multer.File | undefined;
+      if (!file) {
+        return res.status(400).json({ message: "File is required" });
+      }
+
+      // Served via: app.use('/uploads', express.static(uploadPath))
+      const fileUrl = `/uploads/${file.filename}`;
+      return res.status(201).json({
+        fileUrl,
+        fileName: file.originalname,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+      });
+    })
+  );
+
   // Chat System Routes
   app.use("/api/chat", requirePartnerWithData, chatRoutes);
 

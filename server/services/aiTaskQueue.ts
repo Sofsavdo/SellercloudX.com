@@ -1,7 +1,7 @@
 // AI Task Queue - Parallel task processing
 // Handles all AI operations asynchronously
 
-import { db } from '../db';
+import { db, sqlite } from '../db';
 import { aiTasks } from '@shared/schema';
 import { eq, desc } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
@@ -55,11 +55,25 @@ export async function addAITask(task: Omit<AITask, 'id' | 'status' | 'createdAt'
   };
 
   try {
+    // DB schema enforces FK: ai_tasks.account_id -> ai_marketplace_accounts(id)
+    // For safety (and to prevent 500s), drop invalid accountId instead of crashing.
+    let safeAccountId = newTask.accountId;
+    if (safeAccountId) {
+      const exists = sqlite
+        .prepare('SELECT id FROM ai_marketplace_accounts WHERE id = ?')
+        .get(safeAccountId);
+      if (!exists) {
+        console.warn(`⚠️ ai_marketplace_accounts not found for accountId=${safeAccountId}. Saving task without accountId.`);
+        safeAccountId = undefined;
+      }
+    }
+    newTask.accountId = safeAccountId;
+
     // Save to database using Drizzle ORM
     await db.insert(aiTasks).values({
       id: taskId,
       partnerId: newTask.partnerId,
-      accountId: newTask.accountId,
+      accountId: newTask.accountId ?? null,
       taskType: newTask.taskType,
       priority: newTask.priority,
       status: newTask.status,

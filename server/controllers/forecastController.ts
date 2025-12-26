@@ -73,7 +73,7 @@ export async function generateForecast(req: Request, res: Response) {
     // Prognoz saqlash
     const id = nanoid();
     const now = new Date();
-    let forecastDate = new Date(now);
+    const forecastDate = new Date(now);
 
     if (forecastPeriod === 'week') {
       forecastDate.setDate(forecastDate.getDate() + 7);

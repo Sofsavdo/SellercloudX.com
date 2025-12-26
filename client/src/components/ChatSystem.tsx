@@ -14,13 +14,13 @@ import { apiRequest } from '@/lib/queryClient';
 
 interface Message {
   id: string;
-  fromUserId: string;
-  toUserId: string;
+  chatRoomId: string;
+  senderId: string;
+  senderRole: string;
   content: string;
-  isRead: boolean;
   createdAt: string;
   messageType?: 'text' | 'file' | 'image';
-  fileUrl?: string;
+  attachmentUrl?: string | null;
   fileName?: string;
   fileSize?: number;
 }
@@ -82,42 +82,26 @@ export function ChatSystem({ partnerId, isAdmin = false }: ChatSystemProps) {
   // Load messages for selected partner
   useEffect(() => {
     if (selectedPartner) {
-      loadMessages(selectedPartner.userData.id);
+      // Admin: load by room id; Partner: API resolves room automatically
+      loadMessages(selectedPartner.id);
     }
   }, [selectedPartner]);
 
-  // Handle WebSocket messages via useWebSocket hook
-  useEffect(() => {
-    if (!isConnected || !selectedPartner || !lastMessage) return;
-
-    // Process incoming WebSocket messages
-    if (lastMessage.type === 'message' && lastMessage.data) {
-      const message = lastMessage.data;
-      if (
-        (message.fromUserId === selectedPartner.userData.id && message.toUserId === user?.id) ||
-        (message.fromUserId === user?.id && message.toUserId === selectedPartner.userData.id)
-      ) {
-        // Check if message already exists to avoid duplicates
-        setMessages(prev => {
-          if (prev.some(m => m.id === message.id)) return prev;
-          return [...prev, message];
-        });
-      }
-    }
-  }, [isConnected, selectedPartner, user?.id, lastMessage]);
+  // NOTE: Chat currently uses REST endpoints for reliability.
+  // WebSocket hook remains available for future real-time improvements.
 
   const loadAdminAsPartner = async () => {
     try {
       setIsLoading(true);
-      // For partner: load admin user as chat partner
-      const response = await apiRequest('GET', '/api/partner/admin-chat');
-      const adminData = await response.json();
-      
+      // Partner: get or create chat room, then show "Support" as the chat partner
+      const response = await apiRequest('GET', '/api/chat/room');
+      const roomData = await response.json();
+
       const adminPartner: ChatPartner = {
-        id: 'admin',
+        id: roomData.id,
         businessName: 'SellerCloudX Admin',
         businessCategory: 'Support',
-        userData: adminData,
+        userData: { id: 'admin', username: 'admin' },
         isOnline: true
       };
       
@@ -137,13 +121,21 @@ export function ChatSystem({ partnerId, isAdmin = false }: ChatSystemProps) {
   const loadChatPartners = async () => {
     try {
       setIsLoading(true);
-      const response = await apiRequest('GET', '/api/admin/chat-partners');
+      // Admin: load chat rooms list
+      const response = await apiRequest('GET', '/api/chat/rooms');
       const data = await response.json();
-      setPartners(data);
+      const roomsAsPartners: ChatPartner[] = (Array.isArray(data) ? data : []).map((room: any) => ({
+        id: room.id, // chatRoomId
+        businessName: room.partnerName || 'Partner',
+        businessCategory: room.partnerPhone || 'Partner',
+        userData: { id: room.partnerId || '', username: room.partnerName || 'partner' },
+        isOnline: false,
+      }));
+      setPartners(roomsAsPartners);
       
       // Auto-select first partner if none selected
-      if (data.length > 0 && !selectedPartner) {
-        setSelectedPartner(data[0]);
+      if (roomsAsPartners.length > 0 && !selectedPartner) {
+        setSelectedPartner(roomsAsPartners[0]);
       }
     } catch (error) {
       console.error('Error loading chat partners:', error);
@@ -157,10 +149,12 @@ export function ChatSystem({ partnerId, isAdmin = false }: ChatSystemProps) {
     }
   };
 
-  const loadMessages = async (partnerUserId: string) => {
+  const loadMessages = async (chatRoomId: string) => {
     try {
       setIsLoading(true);
-      const response = await apiRequest('GET', `/api/admin/chats/${partnerUserId}/messages`);
+      const response = isAdmin
+        ? await apiRequest('GET', `/api/chat/messages/${chatRoomId}`)
+        : await apiRequest('GET', `/api/chat/messages`);
       const data = await response.json();
       setMessages(data);
     } catch (error) {
@@ -179,22 +173,19 @@ export function ChatSystem({ partnerId, isAdmin = false }: ChatSystemProps) {
     if (!selectedPartner || !content.trim()) return;
 
     try {
-      const messageData = {
-        message: content,
+      const payload: any = {
+        content: content.trim(),
         messageType,
-        ...(fileData && { fileUrl: fileData.fileUrl, fileName: fileData.fileName, fileSize: fileData.fileSize })
+        ...(fileData && { attachmentUrl: fileData.fileUrl, fileName: fileData.fileName, fileSize: fileData.fileSize })
       };
+      if (isAdmin) payload.chatRoomId = selectedPartner.id;
 
-      const response = await apiRequest(
-        'POST', 
-        `/api/chat/partners/${selectedPartner.id}/message`, 
-        messageData
-      );
-
-      if (response.ok) {
-        await response.json();
-        setNewMessage('');
-      }
+      const response = await apiRequest('POST', `/api/chat/messages`, payload);
+      if (!response.ok) throw new Error('Message send failed');
+      await response.json();
+      setNewMessage('');
+      // Refresh messages for the current room
+      await loadMessages(selectedPartner.id);
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -364,12 +355,12 @@ export function ChatSystem({ partnerId, isAdmin = false }: ChatSystemProps) {
                   {messages.map((message) => (
                     <div
                       key={message.id}
-                      className={`flex ${message.fromUserId === user.id ? 'justify-end' : 'justify-start'}`}
+                      className={`flex ${message.senderId === user.id ? 'justify-end' : 'justify-start'}`}
                     >
-                      <div className={`max-w-xs lg:max-w-md ${message.fromUserId === user.id ? 'order-2' : 'order-1'}`}>
+                      <div className={`max-w-xs lg:max-w-md ${message.senderId === user.id ? 'order-2' : 'order-1'}`}>
                         <div
                           className={`rounded-lg px-4 py-2 ${
-                            message.fromUserId === user.id
+                            message.senderId === user.id
                               ? 'bg-primary text-primary-foreground'
                               : 'bg-muted'
                           }`}
@@ -377,7 +368,13 @@ export function ChatSystem({ partnerId, isAdmin = false }: ChatSystemProps) {
                           {message.messageType === 'file' ? (
                             <div className="flex items-center space-x-2">
                               <Paperclip className="h-4 w-4" />
-                              <span>{message.fileName || 'Fayl'}</span>
+                              {message.attachmentUrl ? (
+                                <a className="underline" href={message.attachmentUrl} target="_blank" rel="noreferrer">
+                                  {message.fileName || 'Fayl'}
+                                </a>
+                              ) : (
+                                <span>{message.fileName || 'Fayl'}</span>
+                              )}
                             </div>
                           ) : (
                             <p className="text-sm">{message.content}</p>
