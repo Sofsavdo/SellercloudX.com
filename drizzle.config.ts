@@ -1,21 +1,12 @@
-import type { Config } from "drizzle-kit";
-import { config } from 'dotenv';
+import { defineConfig } from 'drizzle-kit';
 
-// Load environment variables
-config();
-
-export default {
-  schema: "./shared/schema.ts",
-  out: "./migrations",
-  dialect: process.env.DATABASE_URL?.startsWith('postgresql') ? "postgresql" : "sqlite",
-  dbCredentials: process.env.DATABASE_URL?.startsWith('postgresql') 
-    ? {
-        url: process.env.DATABASE_URL,
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-      }
-    : {
-        url: process.env.DATABASE_URL || "file:./dev.db",
-      },
+export default defineConfig({
+  schema: './shared/schema.ts',
+  out: './migrations',
+  dialect: 'postgresql', // Changed from sqlite to postgresql for production
+  dbCredentials: {
+    url: process.env.DATABASE_URL || 'postgresql://localhost:5432/sellercloudx',
+  },
   verbose: true,
   strict: true,
-} satisfies Config;
+});
