@@ -271,17 +271,56 @@ export async function getAllPartners(): Promise<Partner[]> {
 
 export async function approvePartner(partnerId: string, adminId: string): Promise<Partner | null> {
   try {
-    const [partner] = await db.update(partners)
+    console.log(`🔍 [ADMIN] Approving partner ${partnerId} by admin ${adminId}`);
+    
+    // First, get the partner's user
+    const partner = await getPartnerById(partnerId);
+    if (!partner) {
+      console.error(`❌ Partner ${partnerId} not found`);
+      return null;
+    }
+    
+    console.log(`📋 Found partner:`, { 
+      id: partner.id, 
+      userId: partner.userId, 
+      approved: partner.approved 
+    });
+    
+    // CRITICAL FIX: Don't use 'status' field - it doesn't exist in schema!
+    // Update partner: set approved = true
+    const [updatedPartner] = await db.update(partners)
       .set({
         approved: true,
-        status: 'active', // ✅ Status ni active qilish
         updatedAt: new Date()
       })
       .where(eq(partners.id, partnerId))
       .returning();
     
-    return partner || null;
+    console.log(`✅ Partner approved:`, { 
+      partnerId: updatedPartner.id, 
+      approved: updatedPartner.approved,
+      userId: updatedPartner.userId
+    });
+    
+    // CRITICAL FIX: Also ensure user account is active
+    if (partner.userId) {
+      try {
+        await db.update(users)
+          .set({ 
+            isActive: true,
+            updatedAt: new Date()
+          })
+          .where(eq(users.id, partner.userId));
+        
+        console.log(`✅ User ${partner.userId} activated`);
+      } catch (userError) {
+        console.error('⚠️ Could not activate user:', userError);
+      }
+    }
+    
+    return updatedPartner || null;
   } catch (error: any) {
+    console.error('❌ Error approving partner:', error);
     throw new StorageError(`Hamkorni tasdiqlashda xatolik: ${error.message}`, 'APPROVE_PARTNER_ERROR');
   }
 }
