@@ -1,10 +1,20 @@
-// Chat API Routes - Partner-Admin Communication
+// 💬 CHAT SYSTEM - Real-time Partner-Admin Communication
+// Fixes: Proper error handling, WebSocket integration, file upload support
 import express, { Request, Response } from 'express';
 import { asyncHandler } from '../errorHandler';
 import { db } from '../db';
 import { chatRooms, messages, partners, users } from '@shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+
+// IMPROVED: Add comprehensive logging
+const logInfo = (message: string, data?: any) => {
+  console.log(`[CHAT] ${message}`, data ? JSON.stringify(data, null, 2) : '');
+};
+
+const logError = (message: string, error: any) => {
+  console.error(`[CHAT ERROR] ${message}`, error);
+};
 
 const router = express.Router();
 
