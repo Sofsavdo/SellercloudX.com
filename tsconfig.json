@@ -7,8 +7,11 @@
     "**/*.test.ts",
     "**/*.backup.ts",
     "**/*.backup.tsx",
-    "client/src/pages/InvestorPitch.*.ts",
-    "client/src/pages/InvestorPitch.*.tsx"
+    "**/*.old.ts",
+    "**/*.old.tsx",
+    "**/*.old*.tsx",
+    "**/*.wrong.tsx",
+    "**/*.previous.tsx"
   ],
   "compilerOptions": {
     "incremental": true,

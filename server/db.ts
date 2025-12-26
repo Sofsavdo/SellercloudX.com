@@ -1,622 +1,422 @@
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { drizzle as drizzleSqlite } from 'drizzle-orm/better-sqlite3';
 import Database from 'better-sqlite3';
+import { Pool } from 'pg';
 import * as schema from '@shared/schema';
-import bcrypt from 'bcryptjs';
 
-// NOTE:
-// Lokal rivojlanish va demo uchun biz SQLite (better-sqlite3) dan foydalanamiz.
-// Drizzle ORM asosiy jadval va typelarga ishlaydi, lekin ayrim controllerlar
-// xom SQL bilan `db.query`, `db.all`, `db.get` funksiyalarini ham chaqiradi.
-// Shu sababli bu yerda ikkala uslubni ham qo'llab-quvvatlaydigan bitta db obyektini
-// hosil qilamiz.
+// Smart Database Connection - Auto-detect PostgreSQL or SQLite
+// Railway provides DATABASE_URL for PostgreSQL
+// Local development uses SQLite
 
-// Asosiy SQLite connection
-const sqlite = new Database('dev.db');
+const isDevelopment = process.env.NODE_ENV !== 'production';
+const hasPostgresUrl = !!process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('postgres');
 
-// AUTO-MIGRATION: Database jadvallarini avtomatik yaratish
-console.log('🔧 Checking database tables...');
-try {
-  // Check if users table exists
-  const tableCheck = sqlite.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").get();
+console.log('🔧 Database Configuration:');
+console.log('   Environment:', process.env.NODE_ENV);
+console.log('   Has PostgreSQL URL:', hasPostgresUrl);
+
+let db: any;
+let dbType: 'postgres' | 'sqlite';
+
+if (hasPostgresUrl) {
+  // ✅ PRODUCTION: PostgreSQL (Railway, Render, etc.)
+  console.log('📦 Using PostgreSQL database...');
   
-  if (!tableCheck) {
-    console.log('📦 Creating database tables...');
-    sqlite.exec(`
-      CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        username TEXT UNIQUE NOT NULL,
-        email TEXT UNIQUE,
-        password TEXT NOT NULL,
-        first_name TEXT,
-        last_name TEXT,
-        phone TEXT,
-        role TEXT NOT NULL DEFAULT 'customer',
-        is_active INTEGER DEFAULT 1,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        updated_at INTEGER DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS partners (
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL UNIQUE REFERENCES users(id),
-        business_name TEXT NOT NULL,
-        business_address TEXT,
-        business_category TEXT,
-        inn TEXT UNIQUE,
-        phone TEXT NOT NULL,
-        website TEXT,
-        monthly_revenue TEXT,
-        approved INTEGER DEFAULT 0,
-        pricing_tier TEXT DEFAULT 'starter_pro',
-        monthly_fee INTEGER,
-        profit_share_percent INTEGER,
-        ai_enabled INTEGER DEFAULT 0,
-        warehouse_space_kg INTEGER,
-        notes TEXT,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        last_activity_at INTEGER
-      );
-      
-      CREATE TABLE IF NOT EXISTS products (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        name TEXT NOT NULL,
-        sku TEXT UNIQUE,
-        barcode TEXT,
-        description TEXT,
-        category TEXT,
-        brand TEXT,
-        price REAL NOT NULL,
-        cost_price REAL,
-        weight TEXT,
-        stock_quantity INTEGER DEFAULT 0,
-        low_stock_threshold INTEGER DEFAULT 10,
-        optimized_title TEXT,
-        is_active INTEGER DEFAULT 1,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        updated_at INTEGER
-      );
-      
-      CREATE TABLE IF NOT EXISTS orders (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        order_number TEXT UNIQUE NOT NULL,
-        customer_name TEXT NOT NULL,
-        customer_email TEXT,
-        customer_phone TEXT,
-        marketplace TEXT,
-        status TEXT DEFAULT 'pending',
-        total_amount REAL NOT NULL,
-        shipping_address TEXT,
-        tracking_number TEXT,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        updated_at INTEGER
-      );
-      
-      CREATE TABLE IF NOT EXISTS orderItems (
-        id TEXT PRIMARY KEY,
-        order_id TEXT NOT NULL REFERENCES orders(id),
-        product_id TEXT NOT NULL REFERENCES products(id),
-        quantity INTEGER NOT NULL,
-        price REAL NOT NULL,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS warehouses (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        location TEXT NOT NULL,
-        capacity INTEGER NOT NULL,
-        current_load INTEGER DEFAULT 0,
-        active INTEGER DEFAULT 1,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS warehouseStock (
-        id TEXT PRIMARY KEY,
-        warehouse_id TEXT NOT NULL REFERENCES warehouses(id),
-        product_id TEXT NOT NULL REFERENCES products(id),
-        quantity INTEGER NOT NULL DEFAULT 0,
-        location TEXT,
-        last_updated INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS stockMovements (
-        id TEXT PRIMARY KEY,
-        product_id TEXT NOT NULL REFERENCES products(id),
-        warehouse_id TEXT REFERENCES warehouses(id),
-        movement_type TEXT NOT NULL,
-        quantity INTEGER NOT NULL,
-        reason TEXT,
-        performed_by TEXT REFERENCES users(id),
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS customers (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        name TEXT NOT NULL,
-        email TEXT,
-        phone TEXT NOT NULL,
-        address TEXT,
-        total_orders INTEGER DEFAULT 0,
-        total_spent REAL DEFAULT 0,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        last_order_at INTEGER
-      );
-      
-      CREATE TABLE IF NOT EXISTS stockAlerts (
-        id TEXT PRIMARY KEY,
-        product_id TEXT NOT NULL REFERENCES products(id),
-        alert_type TEXT NOT NULL,
-        message TEXT NOT NULL,
-        resolved INTEGER DEFAULT 0,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        resolved_at INTEGER
-      );
-      
-      CREATE TABLE IF NOT EXISTS inventoryReports (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        report_type TEXT NOT NULL,
-        start_date INTEGER NOT NULL,
-        end_date INTEGER NOT NULL,
-        data TEXT NOT NULL,
-        generated_by TEXT REFERENCES users(id),
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS marketplaceIntegrations (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        marketplace TEXT NOT NULL,
-        api_key TEXT,
-        api_secret TEXT,
-        active INTEGER DEFAULT 0,
-        last_sync_at INTEGER,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS fulfillmentRequests (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        title TEXT NOT NULL,
-        description TEXT,
-        status TEXT DEFAULT 'pending',
-        priority TEXT DEFAULT 'medium',
-        estimated_cost TEXT,
-        actual_cost TEXT,
-        assigned_to TEXT REFERENCES users(id),
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        updated_at INTEGER,
-        completed_at INTEGER
-      );
-      
-      CREATE TABLE IF NOT EXISTS analytics (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        metric_type TEXT NOT NULL,
-        value REAL NOT NULL,
-        date INTEGER NOT NULL,
-        metadata TEXT,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS profitBreakdown (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        orderId TEXT REFERENCES orders(id),
-        revenue REAL NOT NULL,
-        costs REAL NOT NULL,
-        platform_fee REAL NOT NULL,
-        profit_share REAL NOT NULL,
-        net_profit REAL NOT NULL,
-        date INTEGER NOT NULL,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS trendingProducts (
-        id TEXT PRIMARY KEY,
-        marketplace TEXT NOT NULL,
-        category TEXT NOT NULL,
-        product_name TEXT NOT NULL,
-        price REAL,
-        sales_count INTEGER,
-        rating REAL,
-        trend_score INTEGER NOT NULL,
-        image_url TEXT,
-        product_url TEXT,
-        analyzed_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS chatRooms (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT REFERENCES partners(id),
-        admin_id TEXT REFERENCES users(id),
-        status TEXT DEFAULT 'active',
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        last_message_at INTEGER
-      );
-      
-      CREATE TABLE IF NOT EXISTS enhancedMessages (
-        id TEXT PRIMARY KEY,
-        chat_room_id TEXT NOT NULL REFERENCES chatRooms(id),
-        sender_id TEXT NOT NULL REFERENCES users(id),
-        sender_role TEXT NOT NULL,
-        content TEXT NOT NULL,
-        message_type TEXT DEFAULT 'text',
-        attachment_url TEXT,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        read_at INTEGER
-      );
-      
-      CREATE TABLE IF NOT EXISTS tierUpgradeRequests (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        current_tier TEXT NOT NULL,
-        requested_tier TEXT NOT NULL,
-        reason TEXT,
-        status TEXT DEFAULT 'pending',
-        requested_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        reviewed_at INTEGER,
-        reviewed_by TEXT REFERENCES users(id)
-      );
-      
-      CREATE TABLE IF NOT EXISTS audit_logs (
-        id TEXT PRIMARY KEY,
-        user_id TEXT REFERENCES users(id),
-        action TEXT NOT NULL,
-        entity_type TEXT NOT NULL,
-        entity_id TEXT,
-        changes TEXT,
-        payload TEXT,
-        ip_address TEXT,
-        user_agent TEXT,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS systemSettings (
-        id TEXT PRIMARY KEY,
-        key TEXT UNIQUE NOT NULL,
-        value TEXT NOT NULL,
-        description TEXT,
-        updated_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        updated_by TEXT REFERENCES users(id)
-      );
-      
-      CREATE TABLE IF NOT EXISTS ai_tasks (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        account_id TEXT REFERENCES ai_marketplace_accounts(id),
-        task_type TEXT NOT NULL,
-        status TEXT DEFAULT 'pending',
-        priority TEXT DEFAULT 'medium',
-        input_data TEXT,
-        output_data TEXT,
-        error_message TEXT,
-        started_at INTEGER,
-        completed_at INTEGER,
-        estimated_cost REAL,
-        actual_cost REAL,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        updated_at INTEGER
-      );
-      
-      CREATE TABLE IF NOT EXISTS ai_product_cards (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        product_id TEXT REFERENCES products(id),
-        account_id TEXT REFERENCES ai_marketplace_accounts(id),
-        base_product_name TEXT,
-        marketplace TEXT NOT NULL,
-        title TEXT NOT NULL,
-        description TEXT,
-        bullet_points TEXT,
-        seo_keywords TEXT,
-        image_prompts TEXT,
-        generated_images TEXT,
-        status TEXT DEFAULT 'draft',
-        quality_score INTEGER,
-        ai_model TEXT,
-        generation_cost REAL,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        updated_at INTEGER,
-        published_at INTEGER
-      );
-      
-      CREATE TABLE IF NOT EXISTS ai_marketplace_accounts (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        marketplace TEXT NOT NULL,
-        account_name TEXT NOT NULL,
-        credentials_encrypted TEXT,
-        is_active INTEGER DEFAULT 1,
-        last_synced_at INTEGER,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        updated_at INTEGER
-      );
-      
-      CREATE TABLE IF NOT EXISTS pricing_tiers (
-        id TEXT PRIMARY KEY,
-        tier TEXT UNIQUE NOT NULL,
-        name_uz TEXT NOT NULL,
-        fixed_cost TEXT NOT NULL,
-        commission_min TEXT NOT NULL,
-        commission_max TEXT NOT NULL,
-        min_revenue TEXT NOT NULL,
-        max_revenue TEXT,
-        features TEXT NOT NULL,
-        is_active INTEGER DEFAULT 1,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS spt_costs (
-        id TEXT PRIMARY KEY,
-        service_type TEXT NOT NULL,
-        tier TEXT NOT NULL,
-        cost_per_unit TEXT NOT NULL,
-        description TEXT,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS commission_settings (
-        id TEXT PRIMARY KEY,
-        tier TEXT UNIQUE NOT NULL,
-        base_commission TEXT NOT NULL,
-        volume_bonus TEXT,
-        performance_bonus TEXT,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS messages (
-        id TEXT PRIMARY KEY,
-        chat_room_id TEXT NOT NULL REFERENCES chatRooms(id),
-        sender_id TEXT NOT NULL REFERENCES users(id),
-        sender_role TEXT NOT NULL,
-        content TEXT NOT NULL,
-        message_type TEXT DEFAULT 'text',
-        attachment_url TEXT,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        read_at INTEGER
-      );
-      
-      CREATE TABLE IF NOT EXISTS admin_permissions (
-        user_id TEXT PRIMARY KEY REFERENCES users(id),
-        can_manage_admins INTEGER DEFAULT 0,
-        can_manage_content INTEGER DEFAULT 0,
-        can_manage_chat INTEGER DEFAULT 0,
-        can_view_reports INTEGER DEFAULT 0,
-        can_receive_products INTEGER DEFAULT 0,
-        can_activate_partners INTEGER DEFAULT 0,
-        can_manage_integrations INTEGER DEFAULT 0,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        updated_at INTEGER
-      );
-      
-      CREATE TABLE IF NOT EXISTS notifications (
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL REFERENCES users(id),
-        title TEXT NOT NULL,
-        message TEXT NOT NULL,
-        type TEXT DEFAULT 'info',
-        read INTEGER DEFAULT 0,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS excel_imports (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        file_name TEXT NOT NULL,
-        file_size INTEGER,
-        rows_imported INTEGER,
-        status TEXT DEFAULT 'pending',
-        error_log TEXT,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS excel_templates (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        description TEXT,
-        template_url TEXT,
-        category TEXT,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS marketplace_api_configs (
-        id TEXT PRIMARY KEY,
-        marketplace TEXT UNIQUE NOT NULL,
-        api_endpoint TEXT NOT NULL,
-        auth_type TEXT NOT NULL,
-        rate_limit INTEGER,
-        documentation TEXT,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS inventory_items (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        product_id TEXT REFERENCES products(id),
-        warehouse_id TEXT REFERENCES warehouses(id),
-        quantity INTEGER NOT NULL DEFAULT 0,
-        location TEXT,
-        batch_number TEXT,
-        expiry_date INTEGER,
-        notes TEXT,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        updated_at INTEGER
-      );
-      
-      CREATE TABLE IF NOT EXISTS referrals (
-        id TEXT PRIMARY KEY,
-        referrer_partner_id TEXT NOT NULL REFERENCES partners(id),
-        referred_partner_id TEXT NOT NULL REFERENCES partners(id),
-        promo_code TEXT,
-        contract_type TEXT NOT NULL,
-        status TEXT DEFAULT 'pending',
-        bonus_earned REAL DEFAULT 0,
-        bonus_paid REAL DEFAULT 0,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        activated_at INTEGER,
-        expires_at INTEGER
-      );
-      
-      CREATE TABLE IF NOT EXISTS referral_bonuses (
-        id TEXT PRIMARY KEY,
-        referral_id TEXT NOT NULL REFERENCES referrals(id),
-        referrer_partner_id TEXT NOT NULL REFERENCES partners(id),
-        amount REAL NOT NULL,
-        month_number INTEGER NOT NULL,
-        platform_profit REAL NOT NULL,
-        bonus_rate REAL NOT NULL,
-        tier_multiplier REAL NOT NULL,
-        status TEXT DEFAULT 'pending',
-        paid_at INTEGER,
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-      
-      CREATE TABLE IF NOT EXISTS referral_withdrawals (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        amount REAL NOT NULL,
-        method TEXT NOT NULL,
-        fee REAL NOT NULL,
-        net_amount REAL NOT NULL,
-        status TEXT DEFAULT 'pending',
-        requested_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        processed_at INTEGER,
-        transaction_id TEXT
-      );
-      
-      CREATE TABLE IF NOT EXISTS partner_contracts (
-        id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        contract_type TEXT NOT NULL,
-        pricing_tier TEXT NOT NULL,
-        start_date INTEGER NOT NULL,
-        end_date INTEGER NOT NULL,
-        monthly_fee REAL NOT NULL,
-        commission_rate REAL NOT NULL,
-        discount_percent REAL DEFAULT 0,
-        status TEXT DEFAULT 'active',
-        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-        signed_at INTEGER
-      );
-    `);
-    
-    console.log('✅ All tables created successfully!');
-    
-    // Create or update default admin user
-    const adminCheck = sqlite.prepare('SELECT id, password FROM users WHERE username = ?').get('admin') as any;
-    
-    if (!adminCheck) {
-      // Create new admin
-      const hashedPassword = bcrypt.hashSync('admin123', 10);
-      const admin_id = 'admin-' + Date.now();
-      
-      sqlite.prepare(`
-        INSERT INTO users (id, username, email, password, role, created_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).run(admin_id, 'admin', 'admin@biznesyordam.uz', hashedPassword, 'admin', Date.now());
-      
-      console.log('✅ Default admin user created');
-      console.log('   📧 Email: admin@biznesyordam.uz');
-      console.log('   👤 Username: admin');
-      console.log('   🔑 Password: admin123');
-    } else {
-      // Update existing admin password
-      const hashedPassword = bcrypt.hashSync('admin123', 10);
-      sqlite.prepare(`
-        UPDATE users SET password = ?, updated_at = ? WHERE username = ?
-      `).run(hashedPassword, Date.now(), 'admin');
-      
-      console.log('✅ Admin password updated');
-      console.log('   👤 Username: admin');
-      console.log('   🔑 Password: admin123');
-    }
-    
-    // Create or update test partner user
-    const partnerCheck = sqlite.prepare('SELECT id FROM users WHERE username = ?').get('testpartner') as any;
-    
-    if (!partnerCheck) {
-      const hashedPassword = bcrypt.hashSync('partner123', 10);
-      const partnerId = 'partner-' + Date.now();
-      const userId = 'user-' + Date.now();
-      
-      // Create partner user
-      sqlite.prepare(`
-        INSERT INTO users (id, username, email, password, role, created_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).run(userId, 'testpartner', 'partner@test.uz', hashedPassword, 'partner', Date.now());
-      
-      // Create partner profile
-      sqlite.prepare(`
-        INSERT INTO partners (id, user_id, business_name, business_category, phone, approved, pricing_tier, ai_enabled, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(partnerId, userId, 'Test Biznes', 'electronics', '+998901234567', 1, 'starter_pro', 1, Date.now());
-      
-      console.log('✅ Test partner user created');
-      console.log('   📧 Email: partner@test.uz');
-      console.log('   👤 Username: testpartner');
-      console.log('   🔑 Password: partner123');
-    } else {
-      // Update existing partner password
-      const hashedPassword = bcrypt.hashSync('partner123', 10);
-      sqlite.prepare(`
-        UPDATE users SET password = ?, updated_at = ? WHERE username = ?
-      `).run(hashedPassword, Date.now(), 'testpartner');
-      
-      console.log('✅ Partner password updated');
-      console.log('   👤 Username: testpartner');
-      console.log('   🔑 Password: partner123');
-    }
-    
-    console.log('🎉 Database initialization completed!\n');
-  } else {
-    console.log('✅ Database tables already exist\n');
-  }
-} catch (error) {
-  console.error('❌ Database initialization error:', error);
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' 
+      ? { rejectUnauthorized: false } 
+      : false,
+    max: 20, // Connection pool size
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+  });
+
+  // Test connection
+  pool.on('error', (err) => {
+    console.error('❌ Unexpected PostgreSQL error:', err);
+  });
+
+  pool.on('connect', () => {
+    console.log('✅ PostgreSQL connected successfully');
+  });
+
+  db = drizzle(pool, { schema });
+  dbType = 'postgres';
+  
+  // Initialize PostgreSQL tables
+  initializePostgreSQLTables(pool);
+  
+} else {
+  // ✅ DEVELOPMENT: SQLite (local testing)
+  console.log('📦 Using SQLite database (dev.db)...');
+  
+  const sqlite = new Database('dev.db');
+  db = drizzleSqlite(sqlite, { schema });
+  dbType = 'sqlite';
+  
+  // Initialize SQLite tables (existing auto-migration logic)
+  initializeSQLiteTables(sqlite);
 }
 
-// Drizzle ORM instansiyasi (typed schema bilan)
-const drizzleDb = drizzle(sqlite, { schema });
+// Initialize PostgreSQL tables
+async function initializePostgreSQLTables(pool: Pool) {
+  try {
+    console.log('🔧 Initializing PostgreSQL tables...');
+    
+    const client = await pool.connect();
+    
+    // Check if tables exist
+    const result = await client.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' AND table_name = 'users'
+    `);
+    
+    if (result.rows.length === 0) {
+      console.log('📦 Creating PostgreSQL tables...');
+      
+      // Run all migrations in correct order
+      await client.query(`
+        -- Users table
+        CREATE TABLE IF NOT EXISTS users (
+          id TEXT PRIMARY KEY,
+          username TEXT UNIQUE NOT NULL,
+          email TEXT UNIQUE,
+          password TEXT NOT NULL,
+          first_name TEXT,
+          last_name TEXT,
+          phone TEXT,
+          role TEXT NOT NULL DEFAULT 'customer',
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        );
+        
+        -- Partners table
+        CREATE TABLE IF NOT EXISTS partners (
+          id TEXT PRIMARY KEY,
+          user_id TEXT NOT NULL UNIQUE REFERENCES users(id),
+          business_name TEXT NOT NULL,
+          business_address TEXT,
+          business_category TEXT,
+          inn TEXT UNIQUE,
+          phone TEXT NOT NULL,
+          website TEXT,
+          monthly_revenue TEXT,
+          approved BOOLEAN DEFAULT false,
+          pricing_tier TEXT DEFAULT 'free_starter',
+          monthly_fee INTEGER,
+          profit_share_percent INTEGER,
+          ai_enabled BOOLEAN DEFAULT false,
+          ai_requested_at TIMESTAMP,
+          ai_approved_at TIMESTAMP,
+          ai_approved_by TEXT,
+          warehouse_space_kg INTEGER,
+          notes TEXT,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          last_activity_at TIMESTAMP
+        );
+        
+        -- Products table
+        CREATE TABLE IF NOT EXISTS products (
+          id TEXT PRIMARY KEY,
+          partner_id TEXT NOT NULL REFERENCES partners(id),
+          name TEXT NOT NULL,
+          sku TEXT UNIQUE,
+          barcode TEXT,
+          description TEXT,
+          category TEXT,
+          brand TEXT,
+          price NUMERIC NOT NULL,
+          cost_price NUMERIC,
+          weight TEXT,
+          stock_quantity INTEGER DEFAULT 0,
+          low_stock_threshold INTEGER DEFAULT 10,
+          optimized_title TEXT,
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP
+        );
+        
+        -- Orders table
+        CREATE TABLE IF NOT EXISTS orders (
+          id TEXT PRIMARY KEY,
+          partner_id TEXT NOT NULL REFERENCES partners(id),
+          order_number TEXT UNIQUE NOT NULL,
+          customer_name TEXT NOT NULL,
+          customer_email TEXT,
+          customer_phone TEXT,
+          marketplace TEXT,
+          status TEXT DEFAULT 'pending',
+          total_amount NUMERIC NOT NULL,
+          shipping_address TEXT,
+          tracking_number TEXT,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP
+        );
+        
+        -- Order Items table
+        CREATE TABLE IF NOT EXISTS order_items (
+          id TEXT PRIMARY KEY,
+          order_id TEXT NOT NULL REFERENCES orders(id),
+          product_id TEXT NOT NULL REFERENCES products(id),
+          quantity INTEGER NOT NULL,
+          price NUMERIC NOT NULL,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW()
+        );
+        
+        -- Marketplace Integrations table
+        CREATE TABLE IF NOT EXISTS marketplace_integrations (
+          id TEXT PRIMARY KEY,
+          partner_id TEXT NOT NULL REFERENCES partners(id),
+          marketplace TEXT NOT NULL,
+          api_key TEXT,
+          api_secret TEXT,
+          seller_id TEXT,
+          active BOOLEAN DEFAULT false,
+          last_sync_at TIMESTAMP,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW()
+        );
+        
+        -- Subscriptions table
+        CREATE TABLE IF NOT EXISTS subscriptions (
+          id TEXT PRIMARY KEY,
+          partner_id TEXT NOT NULL REFERENCES partners(id),
+          tier_id TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'active',
+          start_date TIMESTAMP NOT NULL,
+          end_date TIMESTAMP,
+          auto_renew BOOLEAN DEFAULT true,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP
+        );
+        
+        -- Invoices table
+        CREATE TABLE IF NOT EXISTS invoices (
+          id TEXT PRIMARY KEY,
+          partner_id TEXT NOT NULL REFERENCES partners(id),
+          subscription_id TEXT REFERENCES subscriptions(id),
+          amount NUMERIC NOT NULL,
+          currency TEXT DEFAULT 'USD',
+          status TEXT NOT NULL DEFAULT 'pending',
+          due_date TIMESTAMP NOT NULL,
+          paid_at TIMESTAMP,
+          payment_method TEXT,
+          metadata TEXT,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW()
+        );
+        
+        -- Payments table
+        CREATE TABLE IF NOT EXISTS payments (
+          id TEXT PRIMARY KEY,
+          invoice_id TEXT NOT NULL REFERENCES invoices(id),
+          partner_id TEXT NOT NULL REFERENCES partners(id),
+          amount NUMERIC NOT NULL,
+          currency TEXT DEFAULT 'USD',
+          payment_method TEXT NOT NULL,
+          transaction_id TEXT,
+          status TEXT NOT NULL DEFAULT 'pending',
+          metadata TEXT,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          completed_at TIMESTAMP
+        );
+        
+        -- Referrals table
+        CREATE TABLE IF NOT EXISTS referrals (
+          id TEXT PRIMARY KEY,
+          referrer_partner_id TEXT NOT NULL REFERENCES partners(id),
+          referred_partner_id TEXT NOT NULL REFERENCES partners(id),
+          promo_code TEXT,
+          contract_type TEXT NOT NULL,
+          status TEXT DEFAULT 'invited',
+          bonus_earned NUMERIC DEFAULT 0,
+          bonus_paid NUMERIC DEFAULT 0,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          activated_at TIMESTAMP,
+          expires_at TIMESTAMP
+        );
+        
+        -- Audit Logs table
+        CREATE TABLE IF NOT EXISTS audit_logs (
+          id TEXT PRIMARY KEY,
+          user_id TEXT REFERENCES users(id),
+          action TEXT NOT NULL,
+          entity_type TEXT NOT NULL,
+          entity_id TEXT,
+          changes TEXT,
+          payload TEXT,
+          ip_address TEXT,
+          user_agent TEXT,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW()
+        );
+        
+        -- Admin Permissions table
+        CREATE TABLE IF NOT EXISTS admin_permissions (
+          user_id TEXT PRIMARY KEY REFERENCES users(id),
+          can_manage_admins BOOLEAN DEFAULT false,
+          can_manage_content BOOLEAN DEFAULT false,
+          can_manage_chat BOOLEAN DEFAULT false,
+          can_view_reports BOOLEAN DEFAULT false,
+          can_receive_products BOOLEAN DEFAULT false,
+          can_activate_partners BOOLEAN DEFAULT false,
+          can_manage_integrations BOOLEAN DEFAULT false,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP
+        );
+        
+        -- Create indexes for performance
+        CREATE INDEX IF NOT EXISTS idx_partners_user_id ON partners(user_id);
+        CREATE INDEX IF NOT EXISTS idx_products_partner_id ON products(partner_id);
+        CREATE INDEX IF NOT EXISTS idx_orders_partner_id ON orders(partner_id);
+        CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
+        CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
+      `);
+      
+      console.log('✅ PostgreSQL tables created successfully');
+      
+      // Create default admin user
+      const bcrypt = await import('bcryptjs');
+      const hashedPassword = await bcrypt.hash('admin123', 10);
+      const adminId = `admin-${Date.now()}`;
+      
+      await client.query(`
+        INSERT INTO users (id, username, email, password, role, created_at)
+        VALUES ($1, $2, $3, $4, $5, NOW())
+        ON CONFLICT (username) DO NOTHING
+      `, [adminId, 'admin', 'admin@sellercloudx.com', hashedPassword, 'admin']);
+      
+      console.log('✅ Default admin user created');
+      console.log('   👤 Username: admin');
+      console.log('   🔑 Password: admin123');
+    } else {
+      console.log('✅ PostgreSQL tables already exist');
+    }
+    
+    client.release();
+  } catch (error) {
+    console.error('❌ PostgreSQL initialization error:', error);
+    throw error;
+  }
+}
 
-// Drizzle obyektini kengaytirib, xom SQL helperlarini qo'shamiz
-const db: any = drizzleDb;
+// Initialize SQLite tables (existing logic)
+function initializeSQLiteTables(sqlite: Database.Database) {
+  try {
+    const tableCheck = sqlite.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").get();
+    
+    if (!tableCheck) {
+      console.log('📦 Creating SQLite tables...');
+      
+      // Use existing SQLite schema from original db.ts
+      sqlite.exec(`
+        CREATE TABLE IF NOT EXISTS users (
+          id TEXT PRIMARY KEY,
+          username TEXT UNIQUE NOT NULL,
+          email TEXT UNIQUE,
+          password TEXT NOT NULL,
+          first_name TEXT,
+          last_name TEXT,
+          phone TEXT,
+          role TEXT NOT NULL DEFAULT 'customer',
+          is_active INTEGER DEFAULT 1,
+          created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+          updated_at INTEGER DEFAULT (unixepoch())
+        );
+        
+        CREATE TABLE IF NOT EXISTS partners (
+          id TEXT PRIMARY KEY,
+          user_id TEXT NOT NULL UNIQUE REFERENCES users(id),
+          business_name TEXT NOT NULL,
+          business_address TEXT,
+          business_category TEXT,
+          inn TEXT UNIQUE,
+          phone TEXT NOT NULL,
+          website TEXT,
+          monthly_revenue TEXT,
+          approved INTEGER DEFAULT 0,
+          pricing_tier TEXT DEFAULT 'starter_pro',
+          monthly_fee INTEGER,
+          profit_share_percent INTEGER,
+          ai_enabled INTEGER DEFAULT 0,
+          warehouse_space_kg INTEGER,
+          notes TEXT,
+          created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+          last_activity_at INTEGER
+        );
+        
+        CREATE TABLE IF NOT EXISTS products (
+          id TEXT PRIMARY KEY,
+          partner_id TEXT NOT NULL REFERENCES partners(id),
+          name TEXT NOT NULL,
+          sku TEXT UNIQUE,
+          barcode TEXT,
+          description TEXT,
+          category TEXT,
+          brand TEXT,
+          price REAL NOT NULL,
+          cost_price REAL,
+          weight TEXT,
+          stock_quantity INTEGER DEFAULT 0,
+          low_stock_threshold INTEGER DEFAULT 10,
+          optimized_title TEXT,
+          is_active INTEGER DEFAULT 1,
+          created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+          updated_at INTEGER
+        );
+        
+        CREATE TABLE IF NOT EXISTS marketplace_integrations (
+          id TEXT PRIMARY KEY,
+          partner_id TEXT NOT NULL REFERENCES partners(id),
+          marketplace TEXT NOT NULL,
+          api_key TEXT,
+          api_secret TEXT,
+          seller_id TEXT,
+          active INTEGER DEFAULT 0,
+          last_sync_at INTEGER,
+          created_at INTEGER NOT NULL DEFAULT (unixepoch())
+        );
+        
+        CREATE TABLE IF NOT EXISTS audit_logs (
+          id TEXT PRIMARY KEY,
+          user_id TEXT REFERENCES users(id),
+          action TEXT NOT NULL,
+          entity_type TEXT NOT NULL,
+          entity_id TEXT,
+          payload TEXT,
+          created_at INTEGER NOT NULL DEFAULT (unixepoch())
+        );
+      `);
+      
+      console.log('✅ SQLite tables created');
+      
+      // Create default admin
+      const bcrypt = require('bcryptjs');
+      const hashedPassword = bcrypt.hashSync('admin123', 10);
+      const adminId = 'admin-' + Date.now();
+      
+      sqlite.prepare(`
+        INSERT INTO users (id, username, email, password, role, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run(adminId, 'admin', 'admin@sellercloudx.com', hashedPassword, 'admin', Date.now());
+      
+      console.log('✅ Default admin user created (SQLite)');
+    } else {
+      console.log('✅ SQLite tables already exist');
+    }
+  } catch (error) {
+    console.error('❌ SQLite initialization error:', error);
+  }
+}
 
-// Simple helper: SELECT/INSERT/UPDATE uchun .query (hamma natijalar)
-db.query = (sql: string, params?: any[]) => {
-  const stmt = sqlite.prepare(sql);
-  return params && params.length > 0 ? stmt.all(...params) : stmt.all();
-};
-
-// .all alias (SQLite style)
-db.all = (sql: string, params?: any[]) => {
-  const stmt = sqlite.prepare(sql);
-  return params && params.length > 0 ? stmt.all(...params) : stmt.all();
-};
-
-// .get helper – bitta qator qaytarish uchun
-db.get = (sql: string, params?: any[]) => {
-  const stmt = sqlite.prepare(sql);
-  return params && params.length > 0 ? stmt.get(...params) : stmt.get();
-};
-
-// .run helper – INSERT/UPDATE/DELETE uchun (better-sqlite3 style)
-db.run = (sql: string, params?: any[]) => {
-  const stmt = sqlite.prepare(sql);
-  const info = params && params.length > 0 ? stmt.run(...params) : stmt.run();
-  return info;
-};
-
-// Database haqida ma’lumot qaytaruvchi helper
+// Export database info
 export function getDatabaseInfo() {
   return {
-    type: 'sqlite',
+    type: dbType,
     isConnected: !!db,
-    connectionString: 'SQLite',
+    connectionString: hasPostgresUrl ? 'PostgreSQL' : 'SQLite (dev.db)',
   };
 }
 
-export { db, sqlite };
+export { db, dbType };

@@ -66,7 +66,7 @@ const videoTemplates: VideoTemplate[] = [
 ];
 
 interface VideoGenerationStatus {
-  status: 'idle' | 'uploading' | 'processing' | 'completed' | 'error';
+  status: 'idle' | 'uploading' | 'processing' | 'completed' | 'failed';
   progress: number;
   message: string;
   videoUrl?: string;

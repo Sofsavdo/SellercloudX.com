@@ -32,7 +32,7 @@ interface PremiumPaymentModalProps {
 type PaymentProvider = 'click' | 'payme' | 'uzcard';
 
 interface PaymentStatus {
-  status: 'idle' | 'processing' | 'success' | 'error';
+  status: 'idle' | 'processing' | 'success' | 'failed';
   message: string;
   paymentUrl?: string;
 }
