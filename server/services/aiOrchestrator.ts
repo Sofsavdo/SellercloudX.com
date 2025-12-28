@@ -305,6 +305,12 @@ class AIOrchestrator {
    * Setup queue processors with dynamic concurrency
    */
   private setupQueueProcessors(): void {
+    // Check if queue is available (Redis)
+    if (!aiTaskQueue || typeof aiTaskQueue.process !== 'function') {
+      console.warn('⚠️  Queue not available, using direct processing');
+      return;
+    }
+
     // Get concurrency from env or default to 10
     const concurrency = parseInt(process.env.AI_WORKER_CONCURRENCY || '10');
     
@@ -332,15 +338,19 @@ class AIOrchestrator {
     });
 
     // Handle completed jobs
-    aiTaskQueue.on('completed', (job, result) => {
+    aiTaskQueue.on('completed', (job: any, result: any) => {
       console.log(`✅ Task ${job.id} completed`);
-      this.activeJobs.delete(job.data.id);
+      if (job?.data?.id) {
+        this.activeJobs.delete(job.data.id);
+      }
     });
 
     // Handle failed jobs
-    aiTaskQueue.on('failed', (job, error) => {
+    aiTaskQueue.on('failed', (job: any, error: any) => {
       console.error(`❌ Task ${job?.id} failed:`, error);
-      this.activeJobs.delete(job?.data?.id);
+      if (job?.data?.id) {
+        this.activeJobs.delete(job.data.id);
+      }
     });
   }
 
@@ -412,9 +422,16 @@ class AIOrchestrator {
    * Get active jobs count
    */
   async getActiveJobsCount(): Promise<number> {
-    const waiting = await aiTaskQueue.getWaitingCount();
-    const active = await aiTaskQueue.getActiveCount();
-    return waiting + active;
+    try {
+      if (aiTaskQueue && typeof aiTaskQueue.getWaitingCount === 'function') {
+        const waiting = await aiTaskQueue.getWaitingCount();
+        const active = await aiTaskQueue.getActiveCount();
+        return waiting + active;
+      }
+      return this.activeJobs.size;
+    } catch (error) {
+      return this.activeJobs.size;
+    }
   }
 
   /**
