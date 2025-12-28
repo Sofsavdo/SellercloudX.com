@@ -365,52 +365,40 @@ export default function AdminPanel() {
             </div>
           </div>
 
-          {/* Stats Overview */}
-          <div className="equal-grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="hover-lift animate-scale-in equal-card">
-              <CardContent className="p-6 equal-card-content">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Jami Hamkorlar</p>
-                    <p className="text-3xl font-bold text-primary">{stats.totalPartners}</p>
-                  </div>
-                  <Users className="h-8 w-8 text-primary" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="hover-lift animate-scale-in equal-card" style={{ animationDelay: '0.1s' }}>
-              <CardContent className="p-6 equal-card-content">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Tasdiqlangan</p>
-                    <p className="text-3xl font-bold text-accent">{stats.approvedPartners}</p>
-                  </div>
-                  <CheckCircle className="h-8 w-8 text-accent" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="hover-lift animate-scale-in equal-card" style={{ animationDelay: '0.2s' }}>
-              <CardContent className="p-6 equal-card-content">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Kutilayotgan</p>
-                    <p className="text-3xl font-bold text-orange-600">{stats.pendingPartners}</p>
-                  </div>
-                  <Clock className="h-8 w-8 text-orange-600" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="hover-lift animate-scale-in equal-card" style={{ animationDelay: '0.3s' }}>
-              <CardContent className="p-6 equal-card-content">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">So'rovlar</p>
-                    <p className="text-3xl font-bold text-secondary">{stats.totalRequests}</p>
-                  </div>
-                  <Package className="h-8 w-8 text-secondary" />
-                </div>
-              </CardContent>
-            </Card>
+          {/* Stats Overview - Modern Design */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <StatCard
+              title="Jami Hamkorlar"
+              value={stats.totalPartners}
+              icon={Users}
+              trend={{ value: 12, isPositive: true }}
+              subtitle="Oxirgi oyda"
+              delay={0}
+            />
+            <StatCard
+              title="Tasdiqlangan"
+              value={stats.approvedPartners}
+              icon={CheckCircle}
+              trend={{ value: 8, isPositive: true }}
+              subtitle="Faol hamkorlar"
+              delay={100}
+            />
+            <StatCard
+              title="Kutilayotgan"
+              value={stats.pendingPartners}
+              icon={Clock}
+              subtitle="Tasdiqlash kutilmoqda"
+              delay={200}
+            />
+            <StatCard
+              title="So'rovlar"
+              value={stats.totalRequests}
+              icon={Package}
+              trend={{ value: 15, isPositive: true }}
+              subtitle="Jami so'rovlar"
+              delay={300}
+              gradient={true}
+            />
           </div>
 
           {/* Main Content */}
