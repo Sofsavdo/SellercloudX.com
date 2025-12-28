@@ -22,6 +22,7 @@ import { AdvancedPartnerAnalytics } from '@/components/AdvancedPartnerAnalytics'
 import { AIManagerLiveMonitor } from '@/components/AIManagerLiveMonitor';
 import { AICommandCenter } from '@/components/AICommandCenter';
 import { ChatSystem } from '@/components/ChatSystem';
+import { AdminReferralManagement } from '@/components/AdminReferralManagement';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
@@ -57,7 +58,8 @@ import {
   AlertCircle,
   RefreshCw,
   Brain,
-  MessageCircle
+  MessageCircle,
+  Gift
 } from 'lucide-react';
 
 
@@ -445,6 +447,10 @@ export default function AdminPanel() {
               <TabsTrigger value="chat" className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4" />
                 Support chat
+              </TabsTrigger>
+              <TabsTrigger value="referrals" className="flex items-center gap-2">
+                <Gift className="w-4 h-4" />
+                Referrallar
               </TabsTrigger>
             </TabsList>
 

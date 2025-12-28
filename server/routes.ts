@@ -53,6 +53,13 @@ import smartAIRoutes from "./routes/smartAIRoutes";
 import billingRoutes from "./routes/billingRoutes";
 import aiScannerRoutes from "./routes/aiScannerRoutes";
 import adminRemoteAccessRoutes from "./routes/adminRemoteAccess";
+import adminReferralManagementRoutes from "./routes/adminReferralManagement";
+import priceStrategyRoutes from "./routes/priceStrategyRoutes";
+import aiMarketingRoutes from "./routes/aiMarketingRoutes";
+import analyticsRoutes from "./routes/analyticsRoutes";
+import customerServiceRoutes from "./routes/customerServiceRoutes";
+import reportingRoutes from "./routes/reportingRoutes";
+import gamificationRoutes from "./routes/gamificationRoutes";
 
 // Enhanced authentication middleware with better error handling
 function requireAuth(req: Request, res: Response, next: NextFunction) {
@@ -1183,6 +1190,27 @@ export function registerRoutes(app: express.Application): Server {
   
   // Admin Remote Access routes
   app.use("/api/admin/remote", requireAdmin, adminRemoteAccessRoutes);
+  
+  // Admin Referral Management routes
+  app.use("/api/admin/referrals", requireAdmin, adminReferralManagementRoutes);
+  
+  // Price Strategy routes
+  app.use("/api/price-strategy", requireAuth, priceStrategyRoutes);
+  
+  // AI Marketing routes
+  app.use("/api/marketing", requireAuth, aiMarketingRoutes);
+  
+  // Advanced Analytics routes
+  app.use("/api/analytics", requirePartnerWithData, analyticsRoutes);
+  
+  // Customer Service routes
+  app.use("/api/customer-service", requireAuth, customerServiceRoutes);
+  
+  // Reporting routes
+  app.use("/api/reports", requirePartnerWithData, reportingRoutes);
+  
+  // Gamification routes
+  app.use("/api/gamification", requireAuth, gamificationRoutes);
 
   // Chat uploads (files/images) - used by ChatSystem UI
   app.post(
