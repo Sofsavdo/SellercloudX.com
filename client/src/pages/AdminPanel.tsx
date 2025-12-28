@@ -23,6 +23,7 @@ import { AIManagerLiveMonitor } from '@/components/AIManagerLiveMonitor';
 import { AICommandCenter } from '@/components/AICommandCenter';
 import { ChatSystem } from '@/components/ChatSystem';
 import { AdminReferralManagement } from '@/components/AdminReferralManagement';
+import { AdminAIManagement } from '@/components/AdminAIManagement';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
@@ -451,6 +452,10 @@ export default function AdminPanel() {
               <TabsTrigger value="referrals" className="flex items-center gap-2">
                 <Gift className="w-4 h-4" />
                 Referrallar
+              </TabsTrigger>
+              <TabsTrigger value="ai-management" className="flex items-center gap-2">
+                <Brain className="w-4 h-4" />
+                AI Boshqaruv
               </TabsTrigger>
             </TabsList>
 
