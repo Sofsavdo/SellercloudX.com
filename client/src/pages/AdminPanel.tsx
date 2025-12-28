@@ -70,7 +70,7 @@ interface Partner {
   monthlyRevenue: string;
   pricingTier: string;
   commissionRate: string;
-  isApproved: boolean;
+  approved: boolean;
   approvedAt: string | null;
   approvedBy: string | null;
   notes: string | null;
@@ -306,8 +306,8 @@ export default function AdminPanel() {
       partner.userData?.lastName?.toLowerCase().includes(searchTerm.toLowerCase());
    
     const matchesStatus = filterStatus === 'all' ||
-      (filterStatus === 'approved' && partner.isApproved) ||
-      (filterStatus === 'pending' && !partner.isApproved);
+      (filterStatus === 'approved' && partner.approved) ||
+      (filterStatus === 'pending' && !partner.approved);
    
     return matchesSearch && matchesStatus;
   });
@@ -325,8 +325,8 @@ export default function AdminPanel() {
   // Statistics
   const stats = {
     totalPartners: partners.length,
-    approvedPartners: partners.filter(p => p.isApproved).length,
-    pendingPartners: partners.filter(p => !p.isApproved).length,
+    approvedPartners: partners.filter(p => p.approved).length,
+    pendingPartners: partners.filter(p => !p.approved).length,
     totalRequests: fulfillmentRequests.length,
     pendingRequests: fulfillmentRequests.filter(r => r.status === 'pending').length,
     completedRequests: fulfillmentRequests.filter(r => r.status === 'completed').length,
@@ -469,7 +469,7 @@ export default function AdminPanel() {
                               {new Date(partner.createdAt).toLocaleDateString('uz-UZ')}
                             </p>
                           </div>
-                          {getStatusBadge(partner.isApproved ? 'approved' : 'pending')}
+                          {getStatusBadge(partner.approved ? 'approved' : 'pending')}
                         </div>
                       ))}
                     </div>
@@ -576,7 +576,7 @@ export default function AdminPanel() {
                         <div className="p-3 bg-purple-50 rounded-lg border border-purple-100">
                           <p className="text-xs text-muted-foreground">Faol Hamkorlar</p>
                           <p className="text-lg font-bold text-purple-700">
-                            {partners.filter(p => p.isApproved).length}
+                            {partners.filter(p => p.approved).length}
                           </p>
                         </div>
                       </div>
@@ -604,7 +604,7 @@ export default function AdminPanel() {
                             <p className="text-xs text-muted-foreground">Tasdiqlash kutmoqda</p>
                           </div>
                         </div>
-                        <Badge className="bg-orange-500">{partners.filter(p => !p.isApproved).length}</Badge>
+                        <Badge className="bg-orange-500">{partners.filter(p => !p.approved).length}</Badge>
                       </div>
                       
                       {/* FULFILLMENT FEATURE - Hidden for SaaS-only mode */}

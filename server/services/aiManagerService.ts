@@ -7,6 +7,7 @@ import { calculateOptimalPrice } from './priceCalculationService';
 import { sql } from 'drizzle-orm';
 import { analytics } from '../../shared/schema';
 import { wsManager } from '../websocket';
+import { imageAIService } from './imageAIService';
 
 // ================================================================
 // CONFIGURATION
@@ -182,8 +183,56 @@ MUHIM:
       wsManager.broadcastAIActivity(activityData);
     }
 
+    // Generate infographic for marketplace card (Russian and Uzbek support)
+    let infographicUrl = null;
+    try {
+      console.log('🎨 AI: Generating infographic...');
+      
+      // Determine language based on marketplace
+      const isRussianMarketplace = ['wildberries', 'ozon', 'yandex'].includes(input.targetMarketplace);
+      const language = isRussianMarketplace ? 'ru' : 'uz';
+      
+      // Create infographic text content
+      const infographicText = isRussianMarketplace
+        ? `${result.title}\n${result.shortDescription}\nКлючевые особенности:\n${result.bulletPoints?.slice(0, 3).join('\n') || ''}\nЦена: ${result.suggestedPrice || input.price || 'N/A'} сум`
+        : `${result.title}\n${result.shortDescription}\nAsosiy xususiyatlar:\n${result.bulletPoints?.slice(0, 3).join('\n') || ''}\nNarx: ${result.suggestedPrice || input.price || 'N/A'} so'm`;
+      
+      const infographicPrompt = isRussianMarketplace
+        ? `Professional product infographic for marketplace card: ${result.title}. Include product name, key features, price, and quality indicators. Modern, clean design with Russian text. High quality, sales-boosting design.`
+        : `Professional product infographic for marketplace card: ${result.title}. Include product name, key features, price, and quality indicators. Modern, clean design with Uzbek text. High quality, sales-boosting design.`;
+      
+      const infographic = await imageAIService.generateProductImage({
+        prompt: infographicPrompt,
+        type: 'infographic',
+        aspectRatio: '1:1',
+        style: 'professional',
+        includeText: true,
+        textContent: infographicText
+      });
+      
+      infographicUrl = infographic.url;
+      console.log('✅ AI: Infographic generated:', infographicUrl);
+      
+      // Update product with infographic URL
+      await db.run(
+        `UPDATE ai_generated_products 
+         SET infographic_url = ?, updated_at = CURRENT_TIMESTAMP 
+         WHERE id = ?`,
+        [infographicUrl, generatedProduct.id]
+      );
+      
+    } catch (infographicError: any) {
+      console.error('⚠️ Infographic generation failed:', infographicError.message);
+      // Continue without infographic - not critical
+    }
+    
     console.log('✅ AI: Product card ready!', result.title);
-    return { success: true, productId: generatedProduct.id, data: result };
+    return { 
+      success: true, 
+      productId: generatedProduct.id, 
+      data: result,
+      infographicUrl: infographicUrl || null
+    };
   } catch (error: any) {
     console.error('❌ AI: Error:', error.message);
     

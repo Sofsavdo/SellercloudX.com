@@ -196,13 +196,13 @@ export default function PartnerDashboard() {
                 </Badge>
                 <Button onClick={() => setShowTierModal(true)} variant="premium" size="sm" className="hover-lift">
                   <Crown className="w-4 h-4 mr-2" />
-                  Tarifni Yangilash + ROI
+                  Tarifni O'zgartirish
                 </Button>
               </div>
             </div>
           </div>
 
-          {partner && !partner.isApproved && (
+          {partner && !partner.approved && (
             <Card className="mb-8 border-orange-200 bg-orange-50 animate-slide-up">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
@@ -211,6 +211,22 @@ export default function PartnerDashboard() {
                     <h3 className="font-semibold text-orange-800">Tasdiqlanish kutilmoqda</h3>
                     <p className="text-orange-700">
                       Sizning hamkorlik arizangiz admin tomonidan ko'rib chiqilmoqda.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {partner && partner.approved && (
+            <Card className="mb-8 border-green-200 bg-green-50 animate-slide-up">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                  <div>
+                    <h3 className="font-semibold text-green-800">Tasdiqlangan</h3>
+                    <p className="text-green-700">
+                      Sizning hamkorlik arizangiz tasdiqlangan. Platformaning barcha imkoniyatlaridan foydalanishingiz mumkin.
                     </p>
                   </div>
                 </div>
@@ -627,12 +643,9 @@ export default function PartnerDashboard() {
                   </p>
                 </CardContent>
               </Card>
-              <div className="rounded-xl border bg-white shadow-soft p-8 text-center">
-                <p className="text-muted-foreground">Chat tizimi vaqtincha o'chirilgan. Yordam uchun admin bilan bog'laning.</p>
-              </div>
-              {/* <div className="rounded-xl border bg-white shadow-soft h-[640px]">
+              <div className="rounded-xl border bg-white shadow-soft h-[640px]">
                 <ChatSystem partnerId={partner?.id} />
-              </div> */}
+              </div>
             </TabsContent>
           </Tabs>
         </div>

@@ -40,16 +40,7 @@ export default function PartnerVerificationSection({ partner, onUpdate }: Partne
   });
 
   const getStatusBadge = () => {
-    // Check both approved flag and status
-    if (partner?.approved && partner?.status === 'active') {
-      return (
-        <Badge className="bg-green-500">
-          <CheckCircle className="w-4 h-4 mr-1" />
-          Tasdiqlangan va Aktiv
-        </Badge>
-      );
-    }
-    
+    // Check approved flag (status field doesn't exist in schema)
     if (partner?.approved) {
       return (
         <Badge className="bg-green-500">
