@@ -60,6 +60,7 @@ import analyticsRoutes from "./routes/analyticsRoutes";
 import customerServiceRoutes from "./routes/customerServiceRoutes";
 import reportingRoutes from "./routes/reportingRoutes";
 import gamificationRoutes from "./routes/gamificationRoutes";
+import marketplaceAIManagerRoutes from "./routes/marketplaceAIManagerRoutes";
 
 // Enhanced authentication middleware with better error handling
 function requireAuth(req: Request, res: Response, next: NextFunction) {
@@ -1211,6 +1212,9 @@ export function registerRoutes(app: express.Application): Server {
   
   // Gamification routes
   app.use("/api/gamification", requireAuth, gamificationRoutes);
+  
+  // Marketplace AI Manager routes
+  app.use("/api/marketplace-ai", requirePartnerWithData, marketplaceAIManagerRoutes);
 
   // Chat uploads (files/images) - used by ChatSystem UI
   app.post(
