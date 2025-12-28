@@ -667,6 +667,11 @@ export default function AdminPanel() {
               </div>
             </TabsContent>
 
+            {/* Referrals Management Tab */}
+            <TabsContent value="referrals" className="space-y-6">
+              <AdminReferralManagement />
+            </TabsContent>
+
             {/* AI MANAGER TAB - ENHANCED */}
             <TabsContent value="ai-manager" className="space-y-6">
               <div className="mb-6">
