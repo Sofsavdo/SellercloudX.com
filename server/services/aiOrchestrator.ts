@@ -46,21 +46,56 @@ interface AIUsage {
   timestamp: Date;
 }
 
-// Cache for AI responses (Redis)
+// Cache for AI responses (Redis or in-memory fallback)
+const memoryCache = new Map<string, { value: any; expires: number }>();
+
 const cache = {
   async get(key: string): Promise<any> {
-    try {
-      const cached = await redisClient.get(`ai:cache:${key}`);
-      return cached ? JSON.parse(cached) : null;
-    } catch {
-      return null;
+    // Try Redis first
+    if (redisClient) {
+      try {
+        const cached = await redisClient.get(`ai:cache:${key}`);
+        if (cached) return JSON.parse(cached);
+      } catch (error) {
+        console.warn('Redis cache get error:', error);
+      }
     }
+    
+    // Fallback to memory cache
+    const memCached = memoryCache.get(key);
+    if (memCached && memCached.expires > Date.now()) {
+      return memCached.value;
+    }
+    if (memCached) {
+      memoryCache.delete(key);
+    }
+    
+    return null;
   },
   async set(key: string, value: any, ttl: number = 3600): Promise<void> {
-    try {
-      await redisClient.setEx(`ai:cache:${key}`, ttl, JSON.stringify(value));
-    } catch (error) {
-      console.error('Cache set error:', error);
+    // Try Redis first
+    if (redisClient) {
+      try {
+        await redisClient.setEx(`ai:cache:${key}`, ttl, JSON.stringify(value));
+        return;
+      } catch (error) {
+        console.warn('Redis cache set error:', error);
+      }
+    }
+    
+    // Fallback to memory cache
+    memoryCache.set(key, {
+      value,
+      expires: Date.now() + (ttl * 1000)
+    });
+    
+    // Cleanup expired entries periodically
+    if (memoryCache.size > 10000) {
+      for (const [k, v] of memoryCache.entries()) {
+        if (v.expires <= Date.now()) {
+          memoryCache.delete(k);
+        }
+      }
     }
   }
 };
@@ -267,11 +302,14 @@ class AIOrchestrator {
   }
 
   /**
-   * Setup queue processors
+   * Setup queue processors with dynamic concurrency
    */
   private setupQueueProcessors(): void {
+    // Get concurrency from env or default to 10
+    const concurrency = parseInt(process.env.AI_WORKER_CONCURRENCY || '10');
+    
     // Process jobs with concurrency
-    aiTaskQueue.process(10, async (job) => {
+    aiTaskQueue.process(concurrency, async (job) => {
       const task = job.data as AITask;
       console.log(`🔄 Processing AI task: ${task.id} (${task.taskType})`);
       
@@ -280,6 +318,15 @@ class AIOrchestrator {
         return { success: true, data: result };
       } catch (error: any) {
         console.error(`❌ Task ${task.id} failed:`, error);
+        
+        // Log error to database
+        await this.logError(task.partnerId, {
+          errorType: 'task_failed',
+          errorMessage: error.message,
+          model: 'unknown',
+          taskType: task.taskType
+        });
+        
         throw error;
       }
     });
@@ -371,20 +418,55 @@ class AIOrchestrator {
   }
 
   /**
+   * Log error to database
+   */
+  private async logError(partnerId: string, error: {
+    errorType: string;
+    errorMessage: string;
+    model?: string;
+    taskType?: string;
+  }): Promise<void> {
+    try {
+      const errorId = `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      await db.run(
+        `INSERT INTO ai_error_logs 
+         (id, partner_id, error_type, error_message, model, task_type, status, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, 'open', CURRENT_TIMESTAMP)`,
+        [errorId, partnerId, error.errorType, error.errorMessage, error.model || null, error.taskType || null]
+      );
+    } catch (err) {
+      console.error('Error logging error:', err);
+    }
+  }
+
+  /**
    * Clear cache
    */
   async clearCache(pattern?: string): Promise<void> {
     try {
+      if (redisClient) {
+        if (pattern) {
+          const keys = await redisClient.keys(`ai:cache:${pattern}*`);
+          if (keys.length > 0) {
+            await redisClient.del(keys);
+          }
+        } else {
+          const keys = await redisClient.keys('ai:cache:*');
+          if (keys.length > 0) {
+            await redisClient.del(keys);
+          }
+        }
+      }
+      
+      // Clear memory cache
       if (pattern) {
-        const keys = await redisClient.keys(`ai:cache:${pattern}*`);
-        if (keys.length > 0) {
-          await redisClient.del(keys);
+        for (const key of memoryCache.keys()) {
+          if (key.includes(pattern)) {
+            memoryCache.delete(key);
+          }
         }
       } else {
-        const keys = await redisClient.keys('ai:cache:*');
-        if (keys.length > 0) {
-          await redisClient.del(keys);
-        }
+        memoryCache.clear();
       }
     } catch (error) {
       console.error('Cache clear error:', error);
