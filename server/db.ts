@@ -6,6 +6,8 @@ import { drizzle as drizzlePostgres } from 'drizzle-orm/node-postgres';
 import Database from 'better-sqlite3';
 import { Pool } from 'pg';
 import * as schema from '@shared/schema';
+import fs from 'fs';
+import path from 'path';
 
 // Database connection configuration
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -47,8 +49,6 @@ if (DATABASE_URL && DATABASE_URL.startsWith('postgres://')) {
   const sqlitePath = process.env.SQLITE_PATH || './data/sellercloudx.db';
   
   // Ensure directory exists
-  const fs = require('fs');
-  const path = require('path');
   const dir = path.dirname(sqlitePath);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -95,8 +95,6 @@ export async function initializeDatabase(): Promise<void> {
       console.log('📦 PostgreSQL: Run migrations manually or use Drizzle Kit');
     } else {
       // SQLite - create tables if not exist
-      const fs = require('fs');
-      const path = require('path');
       const migrationPath = path.join(__dirname, '../migrations/add_ai_tables.sql');
       
       if (fs.existsSync(migrationPath)) {
