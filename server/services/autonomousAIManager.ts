@@ -1,402 +1,271 @@
-// Autonomous AI Manager - Zero-Command AI for Marketplace
-// Integrates with existing SellerCloudX platform
+// Autonomous AI Manager - Avtomatik ishlaydigan AI Manager
+// Hamkor buyruq bermaydi - marketplace reglamentidan kelib chiqib hammasini avtomatik bajara
 
-import { storage } from '../storage';
-import { aiManagerService } from './aiManagerService';
-import { openaiService } from './openaiService';
-import { nanoid } from 'nanoid';
+import { db } from '../db';
+import { partners, marketplaceIntegrations, products } from '@shared/schema';
+import { eq, and } from 'drizzle-orm';
+import { generateProductCard, optimizePrice, monitorPartnerProducts, autoUploadToMarketplace } from './aiManagerService';
+import { wsManager } from '../websocket';
 
-export interface MinimalProductInput {
-  name: string;
-  image: string; // base64 or URL
-  description: string;
-  costPrice: number;
-  stockQuantity: number;
-  partnerId: string;
-}
-
-export interface AIDecision {
-  id: string;
-  timestamp: Date;
-  module: string;
-  action: string;
-  reasoning: string;
-  confidence: number;
-  data: any;
-}
-
-export interface ValidationResult {
-  passed: boolean;
-  errors: string[];
-  corrections: string[];
-  confidence: number;
-}
+// ================================================================
+// AUTONOMOUS AI MANAGER - Background Worker
+// ================================================================
 
 class AutonomousAIManager {
-  private decisions: AIDecision[] = [];
+  private isRunning = false;
+  private intervalId: NodeJS.Timeout | null = null;
 
-  // Main entry point - Partner provides minimal input
-  async processProduct(input: MinimalProductInput): Promise<{
-    success: boolean;
-    product?: any;
-    decisions: AIDecision[];
-    errors?: string[];
-  }> {
-    console.log('🤖 Autonomous AI Manager: Processing product...');
+  // Start autonomous AI Manager
+  start() {
+    if (this.isRunning) {
+      console.log('⚠️ Autonomous AI Manager allaqachon ishlamoqda');
+      return;
+    }
+
+    console.log('🚀 Autonomous AI Manager ishga tushdi');
+    this.isRunning = true;
+
+    // Check every 5 minutes for new products and tasks
+    this.intervalId = setInterval(() => {
+      this.processPendingTasks();
+    }, 5 * 60 * 1000); // 5 minutes
+
+    // Initial processing
+    this.processPendingTasks();
+  }
+
+  // Stop autonomous AI Manager
+  stop() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+    this.isRunning = false;
+    console.log('🛑 Autonomous AI Manager to'xtatildi');
+  }
+
+  // Process pending tasks
+  private async processPendingTasks() {
+    try {
+      // 1. Find products without marketplace cards
+      await this.createMissingCards();
+      
+      // 2. Monitor and fix marketplace errors
+      await this.fixMarketplaceErrors();
+      
+      // 3. Optimize prices
+      await this.optimizePrices();
+      
+      // 4. Monitor partner products
+      await this.monitorAllPartners();
+    } catch (error) {
+      console.error('❌ Autonomous AI Manager xatosi:', error);
+    }
+  }
+
+  // Create missing marketplace cards
+  private async createMissingCards() {
+    console.log('🔍 Checking for products without marketplace cards...');
     
     try {
-      // Step 1: Analyze product
-      const analysis = await this.analyzeProduct(input);
-      this.logDecision('product_analysis', 'analyze', 
-        'Analyzed product using multimodal AI', 95, analysis);
+      // Get all active partners with AI enabled
+      const activePartners = await db.select()
+        .from(partners)
+        .where(eq(partners.aiEnabled, true))
+        .where(eq(partners.approved, true));
 
-      // Step 2: Generate optimized listing
-      const listing = await this.generateListing(input, analysis);
-      this.logDecision('listing_generation', 'generate',
-        'Generated SEO-optimized listing for marketplace', 92, listing);
+      for (const partner of activePartners) {
+        try {
+          // Get partner's products
+          const partnerProducts = await db.select()
+            .from(products)
+            .where(eq(products.partnerId, partner.id))
+            .where(eq(products.isActive, true));
 
-      // Step 3: Validate listing
-      const validation = await this.validateListing(listing);
-      this.logDecision('listing_validation', 'validate',
-        'Validated listing against marketplace rules', validation.confidence, validation);
+          // Get active marketplace integrations
+          const integrations = await db.select()
+            .from(marketplaceIntegrations)
+            .where(eq(marketplaceIntegrations.partnerId, partner.id))
+            .where(eq(marketplaceIntegrations.active, true));
 
-      // Step 4: Auto-correct if needed
-      if (!validation.passed) {
-        const corrected = await this.autoCorrect(listing, validation);
-        this.logDecision('auto_correction', 'correct',
-          'Auto-corrected listing errors', 88, corrected);
-        listing.title = corrected.title;
-        listing.description = corrected.description;
+          for (const product of partnerProducts) {
+            for (const integration of integrations) {
+              // Check if card already exists
+              const existingCard = await db.get(
+                `SELECT id FROM ai_generated_products 
+                 WHERE partner_id = ? AND marketplace_type = ? AND raw_product_name = ?`,
+                [partner.id, integration.marketplace, product.name]
+              );
+
+              if (!existingCard) {
+                console.log(`📝 Creating card for ${product.name} on ${integration.marketplace}`);
+                
+                try {
+                  await generateProductCard({
+                    name: product.name,
+                    category: product.category || 'general',
+                    description: product.description || '',
+                    price: parseFloat(product.price.toString()),
+                    images: [],
+                    targetMarketplace: integration.marketplace as any
+                  }, parseInt(partner.id));
+                  
+                  console.log(`✅ Card created for ${product.name}`);
+                } catch (error) {
+                  console.error(`❌ Failed to create card:`, error);
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Error processing partner ${partner.id}:`, error);
+        }
       }
+    } catch (error) {
+      console.error('Error in createMissingCards:', error);
+    }
+  }
 
-      // Step 5: Calculate optimal pricing
-      const pricing = await this.calculatePricing(input, analysis);
-      this.logDecision('pricing_calculation', 'calculate',
-        'Calculated optimal pricing with margin protection', 90, pricing);
+  // Fix marketplace errors and blocked products
+  private async fixMarketplaceErrors() {
+    console.log('🔧 Checking for marketplace errors...');
+    
+    try {
+      // Get products with errors or blocked status
+      const errorProducts = await db.all(
+        `SELECT * FROM ai_generated_products 
+         WHERE status IN ('error', 'blocked', 'rejected')
+         ORDER BY updated_at DESC
+         LIMIT 10`
+      );
 
-      // Step 6: Create product in database
-      const product = await storage.createProduct({
-        partnerId: input.partnerId,
-        name: listing.title,
-        category: analysis.category,
-        description: listing.description,
-        price: pricing.sellingPrice.toString(),
-        costPrice: input.costPrice.toString(),
-        sku: `SKU-${nanoid(8)}`,
-        stockQuantity: input.stockQuantity,
-        images: [input.image],
-        status: 'active'
+      for (const product of errorProducts) {
+        try {
+          console.log(`🔧 Fixing product ${product.id}...`);
+          
+          // Analyze error and fix
+          const fixedCard = await this.fixProductCard(product);
+          
+          if (fixedCard) {
+            console.log(`✅ Product ${product.id} fixed`);
+          }
+        } catch (error) {
+          console.error(`❌ Failed to fix product ${product.id}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error('Error in fixMarketplaceErrors:', error);
+    }
+  }
+
+  // Fix individual product card
+  private async fixProductCard(product: any) {
+    // Use AI to analyze error and create fixed version
+    const OpenAI = require('openai').default;
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    const prompt = `
+Marketplace mahsulot kartochkasi bloklangan yoki xatoga ega.
+
+XATO: ${product.error_message || 'Noma\'lum'}
+MAHSULOT: ${product.raw_product_name}
+MARKETPLACE: ${product.marketplace_type}
+
+Quyidagilarni tahlil qiling va tuzatilgan versiyani yarating:
+1. Xatoning sababini aniqlang
+2. Marketplace qoidalariga mos kelmaydigan qismlarni toping
+3. Tuzatilgan kartochka yarating
+
+JSON formatda javob bering:
+{
+  "errorReason": "Xato sababi",
+  "fixedTitle": "Tuzatilgan sarlavha",
+  "fixedDescription": "Tuzatilgan tavsif",
+  "fixedKeywords": ["kalit", "so'zlar"],
+  "complianceIssues": ["Muammo 1", "Muammo 2"],
+  "fixes": ["Tuzatish 1", "Tuzatish 2"]
+}
+`;
+
+    try {
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4',
+        messages: [{ role: 'user', content: prompt }],
+        response_format: { type: 'json_object' }
       });
 
-      console.log('✅ Autonomous AI Manager: Product created successfully');
-
-      return {
-        success: true,
-        product,
-        decisions: this.decisions
-      };
-
-    } catch (error: any) {
-      console.error('❌ Autonomous AI Manager error:', error);
-      return {
-        success: false,
-        errors: [error.message],
-        decisions: this.decisions
-      };
-    }
-  }
-
-  // Step 1: Analyze product using AI
-  private async analyzeProduct(input: MinimalProductInput): Promise<any> {
-    // Use real GPT-4 if available, fallback to simple detection
-    if (openaiService.isEnabled()) {
-      console.log('🤖 Using GPT-4 for product analysis');
-      const analysis = await openaiService.analyzeProduct(
-        input.name,
-        input.description,
-        input.image
-      );
-      return analysis;
-    } else {
-      console.log('⚠️  Using fallback product analysis');
-      const analysis = {
-        category: this.detectCategory(input.name, input.description),
-        subcategory: 'General',
-        marketSuitability: {
-          wildberries: 90,
-          uzum: 85,
-          ozon: 88,
-          trendyol: 80
-        },
-        riskLevel: 'low',
-        confidence: 75,
-        keywords: this.extractKeywords(input.name, input.description),
-        targetAudience: 'General consumers',
-        suggestedPrice: {
-          min: input.costPrice * 1.5,
-          optimal: input.costPrice * 2,
-          max: input.costPrice * 2.5
-        }
-      };
-      return analysis;
-    }
-  }
-
-  // Step 2: Generate optimized listing
-  private async generateListing(input: MinimalProductInput, analysis: any): Promise<any> {
-    // Use real GPT-4 if available
-    if (openaiService.isEnabled()) {
-      console.log('🤖 Using GPT-4 for SEO listing generation');
-      const seoResult = await openaiService.generateSEOListing(
-        input.name,
-        input.description,
-        analysis.category,
-        analysis.keywords,
-        'wildberries' // Default marketplace, can be dynamic
-      );
+      const fixData = JSON.parse(response.choices[0].message.content || '{}');
       
-      return {
-        title: seoResult.title,
-        description: seoResult.description,
-        bulletPoints: seoResult.bulletPoints,
-        category: analysis.category,
-        keywords: seoResult.keywords
-      };
-    } else {
-      console.log('⚠️  Using fallback listing generation');
-      // Generate SEO-optimized title
-      const title = this.generateSEOTitle(input.name, analysis.keywords);
-      
-      // Generate professional description
-      const description = this.generateDescription(input.description, analysis.keywords);
-
-      return {
-        title,
-        description,
-        category: analysis.category,
-        keywords: analysis.keywords
-      };
-    }
-  }
-
-  // Step 3: Validate listing
-  private async validateListing(listing: any): Promise<ValidationResult> {
-    // Use real GPT-4 if available
-    if (openaiService.isEnabled()) {
-      console.log('🤖 Using GPT-4 for listing validation');
-      const validation = await openaiService.validateListing(
-        listing.title,
-        listing.description,
-        'wildberries'
+      // Update product with fixed data
+      await db.run(
+        `UPDATE ai_generated_products 
+         SET ai_title = ?, 
+             ai_description = ?,
+             status = 'review',
+             error_message = NULL,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`,
+        [fixData.fixedTitle, fixData.fixedDescription, product.id]
       );
-      
-      return {
-        passed: validation.valid,
-        errors: validation.errors,
-        corrections: validation.suggestions,
-        confidence: validation.valid ? 95 : 70
-      };
-    } else {
-      console.log('⚠️  Using fallback validation');
-      const errors: string[] = [];
-      const corrections: string[] = [];
 
-      // Check title length
-      if (listing.title.length < 10) {
-        errors.push('Title too short (minimum 10 characters)');
-      }
-      if (listing.title.length > 200) {
-        errors.push('Title too long (maximum 200 characters)');
-        corrections.push('Truncate title to 200 characters');
-      }
-
-      // Check for prohibited words
-      const prohibitedWords = ['best', 'guaranteed', '100%', 'free shipping', 'cheapest'];
-      prohibitedWords.forEach(word => {
-        if (listing.title.toLowerCase().includes(word)) {
-          errors.push(`Prohibited word detected: "${word}"`);
-          corrections.push(`Remove or replace "${word}"`);
-        }
-      });
-
-      // Check description
-      if (listing.description.length < 50) {
-        errors.push('Description too short (minimum 50 characters)');
-      }
-
-      return {
-        passed: errors.length === 0,
-        errors,
-        corrections,
-        confidence: errors.length === 0 ? 95 : 70
-      };
+      return fixData;
+    } catch (error) {
+      console.error('Error fixing product card:', error);
+      return null;
     }
   }
 
-  // Step 4: Auto-correct errors
-  private async autoCorrect(listing: any, validation: ValidationResult): Promise<any> {
-    let correctedTitle = listing.title;
-    let correctedDescription = listing.description;
-
-    // Remove prohibited words
-    const prohibitedWords = ['best', 'guaranteed', '100%', 'free shipping', 'cheapest'];
-    prohibitedWords.forEach(word => {
-      const regex = new RegExp(word, 'gi');
-      correctedTitle = correctedTitle.replace(regex, '');
-      correctedDescription = correctedDescription.replace(regex, '');
-    });
-
-    // Truncate if too long
-    if (correctedTitle.length > 200) {
-      correctedTitle = correctedTitle.substring(0, 197) + '...';
-    }
-
-    // Clean up extra spaces
-    correctedTitle = correctedTitle.replace(/\s+/g, ' ').trim();
-    correctedDescription = correctedDescription.replace(/\s+/g, ' ').trim();
-
-    return {
-      title: correctedTitle,
-      description: correctedDescription
-    };
-  }
-
-  // Step 5: Calculate optimal pricing
-  private async calculatePricing(input: MinimalProductInput, analysis: any): Promise<any> {
-    const costPrice = input.costPrice;
-    const marketplaceCommission = 0.15; // 15% average
-    const logistics = 5; // Fixed logistics cost
-    const packaging = 2; // Fixed packaging cost
-    const targetMargin = 0.40; // 40% target margin
-
-    // Calculate minimum price
-    const totalCost = costPrice + logistics + packaging;
-    const minimumPrice = totalCost / (1 - marketplaceCommission - targetMargin);
-
-    // Add competitive positioning (10% above minimum)
-    const sellingPrice = Math.round(minimumPrice * 1.1);
-
-    // Calculate actual margin
-    const revenue = sellingPrice * (1 - marketplaceCommission);
-    const profit = revenue - totalCost;
-    const actualMargin = (profit / sellingPrice) * 100;
-
-    return {
-      costPrice,
-      sellingPrice,
-      minimumPrice: Math.round(minimumPrice),
-      profit: Math.round(profit),
-      margin: Math.round(actualMargin),
-      breakdown: {
-        cost: costPrice,
-        logistics,
-        packaging,
-        commission: Math.round(sellingPrice * marketplaceCommission),
-        profit: Math.round(profit)
-      }
-    };
-  }
-
-  // Helper: Detect category
-  private detectCategory(name: string, description: string): string {
-    const text = (name + ' ' + description).toLowerCase();
-
-    if (text.includes('phone') || text.includes('smartphone')) return 'Electronics > Mobile Phones';
-    if (text.includes('watch') || text.includes('smartwatch')) return 'Electronics > Wearables';
-    if (text.includes('laptop') || text.includes('computer')) return 'Electronics > Computers';
-    if (text.includes('clothes') || text.includes('shirt') || text.includes('dress')) return 'Fashion > Clothing';
-    if (text.includes('shoes') || text.includes('sneakers')) return 'Fashion > Footwear';
-    if (text.includes('toy') || text.includes('game')) return 'Toys & Games';
-    if (text.includes('book')) return 'Books';
-    if (text.includes('beauty') || text.includes('cosmetic')) return 'Beauty & Personal Care';
+  // Optimize prices
+  private async optimizePrices() {
+    console.log('💰 Optimizing prices...');
     
-    return 'General';
-  }
+    try {
+      // Get products that need price optimization
+      const productsToOptimize = await db.all(
+        `SELECT * FROM marketplace_products 
+         WHERE last_price_update < datetime('now', '-7 days')
+         AND is_active = 1
+         LIMIT 20`
+      );
 
-  // Helper: Extract keywords
-  private extractKeywords(name: string, description: string): string[] {
-    const text = (name + ' ' + description).toLowerCase();
-    const words = text.split(/\s+/);
-    
-    // Filter common words
-    const stopWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for'];
-    const keywords = words.filter(word => 
-      word.length > 3 && !stopWords.includes(word)
-    );
-
-    // Return top 10 unique keywords
-    return [...new Set(keywords)].slice(0, 10);
-  }
-
-  // Helper: Generate SEO title
-  private generateSEOTitle(name: string, keywords: string[]): string {
-    // Clean name
-    let title = name.trim();
-
-    // Add top keywords if not already present
-    keywords.slice(0, 3).forEach(keyword => {
-      if (!title.toLowerCase().includes(keyword)) {
-        title += ` ${keyword}`;
+      for (const product of productsToOptimize) {
+        try {
+          await optimizePrice(
+            parseInt(product.partner_id),
+            parseInt(product.id),
+            product.marketplace_type
+          );
+        } catch (error) {
+          console.error(`Error optimizing price for product ${product.id}:`, error);
+        }
       }
-    });
-
-    // Capitalize first letter
-    title = title.charAt(0).toUpperCase() + title.slice(1);
-
-    // Limit length
-    if (title.length > 200) {
-      title = title.substring(0, 197) + '...';
+    } catch (error) {
+      console.error('Error in optimizePrices:', error);
     }
-
-    return title;
   }
 
-  // Helper: Generate description
-  private generateDescription(description: string, keywords: string[]): string {
-    let desc = description.trim();
+  // Monitor all partners
+  private async monitorAllPartners() {
+    console.log('👁️ Monitoring partners...');
+    
+    try {
+      const activePartners = await db.select()
+        .from(partners)
+        .where(eq(partners.aiEnabled, true))
+        .where(eq(partners.approved, true));
 
-    // Ensure minimum length
-    if (desc.length < 50) {
-      desc += ` This product features ${keywords.slice(0, 3).join(', ')} and more.`;
+      for (const partner of activePartners) {
+        try {
+          await monitorPartnerProducts(parseInt(partner.id));
+        } catch (error) {
+          console.error(`Error monitoring partner ${partner.id}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error('Error in monitorAllPartners:', error);
     }
-
-    // Add keywords naturally
-    if (!desc.toLowerCase().includes(keywords[0])) {
-      desc += ` Perfect for those looking for ${keywords[0]}.`;
-    }
-
-    return desc;
-  }
-
-  // Log AI decision
-  private logDecision(module: string, action: string, reasoning: string, confidence: number, data: any): void {
-    const decision: AIDecision = {
-      id: nanoid(),
-      timestamp: new Date(),
-      module,
-      action,
-      reasoning,
-      confidence,
-      data
-    };
-
-    this.decisions.push(decision);
-    console.log(`📝 AI Decision: [${module}] ${reasoning} (confidence: ${confidence}%)`);
-  }
-
-  // Get decision log
-  getDecisions(): AIDecision[] {
-    return this.decisions;
-  }
-
-  // Clear decision log
-  clearDecisions(): void {
-    this.decisions = [];
   }
 }
 
-// Export singleton instance
+// Singleton instance
 export const autonomousAIManager = new AutonomousAIManager();
-
-// Export for testing
-export { AutonomousAIManager };

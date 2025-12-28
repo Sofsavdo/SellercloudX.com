@@ -9,6 +9,7 @@ import { Navigation } from '@/components/Navigation';
 import { LoginForm } from '@/components/LoginForm';
 import { PartnerStats } from '@/components/PartnerStats';
 import { ProductForm } from '@/components/ProductForm';
+import { SimpleProductForm } from '@/components/SimpleProductForm';
 // FULFILLMENT FEATURE - Hidden for SaaS-only mode
 // import { FulfillmentRequestForm } from '@/components/FulfillmentRequestForm';
 import { ProfitDashboard } from '@/components/ProfitDashboard';

@@ -11,6 +11,7 @@ import { initializeAdmin } from "./initAdmin";
 import { runMigrations } from "./migrate";
 import { initializeAIQueue } from "./services/aiTaskQueue";
 import { startCronJobs } from "./cron/scheduler";
+import { autonomousAIManager } from "./services/autonomousAIManager";
 import helmet from "helmet";
 import * as Sentry from "@sentry/node";
 import winston from "winston";
@@ -208,6 +209,10 @@ app.use((req, res, next) => {
     // Initialize AI task queue (SQLite-based background processor)
     try {
       initializeAIQueue();
+      
+      // Start Autonomous AI Manager
+      autonomousAIManager.start();
+      log('🤖 Autonomous AI Manager ishga tushdi');
     } catch (error) {
       console.error('AI queue initialization failed:', error);
       console.log('⚠️  Continuing without AI queue');

@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Send, Paperclip, Smile, MoreVertical, Phone, Video } from 'lucide-react';
+import { Send, Paperclip, Smile, MoreVertical, Phone, Video, Monitor } from 'lucide-react';
+import { AdminRemoteAccess } from './AdminRemoteAccess';
 import { apiRequest } from '@/lib/queryClient';
 
 interface Message {
@@ -55,6 +56,7 @@ export function ChatSystem({ partnerId, isAdmin = false }: ChatSystemProps) {
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [showRemoteAccess, setShowRemoteAccess] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -453,6 +455,16 @@ export function ChatSystem({ partnerId, isAdmin = false }: ChatSystemProps) {
           </div>
         )}
       </div>
+
+      {/* Admin Remote Access Modal */}
+      {isAdmin && selectedPartner && (
+        <AdminRemoteAccess
+          partnerId={selectedPartner.userData.id}
+          partnerName={selectedPartner.businessName}
+          isOpen={showRemoteAccess}
+          onClose={() => setShowRemoteAccess(false)}
+        />
+      )}
     </div>
   );
 }

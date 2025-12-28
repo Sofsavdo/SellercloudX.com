@@ -51,6 +51,8 @@ import premiumFeaturesRoutes from "./routes/premiumFeaturesRoutes";
 import advancedFeaturesRoutes from "./routes/advancedFeaturesRoutes";
 import smartAIRoutes from "./routes/smartAIRoutes";
 import billingRoutes from "./routes/billingRoutes";
+import aiScannerRoutes from "./routes/aiScannerRoutes";
+import adminRemoteAccessRoutes from "./routes/adminRemoteAccess";
 
 // Enhanced authentication middleware with better error handling
 function requireAuth(req: Request, res: Response, next: NextFunction) {
@@ -549,6 +551,79 @@ export function registerRoutes(app: express.Application): Server {
 
     const products = await storage.getProductsByPartnerId(partner.id);
     res.json(products);
+  }));
+
+  // Simple product creation - minimal ma'lumotlar
+  app.post("/api/products/simple", requirePartnerWithData, upload.single('image'), asyncHandler(async (req: Request, res: Response) => {
+    const user = (req as any).user;
+    const partner = (req as any).partner;
+    const file = (req as any).file;
+    
+    const { name, stockQuantity, costPrice } = req.body;
+    
+    if (!name || !stockQuantity || !costPrice) {
+      return res.status(400).json({
+        message: "Nomi, qoldiq va tannarx majburiy",
+        code: "MISSING_FIELDS"
+      });
+    }
+    
+    try {
+      // Create product with minimal data
+      const product = await storage.createProduct({
+        partnerId: partner.id,
+        name,
+        stockQuantity: parseInt(stockQuantity),
+        costPrice: parseFloat(costPrice),
+        price: parseFloat(costPrice) * 1.3, // Default 30% markup
+        category: 'general',
+        description: '',
+        sku: `SKU-${Date.now()}`,
+        weight: '0.5',
+        imageUrl: file ? `/uploads/${file.filename}` : null
+      });
+      
+      // Trigger AI Manager to create marketplace cards automatically
+      // This runs in background - partner doesn't need to do anything
+      const { generateProductCard } = await import('./services/aiManagerService');
+      
+      // Get partner's active marketplace integrations
+      const integrations = await db.select()
+        .from(marketplaceIntegrations)
+        .where(and(
+          eq(marketplaceIntegrations.partnerId, partner.id),
+          eq(marketplaceIntegrations.active, true)
+        ));
+      
+      // Create cards for each active marketplace
+      for (const integration of integrations) {
+        try {
+          await generateProductCard({
+            name,
+            category: 'general',
+            description: '',
+            price: parseFloat(costPrice) * 1.3,
+            images: file ? [`/uploads/${file.filename}`] : [],
+            targetMarketplace: integration.marketplace as any
+          }, parseInt(partner.id));
+        } catch (error) {
+          console.error(`Failed to create card for ${integration.marketplace}:`, error);
+          // Continue with other marketplaces
+        }
+      }
+      
+      res.json({
+        success: true,
+        product,
+        message: "Mahsulot yaratildi. AI Manager avtomatik kartochkalar yaratmoqda..."
+      });
+    } catch (error: any) {
+      console.error('Simple product creation error:', error);
+      res.status(500).json({
+        message: "Mahsulot yaratishda xatolik",
+        error: error.message
+      });
+    }
   }));
 
   app.post("/api/products", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
@@ -1094,6 +1169,9 @@ export function registerRoutes(app: express.Application): Server {
   // AI Autonomous Manager routes
   app.use("/api/ai-manager", requireAuth, aiManagerRoutes);
 
+  // AI Scanner routes
+  app.use("/api/ai/scanner", requireAuth, aiScannerRoutes);
+
   // AI Dashboard routes (Partner view-only)
   app.use("/api/ai-dashboard", requireAuth, aiDashboardRoutes);
 
@@ -1102,6 +1180,9 @@ export function registerRoutes(app: express.Application): Server {
 
   // Referral System Routes
   app.use("/api/referrals", requireAuth, referralRoutes);
+  
+  // Admin Remote Access routes
+  app.use("/api/admin/remote", requireAdmin, adminRemoteAccessRoutes);
 
   // Chat uploads (files/images) - used by ChatSystem UI
   app.post(
