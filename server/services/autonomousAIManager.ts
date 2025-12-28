@@ -41,7 +41,7 @@ class AutonomousAIManager {
       this.intervalId = null;
     }
     this.isRunning = false;
-    console.log('🛑 Autonomous AI Manager to'xtatildi');
+    console.log('🛑 Autonomous AI Manager toxtatildi');
   }
 
   // Process pending tasks

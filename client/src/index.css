@@ -1,10 +1,10 @@
+/* Import Custom Styles - Must be before @tailwind */
+@import './styles/animations.css';
+@import './styles/theme.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import Custom Styles */
-@import './styles/animations.css';
-@import './styles/theme.css';
 
 @layer base {
   :root {
