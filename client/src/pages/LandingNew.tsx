@@ -1,11 +1,14 @@
 // PROFESSIONAL LANDING PAGE - SellerCloudX v2.0
 // IT Park Compliant - Pure SaaS Solution
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { StatCard } from '@/components/ui/StatCard';
+import { ModernButton } from '@/components/ui/ModernButton';
+import { AnimatedCard } from '@/components/ui/AnimatedCard';
 import { 
   Sparkles, ArrowRight, CheckCircle, Star, TrendingUp, Zap,
   Brain, Target, Clock, Users, DollarSign, Rocket, Play,
@@ -16,6 +19,25 @@ import {
 export default function LandingNew() {
   const [, setLocation] = useLocation();
   const [showLoginMenu, setShowLoginMenu] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Scroll animation
+  useEffect(() => {
+    setIsVisible(true);
+    const handleScroll = () => {
+      const elements = document.querySelectorAll('.scroll-animate');
+      elements.forEach((el) => {
+        const elementTop = el.getBoundingClientRect().top;
+        const elementVisible = 150;
+        if (elementTop < window.innerHeight - elementVisible) {
+          el.classList.add('animate-fade-in-up');
+        }
+      });
+    };
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
@@ -44,8 +66,8 @@ export default function LandingNew() {
         }
       `}</style>
       
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b shadow-sm">
+      {/* Navigation - Enhanced */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-3">
@@ -131,25 +153,25 @@ export default function LandingNew() {
               Qolgan ishlarni AI 24/7 avtomatik bajaradi. <span className="font-bold text-purple-600">10 ta mahsulot bilan bepul sinab ko'ring!</span>
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
-              <Button 
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12 animate-fade-in-up">
+              <ModernButton
+                variant="gradient"
                 size="lg"
                 onClick={() => setLocation('/partner-registration')}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-xl px-12 py-8 shadow-2xl hover:shadow-blue-500/50 transition-all hover:scale-105 animate-pulse-glow"
+                className="text-xl px-12 py-8 shadow-2xl hover:shadow-blue-500/50"
+                icon={<Rocket className="w-6 h-6" />}
               >
-                <Rocket className="w-6 h-6 mr-3" />
                 Bepul Boshlash
-                <ArrowRight className="w-6 h-6 ml-3" />
-              </Button>
-              <Button 
-                size="lg" 
+              </ModernButton>
+              <ModernButton
                 variant="outline"
+                size="lg"
                 onClick={() => setLocation('/demo')}
                 className="text-lg px-10 py-8 border-2"
+                icon={<Play className="w-5 h-5" />}
               >
-                <Play className="w-5 h-5 mr-2" />
                 Demo Ko'rish
-              </Button>
+              </ModernButton>
             </div>
 
             {/* Trust Indicators */}
@@ -169,22 +191,40 @@ export default function LandingNew() {
             </div>
           </div>
 
-          {/* Stats */}
+          {/* Stats - Modern Design */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {[
-              { icon: Users, value: '2,847', label: 'Faol Hamkorlar', color: 'blue' },
-              { icon: Package, value: '127K+', label: 'AI Kartochkalar', color: 'purple' },
-              { icon: DollarSign, value: '45.7B', label: "So'm Aylanma", color: 'green' },
-              { icon: Star, value: '4.9/5', label: 'Hamkor Bahosi', color: 'yellow' }
-            ].map((stat, i) => (
-              <Card key={i} className="border-2 hover:border-blue-400 transition-all hover:shadow-xl bg-white">
-                <CardContent className="p-6 text-center">
-                  <stat.icon className={`w-8 h-8 mx-auto mb-3 text-${stat.color}-600`} />
-                  <div className="text-4xl font-black text-gray-900">{stat.value}</div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
-                </CardContent>
-              </Card>
-            ))}
+            <StatCard
+              title="Faol Hamkorlar"
+              value="2,847"
+              icon={Users}
+              trend={{ value: 25, isPositive: true }}
+              subtitle="Oxirgi oyda"
+              delay={0}
+            />
+            <StatCard
+              title="AI Kartochkalar"
+              value="127K+"
+              icon={Package}
+              trend={{ value: 40, isPositive: true }}
+              subtitle="Yaratilgan"
+              delay={100}
+            />
+            <StatCard
+              title="So'm Aylanma"
+              value="45.7B"
+              icon={DollarSign}
+              trend={{ value: 35, isPositive: true }}
+              subtitle="Jami aylanma"
+              delay={200}
+            />
+            <StatCard
+              title="Hamkor Bahosi"
+              value="4.9/5"
+              icon={Star}
+              subtitle="O'rtacha reyting"
+              delay={300}
+              gradient={true}
+            />
           </div>
         </div>
       </section>
@@ -225,18 +265,19 @@ export default function LandingNew() {
                 color: 'purple'
               }
             ].map((item, i) => (
-              <Card key={i} className="border-2 hover:border-blue-400 transition-all hover:shadow-xl transform hover:scale-105 animate-float" style={{animationDelay: `${i * 0.2}s`}}>
-                <CardHeader>
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-${item.color}-500 to-${item.color}-600 flex items-center justify-center mb-4 animate-gradient`}>
-                    <item.icon className="w-8 h-8 text-white" />
-                  </div>
-                  <CardTitle className="text-2xl">{item.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">{item.description}</p>
-                  <div className={`text-3xl font-black text-${item.color}-600`}>{item.metric}</div>
-                </CardContent>
-              </Card>
+              <AnimatedCard
+                key={i}
+                delay={i * 200}
+                hover={true}
+                className="scroll-animate"
+              >
+                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-${item.color}-500 to-${item.color}-600 flex items-center justify-center mb-4 shadow-lg`}>
+                  <item.icon className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold mb-3">{item.title}</h3>
+                <p className="text-gray-600 mb-4">{item.description}</p>
+                <div className={`text-3xl font-black text-${item.color}-600`}>{item.metric}</div>
+              </AnimatedCard>
             ))}
           </div>
         </div>
@@ -278,28 +319,28 @@ export default function LandingNew() {
                 time: '24/7 avtomatik'
               }
             ].map((item, i) => (
-              <div key={i} className="relative">
-                <Card className="border-2 hover:border-blue-400 transition-all hover:shadow-xl h-full">
-                  <CardHeader>
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-2xl font-black">
-                        {item.step}
-                      </div>
-                      <item.icon className="w-12 h-12 text-blue-600" />
+              <div key={i} className="relative scroll-animate">
+                <AnimatedCard
+                  delay={i * 200}
+                  hover={true}
+                  className="h-full"
+                >
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-2xl font-black shadow-lg">
+                      {item.step}
                     </div>
-                    <CardTitle className="text-2xl">{item.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 mb-4">{item.description}</p>
-                    <Badge className="bg-blue-100 text-blue-700">
-                      <Clock className="w-3 h-3 mr-1" />
-                      {item.time}
-                    </Badge>
-                  </CardContent>
-                </Card>
+                    <item.icon className="w-12 h-12 text-blue-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3">{item.title}</h3>
+                  <p className="text-gray-600 mb-4">{item.description}</p>
+                  <Badge className="bg-blue-100 text-blue-700">
+                    <Clock className="w-3 h-3 mr-1" />
+                    {item.time}
+                  </Badge>
+                </AnimatedCard>
                 {i < 2 && (
-                  <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                    <ArrowRight className="w-8 h-8 text-blue-400" />
+                  <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
+                    <ArrowRight className="w-8 h-8 text-blue-400 animate-pulse" />
                   </div>
                 )}
               </div>
@@ -378,16 +419,19 @@ export default function LandingNew() {
                 badge: 'AI Tushunchalar'
               }
             ].map((feature, i) => (
-              <Card key={i} className="border-2 hover:border-blue-400 transition-all hover:shadow-xl group transform hover:scale-105">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <feature.icon className="w-12 h-12 text-blue-600 group-hover:scale-110 transition-transform" />
-                    <Badge className="bg-blue-100 text-blue-700 text-xs">{feature.badge}</Badge>
-                  </div>
-                  <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">{feature.desc}</p>
-                </CardContent>
-              </Card>
+              <AnimatedCard
+                key={i}
+                delay={i * 100}
+                hover={true}
+                className="scroll-animate group"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <feature.icon className="w-12 h-12 text-blue-600 group-hover:scale-110 transition-transform" />
+                  <Badge className="bg-blue-100 text-blue-700 text-xs">{feature.badge}</Badge>
+                </div>
+                <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">{feature.desc}</p>
+              </AnimatedCard>
             ))}
           </div>
         </div>
@@ -626,23 +670,15 @@ export default function LandingNew() {
                     </div>
                   )}
                   
-                  <Button 
-                    className={`w-full py-4 text-sm mt-4 ${
-                      tier.highlight
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
-                        : tier.price === '0'
-                        ? 'bg-green-600 hover:bg-green-700 text-white'
-                        : tier.price === '69'
-                        ? 'bg-orange-600 hover:bg-orange-700 text-white'
-                        : ''
-                    }`}
-                    variant={tier.highlight || tier.price === '0' || tier.price === '69' ? 'default' : 'outline'}
+                  <ModernButton
+                    variant={tier.highlight ? 'gradient' : tier.price === '0' || tier.price === '69' ? 'primary' : 'outline'}
+                    size="md"
                     onClick={() => setLocation('/partner-registration')}
+                    className="w-full py-4 text-sm mt-4"
+                    icon={<Rocket className="w-3 h-3" />}
                   >
-                    <Rocket className="w-3 h-3 mr-1" />
                     {tier.cta}
-                    <ArrowRight className="w-3 h-3 ml-1" />
-                  </Button>
+                  </ModernButton>
                 </CardContent>
               </Card>
             ))}
@@ -848,24 +884,24 @@ export default function LandingNew() {
             2,847 hamkor allaqachon AI bilan ishlayapti. Siz ham qo'shiling!
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Button 
+            <ModernButton
+              variant="primary"
               size="lg"
               onClick={() => setLocation('/partner-registration')}
-              className="bg-white text-blue-600 hover:bg-gray-100 text-xl px-12 py-8 shadow-2xl animate-pulse-glow transform hover:scale-105 transition-all"
+              className="bg-white text-blue-600 hover:bg-gray-100 text-xl px-12 py-8 shadow-2xl"
+              icon={<Rocket className="w-6 h-6" />}
             >
-              <Rocket className="w-6 h-6 mr-3" />
               Bepul Boshlash
-              <ArrowRight className="w-6 h-6 ml-3" />
-            </Button>
-            <Button 
-              size="lg"
+            </ModernButton>
+            <ModernButton
               variant="outline"
+              size="lg"
               onClick={() => setLocation('/demo')}
               className="border-2 border-white text-white hover:bg-white/10 text-xl px-12 py-8"
+              icon={<Play className="w-6 h-6" />}
             >
-              <Play className="w-6 h-6 mr-3" />
               Demo Ko'rish
-            </Button>
+            </ModernButton>
           </div>
         </div>
       </section>
