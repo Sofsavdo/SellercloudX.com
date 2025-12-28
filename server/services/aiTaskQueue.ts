@@ -58,13 +58,18 @@ export async function addAITask(task: Omit<AITask, 'id' | 'status' | 'createdAt'
     // DB schema enforces FK: ai_tasks.account_id -> ai_marketplace_accounts(id)
     // For safety (and to prevent 500s), drop invalid accountId instead of crashing.
     let safeAccountId = newTask.accountId;
-    if (safeAccountId) {
-      const exists = sqlite
-        .prepare('SELECT id FROM ai_marketplace_accounts WHERE id = ?')
-        .get(safeAccountId);
-      if (!exists) {
-        console.warn(`⚠️ ai_marketplace_accounts not found for accountId=${safeAccountId}. Saving task without accountId.`);
-        safeAccountId = undefined;
+    if (safeAccountId && sqlite) {
+      try {
+        const exists = sqlite
+          .prepare('SELECT id FROM ai_marketplace_accounts WHERE id = ?')
+          .get(safeAccountId);
+        if (!exists) {
+          console.warn(`⚠️ ai_marketplace_accounts not found for accountId=${safeAccountId}. Saving task without accountId.`);
+          safeAccountId = undefined;
+        }
+      } catch (error) {
+        // If SQLite not available (PostgreSQL), skip this check
+        console.warn('⚠️ SQLite check skipped (using PostgreSQL)');
       }
     }
     newTask.accountId = safeAccountId;

@@ -13,6 +13,7 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 
 let db: any;
 let dbType: 'postgres' | 'sqlite' = 'sqlite';
+let sqliteInstance: Database | null = null;
 
 // Check if DATABASE_URL is provided (Railway PostgreSQL)
 if (DATABASE_URL && DATABASE_URL.startsWith('postgres://')) {
@@ -53,19 +54,19 @@ if (DATABASE_URL && DATABASE_URL.startsWith('postgres://')) {
     fs.mkdirSync(dir, { recursive: true });
   }
 
-  const sqlite = new Database(sqlitePath, {
+  sqliteInstance = new Database(sqlitePath, {
     // Enable WAL mode for better concurrency
     // This allows multiple readers and one writer
   });
 
   // Enable WAL mode for better performance
-  sqlite.pragma('journal_mode = WAL');
-  sqlite.pragma('foreign_keys = ON');
-  sqlite.pragma('synchronous = NORMAL');
-  sqlite.pragma('cache_size = -64000'); // 64MB cache
-  sqlite.pragma('temp_store = memory');
+  sqliteInstance.pragma('journal_mode = WAL');
+  sqliteInstance.pragma('foreign_keys = ON');
+  sqliteInstance.pragma('synchronous = NORMAL');
+  sqliteInstance.pragma('cache_size = -64000'); // 64MB cache
+  sqliteInstance.pragma('temp_store = memory');
 
-  db = drizzle(sqlite, { schema });
+  db = drizzle(sqliteInstance, { schema });
 }
 
 // Database health check
@@ -122,4 +123,4 @@ export async function initializeDatabase(): Promise<void> {
   }
 }
 
-export { db, dbType };
+export { db, dbType, sqliteInstance as sqlite };
