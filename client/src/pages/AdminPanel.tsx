@@ -24,6 +24,9 @@ import { AICommandCenter } from '@/components/AICommandCenter';
 import { ChatSystem } from '@/components/ChatSystem';
 import { AdminReferralManagement } from '@/components/AdminReferralManagement';
 import { AdminAIManagement } from '@/components/AdminAIManagement';
+import { StatCard } from '@/components/ui/StatCard';
+import { ModernButton } from '@/components/ui/ModernButton';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
@@ -227,13 +230,12 @@ export default function AdminPanel() {
     }
   }, [user, authLoading, setLocation]);
 
-  // Loading holati
+  // Loading holati - Modern Design
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <RefreshCw className="w-10 h-10 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-xl font-medium">Admin panel yuklanmoqda...</p>
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <LoadingSpinner size="lg" text="Admin panel yuklanmoqda..." />
         </div>
       </div>
     );

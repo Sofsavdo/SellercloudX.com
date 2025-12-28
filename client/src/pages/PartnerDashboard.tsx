@@ -39,6 +39,9 @@ import { ChatSystem } from '@/components/ChatSystem';
 import { SimpleReferralDashboard } from '@/components/SimpleReferralDashboard';
 import { ViralShareButton } from '@/components/ViralShareButton';
 import { AchievementSystem } from '@/components/AchievementSystem';
+import { StatCard } from '@/components/ui/StatCard';
+import { ModernButton } from '@/components/ui/ModernButton';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
   Package, TrendingUp, Settings, Crown, BarChart3, DollarSign,
   Target, Zap, CheckCircle, Clock, AlertTriangle, User, Building, CreditCard,
