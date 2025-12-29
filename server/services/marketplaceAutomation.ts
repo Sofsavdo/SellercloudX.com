@@ -4,6 +4,7 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { encryption } from './encryptionService';
 import { log } from '../utils/logger';
+import speakeasy from 'speakeasy';
 
 interface MarketplaceCredentials {
   username: string;

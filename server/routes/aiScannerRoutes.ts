@@ -4,6 +4,7 @@ import { asyncHandler } from '../errorHandler';
 import multer from 'multer';
 import OpenAI from 'openai';
 import { imageAIService } from '../services/imageAIService';
+import fs from 'fs';
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/temp/', limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB
