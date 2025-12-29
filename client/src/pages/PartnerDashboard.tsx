@@ -390,9 +390,9 @@ export default function PartnerDashboard() {
               {/* Viral Share Section */}
               <Card className="border-2 border-green-300 bg-gradient-to-br from-green-50 to-blue-50">
                 <CardContent className="p-8 text-center">
-                  <h3 className="text-2xl font-bold mb-4">\ud83d\udcb0 Muvaffaqiyatingizni Ulashing!</h3>
+                  <h3 className="text-2xl font-bold mb-4">Muvaffaqiyatingizni Ulashing!</h3>
                   <p className="text-gray-600 mb-6">
-                    Har bir ulashish - yangi hamkor - sizga $14-21/oy bonus!
+                    Har bir taklif qilingan hamkor uchun birinchi haridaning 10% komissiya olasiz!
                   </p>
                   <ViralShareButton 
                     data={{
