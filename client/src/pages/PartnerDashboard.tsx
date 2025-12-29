@@ -37,6 +37,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { SAAS_PRICING_TIERS as NEW_PRICING_TIERS, AI_MANAGER_PLANS } from '../../../SAAS_PRICING_CONFIG';
 import { ChatSystem } from '@/components/ChatSystem';
 import { SimpleReferralDashboard } from '@/components/SimpleReferralDashboard';
+import { EnhancedReferralDashboard } from '@/components/EnhancedReferralDashboard';
 import { ViralShareButton } from '@/components/ViralShareButton';
 import { AchievementSystem } from '@/components/AchievementSystem';
 import { StatCard } from '@/components/ui/StatCard';
@@ -376,7 +377,7 @@ export default function PartnerDashboard() {
 
             {/* REFERRAL TAB - NEW! */}
             <TabsContent value="referral" className="space-y-6">
-              <SimpleReferralDashboard />
+              <EnhancedReferralDashboard />
               <AchievementSystem />
               
               {/* Viral Share Section */}
