@@ -57,10 +57,10 @@ export default function PartnerRegistration() {
         const data = await response.json();
         if (data.valid) {
           setPromoCode(code);
-          toast({
-            title: "✅ Promo kod to'g'ri!",
-            description: `$5 chegirma olasiz! Taklif qiluvchi: ${data.referrer?.businessName || 'Noma'lum'}`,
-          });
+            toast({
+              title: "✅ Promo kod to'g'ri!",
+              description: `$5 chegirma olasiz! Taklif qiluvchi: ${data.referrer?.businessName || "Noma'lum"}`,
+            });
         } else {
           setPromoCode('');
           toast({
