@@ -291,6 +291,52 @@ export async function initializeDatabaseTables() {
       );
     `);
     
+    // Analytics table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS analytics (
+        id TEXT PRIMARY KEY,
+        partner_id TEXT NOT NULL REFERENCES partners(id),
+        metric_type TEXT NOT NULL,
+        value REAL NOT NULL,
+        date INTEGER NOT NULL,
+        metadata TEXT,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch())
+      );
+    `);
+    
+    // Profit breakdown table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS profit_breakdown (
+        id TEXT PRIMARY KEY,
+        partner_id TEXT NOT NULL REFERENCES partners(id),
+        order_id TEXT REFERENCES orders(id),
+        revenue REAL NOT NULL,
+        costs REAL NOT NULL,
+        platform_fee REAL NOT NULL,
+        profit_share REAL NOT NULL,
+        net_profit REAL NOT NULL,
+        date INTEGER NOT NULL,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch())
+      );
+    `);
+    
+    // Trending products table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS trending_products (
+        id TEXT PRIMARY KEY,
+        marketplace TEXT NOT NULL,
+        category TEXT NOT NULL,
+        product_name TEXT NOT NULL,
+        price REAL,
+        sales_count INTEGER,
+        rating REAL,
+        trend_score INTEGER NOT NULL,
+        image_url TEXT,
+        product_url TEXT,
+        analyzed_at INTEGER NOT NULL DEFAULT (unixepoch())
+      );
+    `);
+    
     console.log('✅ All database tables created successfully');
     
     // Final check: ensure all required columns exist
