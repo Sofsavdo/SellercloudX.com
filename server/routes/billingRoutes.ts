@@ -188,6 +188,20 @@ router.post('/admin/payments/manual', async (req, res) => {
           })
           .where(eq(subscriptions.id, invoice.subscriptionId));
       }
+
+      // Process referral first purchase
+      try {
+        const { checkAndProcessFirstPurchase } = await import('../services/referralFirstPurchaseService');
+        await checkAndProcessFirstPurchase(
+          partnerId,
+          invoice?.subscriptionId || undefined,
+          invoiceId || undefined,
+          paymentId
+        );
+      } catch (refError) {
+        console.error('Referral first purchase processing error:', refError);
+        // Don't fail payment if referral processing fails
+      }
     }
 
     // Send payment confirmation email
