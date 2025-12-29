@@ -47,26 +47,68 @@ router.post('/generate-code', asyncHandler(async (req: Request, res: Response) =
   const partner = (req as any).partner;
   
   if (!user || !partner) {
+    logError('Generate code: Unauthorized', { userId: user?.id });
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  // Generate unique promo code
-  const promoCode = `SCX-${nanoid(6).toUpperCase()}`;
-  
-  // Get base URL from environment or request
-  const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
-  const shareUrl = `${baseUrl}/partner-registration?ref=${promoCode}`;
-  
-  res.json({
-    promoCode,
-    shareUrl,
-    message: 'Promo kod yaratildi',
-    socialShare: {
-      telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent('SellerCloudX bilan qo\'shiling!')}`,
-      whatsapp: `https://wa.me/?text=${encodeURIComponent(`SellerCloudX bilan qo'shiling! ${shareUrl}`)}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
+  try {
+    logInfo('Generating promo code', { partnerId: partner.id });
+
+    // Check if partner already has a promo code
+    const existingReferral = await db
+      .select({ promoCode: referrals.promoCode })
+      .from(referrals)
+      .where(and(
+        eq(referrals.referrerPartnerId, partner.id),
+        eq(referrals.referredPartnerId, partner.id) // Self-reference for promo code
+      ))
+      .limit(1);
+
+    let promoCode = existingReferral[0]?.promoCode;
+
+    // If no promo code exists, create one
+    if (!promoCode) {
+      promoCode = `SCX-${nanoid(6).toUpperCase()}`;
+      
+      // Create self-referral record for promo code storage
+      const selfReferralId = nanoid();
+      await db.insert(referrals).values({
+        id: selfReferralId,
+        referrerPartnerId: partner.id,
+        referredPartnerId: partner.id, // Self-reference
+        promoCode: promoCode,
+        contractType: partner.pricingTier || 'free_starter',
+        status: 'active',
+        createdAt: new Date(),
+        activatedAt: new Date()
+      });
+
+      logInfo('Promo code created', { partnerId: partner.id, promoCode });
+    } else {
+      logInfo('Using existing promo code', { partnerId: partner.id, promoCode });
     }
-  });
+
+    // Get base URL from environment or request
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const shareUrl = `${baseUrl}/partner-registration?ref=${promoCode}`;
+    
+    res.json({
+      promoCode,
+      shareUrl,
+      message: 'Promo kod yaratildi',
+      socialShare: {
+        telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent('SellerCloudX bilan qo\'shiling!')}`,
+        whatsapp: `https://wa.me/?text=${encodeURIComponent(`SellerCloudX bilan qo'shiling! ${shareUrl}`)}`,
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
+      }
+    });
+  } catch (error: any) {
+    logError('Failed to generate promo code', error);
+    res.status(500).json({ 
+      message: 'Promo kod yaratishda xatolik', 
+      error: error.message 
+    });
+  }
 }));
 
 // Get referral stats - IMPROVED with error handling
