@@ -161,7 +161,7 @@ class AutonomousAIManager {
   // Fix individual product card
   private async fixProductCard(product: any) {
     // Use AI to analyze error and create fixed version
-    const OpenAI = require('openai').default;
+    const OpenAI = (await import('openai')).default;
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
     const prompt = `

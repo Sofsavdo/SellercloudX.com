@@ -18,7 +18,7 @@ router.post('/recognize', upload.single('image'), asyncHandler(async (req: Reque
 
   try {
     // Step 1: Analyze image with OpenAI Vision
-    const imageBuffer = require('fs').readFileSync(req.file.path);
+    const imageBuffer = fs.readFileSync(req.file.path);
     const base64Image = imageBuffer.toString('base64');
 
     const visionResponse = await openai.chat.completions.create({
@@ -124,7 +124,7 @@ JSON formatda javob bering.`;
     // Clean up temp file on error
     if (req.file) {
       try {
-        require('fs').unlinkSync(req.file.path);
+        fs.unlinkSync(req.file.path);
       } catch (e) {
         // Ignore cleanup errors
       }

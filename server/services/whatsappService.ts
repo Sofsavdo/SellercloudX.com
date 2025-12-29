@@ -390,7 +390,7 @@ Yoki to'g'ridan-to'g'ri savolingizni yozing.
    * Verify webhook signature
    */
   verifyWebhookSignature(signature: string, body: string): boolean {
-    const crypto = require('crypto');
+    const crypto = await import('crypto');
     const expectedSignature = crypto
       .createHmac('sha256', process.env.WHATSAPP_APP_SECRET || '')
       .update(body)

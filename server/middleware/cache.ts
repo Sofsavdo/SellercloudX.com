@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
 
 // Simple in-memory cache
 class MemoryCache {
@@ -148,7 +149,8 @@ export function etag(req: Request, res: Response, next: NextFunction) {
 
   res.json = function(data: any) {
     const content = JSON.stringify(data);
-    const hash = require('crypto').createHash('md5').update(content).digest('hex');
+    const crypto = await import('crypto');
+    const hash = crypto.createHash('md5').update(content).digest('hex');
     
     res.setHeader('ETag', `"${hash}"`);
     

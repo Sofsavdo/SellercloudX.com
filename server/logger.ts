@@ -1,5 +1,6 @@
 import winston from 'winston';
 import path from 'path';
+import fs from 'fs';
 
 // Define log levels
 const levels = {
@@ -52,7 +53,6 @@ transports.push(
 // In production, also log to files (if writable)
 if (process.env.NODE_ENV === 'production') {
   try {
-    const fs = require('fs');
     const logsDir = path.join(process.cwd(), 'logs');
     
     // Try to create logs directory

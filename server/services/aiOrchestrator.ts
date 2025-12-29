@@ -4,6 +4,7 @@
 import { aiCostOptimizer } from './aiCostOptimizer';
 import { db } from '../db';
 import Bull from 'bull';
+import crypto from 'crypto';
 import Redis from 'redis';
 
 // Redis connection for queue
@@ -249,7 +250,7 @@ class AIOrchestrator {
    * Generate cache key
    */
   private generateCacheKey(task: AITask): string {
-    const hash = require('crypto')
+    const hash = crypto
       .createHash('md5')
       .update(`${task.taskType}:${task.prompt}:${task.complexity}`)
       .digest('hex');
