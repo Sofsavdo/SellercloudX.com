@@ -202,10 +202,28 @@ router.post('/click/complete', async (req, res) => {
       })
       .where(eq(invoices.id, payment.invoiceId));
 
-    // Update subscription if exists
+    // Get invoice for referral processing
     const invoice = await db.query.invoices.findFirst({
       where: eq(invoices.id, payment.invoiceId),
     });
+
+    // Process referral first purchase
+    if (invoice) {
+      try {
+        const { checkAndProcessFirstPurchase } = await import('../services/referralFirstPurchaseService');
+        await checkAndProcessFirstPurchase(
+          invoice.partnerId,
+          invoice.subscriptionId || undefined,
+          invoice.id,
+          payment.id
+        );
+      } catch (refError) {
+        console.error('Referral first purchase processing error:', refError);
+        // Don't fail payment if referral processing fails
+      }
+    }
+
+    // Update subscription if exists
 
     if (invoice?.subscriptionId) {
       await db.update(subscriptions)
