@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Share2, Copy, CheckCircle, DollarSign } from 'lucide-react';
+import { Share2, Copy, CheckCircle, DollarSign, Gift } from 'lucide-react';
 
 interface ShareData {
   earnings: number;
