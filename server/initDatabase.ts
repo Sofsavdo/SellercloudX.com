@@ -350,6 +350,63 @@ export async function initializeDatabaseTables() {
       );
     `);
     
+    // Referral First Purchases table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS referral_first_purchases (
+        id TEXT PRIMARY KEY,
+        referral_id TEXT NOT NULL REFERENCES referrals(id),
+        referrer_partner_id TEXT NOT NULL REFERENCES partners(id),
+        referred_partner_id TEXT NOT NULL REFERENCES partners(id),
+        subscription_id TEXT REFERENCES subscriptions(id),
+        invoice_id TEXT REFERENCES invoices(id),
+        payment_id TEXT REFERENCES payments(id),
+        tier_id TEXT NOT NULL,
+        monthly_fee REAL NOT NULL,
+        subscription_months INTEGER NOT NULL DEFAULT 1,
+        total_amount REAL NOT NULL,
+        commission_rate REAL NOT NULL DEFAULT 0.10,
+        commission_amount REAL NOT NULL,
+        status TEXT DEFAULT 'pending',
+        paid_at INTEGER,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch())
+      );
+    `);
+    
+    // Referral Campaigns table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS referral_campaigns (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        start_date INTEGER NOT NULL,
+        end_date INTEGER NOT NULL,
+        duration_days INTEGER NOT NULL,
+        target_referrals INTEGER NOT NULL,
+        bonus_amount REAL NOT NULL,
+        min_tier TEXT NOT NULL DEFAULT 'basic',
+        min_subscription_months INTEGER NOT NULL DEFAULT 1,
+        status TEXT DEFAULT 'active',
+        participants INTEGER DEFAULT 0,
+        winners INTEGER DEFAULT 0,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+        created_by TEXT NOT NULL
+      );
+    `);
+    
+    // Referral Campaign Participants table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS referral_campaign_participants (
+        id TEXT PRIMARY KEY,
+        campaign_id TEXT NOT NULL REFERENCES referral_campaigns(id),
+        referrer_partner_id TEXT NOT NULL REFERENCES partners(id),
+        referrals_count INTEGER DEFAULT 0,
+        bonus_earned REAL DEFAULT 0,
+        status TEXT DEFAULT 'participating',
+        joined_at INTEGER NOT NULL DEFAULT (unixepoch()),
+        completed_at INTEGER
+      );
+    `);
+    
     console.log('✅ All database tables created successfully');
     
     // Final check: ensure all required columns exist

@@ -62,6 +62,8 @@ import reportingRoutes from "./routes/reportingRoutes";
 import gamificationRoutes from "./routes/gamificationRoutes";
 import marketplaceAIManagerRoutes from "./routes/marketplaceAIManagerRoutes";
 import adminAIManagementRoutes from "./routes/adminAIManagementRoutes";
+import referralCampaignRoutes from "./routes/referralCampaignRoutes";
+import { checkAndProcessFirstPurchase } from "./services/referralFirstPurchaseService";
 
 // Enhanced authentication middleware with better error handling
 function requireAuth(req: Request, res: Response, next: NextFunction) {
@@ -1196,6 +1198,9 @@ export function registerRoutes(app: express.Application): Server {
   
   // Admin Referral Management routes
   app.use("/api/admin/referrals", requireAdmin, adminReferralManagementRoutes);
+  
+  // Referral Campaign Routes (Konkurslar va aksiyalar)
+  app.use("/api/referral-campaigns", requireAuth, referralCampaignRoutes);
   
   // Price Strategy routes
   app.use("/api/price-strategy", requireAuth, priceStrategyRoutes);

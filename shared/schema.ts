@@ -403,6 +403,57 @@ export const referralWithdrawals = sqliteTable('referral_withdrawals', {
   transactionId: text('transaction_id'),
 });
 
+// Referral First Purchase - Birinchi haridani kuzatish
+export const referralFirstPurchases = sqliteTable('referral_first_purchases', {
+  id: text('id').primaryKey(),
+  referralId: text('referral_id').notNull().references(() => referrals.id),
+  referrerPartnerId: text('referrer_partner_id').notNull().references(() => partners.id),
+  referredPartnerId: text('referred_partner_id').notNull().references(() => partners.id),
+  subscriptionId: text('subscription_id').references(() => subscriptions.id),
+  invoiceId: text('invoice_id').references(() => invoices.id),
+  paymentId: text('payment_id').references(() => payments.id),
+  tierId: text('tier_id').notNull(), // basic, starter_pro, professional
+  monthlyFee: real('monthly_fee').notNull(), // Oylik to'lov
+  subscriptionMonths: integer('subscription_months').notNull().default(1), // Necha oyga ulangan (1, 3, 6, 12)
+  totalAmount: real('total_amount').notNull(), // Jami to'lov (monthlyFee × subscriptionMonths)
+  commissionRate: real('commission_rate').notNull().default(0.10), // 10%
+  commissionAmount: real('commission_amount').notNull(), // Komissiya miqdori (monthlyFee × subscriptionMonths × 10%)
+  status: text('status').default('pending'), // pending, paid, cancelled
+  paidAt: integer('paid_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+});
+
+// Referral Campaigns - Konkurslar va aksiyalar
+export const referralCampaigns = sqliteTable('referral_campaigns', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(), // "3 kun ichida 10 ta hamkor uchun $1000"
+  description: text('description'),
+  startDate: integer('start_date', { mode: 'timestamp' }).notNull(),
+  endDate: integer('end_date', { mode: 'timestamp' }).notNull(),
+  durationDays: integer('duration_days').notNull(), // 3, 10, 30 kun
+  targetReferrals: integer('target_referrals').notNull(), // 10 ta hamkor
+  bonusAmount: real('bonus_amount').notNull(), // $1000
+  minTier: text('min_tier').notNull().default('basic'), // Minimal tarif (basic, starter_pro, professional)
+  minSubscriptionMonths: integer('min_subscription_months').notNull().default(1), // Minimal muddat (1, 3, 6, 12 oy)
+  status: text('status').default('active'), // active, completed, cancelled
+  participants: integer('participants').default(0), // Qancha odam qatnashmoqda
+  winners: integer('winners').default(0), // Qancha g'olib
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  createdBy: text('created_by').notNull(), // Admin ID
+});
+
+// Referral Campaign Participants - Konkurs ishtirokchilari
+export const referralCampaignParticipants = sqliteTable('referral_campaign_participants', {
+  id: text('id').primaryKey(),
+  campaignId: text('campaign_id').notNull().references(() => referralCampaigns.id),
+  referrerPartnerId: text('referrer_partner_id').notNull().references(() => partners.id),
+  referralsCount: integer('referrals_count').default(0), // Qancha taklif qilgan
+  bonusEarned: real('bonus_earned').default(0), // Qancha bonus olgan
+  status: text('status').default('participating'), // participating, winner, completed
+  joinedAt: integer('joined_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  completedAt: integer('completed_at', { mode: 'timestamp' }),
+});
+
 export const partnerContracts = sqliteTable('partner_contracts', {
   id: text('id').primaryKey(),
   partnerId: text('partner_id').notNull().references(() => partners.id),

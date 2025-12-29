@@ -70,7 +70,22 @@ router.post('/click/prepare', async (req, res) => {
     }
 
     // Check if already paid
+    // Import referral first purchase service
+    const { checkAndProcessFirstPurchase } = await import('../services/referralFirstPurchaseService');
+    
     if (invoice.status === 'paid') {
+      // Check and process referral first purchase
+      try {
+        await checkAndProcessFirstPurchase(
+          invoice.partnerId,
+          invoice.subscriptionId || undefined,
+          invoice.id,
+          payment.id
+        );
+      } catch (refError) {
+        console.error('Referral first purchase processing error:', refError);
+        // Don't fail payment if referral processing fails
+      }
       return res.json({
         error: -4,
         error_note: 'Already paid',
