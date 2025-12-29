@@ -123,6 +123,24 @@ router.get('/stats', asyncHandler(async (req: Request, res: Response) => {
     // Calculate tier
     const tier = calculateTier(activeReferrals.length);
 
+    // Get partner's promo code
+    const partnerPromoCode = await db
+      .select({ promoCode: referrals.promoCode })
+      .from(referrals)
+      .where(and(
+        eq(referrals.referrerPartnerId, partner.id),
+        eq(referrals.referredPartnerId, partner.id) // Self-reference
+      ))
+      .limit(1);
+
+    const promoCode = partnerPromoCode[0]?.promoCode || null;
+
+    // Calculate next tier info
+    const tierKeys = Object.keys(REFERRAL_TIERS);
+    const currentTierIndex = tierKeys.indexOf(tier.key);
+    const nextTierKey = tierKeys[currentTierIndex + 1];
+    const nextTier = nextTierKey ? REFERRAL_TIERS[nextTierKey as keyof typeof REFERRAL_TIERS] : null;
+
     const response = {
       tier: tier.key,
       tierName: tier.name,
@@ -130,7 +148,8 @@ router.get('/stats', asyncHandler(async (req: Request, res: Response) => {
       tierProgress: {
         current: activeReferrals.length,
         next: tier.max + 1,
-        percentage: Math.min((activeReferrals.length / (tier.max + 1)) * 100, 100)
+        percentage: Math.min((activeReferrals.length / (tier.max + 1)) * 100, 100),
+        remaining: Math.max(0, (tier.max + 1) - activeReferrals.length)
       },
       totalReferrals: allReferrals.length,
       activeReferrals: activeReferrals.length,
@@ -139,7 +158,28 @@ router.get('/stats', asyncHandler(async (req: Request, res: Response) => {
       available: available,
       canWithdraw: available >= 50, // Minimum $50
       commission: tier.commission * 100,
-      nextTierBonus: tier.max < Infinity ? REFERRAL_TIERS[Object.keys(REFERRAL_TIERS)[Object.keys(REFERRAL_TIERS).indexOf(tier.key) + 1]]?.bonus : 0
+      nextTierBonus: nextTier?.bonus || 0,
+      nextTierName: nextTier?.name || null,
+      promoCode: promoCode,
+      referralCode: promoCode, // Alias for backward compatibility
+      benefits: {
+        forNewUser: {
+          discount: 5,
+          message: 'Ro\'yxatdan o\'tganingizda $5 chegirma'
+        },
+        forReferrer: {
+          commission: COMMISSION_RATES[partner.pricingTier as keyof typeof COMMISSION_RATES] || 2.90,
+          message: `Har bir taklif qilingan hamkor uchun har oy ${COMMISSION_RATES[partner.pricingTier as keyof typeof COMMISSION_RATES] || 2.90}$ bonus`,
+          tierBonus: tier.bonus,
+          nextTierBonus: nextTier?.bonus || 0
+        }
+      },
+      howItWorks: [
+        'Do\'stlaringizni taklif qiling promo kod orqali',
+        'Do\'stingiz ro\'yxatdan o\'tadi va $5 chegirma oladi',
+        'Do\'stingiz birinchi to\'lovni amalga oshiradi',
+        'Siz har oy komissiya bonus olasiz!'
+      ]
     };
 
     logInfo('Stats response', response);
