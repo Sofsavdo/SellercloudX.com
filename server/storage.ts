@@ -1352,9 +1352,8 @@ export async function resolveStockAlert(alertId: string, resolvedBy: string): Pr
   try {
     const [alert] = await db.update(stockAlerts)
       .set({
-        isResolved: true,
-        resolvedAt: new Date(),
-        resolvedBy
+        resolved: true,
+        resolvedAt: new Date()
       })
       .where(eq(stockAlerts.id, alertId))
       .returning();
