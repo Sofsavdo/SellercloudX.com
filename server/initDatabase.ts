@@ -264,6 +264,33 @@ export async function initializeDatabaseTables() {
       );
     `);
     
+    // Chat rooms table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS chat_rooms (
+        id TEXT PRIMARY KEY,
+        partner_id TEXT REFERENCES partners(id),
+        admin_id TEXT REFERENCES users(id),
+        status TEXT DEFAULT 'active',
+        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+        last_message_at INTEGER
+      );
+    `);
+    
+    // Messages table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS messages (
+        id TEXT PRIMARY KEY,
+        chat_room_id TEXT NOT NULL REFERENCES chat_rooms(id),
+        sender_id TEXT NOT NULL REFERENCES users(id),
+        sender_role TEXT NOT NULL,
+        content TEXT NOT NULL,
+        message_type TEXT DEFAULT 'text',
+        attachment_url TEXT,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+        read_at INTEGER
+      );
+    `);
+    
     console.log('✅ All database tables created successfully');
     
     // Final check: ensure all required columns exist
