@@ -38,6 +38,7 @@ import { SAAS_PRICING_TIERS as NEW_PRICING_TIERS, AI_MANAGER_PLANS } from '../..
 import { ChatSystem } from '@/components/ChatSystem';
 import { SimpleReferralDashboard } from '@/components/SimpleReferralDashboard';
 import { EnhancedReferralDashboard } from '@/components/EnhancedReferralDashboard';
+import { PartnerReferralCampaigns } from '@/components/PartnerReferralCampaigns';
 import { ViralShareButton } from '@/components/ViralShareButton';
 import { AchievementSystem } from '@/components/AchievementSystem';
 import { StatCard } from '@/components/ui/StatCard';

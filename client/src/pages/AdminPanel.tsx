@@ -24,6 +24,7 @@ import { AICommandCenter } from '@/components/AICommandCenter';
 import { ChatSystem } from '@/components/ChatSystem';
 import { AdminReferralManagement } from '@/components/AdminReferralManagement';
 import { AdminReferralCampaignManager } from '@/components/AdminReferralCampaignManager';
+import { AdminReferralCampaignManager } from '@/components/AdminReferralCampaignManager';
 import { AdminAIManagement } from '@/components/AdminAIManagement';
 import { StatCard } from '@/components/ui/StatCard';
 import { ModernButton } from '@/components/ui/ModernButton';
@@ -444,6 +445,10 @@ export default function AdminPanel() {
                 <Gift className="w-4 h-4" />
                 Referrallar
               </TabsTrigger>
+              <TabsTrigger value="referral-campaigns" className="flex items-center gap-2">
+                <Gift className="w-4 h-4" />
+                Konkurslar
+              </TabsTrigger>
               <TabsTrigger value="ai-management" className="flex items-center gap-2">
                 <Brain className="w-4 h-4" />
                 AI Boshqaruv
@@ -666,6 +671,11 @@ export default function AdminPanel() {
             {/* Referrals Management Tab */}
             <TabsContent value="referrals" className="space-y-6">
               <AdminReferralManagement />
+            </TabsContent>
+
+            {/* Referral Campaigns Tab */}
+            <TabsContent value="referral-campaigns" className="space-y-6">
+              <AdminReferralCampaignManager />
             </TabsContent>
 
             {/* AI MANAGER TAB - ENHANCED */}
