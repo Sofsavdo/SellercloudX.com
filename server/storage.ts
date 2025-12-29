@@ -180,17 +180,23 @@ export async function createPartner(partnerData: {
   pricingTier?: string;
   phone: string;
   notes?: string;
+  referralCode?: string; // New: referral code from registration
 }): Promise<Partner> {
   try {
     console.log('📝 Creating partner with data:', {
       userId: partnerData.userId,
       businessName: partnerData.businessName,
       phone: partnerData.phone,
-      pricingTier: partnerData.pricingTier
+      pricingTier: partnerData.pricingTier,
+      referralCode: partnerData.referralCode
     });
     
     const partnerId = nanoid();
     console.log('🆔 Generated partner ID:', partnerId);
+    
+    // Generate unique promo code for this partner
+    const promoCode = `SCX-${nanoid(6).toUpperCase()}`;
+    console.log('🎁 Generated promo code for partner:', promoCode);
     
     const [partner] = await db.insert(partners).values({
       id: partnerId,
@@ -204,6 +210,60 @@ export async function createPartner(partnerData: {
       createdAt: new Date(),
       notes: partnerData.notes
     }).returning();
+    
+    // If referral code was provided, create referral relationship
+    if (partnerData.referralCode) {
+      try {
+        const { referrals } = await import('@shared/schema');
+        // Find referrer partner by promo code from referrals table
+        const referrerData = await db
+          .select({ referrerPartnerId: referrals.referrerPartnerId })
+          .from(referrals)
+          .where(eq(referrals.promoCode, partnerData.referralCode.toUpperCase()))
+          .limit(1);
+        
+        if (referrerData.length > 0 && referrerData[0].referrerPartnerId) {
+          // Create referral record
+          await db.insert(referrals).values({
+            id: nanoid(),
+            referrerPartnerId: referrerData[0].referrerPartnerId,
+            referredPartnerId: partnerId,
+            promoCode: partnerData.referralCode.toUpperCase(),
+            contractType: partnerData.pricingTier || 'starter_pro',
+            status: 'registered',
+            createdAt: new Date()
+          });
+          
+          console.log('✅ Referral relationship created:', {
+            referrer: referrerData[0].referrerPartnerId,
+            referred: partnerId,
+            code: partnerData.referralCode
+          });
+        } else {
+          console.warn('⚠️  Referrer not found for promo code:', partnerData.referralCode);
+        }
+      } catch (error) {
+        console.error('⚠️  Referral creation error (non-critical):', error);
+        // Don't fail partner creation if referral fails
+      }
+    }
+    
+    // Create initial referral record with this partner's promo code (for future referrals)
+    try {
+      const { referrals } = await import('@shared/schema');
+      await db.insert(referrals).values({
+        id: nanoid(),
+        referrerPartnerId: partnerId,
+        referredPartnerId: partnerId, // Self-reference for promo code storage
+        promoCode: promoCode,
+        contractType: partnerData.pricingTier || 'starter_pro',
+        status: 'active',
+        createdAt: new Date()
+      });
+      console.log('✅ Partner promo code stored:', promoCode);
+    } catch (error) {
+      console.error('⚠️  Promo code storage error (non-critical):', error);
+    }
     
     console.log('✅ Partner created successfully:', partner.id);
     return partner;

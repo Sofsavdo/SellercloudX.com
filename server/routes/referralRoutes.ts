@@ -324,37 +324,64 @@ router.get('/leaderboard', asyncHandler(async (req: Request, res: Response) => {
 // Validate promo code
 router.get('/validate/:code', asyncHandler(async (req: Request, res: Response) => {
   const { code } = req.params;
+  const upperCode = code.toUpperCase().trim();
 
   try {
+    logInfo('Validating promo code', { code: upperCode });
+    
     // Check if code exists and is valid
     const referral = await db
       .select({
         referrer: {
           id: partners.id,
-          businessName: partners.businessName
-        }
+          businessName: partners.businessName,
+          pricingTier: partners.pricingTier
+        },
+        promoCode: referrals.promoCode,
+        status: referrals.status
       })
       .from(referrals)
       .leftJoin(partners, eq(referrals.referrerPartnerId, partners.id))
-      .where(eq(referrals.promoCode, code))
+      .where(eq(referrals.promoCode, upperCode))
       .limit(1);
 
     if (referral.length === 0) {
+      logInfo('Promo code not found', { code: upperCode });
       return res.status(404).json({ 
         valid: false,
-        message: 'Invalid promo code' 
+        message: 'Promo kod topilmadi' 
       });
     }
 
+    const referrerData = referral[0];
+    
+    // Calculate benefits
+    const benefits = {
+      forNewUser: {
+        discount: 5, // $5 discount for new user
+        freeTrial: '3 kunlik bepul trial',
+        message: 'Ro\'yxatdan o\'tganingizda $5 chegirma olasiz!'
+      },
+      forReferrer: {
+        commission: COMMISSION_RATES[referrerData.referrer?.pricingTier as keyof typeof COMMISSION_RATES] || 2.90,
+        message: `Taklif qiluvchi har oy ${COMMISSION_RATES[referrerData.referrer?.pricingTier as keyof typeof COMMISSION_RATES] || 2.90}$ bonus oladi`
+      }
+    };
+
+    logInfo('Promo code validated', { 
+      code: upperCode, 
+      referrer: referrerData.referrer?.businessName 
+    });
+
     res.json({
       valid: true,
-      referrer: referral[0].referrer,
-      discount: 5, // $5 discount for new user
-      message: 'Valid promo code'
+      referrer: referrerData.referrer,
+      benefits,
+      message: 'Promo kod to\'g\'ri!'
     });
   } catch (error) {
-    console.error('Validate code error:', error);
-    res.status(500).json({ message: 'Failed to validate code' });
+    logError('Validate code error', error);
+    res.status(500).json({ message: 'Promo kod tekshirishda xatolik' });
   }
 }));
 

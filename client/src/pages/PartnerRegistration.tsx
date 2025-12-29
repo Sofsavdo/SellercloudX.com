@@ -33,14 +33,54 @@ export default function PartnerRegistration() {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref');
     if (ref) {
-      setPromoCode(ref);
-      setFormData(prev => ({ ...prev, referralCode: ref }));
+      const code = ref.toUpperCase().trim();
+      setPromoCode(code);
+      setFormData(prev => ({ ...prev, referralCode: code }));
+      validatePromoCode(code);
       toast({
         title: "🎁 Promo kod qo'llandi!",
-        description: `Kod: ${ref} - Ro'yxatdan o'tganingizda $5 chegirma olasiz!`,
+        description: `Kod: ${code} - Ro'yxatdan o'tganingizda $5 chegirma olasiz!`,
       });
     }
   }, [toast]);
+
+  // Validate promo code
+  const validatePromoCode = async (code: string) => {
+    if (!code || code.length < 6) return;
+    
+    try {
+      const response = await fetch(`/api/referrals/validate/${code}`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.valid) {
+          setPromoCode(code);
+          toast({
+            title: "✅ Promo kod to'g'ri!",
+            description: `$5 chegirma olasiz! Taklif qiluvchi: ${data.referrer?.businessName || 'Noma'lum'}`,
+          });
+        } else {
+          setPromoCode('');
+          toast({
+            title: "❌ Promo kod noto'g'ri",
+            description: "Iltimos, to'g'ri promo kod kiriting",
+            variant: "destructive"
+          });
+        }
+      } else {
+        setPromoCode('');
+        toast({
+          title: "❌ Promo kod noto'g'ri",
+          description: "Iltimos, to'g'ri promo kod kiriting",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Promo code validation error:', error);
+    }
+  };
 
   const registrationMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -215,6 +255,54 @@ export default function PartnerRegistration() {
                   required
                   placeholder="ElectroMart UZ"
                 />
+              </div>
+            </div>
+
+            {/* Referral Code Section */}
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="font-bold text-lg flex items-center gap-2">
+                <Gift className="w-5 h-5 text-green-600" />
+                Taklif Kodi (Ixtiyoriy)
+              </h3>
+              <div className="space-y-2">
+                <Label htmlFor="referralCode">
+                  Agar sizni kimdir taklif qilgan bo'lsa, uning promo kodini kiriting
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="referralCode"
+                    value={formData.referralCode}
+                    onChange={(e) => {
+                      const code = e.target.value.toUpperCase().trim();
+                      setFormData({...formData, referralCode: code});
+                      // Validate promo code in real-time
+                      if (code.length >= 6) {
+                        validatePromoCode(code);
+                      }
+                    }}
+                    placeholder="SCX-XXXXXX"
+                    className="font-mono"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => validatePromoCode(formData.referralCode)}
+                    disabled={!formData.referralCode || formData.referralCode.length < 6}
+                  >
+                    <Tag className="w-4 h-4" />
+                  </Button>
+                </div>
+                {promoCode && (
+                  <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                    <p className="text-sm text-green-800">
+                      <CheckCircle className="w-4 h-4 inline mr-1" />
+                      <strong>Promo kod faol!</strong> Ro'yxatdan o'tganingizda <strong>$5 chegirma</strong> olasiz!
+                    </p>
+                  </div>
+                )}
+                <p className="text-xs text-gray-500">
+                  💡 Promo kod kiritish orqali siz $5 chegirma olasiz va taklif qiluvchi ham bonus oladi!
+                </p>
               </div>
             </div>
 

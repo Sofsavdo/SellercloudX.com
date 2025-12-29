@@ -426,19 +426,20 @@ export function registerRoutes(app: express.Application): Server {
       console.log('[REGISTRATION] User created:', user.id);
 
       console.log('[REGISTRATION] Creating partner profile...');
-      // Create partner profile
+      // Create partner profile with referral code
+      const referralCode = (req.body as any).referralCode;
       const partner = await storage.createPartner({
         userId: user.id,
         businessName: validatedData.businessName,
         businessCategory: validatedData.businessCategory || 'general',
         monthlyRevenue: validatedData.monthlyRevenue || '0',
         phone: validatedData.phone, // CRITICAL: phone required!
-        notes: validatedData.notes || undefined
+        notes: validatedData.notes || undefined,
+        referralCode: referralCode // Pass referral code to createPartner
       });
       console.log('[REGISTRATION] Partner created:', partner.id);
 
-      // Handle referral code if provided
-      const referralCode = (req.body as any).referralCode;
+      // Handle referral code if provided (already handled in createPartner, but keep for backward compatibility)
       if (referralCode) {
         try {
           // Find referrer by searching referrals table for matching promo code
