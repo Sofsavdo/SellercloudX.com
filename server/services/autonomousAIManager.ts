@@ -143,6 +143,9 @@ class AutonomousAIManager {
            LIMIT 10`
         );
         errorProducts = stmt.all() as any[];
+      } else {
+        // Fallback: return empty array if SQLite not available
+        errorProducts = [];
       }
 
       for (const product of errorProducts) {

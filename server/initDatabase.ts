@@ -223,6 +223,8 @@ export async function initializeDatabaseTables() {
         generated_title TEXT,
         generated_description TEXT,
         generated_images TEXT,
+        ai_title TEXT,
+        ai_description TEXT,
         status TEXT DEFAULT 'pending',
         error_message TEXT,
         created_at INTEGER NOT NULL DEFAULT (unixepoch()),
