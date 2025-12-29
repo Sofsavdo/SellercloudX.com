@@ -1,5 +1,5 @@
 // Auto-create database tables using Drizzle Kit
-import { db, dbType, sqliteInstance } from './db';
+import { db, dbType, sqlite } from './db';
 import * as schema from '@shared/schema';
 import { sql } from 'drizzle-orm';
 
@@ -18,7 +18,7 @@ export async function initializeDatabaseTables() {
     }
     
     // SQLite - create tables manually using Drizzle
-    if (!sqliteInstance) {
+    if (!sqlite) {
       console.error('❌ SQLite instance not available');
       return;
     }
@@ -29,7 +29,7 @@ export async function initializeDatabaseTables() {
     // We'll use raw SQL to create tables based on schema definitions
     
     // Users table
-    sqliteInstance.exec(`
+    sqlite.exec(`
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
         username TEXT NOT NULL UNIQUE,
@@ -46,7 +46,7 @@ export async function initializeDatabaseTables() {
     `);
     
     // Partners table
-    sqliteInstance.exec(`
+    sqlite.exec(`
       CREATE TABLE IF NOT EXISTS partners (
         id TEXT PRIMARY KEY,
         user_id TEXT NOT NULL UNIQUE REFERENCES users(id),
@@ -70,7 +70,7 @@ export async function initializeDatabaseTables() {
     `);
     
     // Products table
-    sqliteInstance.exec(`
+    sqlite.exec(`
       CREATE TABLE IF NOT EXISTS products (
         id TEXT PRIMARY KEY,
         partner_id TEXT NOT NULL REFERENCES partners(id),
@@ -93,7 +93,7 @@ export async function initializeDatabaseTables() {
     `);
     
     // Orders table
-    sqliteInstance.exec(`
+    sqlite.exec(`
       CREATE TABLE IF NOT EXISTS orders (
         id TEXT PRIMARY KEY,
         partner_id TEXT NOT NULL REFERENCES partners(id),
@@ -112,7 +112,7 @@ export async function initializeDatabaseTables() {
     `);
     
     // Order items table
-    sqliteInstance.exec(`
+    sqlite.exec(`
       CREATE TABLE IF NOT EXISTS order_items (
         id TEXT PRIMARY KEY,
         order_id TEXT NOT NULL REFERENCES orders(id),
@@ -124,7 +124,7 @@ export async function initializeDatabaseTables() {
     `);
     
     // Marketplace integrations table
-    sqliteInstance.exec(`
+    sqlite.exec(`
       CREATE TABLE IF NOT EXISTS marketplace_integrations (
         id TEXT PRIMARY KEY,
         partner_id TEXT NOT NULL REFERENCES partners(id),
@@ -142,7 +142,7 @@ export async function initializeDatabaseTables() {
     `);
     
     // AI tasks table
-    sqliteInstance.exec(`
+    sqlite.exec(`
       CREATE TABLE IF NOT EXISTS ai_tasks (
         id TEXT PRIMARY KEY,
         partner_id TEXT NOT NULL REFERENCES partners(id),
@@ -161,7 +161,7 @@ export async function initializeDatabaseTables() {
     `);
     
     // AI product cards table
-    sqliteInstance.exec(`
+    sqlite.exec(`
       CREATE TABLE IF NOT EXISTS ai_product_cards (
         id TEXT PRIMARY KEY,
         partner_id TEXT NOT NULL REFERENCES partners(id),
@@ -179,7 +179,7 @@ export async function initializeDatabaseTables() {
     `);
     
     // AI marketplace accounts table
-    sqliteInstance.exec(`
+    sqlite.exec(`
       CREATE TABLE IF NOT EXISTS ai_marketplace_accounts (
         id TEXT PRIMARY KEY,
         partner_id TEXT NOT NULL REFERENCES partners(id),
@@ -193,7 +193,7 @@ export async function initializeDatabaseTables() {
     `);
     
     // Marketplace products table (for tracking products on marketplaces)
-    sqliteInstance.exec(`
+    sqlite.exec(`
       CREATE TABLE IF NOT EXISTS marketplace_products (
         id TEXT PRIMARY KEY,
         partner_id TEXT NOT NULL REFERENCES partners(id),
@@ -212,7 +212,7 @@ export async function initializeDatabaseTables() {
     `);
     
     // AI generated products table
-    sqliteInstance.exec(`
+    sqlite.exec(`
       CREATE TABLE IF NOT EXISTS ai_generated_products (
         id TEXT PRIMARY KEY,
         partner_id TEXT NOT NULL REFERENCES partners(id),
