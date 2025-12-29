@@ -23,6 +23,7 @@ import { AIManagerLiveMonitor } from '@/components/AIManagerLiveMonitor';
 import { AICommandCenter } from '@/components/AICommandCenter';
 import { ChatSystem } from '@/components/ChatSystem';
 import { AdminReferralManagement } from '@/components/AdminReferralManagement';
+import { AdminReferralCampaignManager } from '@/components/AdminReferralCampaignManager';
 import { AdminAIManagement } from '@/components/AdminAIManagement';
 import { StatCard } from '@/components/ui/StatCard';
 import { ModernButton } from '@/components/ui/ModernButton';
