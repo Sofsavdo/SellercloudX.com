@@ -379,6 +379,12 @@ export default function PartnerDashboard() {
             {/* REFERRAL TAB - NEW! */}
             <TabsContent value="referral" className="space-y-6">
               <EnhancedReferralDashboard />
+              
+              {/* Active Campaigns */}
+              <div className="mt-6">
+                <PartnerReferralCampaigns />
+              </div>
+              
               <AchievementSystem />
               
               {/* Viral Share Section */}
