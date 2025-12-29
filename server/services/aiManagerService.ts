@@ -431,18 +431,30 @@ export async function monitorPartnerProducts(partnerId: number) {
       }
     }
 
-    // Save alerts
-    for (const issue of issues) {
-      await db.insert('ai_monitoring_alerts').values({
-        partner_id: partnerId,
-        marketplace_type: issue.marketplaceType,
-        alert_type: issue.type,
-        severity: issue.severity,
-        title: issue.title,
-        description: issue.description,
-        ai_suggested_action: issue.suggestedAction,
-        status: 'open',
-      });
+    // Save alerts (skip if table doesn't exist - optional feature)
+    try {
+      const { sqlite } = await import('../db');
+      if (sqlite) {
+        for (const issue of issues) {
+          const stmt = sqlite.prepare(
+            `INSERT OR IGNORE INTO ai_monitoring_alerts 
+             (partner_id, marketplace, alert_type, severity, title, description, ai_suggested_action, status, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, 'open', unixepoch())`
+          );
+          stmt.run(
+            partnerId.toString(),
+            issue.marketplaceType || 'unknown',
+            issue.type,
+            issue.severity,
+            issue.title,
+            issue.description,
+            issue.suggestedAction
+          );
+        }
+      }
+    } catch (e) {
+      // Table might not exist, skip alert saving
+      console.log('⚠️  ai_monitoring_alerts table not found, skipping alert saving');
     }
 
     console.log(`✅ AI: ${issues.length} issues detected`);
