@@ -6,6 +6,7 @@ import { partners, marketplaceIntegrations, products } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { generateProductCard, optimizePrice, monitorPartnerProducts, autoUploadToMarketplace } from './aiManagerService';
 import { wsManager } from '../websocket';
+import OpenAI from 'openai';
 
 // ================================================================
 // AUTONOMOUS AI MANAGER - Background Worker
