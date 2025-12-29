@@ -263,11 +263,23 @@ export async function optimizePrice(
   });
 
   try {
-    // Get product data
-    const [product] = await db
-      .select()
-      .from('marketplace_products')
-      .where({ id: productId });
+    // Get product data (using raw SQL for SQLite)
+    const { sqlite } = await import('../db');
+    let product: any = null;
+    if (sqlite) {
+      const stmt = sqlite.prepare('SELECT * FROM marketplace_products WHERE id = ? LIMIT 1');
+      product = stmt.get(productId.toString());
+    } else {
+      // Fallback: use Drizzle ORM if SQLite not available
+      const { marketplaceProducts } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
+      const [p] = await db
+        .select()
+        .from(marketplaceProducts)
+        .where(eq(marketplaceProducts.id, productId.toString()))
+        .limit(1);
+      product = p;
+    }
 
     if (!product) {
       throw new Error('Mahsulot topilmadi');
