@@ -115,7 +115,7 @@ JSON formatda javob bering.`;
     };
 
     // Clean up temp file
-    require('fs').unlinkSync(req.file.path);
+    fs.unlinkSync(req.file.path);
 
     res.json(finalProductData);
 
