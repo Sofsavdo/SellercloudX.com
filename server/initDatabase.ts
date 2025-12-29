@@ -266,6 +266,40 @@ export async function initializeDatabaseTables() {
     
     console.log('✅ All database tables created successfully');
     
+    // Final check: ensure all required columns exist
+    console.log('🔍 Verifying all columns exist...');
+    
+    // Verify marketplace_products has last_price_update
+    try {
+      const mpInfo = sqlite.prepare("PRAGMA table_info(marketplace_products)").all() as any[];
+      const hasLastPriceUpdate = mpInfo.some((col: any) => col.name === 'last_price_update');
+      if (!hasLastPriceUpdate) {
+        console.log('📝 Adding last_price_update to marketplace_products...');
+        sqlite.exec('ALTER TABLE marketplace_products ADD COLUMN last_price_update INTEGER');
+      }
+      const hasIsActive = mpInfo.some((col: any) => col.name === 'is_active');
+      if (!hasIsActive) {
+        console.log('📝 Adding is_active to marketplace_products...');
+        sqlite.exec('ALTER TABLE marketplace_products ADD COLUMN is_active INTEGER DEFAULT 1');
+      }
+    } catch (e) {
+      console.warn('⚠️  Could not verify marketplace_products columns:', e);
+    }
+    
+    // Verify products has last_price_update
+    try {
+      const pInfo = sqlite.prepare("PRAGMA table_info(products)").all() as any[];
+      const hasLastPriceUpdate = pInfo.some((col: any) => col.name === 'last_price_update');
+      if (!hasLastPriceUpdate) {
+        console.log('📝 Adding last_price_update to products...');
+        sqlite.exec('ALTER TABLE products ADD COLUMN last_price_update INTEGER');
+      }
+    } catch (e) {
+      console.warn('⚠️  Could not verify products columns:', e);
+    }
+    
+    console.log('✅ Column verification completed');
+    
   } catch (error) {
     console.error('❌ Error initializing database tables:', error);
     throw error;
