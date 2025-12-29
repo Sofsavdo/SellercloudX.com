@@ -18,30 +18,27 @@ const logError = (message: string, error: any) => {
 
 const router = express.Router();
 
-// Referral Tiers Configuration
-const REFERRAL_TIERS = {
-  bronze: { min: 0, max: 9, commission: 0.10, name: 'Bronze', icon: '🥉', bonus: 0 },
-  silver: { min: 10, max: 24, commission: 0.15, name: 'Silver', icon: '🥈', bonus: 50 },
-  gold: { min: 25, max: 49, commission: 0.20, name: 'Gold', icon: '🥇', bonus: 150 },
-  platinum: { min: 50, max: 99, commission: 0.25, name: 'Platinum', icon: '💎', bonus: 500 },
-  diamond: { min: 100, max: Infinity, commission: 0.30, name: 'Diamond', icon: '👑', bonus: 1500 }
+// Referral Commission Rates by Partner Tier (based on actual pricing)
+// Commission is calculated as percentage of referred partner's monthly fee
+const REFERRAL_COMMISSION_RATES: Record<string, number> = {
+  free_starter: 0,      // $0/oy - no commission
+  basic: 6.90,          // $69/oy × 10% = $6.90/oy
+  starter_pro: 34.90,   // $349/oy × 10% = $34.90/oy
+  professional: 89.90   // $899/oy × 10% = $89.90/oy
 };
 
-// Commission Rates by Plan
-const COMMISSION_RATES = {
-  starter_pro: 2.90,    // $29 × 10%
-  growth_pro: 9.90,     // $99 × 10%
-  enterprise_pro: 29.90 // $299 × 10%
-};
+// Simple referral commission calculation (no tier bonuses)
+function calculateReferralCommission(referredPartnerTier: string): number {
+  return REFERRAL_COMMISSION_RATES[referredPartnerTier] || 0;
+}
 
-// Calculate tier based on referral count
-function calculateTier(referralCount: number) {
-  for (const [key, tier] of Object.entries(REFERRAL_TIERS)) {
-    if (referralCount >= tier.min && referralCount <= tier.max) {
-      return { key, ...tier };
-    }
-  }
-  return { key: 'bronze', ...REFERRAL_TIERS.bronze };
+// Get referral stats without tier system
+function getReferralStats(referralCount: number) {
+  return {
+    totalReferrals: referralCount,
+    commissionRate: 10, // Fixed 10% commission
+    message: 'Har bir taklif qilingan hamkor uchun oylik to\'lovning 10% komissiya olasiz'
+  };
 }
 
 // Generate promo code
@@ -120,9 +117,6 @@ router.get('/stats', asyncHandler(async (req: Request, res: Response) => {
     const totalPaid = Number(earnings[0]?.paid) || 0;
     const available = Number(earnings[0]?.pending) || 0;
 
-    // Calculate tier
-    const tier = calculateTier(activeReferrals.length);
-
     // Get partner's promo code
     const partnerPromoCode = await db
       .select({ promoCode: referrals.promoCode })
@@ -135,31 +129,29 @@ router.get('/stats', asyncHandler(async (req: Request, res: Response) => {
 
     const promoCode = partnerPromoCode[0]?.promoCode || null;
 
-    // Calculate next tier info
-    const tierKeys = Object.keys(REFERRAL_TIERS);
-    const currentTierIndex = tierKeys.indexOf(tier.key);
-    const nextTierKey = tierKeys[currentTierIndex + 1];
-    const nextTier = nextTierKey ? REFERRAL_TIERS[nextTierKey as keyof typeof REFERRAL_TIERS] : null;
+    // Calculate average commission per referral based on referred partners' tiers
+    const referredPartners = await db
+      .select({ pricingTier: partners.pricingTier })
+      .from(referrals)
+      .leftJoin(partners, eq(referrals.referredPartnerId, partners.id))
+      .where(and(
+        eq(referrals.referrerPartnerId, partner.id),
+        sql`${referrals.referredPartnerId} != ${referrals.referrerPartnerId}` // Exclude self-reference
+      ));
+
+    const avgCommission = referredPartners.length > 0
+      ? referredPartners.reduce((sum, p) => sum + calculateReferralCommission(p.pricingTier || 'free_starter'), 0) / referredPartners.length
+      : 0;
 
     const response = {
-      tier: tier.key,
-      tierName: tier.name,
-      tierIcon: tier.icon,
-      tierProgress: {
-        current: activeReferrals.length,
-        next: tier.max + 1,
-        percentage: Math.min((activeReferrals.length / (tier.max + 1)) * 100, 100),
-        remaining: Math.max(0, (tier.max + 1) - activeReferrals.length)
-      },
       totalReferrals: allReferrals.length,
       activeReferrals: activeReferrals.length,
       totalEarned: totalEarned,
       totalPaid: totalPaid,
       available: available,
       canWithdraw: available >= 50, // Minimum $50
-      commission: tier.commission * 100,
-      nextTierBonus: nextTier?.bonus || 0,
-      nextTierName: nextTier?.name || null,
+      commissionRate: 10, // Fixed 10% commission
+      avgCommissionPerReferral: avgCommission.toFixed(2),
       promoCode: promoCode,
       referralCode: promoCode, // Alias for backward compatibility
       benefits: {
@@ -168,17 +160,21 @@ router.get('/stats', asyncHandler(async (req: Request, res: Response) => {
           message: 'Ro\'yxatdan o\'tganingizda $5 chegirma'
         },
         forReferrer: {
-          commission: COMMISSION_RATES[partner.pricingTier as keyof typeof COMMISSION_RATES] || 2.90,
-          message: `Har bir taklif qilingan hamkor uchun har oy ${COMMISSION_RATES[partner.pricingTier as keyof typeof COMMISSION_RATES] || 2.90}$ bonus`,
-          tierBonus: tier.bonus,
-          nextTierBonus: nextTier?.bonus || 0
+          commissionRate: 10,
+          message: 'Har bir taklif qilingan hamkor uchun oylik to\'lovning 10% komissiya olasiz',
+          examples: {
+            free_starter: '$0/oy (chegirma yo\'q)',
+            basic: '$6.90/oy',
+            starter_pro: '$34.90/oy',
+            professional: '$89.90/oy'
+          }
         }
       },
       howItWorks: [
         'Do\'stlaringizni taklif qiling promo kod orqali',
         'Do\'stingiz ro\'yxatdan o\'tadi va $5 chegirma oladi',
-        'Do\'stingiz birinchi to\'lovni amalga oshiradi',
-        'Siz har oy komissiya bonus olasiz!'
+        'Do\'stingiz birinchi oylik to\'lovni amalga oshiradi',
+        'Siz har oy oylik to\'lovning 10% komissiya olasiz!'
       ]
     };
 
@@ -189,18 +185,35 @@ router.get('/stats', asyncHandler(async (req: Request, res: Response) => {
     logError('Referral stats error', error);
     // Return safe defaults instead of error
     res.json({
-      tier: 'bronze',
-      tierName: 'Bronze',
-      tierIcon: '🥉',
-      tierProgress: { current: 0, next: 10, percentage: 0 },
       totalReferrals: 0,
       activeReferrals: 0,
       totalEarned: 0,
       totalPaid: 0,
       available: 0,
       canWithdraw: false,
-      commission: 10,
-      nextTierBonus: 50,
+      commissionRate: 10,
+      avgCommissionPerReferral: '0.00',
+      promoCode: null,
+      referralCode: null,
+      benefits: {
+        forNewUser: { discount: 5, message: 'Ro\'yxatdan o\'tganingizda $5 chegirma' },
+        forReferrer: {
+          commissionRate: 10,
+          message: 'Har bir taklif qilingan hamkor uchun oylik to\'lovning 10% komissiya olasiz',
+          examples: {
+            free_starter: '$0/oy (chegirma yo\'q)',
+            basic: '$6.90/oy',
+            starter_pro: '$34.90/oy',
+            professional: '$89.90/oy'
+          }
+        }
+      },
+      howItWorks: [
+        'Do\'stlaringizni taklif qiling promo kod orqali',
+        'Do\'stingiz ro\'yxatdan o\'tadi va $5 chegirma oladi',
+        'Do\'stingiz birinchi oylik to\'lovni amalga oshiradi',
+        'Siz har oy oylik to\'lovning 10% komissiya olasiz!'
+      ],
       error: true,
       message: 'Error loading stats - showing defaults'
     });

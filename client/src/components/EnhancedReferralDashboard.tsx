@@ -96,7 +96,7 @@ export function EnhancedReferralDashboard() {
             <Gift className="w-6 h-6 text-purple-600" />
             Referral Dasturi
             <Badge variant="outline" className="ml-auto">
-              {stats?.tierIcon} {stats?.tierName || 'Bronze'}
+              {stats?.commissionRate || 10}% Komissiya
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -136,28 +136,36 @@ export function EnhancedReferralDashboard() {
             </Card>
           </div>
 
-          {/* Tier Progress */}
-          {stats?.tierProgress && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Keyingi Tier: {stats?.nextTierName || 'Silver'}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {stats.tierProgress.current} / {stats.tierProgress.next}
-                  </span>
+          {/* Commission Info */}
+          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Target className="w-5 h-5 text-blue-600" />
+                <span className="text-sm font-bold">Komissiya Tizimi</span>
+              </div>
+              <p className="text-sm text-gray-700 mb-3">
+                Har bir taklif qilingan hamkor uchun <strong>oylik to'lovning 10%</strong> komissiya olasiz!
+              </p>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-white p-2 rounded">
+                  <div className="font-semibold text-gray-600">Basic ($69/oy)</div>
+                  <div className="text-green-600 font-bold">$6.90/oy</div>
                 </div>
-                <Progress value={stats.tierProgress.percentage} className="h-2" />
-                <p className="text-xs text-muted-foreground mt-2">
-                  {stats.tierProgress.remaining} ta taklif qilingan hamkor qo'shish kerak
-                </p>
-                {stats?.nextTierBonus > 0 && (
-                  <p className="text-xs text-green-600 mt-1">
-                    🎁 Keyingi tier'ga yetganingizda ${stats.nextTierBonus} bonus olasiz!
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                <div className="bg-white p-2 rounded">
+                  <div className="font-semibold text-gray-600">Starter Pro ($349/oy)</div>
+                  <div className="text-green-600 font-bold">$34.90/oy</div>
+                </div>
+                <div className="bg-white p-2 rounded">
+                  <div className="font-semibold text-gray-600">Professional ($899/oy)</div>
+                  <div className="text-green-600 font-bold">$89.90/oy</div>
+                </div>
+                <div className="bg-white p-2 rounded">
+                  <div className="font-semibold text-gray-600">O'rtacha</div>
+                  <div className="text-blue-600 font-bold">${stats?.avgCommissionPerReferral || '0.00'}/oy</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Promo Code Section */}
           {promoCode ? (
@@ -255,13 +263,13 @@ export function EnhancedReferralDashboard() {
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-purple-600" />
                   <span className="text-sm">
-                    {stats?.commission || 10}% komissiya darajasi
+                    {stats?.commissionRate || 10}% komissiya darajasi
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-purple-600" />
                   <span className="text-sm">
-                    Tier bonuslari: ${stats?.benefits?.forReferrer?.tierBonus || 0}
+                    O'rtacha: ${stats?.avgCommissionPerReferral || '0.00'}/oy har bir taklif uchun
                   </span>
                 </div>
               </CardContent>
