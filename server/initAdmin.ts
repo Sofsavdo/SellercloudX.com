@@ -26,15 +26,15 @@ export async function initializeAdmin() {
     
     // Create admin user
     console.log("🔧 Creating admin user...");
-    const adminPassword = await bcrypt.hash("BiznesYordam2024!", 10);
+    const adminPassword = await bcrypt.hash("Medik9298", 10);
     
     await db.insert(users).values({
       id: nanoid(),
-      username: "admin",
-      email: "admin@biznesyordam.uz",
+      username: "Medik",
+      email: "medik@biznesyordam.uz",
       password: adminPassword,
-      firstName: "Admin",
-      lastName: "BiznesYordam",
+      firstName: "Medik",
+      lastName: "Admin",
       phone: "+998901234567",
       role: "admin",
       isActive: true,
@@ -44,9 +44,9 @@ export async function initializeAdmin() {
     
     console.log("✅ Admin user created successfully!");
     console.log("🔑 Admin Login Credentials:");
-    console.log("   Username: admin");
-    console.log("   Password: BiznesYordam2024!");
-    console.log("   Email: admin@biznesyordam.uz");
+    console.log("   Username: Medik");
+    console.log("   Password: Medik9298");
+    console.log("   Email: medik@biznesyordam.uz");
     
   } catch (error) {
     console.error("❌ Error initializing admin user:", error);

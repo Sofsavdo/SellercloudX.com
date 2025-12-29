@@ -8,7 +8,9 @@ import { errorHandler, notFound } from "./errorHandler";
 // Mock database removed - using real database
 import { initializeWebSocket } from "./websocket";
 import { initializeAdmin } from "./initAdmin";
+import { initializePartner } from "./initPartner";
 import { runMigrations } from "./migrate";
+import { initializeDatabaseTables } from "./initDatabase";
 import { initializeAIQueue } from "./services/aiTaskQueue";
 import { startCronJobs } from "./cron/scheduler";
 import { autonomousAIManager } from "./services/autonomousAIManager";
@@ -179,7 +181,15 @@ app.use((req, res, next) => {
     // ✅ Real database setup
     log("✅ Real database connection initialized");
 
-    // Run database migrations first
+    // Initialize database tables first (critical for SQLite)
+    try {
+      await initializeDatabaseTables();
+    } catch (error) {
+      console.error('❌ Failed to initialize database tables:', error);
+      console.log('⚠️  Continuing without table initialization');
+    }
+    
+    // Run database migrations
     try {
       await runMigrations();
     } catch (error) {
@@ -193,6 +203,14 @@ app.use((req, res, next) => {
     } catch (error) {
       console.error('❌ Failed to initialize admin:', error);
       console.log('⚠️  Continuing without admin initialization');
+    }
+    
+    // Initialize partner (for testing)
+    try {
+      await initializePartner();
+    } catch (error) {
+      console.error('❌ Failed to initialize partner:', error);
+      console.log('⚠️  Continuing without partner initialization');
     }
 
     const server = await registerRoutes(app);
