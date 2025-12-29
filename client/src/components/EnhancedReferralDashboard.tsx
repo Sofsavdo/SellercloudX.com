@@ -249,10 +249,6 @@ export function EnhancedReferralDashboard() {
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span className="text-sm">3 kunlik bepul trial</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
                   <span className="text-sm">Barcha funksiyalar bilan</span>
                 </div>
               </CardContent>
@@ -269,7 +265,7 @@ export function EnhancedReferralDashboard() {
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-purple-600" />
                   <span className="text-sm">
-                    Har oy ${stats?.benefits?.forReferrer?.commission?.toFixed(2) || '2.90'} komissiya
+                    Birinchi haridaning 10% komissiya (muddatga qarab)
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

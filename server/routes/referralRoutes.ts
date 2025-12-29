@@ -415,7 +415,6 @@ router.get('/validate/:code', asyncHandler(async (req: Request, res: Response) =
     const benefits = {
       forNewUser: {
         discount: 5, // $5 discount for new user
-        freeTrial: '3 kunlik bepul trial',
         message: 'Ro\'yxatdan o\'tganingizda $5 chegirma olasiz!'
       },
       forReferrer: {

@@ -15,7 +15,7 @@ export function ViralShareButton({ data }: { data: ShareData }) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
-  const shareText = `🚀 Men SellerCloudX AI Manager bilan ${data.growthPercent}% ko'proq ishladim va ${data.earnings}M so'm qo'shimcha daromad topdim!\n\n3 kunlik bepul trial: https://sellercloudx.onrender.com?ref=${data.partnerName}`;
+  const shareText = `Men SellerCloudX AI Manager bilan ${data.growthPercent}% ko'proq ishladim va ${data.earnings}M so'm qo'shimcha daromad topdim!\n\nSellerCloudX bilan qo'shiling: https://sellercloudx.onrender.com?ref=${data.partnerName}`;
 
   const shareLinks = {
     telegram: `https://t.me/share/url?url=https://sellercloudx.onrender.com&text=${encodeURIComponent(shareText)}`,
