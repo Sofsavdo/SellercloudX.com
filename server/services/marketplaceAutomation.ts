@@ -308,7 +308,6 @@ export class MarketplaceAutomation {
 
   // Generate 2FA code
   private generate2FACode(secret: string): string {
-    const speakeasy = (await import('speakeasy')).default || await import('speakeasy');
     return speakeasy.totp({
       secret: secret,
       encoding: 'base32'
