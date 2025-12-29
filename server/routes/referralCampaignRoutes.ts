@@ -93,11 +93,14 @@ router.get('/active', asyncHandler(async (req: Request, res: Response) => {
   // Har bir konkurs uchun qolgan vaqtni hisoblash
   const campaignsWithTimer = campaigns.map(campaign => {
     const endDate = new Date(campaign.endDate);
+    const startDate = new Date(campaign.startDate);
     const now = new Date();
     const timeLeft = Math.max(0, endDate.getTime() - now.getTime());
     
     return {
       ...campaign,
+      endDate: Math.floor(endDate.getTime() / 1000), // Convert to Unix timestamp for frontend
+      startDate: Math.floor(startDate.getTime() / 1000),
       timeLeftMs: timeLeft,
       timeLeftDays: Math.floor(timeLeft / (1000 * 60 * 60 * 24)),
       timeLeftHours: Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
