@@ -27,19 +27,31 @@ export function EnhancedReferralDashboard() {
           activeReferrals: 0,
           totalEarned: 0,
           referralCode: '',
-          tier: 'bronze',
-          tierName: 'Bronze',
-          tierIcon: '🥉',
-          tierProgress: { current: 0, next: 10, percentage: 0, remaining: 10 },
           available: 0,
           canWithdraw: false,
-          commission: 10,
-          nextTierBonus: 0,
+          commissionRate: 10,
+          avgCommissionPerReferral: '0.00',
+          promoCode: null,
+          referralCode: null,
           benefits: {
             forNewUser: { discount: 5, message: 'Ro\'yxatdan o\'tganingizda $5 chegirma' },
-            forReferrer: { commission: 2.90, message: 'Har bir taklif qilingan hamkor uchun har oy $2.90 bonus' }
+            forReferrer: {
+              commissionRate: 10,
+              message: 'Har bir taklif qilingan hamkor uchun oylik to\'lovning 10% komissiya olasiz',
+              examples: {
+                free_starter: '$0/oy (chegirma yo\'q)',
+                basic: '$6.90/oy',
+                starter_pro: '$34.90/oy',
+                professional: '$89.90/oy'
+              }
+            }
           },
-          howItWorks: []
+          howItWorks: [
+            'Do\'stlaringizni taklif qiling promo kod orqali',
+            'Do\'stingiz ro\'yxatdan o\'tadi va $5 chegirma oladi',
+            'Do\'stingiz birinchi oylik to\'lovni amalga oshiradi',
+            'Siz har oy oylik to\'lovning 10% komissiya olasiz!'
+          ]
         };
       }
     },
