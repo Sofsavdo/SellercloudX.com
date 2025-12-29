@@ -487,10 +487,23 @@ export async function autoUploadToMarketplace(
 ) {
   console.log('🤖 AI: Uploading to marketplace...', marketplaceType);
 
-  const [product] = await db
-    .select()
-    .from('ai_generated_products')
-    .where({ id: productId });
+  // Get product data (using raw SQL for SQLite)
+  const { sqlite } = await import('../db');
+  let product: any = null;
+  if (sqlite) {
+    const stmt = sqlite.prepare('SELECT * FROM ai_generated_products WHERE id = ? LIMIT 1');
+    product = stmt.get(productId.toString());
+  } else {
+    // Fallback: use Drizzle ORM if SQLite not available
+    const { aiGeneratedProducts } = await import('@shared/schema');
+    const { eq } = await import('drizzle-orm');
+    const [p] = await db
+      .select()
+      .from(aiGeneratedProducts)
+      .where(eq(aiGeneratedProducts.id, productId.toString()))
+      .limit(1);
+    product = p;
+  }
 
   if (!product) {
     throw new Error('Mahsulot topilmadi');
