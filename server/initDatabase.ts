@@ -337,21 +337,16 @@ export async function initializeDatabaseTables() {
       );
     `);
     
-    // Stock alerts table
+    // Stock alerts table (matching schema.ts)
     sqlite.exec(`
       CREATE TABLE IF NOT EXISTS stock_alerts (
         id TEXT PRIMARY KEY,
-        partner_id TEXT NOT NULL REFERENCES partners(id),
-        product_id TEXT REFERENCES products(id),
+        product_id TEXT NOT NULL REFERENCES products(id),
         alert_type TEXT NOT NULL,
-        severity TEXT NOT NULL,
         message TEXT NOT NULL,
-        current_stock INTEGER,
-        threshold_stock INTEGER,
-        is_resolved INTEGER DEFAULT 0,
-        resolved_at INTEGER,
-        resolved_by TEXT REFERENCES users(id),
-        created_at INTEGER NOT NULL DEFAULT (unixepoch())
+        resolved INTEGER DEFAULT 0,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+        resolved_at INTEGER
       );
     `);
     
