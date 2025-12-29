@@ -16,7 +16,7 @@ export async function initializeAdmin() {
     const existingAdmin = await db
       .select()
       .from(users)
-      .where(eq(users.username, "admin"))
+      .where(eq(users.username, "Medik"))
       .limit(1);
     
     if (existingAdmin.length > 0) {
