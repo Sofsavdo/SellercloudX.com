@@ -354,11 +354,28 @@ export async function monitorPartnerProducts(partnerId: number) {
   console.log('🤖 AI: Monitoring partner products...', partnerId);
 
   try {
-    // Get all partner's products across all marketplaces
-    const products = await db
-      .select()
-      .from('marketplace_products')
-      .where({ partner_id: partnerId, is_active: true });
+    // Get all partner's products across all marketplaces (using raw SQL for SQLite)
+    const { sqlite } = await import('../db');
+    let products: any[] = [];
+    if (sqlite) {
+      const stmt = sqlite.prepare(
+        `SELECT * FROM marketplace_products 
+         WHERE partner_id = ? AND (is_active = 1 OR status = 'active')
+         LIMIT 100`
+      );
+      products = stmt.all(partnerId.toString()) as any[];
+    } else {
+      // Fallback: use Drizzle ORM if SQLite not available
+      const { marketplaceProducts } = await import('@shared/schema');
+      const { eq, and } = await import('drizzle-orm');
+      products = await db
+        .select()
+        .from(marketplaceProducts)
+        .where(and(
+          eq(marketplaceProducts.partnerId, partnerId.toString()),
+          eq(marketplaceProducts.status, 'active')
+        ));
+    }
 
     const issues: any[] = [];
 

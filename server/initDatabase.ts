@@ -25,6 +25,38 @@ export async function initializeDatabaseTables() {
     
     console.log('📝 Creating SQLite tables...');
     
+    // First, check if tables exist and add missing columns
+    // This handles the case where tables exist but columns are missing
+    
+    // Check and add last_price_update to products if missing
+    try {
+      const productsInfo = sqlite.prepare("PRAGMA table_info(products)").all() as any[];
+      const hasLastPriceUpdate = productsInfo.some((col: any) => col.name === 'last_price_update');
+      if (!hasLastPriceUpdate) {
+        console.log('📝 Adding last_price_update column to products table...');
+        sqlite.exec('ALTER TABLE products ADD COLUMN last_price_update INTEGER');
+      }
+    } catch (e) {
+      // Table might not exist yet, will be created below
+    }
+    
+    // Check and add columns to marketplace_products if missing
+    try {
+      const mpInfo = sqlite.prepare("PRAGMA table_info(marketplace_products)").all() as any[];
+      const hasLastPriceUpdate = mpInfo.some((col: any) => col.name === 'last_price_update');
+      const hasIsActive = mpInfo.some((col: any) => col.name === 'is_active');
+      if (!hasLastPriceUpdate) {
+        console.log('📝 Adding last_price_update column to marketplace_products table...');
+        sqlite.exec('ALTER TABLE marketplace_products ADD COLUMN last_price_update INTEGER');
+      }
+      if (!hasIsActive) {
+        console.log('📝 Adding is_active column to marketplace_products table...');
+        sqlite.exec('ALTER TABLE marketplace_products ADD COLUMN is_active INTEGER DEFAULT 1');
+      }
+    } catch (e) {
+      // Table might not exist yet, will be created below
+    }
+    
     // Create all tables from schema
     // We'll use raw SQL to create tables based on schema definitions
     
