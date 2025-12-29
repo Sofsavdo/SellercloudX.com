@@ -1276,7 +1276,6 @@ export async function createStockAlert(alertData: {
     const [alert] = await db.insert(stockAlerts).values({
       id: nanoid(),
       productId: alertData.productId,
-      partnerId: alertData.partnerId,
       alertType: alertData.alertType,
       severity: alertData.severity,
       message: alertData.message,
