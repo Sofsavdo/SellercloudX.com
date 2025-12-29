@@ -97,7 +97,7 @@ export function ViralShareButton({ data }: { data: ShareData }) {
             <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200 text-center">
               <p className="text-sm font-bold text-yellow-800 flex items-center gap-2">
                 <Gift className="w-4 h-4" />
-                Har bir ulashish → 1 ta yangi hamkor → $14-21/oy bonus!
+                Har bir taklif qilingan hamkor uchun birinchi haridaning 10% komissiya!
               </p>
             </div>
           </div>

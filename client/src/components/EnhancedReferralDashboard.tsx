@@ -313,7 +313,7 @@ export function EnhancedReferralDashboard() {
               size="lg"
               onClick={() => {
                 toast({
-                  title: '💰 Pul Yechish',
+                  title: 'Pul Yechish',
                   description: `Mavjud balans: $${stats.available.toFixed(2)}. Admin panel orqali so'rov yuboring.`
                 });
               }}
