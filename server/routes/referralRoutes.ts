@@ -408,7 +408,10 @@ router.get('/validate/:code', asyncHandler(async (req: Request, res: Response) =
 
     const referrerData = referral[0];
     
-    // Calculate benefits
+    // Calculate benefits based on actual pricing
+    const referrerTier = referrerData.referrer?.pricingTier || 'free_starter';
+    const commissionAmount = calculateReferralCommission(referrerTier);
+    
     const benefits = {
       forNewUser: {
         discount: 5, // $5 discount for new user
@@ -416,8 +419,11 @@ router.get('/validate/:code', asyncHandler(async (req: Request, res: Response) =
         message: 'Ro\'yxatdan o\'tganingizda $5 chegirma olasiz!'
       },
       forReferrer: {
-        commission: COMMISSION_RATES[referrerData.referrer?.pricingTier as keyof typeof COMMISSION_RATES] || 2.90,
-        message: `Taklif qiluvchi har oy ${COMMISSION_RATES[referrerData.referrer?.pricingTier as keyof typeof COMMISSION_RATES] || 2.90}$ bonus oladi`
+        commissionRate: 10,
+        commissionAmount: commissionAmount,
+        message: commissionAmount > 0 
+          ? `Taklif qiluvchi har oy $${commissionAmount.toFixed(2)} komissiya oladi (oylik to'lovning 10%)`
+          : 'Taklif qiluvchi komissiya olmaydi (Free Starter tarif)'
       }
     };
 
