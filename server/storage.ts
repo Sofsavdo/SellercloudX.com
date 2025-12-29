@@ -1316,20 +1316,30 @@ export async function createStockAlert(alertData: {
 
 export async function getStockAlertsByPartnerId(partnerId: string, includeResolved: boolean = false): Promise<StockAlert[]> {
   try {
-    const { and } = await import('drizzle-orm');
+    // Get partner's products first, then get alerts for those products
+    const partnerProducts = await db.select({ id: products.id })
+      .from(products)
+      .where(eq(products.partnerId, partnerId));
+    
+    if (partnerProducts.length === 0) {
+      return [];
+    }
+    
+    const productIds = partnerProducts.map(p => p.id);
+    const { and, inArray } = await import('drizzle-orm');
     
     if (!includeResolved) {
       return await db.select()
         .from(stockAlerts)
         .where(and(
-          eq(stockAlerts.partnerId, partnerId),
-          eq(stockAlerts.isResolved, false)
+          inArray(stockAlerts.productId, productIds),
+          eq(stockAlerts.resolved, false)
         ))
         .orderBy(desc(stockAlerts.createdAt));
     } else {
       return await db.select()
         .from(stockAlerts)
-        .where(eq(stockAlerts.partnerId, partnerId))
+        .where(inArray(stockAlerts.productId, productIds))
         .orderBy(desc(stockAlerts.createdAt));
     }
   } catch (error: any) {
