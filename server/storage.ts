@@ -1277,12 +1277,8 @@ export async function createStockAlert(alertData: {
       id: nanoid(),
       productId: alertData.productId,
       alertType: alertData.alertType,
-      severity: alertData.severity,
       message: alertData.message,
-      currentStock: alertData.currentStock,
-      threshold: alertData.threshold,
-      isResolved: false,
-      createdAt: new Date()
+      resolved: false
     }).returning();
 
     // Also create a notification
