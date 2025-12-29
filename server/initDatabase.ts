@@ -87,6 +87,7 @@ export async function initializeDatabaseTables() {
         low_stock_threshold INTEGER DEFAULT 10,
         optimized_title TEXT,
         is_active INTEGER DEFAULT 1,
+        last_price_update INTEGER,
         created_at INTEGER NOT NULL DEFAULT (unixepoch()),
         updated_at INTEGER
       );
@@ -134,6 +135,7 @@ export async function initializeDatabaseTables() {
         access_token TEXT,
         refresh_token TEXT,
         seller_id TEXT,
+        active INTEGER DEFAULT 1,
         is_active INTEGER DEFAULT 1,
         last_sync_at INTEGER,
         created_at INTEGER NOT NULL DEFAULT (unixepoch()),

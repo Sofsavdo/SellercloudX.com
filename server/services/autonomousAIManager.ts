@@ -132,13 +132,18 @@ class AutonomousAIManager {
     console.log('🔧 Checking for marketplace errors...');
     
     try {
-      // Get products with errors or blocked status
-      const errorProducts = await db.all(
-        `SELECT * FROM ai_generated_products 
-         WHERE status IN ('error', 'blocked', 'rejected')
-         ORDER BY updated_at DESC
-         LIMIT 10`
-      );
+      // Get products with errors or blocked status (using raw SQL for SQLite)
+      const { sqlite } = await import('../db');
+      let errorProducts: any[] = [];
+      if (sqlite) {
+        const stmt = sqlite.prepare(
+          `SELECT * FROM ai_generated_products 
+           WHERE status IN ('error', 'blocked', 'rejected')
+           ORDER BY updated_at DESC
+           LIMIT 10`
+        );
+        errorProducts = stmt.all() as any[];
+      }
 
       for (const product of errorProducts) {
         try {
