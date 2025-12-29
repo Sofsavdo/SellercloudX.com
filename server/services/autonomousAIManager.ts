@@ -91,12 +91,19 @@ class AutonomousAIManager {
 
           for (const product of partnerProducts) {
             for (const integration of integrations) {
-              // Check if card already exists
-              const existingCard = await db.get(
-                `SELECT id FROM ai_generated_products 
-                 WHERE partner_id = ? AND marketplace_type = ? AND raw_product_name = ?`,
-                [partner.id, integration.marketplace, product.name]
-              );
+              // Check if card already exists (using raw SQL for SQLite)
+              const { sqlite } = await import('../db');
+              let existingCard = null;
+              if (sqlite) {
+                const stmt = sqlite.prepare(
+                  `SELECT id FROM ai_generated_products 
+                   WHERE partner_id = ? AND marketplace = ? LIMIT 1`
+                );
+                existingCard = stmt.get(partner.id, integration.marketplace);
+              } else {
+                // Fallback: skip if SQLite not available
+                existingCard = null;
+              }
 
               if (!existingCard) {
                 console.log(`📝 Creating card for ${product.name} on ${integration.marketplace}`);
@@ -204,17 +211,22 @@ JSON formatda javob bering:
 
       const fixData = JSON.parse(response.choices[0].message.content || '{}');
       
-      // Update product with fixed data
-      await db.run(
-        `UPDATE ai_generated_products 
-         SET ai_title = ?, 
-             ai_description = ?,
-             status = 'review',
-             error_message = NULL,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
-        [fixData.fixedTitle, fixData.fixedDescription, product.id]
-      );
+      // Update product with fixed data (using raw SQL for SQLite)
+      const { sqlite } = await import('../db');
+      if (sqlite) {
+        const stmt = sqlite.prepare(
+          `UPDATE ai_generated_products 
+           SET generated_title = ?, 
+               generated_description = ?,
+               ai_title = ?,
+               ai_description = ?,
+               status = 'review',
+               error_message = NULL,
+               updated_at = unixepoch()
+           WHERE id = ?`
+        );
+        stmt.run(fixData.fixedTitle, fixData.fixedDescription, fixData.fixedTitle, fixData.fixedDescription, product.id);
+      }
 
       return fixData;
     } catch (error) {
@@ -228,13 +240,21 @@ JSON formatda javob bering:
     console.log('💰 Optimizing prices...');
     
     try {
-      // Get products that need price optimization
-      const productsToOptimize = await db.all(
-        `SELECT * FROM marketplace_products 
-         WHERE last_price_update < datetime('now', '-7 days')
-         AND is_active = 1
-         LIMIT 20`
-      );
+      // Get products that need price optimization (using raw SQL for SQLite)
+      const { sqlite } = await import('../db');
+      let productsToOptimize: any[] = [];
+      if (sqlite) {
+        const stmt = sqlite.prepare(
+          `SELECT * FROM marketplace_products 
+           WHERE (last_price_update IS NULL OR last_price_update < (unixepoch() - 604800))
+           AND status = 'active'
+           LIMIT 20`
+        );
+        productsToOptimize = stmt.all() as any[];
+      } else {
+        // Fallback: return empty array if SQLite not available
+        productsToOptimize = [];
+      }
 
       for (const product of productsToOptimize) {
         try {
