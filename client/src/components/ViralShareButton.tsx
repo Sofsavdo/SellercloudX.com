@@ -15,16 +15,15 @@ export function ViralShareButton({ data }: { data: ShareData }) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
-  const baseDomain = window.location.hostname.includes('sellercloudx.com') 
-    ? window.location.origin 
-    : 'https://sellercloudx.com';
-  const shareText = `Men SellerCloudX AI Manager bilan ${data.growthPercent}% ko'proq ishladim va ${data.earnings}M so'm qo'shimcha daromad topdim!\n\nSellerCloudX bilan qo'shiling: ${baseDomain}/partner-registration?ref=${data.partnerName}`;
+  const baseDomain = 'https://sellercloudx.com';
+  const shareUrl = `${baseDomain}/partner-registration?ref=${data.partnerName}`;
+  const shareText = `Men SellerCloudX AI Manager bilan ${data.growthPercent}% ko'proq ishladim va ${data.earnings}M so'm qo'shimcha daromad topdim!\n\nSellerCloudX bilan qo'shiling: ${shareUrl}`;
 
   const shareLinks = {
-    telegram: `https://t.me/share/url?url=https://sellercloudx.onrender.com&text=${encodeURIComponent(shareText)}`,
-    facebook: `https://www.facebook.com/sharer/sharer.php?u=https://sellercloudx.onrender.com&quote=${encodeURIComponent(shareText)}`,
+    telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`,
     whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText)}`,
-    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=https://sellercloudx.onrender.com`
+    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`
   };
 
   const copyToClipboard = () => {

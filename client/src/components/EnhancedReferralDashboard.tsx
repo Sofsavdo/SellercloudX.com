@@ -62,7 +62,8 @@ export function EnhancedReferralDashboard() {
     try {
       const response = await apiRequest('POST', '/api/referrals/generate-code');
       const data = await response.json();
-      const link = `${window.location.origin}/partner-registration?ref=${data.promoCode}`;
+      // Use shareUrl from backend if available, otherwise use sellercloudx.com
+      const link = data.shareUrl || `https://sellercloudx.com/partner-registration?ref=${data.promoCode}`;
       setReferralLink(link);
       toast({
         title: '✅ Havola yaratildi',
