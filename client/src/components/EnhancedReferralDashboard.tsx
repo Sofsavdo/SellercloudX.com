@@ -97,7 +97,11 @@ export function EnhancedReferralDashboard() {
   }
 
   const promoCode = stats?.promoCode || stats?.referralCode || '';
-  const shareUrl = promoCode ? `${window.location.origin}/partner-registration?ref=${promoCode}` : '';
+  // Use sellercloudx.com domain for referral links
+  const baseDomain = window.location.hostname.includes('sellercloudx.com') 
+    ? window.location.origin 
+    : 'https://sellercloudx.com';
+  const shareUrl = promoCode ? `${baseDomain}/partner-registration?ref=${promoCode}` : '';
 
   return (
     <div className="space-y-6">

@@ -72,16 +72,36 @@ router.post('/generate-code', asyncHandler(async (req: Request, res: Response) =
       
       // Create self-referral record for promo code storage
       const selfReferralId = nanoid();
-      await db.insert(referrals).values({
-        id: selfReferralId,
-        referrerPartnerId: partner.id,
-        referredPartnerId: partner.id, // Self-reference
-        promoCode: promoCode,
-        contractType: partner.pricingTier || 'free_starter',
-        status: 'active',
-        createdAt: new Date(),
-        activatedAt: new Date()
-      });
+      try {
+        await db.insert(referrals).values({
+          id: selfReferralId,
+          referrerPartnerId: partner.id,
+          referredPartnerId: partner.id, // Self-reference
+          promoCode: promoCode,
+          contractType: partner.pricingTier || 'free_starter',
+          status: 'active',
+          createdAt: new Date(),
+          activatedAt: new Date()
+        });
+      } catch (insertError: any) {
+        // If insert fails (e.g., duplicate), try to get existing
+        logError('Failed to insert self-referral, checking existing', insertError);
+        const existing = await db
+          .select({ promoCode: referrals.promoCode })
+          .from(referrals)
+          .where(and(
+            eq(referrals.referrerPartnerId, partner.id),
+            eq(referrals.referredPartnerId, partner.id)
+          ))
+          .limit(1);
+        
+        if (existing[0]?.promoCode) {
+          promoCode = existing[0].promoCode;
+          logInfo('Using existing promo code after insert error', { promoCode });
+        } else {
+          throw insertError; // Re-throw if we can't recover
+        }
+      }
 
       logInfo('Promo code created', { partnerId: partner.id, promoCode });
     } else {
@@ -89,7 +109,14 @@ router.post('/generate-code', asyncHandler(async (req: Request, res: Response) =
     }
 
     // Get base URL from environment or request
-    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    // Priority: BASE_URL env > sellercloudx.com > request host
+    let baseUrl = process.env.BASE_URL || process.env.DOMAIN;
+    if (!baseUrl || baseUrl.includes('onrender.com') || baseUrl.includes('railway.app')) {
+      baseUrl = 'https://sellercloudx.com';
+    }
+    if (!baseUrl.startsWith('http')) {
+      baseUrl = `https://${baseUrl}`;
+    }
     const shareUrl = `${baseUrl}/partner-registration?ref=${promoCode}`;
     
     res.json({
