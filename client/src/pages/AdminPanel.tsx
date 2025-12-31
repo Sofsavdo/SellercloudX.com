@@ -7,8 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Navigation } from '@/components/Navigation';
-import { LoginForm } from '@/components/LoginForm';
+import { Sidebar, adminSidebarItems } from '@/components/Sidebar';
 import { TrendingProducts } from '@/components/TrendingProducts';
 import { TrendingProductsDashboard } from '@/components/TrendingProductsDashboard';
 import { MarketplaceApiConfig } from '@/components/MarketplaceApiConfig';
@@ -344,11 +343,16 @@ export default function AdminPanel() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      <Sidebar 
+        items={adminSidebarItems} 
+        userRole="admin" 
+        selectedTab={selectedTab}
+        onTabChange={setSelectedTab}
+      />
      
-      <div className="pt-20 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="flex-1 ml-64 transition-all duration-300 min-h-screen">
+        <div className="p-6 space-y-6">
           {/* Header */}
           <div className="mb-8 animate-fade-in">
             <div className="flex items-center justify-between">
@@ -406,51 +410,54 @@ export default function AdminPanel() {
             />
           </div>
 
-          {/* Main Content */}
-          <Tabs value={selectedTab} onValueChange={setSelectedTab} defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-10">
-              <TabsTrigger value="overview" className="flex items-center gap-2">
-                <BarChart3 className="w-4 h-4" />
-                Umumiy
-              </TabsTrigger>
-              <TabsTrigger value="ai-manager" className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white">
-                🤖 AI Manager
-              </TabsTrigger>
-              <TabsTrigger value="smm" className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white">
-                📱 SMM
-              </TabsTrigger>
-              <TabsTrigger value="marketplace" className="flex items-center gap-2">
-                <Globe className="w-4 h-4" />
-                Marketplace
-              </TabsTrigger>
-              <TabsTrigger value="analytics" className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                Tahlil
-              </TabsTrigger>
-              <TabsTrigger value="partners" className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Hamkorlar
-              </TabsTrigger>
-              <TabsTrigger value="trends" className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Trendlar
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                Sozlamalar
-              </TabsTrigger>
-              <TabsTrigger value="chat" className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4" />
-                Support chat
-              </TabsTrigger>
-              <TabsTrigger value="referrals" className="flex items-center gap-2">
-                <Gift className="w-4 h-4" />
-                Referrallar
-              </TabsTrigger>
-            </TabsList>
+          {/* Main Content - Professional Finance Style */}
+          <div className="space-y-6">
+            {/* Header Section */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-slate-900">
+                    {selectedTab === 'overview' && 'Umumiy Ko\'rinish'}
+                    {selectedTab === 'ai-manager' && 'AI Manager'}
+                    {selectedTab === 'smm' && 'Social Media Management'}
+                    {selectedTab === 'marketplace' && 'Marketplace'}
+                    {selectedTab === 'analytics' && 'Tahlil'}
+                    {selectedTab === 'partners' && 'Hamkorlar'}
+                    {selectedTab === 'trends' && 'Trendlar'}
+                    {selectedTab === 'settings' && 'Sozlamalar'}
+                    {selectedTab === 'chat' && 'Support Chat'}
+                    {selectedTab === 'referrals' && 'Referrallar'}
+                  </h1>
+                  <p className="text-slate-600 mt-1">
+                    {selectedTab === 'overview' && 'Platforma statistikasi va umumiy ko\'rinish'}
+                    {selectedTab === 'ai-manager' && 'AI xizmatlarini boshqarish va monitoring'}
+                    {selectedTab === 'smm' && 'Ijtimoiy tarmoqlarni boshqarish va kontent yaratish'}
+                    {selectedTab === 'marketplace' && 'Marketplace integratsiyalari'}
+                    {selectedTab === 'analytics' && 'Batafsil tahlil va hisobotlar'}
+                    {selectedTab === 'partners' && 'Hamkorlarni boshqarish'}
+                    {selectedTab === 'trends' && 'Trend mahsulotlar va bozor tahlili'}
+                    {selectedTab === 'settings' && 'Platforma sozlamalari'}
+                    {selectedTab === 'chat' && 'Yordam va qo\'llab-quvvatlash'}
+                    {selectedTab === 'referrals' && 'Referral tizimi boshqaruvi'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    <Shield className="w-3 h-3 mr-1" />
+                    Admin
+                  </Badge>
+                  <Badge variant="secondary">
+                    {user.firstName} {user.lastName}
+                  </Badge>
+                </div>
+              </div>
+            </div>
 
-            {/* Overview Tab - MUKAMMAL BOY */}
-            <TabsContent value="overview" className="space-y-6">
+            {/* Content Section */}
+            <div className="space-y-6">
+            {/* Overview Tab */}
+            {selectedTab === 'overview' && (
+              <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Recent Activity */}
                 <Card className="shadow-elegant">
@@ -640,10 +647,11 @@ export default function AdminPanel() {
                   </CardContent>
                 </Card>
               </div>
-            </TabsContent>
+            )}
 
             {/* Support Chat Tab */}
-            <TabsContent value="chat" className="space-y-4">
+            {selectedTab === 'chat' && (
+              <div className="space-y-4">
               <Tabs defaultValue="chat" className="space-y-4">
                 <TabsList>
                   <TabsTrigger value="chat">Chat</TabsTrigger>
@@ -734,7 +742,8 @@ export default function AdminPanel() {
             </TabsContent>
 
             {/* Referrals Management Tab - Includes Campaigns */}
-            <TabsContent value="referrals" className="space-y-6">
+            {selectedTab === 'referrals' && (
+              <div className="space-y-6">
               <Tabs defaultValue="management" className="space-y-4">
                 <TabsList>
                   <TabsTrigger value="management">Referral Boshqaruvi</TabsTrigger>
@@ -747,15 +756,19 @@ export default function AdminPanel() {
                   <AdminReferralCampaignManager />
                 </TabsContent>
               </Tabs>
-            </TabsContent>
+            </div>
+            )}
 
             {/* SMM Tab */}
-            <TabsContent value="smm" className="space-y-6">
-              <AdminSMM />
-            </TabsContent>
+            {selectedTab === 'smm' && (
+              <div className="space-y-6">
+                <AdminSMM />
+              </div>
+            )}
 
             {/* AI MANAGER TAB - ENHANCED with AI Management */}
-            <TabsContent value="ai-manager" className="space-y-6">
+            {selectedTab === 'ai-manager' && (
+              <div className="space-y-6">
               <Tabs defaultValue="monitor" className="space-y-4">
                 <TabsList>
                   <TabsTrigger value="monitor">Live Monitor</TabsTrigger>
@@ -1159,10 +1172,12 @@ export default function AdminPanel() {
             {/* Trending Products Tab - ADVANCED VERSION */}
             <TabsContent value="trends" className="space-y-6">
               <TrendingProductsDashboard />
-            </TabsContent>
+            </div>
+            )}
 
             {/* Analytics Tab */}
-            <TabsContent value="analytics" className="space-y-6">
+            {selectedTab === 'analytics' && (
+              <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
                   <BarChart3 className="w-7 h-7 text-purple-600" />
@@ -1202,7 +1217,8 @@ export default function AdminPanel() {
 
 
             {/* Settings Tab */}
-            <TabsContent value="settings" className="space-y-6">
+            {selectedTab === 'settings' && (
+              <div className="space-y-6">
               {/* Marketplace API - Full Width */}
               <Card className="shadow-elegant">
                 <CardHeader>
@@ -1302,8 +1318,9 @@ export default function AdminPanel() {
                   </CardContent>
                 </Card>
               </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

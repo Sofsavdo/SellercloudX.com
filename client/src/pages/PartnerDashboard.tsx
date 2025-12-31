@@ -5,8 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Navigation } from '@/components/Navigation';
-import { LoginForm } from '@/components/LoginForm';
+import { Sidebar, partnerSidebarItems } from '@/components/Sidebar';
 import { PartnerStats } from '@/components/PartnerStats';
 import { ProductForm } from '@/components/ProductForm';
 import { SimpleProductForm } from '@/components/SimpleProductForm';
@@ -182,15 +181,22 @@ export default function PartnerDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      <div className="pt-20 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8 animate-fade-in">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex">
+      <Sidebar 
+        items={partnerSidebarItems} 
+        userRole="partner" 
+        selectedTab={selectedTab}
+        onTabChange={setSelectedTab}
+      />
+     
+      <div className="flex-1 ml-64 transition-all duration-300 min-h-screen">
+        <div className="p-6 space-y-6">
+          {/* Header Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div>
-                <h1 className="text-4xl font-bold text-gradient-business">Partner Dashboard</h1>
-                <p className="text-muted-foreground mt-2">
+                <h1 className="text-3xl font-bold text-slate-900">Partner Dashboard</h1>
+                <p className="text-slate-600 mt-1">
                   Salom, {user.firstName || user.username}! Biznesingizni boshqaring.
                 </p>
               </div>
@@ -243,32 +249,11 @@ export default function PartnerDashboard() {
             <PartnerStats stats={stats} />
           </div>
 
-          <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
-              <TabsTrigger value="overview" className="flex items-center gap-1">
-                <BarChart3 className="w-4 h-4" />
-                <span className="hidden sm:inline">Umumiy</span>
-              </TabsTrigger>
-              <TabsTrigger value="ai-manager" className="flex items-center gap-1 bg-gradient-to-r from-purple-500 to-blue-500 text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600">
-                <Zap className="w-4 h-4" />
-                <span className="hidden sm:inline">AI Manager</span>
-              </TabsTrigger>
-              <TabsTrigger value="referral" className="flex items-center gap-1 bg-gradient-to-r from-green-500 to-blue-500 text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-blue-600">
-                <Gift className="w-4 h-4" />
-                <span className="hidden sm:inline">Referral</span>
-              </TabsTrigger>
-              <TabsTrigger value="marketplace" className="flex items-center gap-1">
-                <Globe className="w-4 h-4" />
-                <span className="hidden sm:inline">Marketplace</span>
-              </TabsTrigger>
-              <TabsTrigger value="inventory" className="flex items-center gap-1">
-                <Package className="w-4 h-4" />
-                <span className="hidden sm:inline">Ombor</span>
-              </TabsTrigger>
-              <TabsTrigger value="profit" className="flex items-center gap-1">
-                <DollarSign className="w-4 h-4" />
-                <span className="hidden sm:inline">Foyda</span>
-              </TabsTrigger>
+          {/* Content Section */}
+          <div className="space-y-6">
+            {/* Overview Tab */}
+            {selectedTab === 'overview' && (
+              <div className="space-y-6">
               <TabsTrigger value="trends" className="flex items-center gap-1">
                 <TrendingUp className="w-4 h-4" />
                 <span className="hidden sm:inline">Trendlar</span>
@@ -280,7 +265,9 @@ export default function PartnerDashboard() {
             </TabsList>
 
             {/* AI MANAGER TAB - NEW! */}
-            <TabsContent value="ai-manager" className="space-y-6">
+            {/* AI Manager Tab */}
+            {selectedTab === 'ai-manager' && (
+              <div className="space-y-6">
               <Card className="bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 border-2 border-purple-300">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-2xl">
@@ -377,7 +364,9 @@ export default function PartnerDashboard() {
             </TabsContent>
 
             {/* REFERRAL TAB - NEW! */}
-            <TabsContent value="referral" className="space-y-6">
+            {/* Referral Tab */}
+            {selectedTab === 'referrals' && (
+              <div className="space-y-6">
               <EnhancedReferralDashboard />
               
               {/* Active Campaigns */}
@@ -406,7 +395,9 @@ export default function PartnerDashboard() {
             </TabsContent>
 
 
-            <TabsContent value="overview" className="space-y-6">
+            {/* Overview Tab Content */}
+            {selectedTab === 'overview' && (
+              <div className="space-y-6">
               {/* Partner Verification Section */}
               {partner && !partner.approved && (
                 <PartnerVerificationSection 
@@ -537,7 +528,9 @@ export default function PartnerDashboard() {
             </TabsContent>
 
             {/* Marketplace Tab with Sub-tabs */}
-            <TabsContent value="marketplace" className="space-y-6">
+            {/* Marketplace Tab */}
+            {selectedTab === 'marketplace' && (
+              <div className="space-y-6">
               <Card className="border-2">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -575,7 +568,9 @@ export default function PartnerDashboard() {
             </TabsContent>
 
             {/* Inventory (Ombor) Tab with Sub-tabs */}
-            <TabsContent value="inventory" className="space-y-6">
+            {/* Inventory Tab */}
+            {selectedTab === 'inventory' && (
+              <div className="space-y-6">
               <Card className="border-2">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
