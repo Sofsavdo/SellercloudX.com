@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sidebar, partnerSidebarItems } from '@/components/Sidebar';
+import { LoginForm } from '@/components/LoginForm';
 import { PartnerStats } from '@/components/PartnerStats';
 import { ProductForm } from '@/components/ProductForm';
 import { SimpleProductForm } from '@/components/SimpleProductForm';
