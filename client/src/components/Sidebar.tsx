@@ -143,7 +143,6 @@ export function Sidebar({ items, userRole = 'partner', selectedTab, onTabChange 
                 {isCollapsed && isActive && (
                   <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-500 rounded-r-full" />
                 )}
-              </div>
             </div>
           );
         })}
