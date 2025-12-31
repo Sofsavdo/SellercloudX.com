@@ -980,97 +980,97 @@ export default function AdminPanel() {
                   {/* FULFILLMENT FEATURE - Hidden for SaaS-only mode */}
                   {false && (
                     <TabsContent value="requests">
-                  {/* Fulfillment Requests */}
-                  <div className="space-y-6">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                      <div>
-                        <h3 className="text-xl font-bold">Fulfillment So'rovlari</h3>
-                        <p className="text-muted-foreground">Hamkorlardan kelgan so'rovlarni boshqarish</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="So'rov qidirish..."
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          className="w-64"
-                        />
-                        <select
-                          value={filterStatus}
-                          onChange={(e) => setFilterStatus(e.target.value)}
-                          className="px-3 py-2 border rounded-md"
-                        >
-                          <option value="all">Barchasi</option>
-                          <option value="pending">Kutilmoqda</option>
-                          <option value="in_progress">Jarayonda</option>
-                          <option value="completed">Bajarildi</option>
-                          <option value="rejected">Rad etildi</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="grid gap-4">
-                      {fulfillmentRequests.length === 0 ? (
-                        <Card>
-                          <CardContent className="p-8 text-center">
-                            <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                            <p className="text-muted-foreground">Hozircha so'rovlar yo'q</p>
-                          </CardContent>
-                        </Card>
-                      ) : (
-                        fulfillmentRequests
-                          .filter(req => {
-                            const matchesSearch = req.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                                req.description.toLowerCase().includes(searchTerm.toLowerCase());
-                            const matchesStatus = filterStatus === 'all' || req.status === filterStatus;
-                            return matchesSearch && matchesStatus;
-                          })
-                          .map((request) => (
-                            <Card key={request.id} className="shadow-elegant hover-lift">
-                              <CardContent className="p-6">
-                                <div className="flex items-start justify-between mb-4">
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
-                                      <Package className="w-5 h-5 text-primary" />
-                                      <h4 className="text-lg font-semibold">{request.title}</h4>
-                                    </div>
-                                    <p className="text-sm text-muted-foreground mb-3">{request.description}</p>
-                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                      <span>Turi: {request.requestType}</span>
-                                      <span>Muhimlik: {request.priority || 'medium'}</span>
-                                      <span>{new Date(request.createdAt).toLocaleDateString('uz-UZ')}</span>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    {getStatusBadge(request.status)}
-                                  </div>
-                                </div>
-                                {request.status === 'pending' && (
-                                  <div className="flex gap-2 mt-4">
-                                    <Button
-                                      onClick={() => acceptRequestMutation.mutate(request.id)}
-                                      disabled={acceptRequestMutation.isPending}
-                                      className="bg-green-600 hover:bg-green-700"
-                                      size="sm"
-                                    >
-                                      <CheckCircle className="w-4 h-4 mr-2" />
-                                      Qabul qilish
-                                    </Button>
-                                    <Button
-                                      onClick={() => rejectRequestMutation.mutate(request.id)}
-                                      disabled={rejectRequestMutation.isPending}
-                                      variant="destructive"
-                                      size="sm"
-                                    >
-                                      <XCircle className="w-4 h-4 mr-2" />
-                                      Rad etish
-                                    </Button>
-                                  </div>
-                                )}
+                      {/* Fulfillment Requests */}
+                      <div className="space-y-6">
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                          <div>
+                            <h3 className="text-xl font-bold">Fulfillment So'rovlari</h3>
+                            <p className="text-muted-foreground">Hamkorlardan kelgan so'rovlarni boshqarish</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="So'rov qidirish..."
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                              className="w-64"
+                            />
+                            <select
+                              value={filterStatus}
+                              onChange={(e) => setFilterStatus(e.target.value)}
+                              className="px-3 py-2 border rounded-md"
+                            >
+                              <option value="all">Barchasi</option>
+                              <option value="pending">Kutilmoqda</option>
+                              <option value="in_progress">Jarayonda</option>
+                              <option value="completed">Bajarildi</option>
+                              <option value="rejected">Rad etildi</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div className="grid gap-4">
+                          {fulfillmentRequests.length === 0 ? (
+                            <Card>
+                              <CardContent className="p-8 text-center">
+                                <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                                <p className="text-muted-foreground">Hozircha so'rovlar yo'q</p>
                               </CardContent>
                             </Card>
-                          ))
-                      )}
-                    </div>
-                  </div>
+                          ) : (
+                            fulfillmentRequests
+                              .filter(req => {
+                                const matchesSearch = req.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                                    req.description.toLowerCase().includes(searchTerm.toLowerCase());
+                                const matchesStatus = filterStatus === 'all' || req.status === filterStatus;
+                                return matchesSearch && matchesStatus;
+                              })
+                              .map((request) => (
+                                <Card key={request.id} className="shadow-elegant hover-lift">
+                                  <CardContent className="p-6">
+                                    <div className="flex items-start justify-between mb-4">
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-3 mb-2">
+                                          <Package className="w-5 h-5 text-primary" />
+                                          <h4 className="text-lg font-semibold">{request.title}</h4>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground mb-3">{request.description}</p>
+                                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                          <span>Turi: {request.requestType}</span>
+                                          <span>Muhimlik: {request.priority || 'medium'}</span>
+                                          <span>{new Date(request.createdAt).toLocaleDateString('uz-UZ')}</span>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        {getStatusBadge(request.status)}
+                                      </div>
+                                    </div>
+                                    {request.status === 'pending' && (
+                                      <div className="flex gap-2 mt-4">
+                                        <Button
+                                          onClick={() => acceptRequestMutation.mutate(request.id)}
+                                          disabled={acceptRequestMutation.isPending}
+                                          className="bg-green-600 hover:bg-green-700"
+                                          size="sm"
+                                        >
+                                          <CheckCircle className="w-4 h-4 mr-2" />
+                                          Qabul qilish
+                                        </Button>
+                                        <Button
+                                          onClick={() => rejectRequestMutation.mutate(request.id)}
+                                          disabled={rejectRequestMutation.isPending}
+                                          variant="destructive"
+                                          size="sm"
+                                        >
+                                          <XCircle className="w-4 h-4 mr-2" />
+                                          Rad etish
+                                        </Button>
+                                      </div>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              ))
+                          )}
+                        </div>
+                      </div>
                     </TabsContent>
                   )}
                 </Tabs>
