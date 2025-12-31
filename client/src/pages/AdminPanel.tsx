@@ -24,8 +24,8 @@ import { AICommandCenter } from '@/components/AICommandCenter';
 import { ChatSystem } from '@/components/ChatSystem';
 import { AdminReferralManagement } from '@/components/AdminReferralManagement';
 import { AdminReferralCampaignManager } from '@/components/AdminReferralCampaignManager';
-import { AdminReferralCampaignManager } from '@/components/AdminReferralCampaignManager';
 import { AdminAIManagement } from '@/components/AdminAIManagement';
+import { AdminRemoteAccess } from '@/components/AdminRemoteAccess';
 import { StatCard } from '@/components/ui/StatCard';
 import { ModernButton } from '@/components/ui/ModernButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -65,7 +65,8 @@ import {
   RefreshCw,
   Brain,
   MessageCircle,
-  Gift
+  Gift,
+  Monitor
 } from 'lucide-react';
 
 
@@ -140,6 +141,7 @@ export default function AdminPanel() {
   const [selectedTab, setSelectedTab] = useState<string>('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedRemotePartner, setSelectedRemotePartner] = useState<Partner | null>(null);
   const isAdmin = !!user && user.role === 'admin';
 
   // Data queries (must be declared before any early returns)
@@ -405,7 +407,7 @@ export default function AdminPanel() {
 
           {/* Main Content */}
           <Tabs value={selectedTab} onValueChange={setSelectedTab} defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-9">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" />
                 Umumiy
@@ -638,22 +640,93 @@ export default function AdminPanel() {
 
             {/* Support Chat Tab */}
             <TabsContent value="chat" className="space-y-4">
-              <Card className="bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-200">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-indigo-900">
-                    <MessageCircle className="w-5 h-5" />
-                    Support Chat
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-slate-600">
-                    Hamkorlar bilan real-time yozishma, fayl almashinuvi va statuslarni shu yerda boshqaring.
-                  </p>
-                </CardContent>
-              </Card>
-              <div className="rounded-xl border bg-white shadow-soft h-[720px]">
-                <ChatSystem isAdmin />
-              </div>
+              <Tabs defaultValue="chat" className="space-y-4">
+                <TabsList>
+                  <TabsTrigger value="chat">Chat</TabsTrigger>
+                  <TabsTrigger value="remote-access">Remote Access</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="chat">
+                  <Card className="bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-200">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-indigo-900">
+                        <MessageCircle className="w-5 h-5" />
+                        Support Chat
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-slate-600">
+                        Hamkorlar bilan real-time yozishma, fayl almashinuvi va statuslarni shu yerda boshqaring.
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <div className="rounded-xl border bg-white shadow-soft h-[720px]">
+                    <ChatSystem isAdmin />
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="remote-access">
+                  <div className="mb-6">
+                    <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
+                      <Monitor className="h-8 w-8 text-indigo-600" />
+                      Remote Access
+                    </h2>
+                    <p className="text-slate-600">
+                      Hamkor kabinetlariga masofadan kirish va sozlash
+                    </p>
+                  </div>
+                  <div className="space-y-4">
+                    {partners.length > 0 ? (
+                      partners.map((partner) => (
+                        <Card key={partner.id} className="shadow-elegant hover-lift">
+                          <CardHeader>
+                            <CardTitle className="flex items-center justify-between">
+                              <span>{partner.businessName}</span>
+                              <Badge variant={partner.approved ? "default" : "secondary"}>
+                                {partner.approved ? 'Tasdiqlangan' : 'Kutilmoqda'}
+                              </Badge>
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm text-muted-foreground">
+                                  {partner.businessCategory} • {partner.userData?.email || 'Email yo\'q'}
+                                </p>
+                              </div>
+                              <Button
+                                onClick={() => setSelectedRemotePartner(partner)}
+                                variant="outline"
+                                size="sm"
+                              >
+                                <Monitor className="w-4 h-4 mr-2" />
+                                Remote Access
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      <Card>
+                        <CardContent className="p-8 text-center">
+                          <Monitor className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                          <p className="text-muted-foreground">Hozircha hamkorlar yo'q</p>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                  
+                  {/* Remote Access Modal */}
+                  {selectedRemotePartner && (
+                    <AdminRemoteAccess
+                      partnerId={selectedRemotePartner.id}
+                      partnerName={selectedRemotePartner.businessName}
+                      isOpen={!!selectedRemotePartner}
+                      onClose={() => setSelectedRemotePartner(null)}
+                    />
+                  )}
+                </TabsContent>
+              </Tabs>
             </TabsContent>
 
             {/* Referrals Management Tab - Includes Campaigns */}

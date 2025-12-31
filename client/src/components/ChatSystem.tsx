@@ -336,6 +336,16 @@ export function ChatSystem({ partnerId, isAdmin = false }: ChatSystemProps) {
                     <Badge variant={selectedPartner.isOnline ? "default" : "secondary"}>
                       {selectedPartner.isOnline ? 'Online' : 'Offline'}
                     </Badge>
+                    {isAdmin && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setShowRemoteAccess(true)}
+                        title="Remote Access"
+                      >
+                        <Monitor className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button variant="ghost" size="sm">
                       <Phone className="h-4 w-4" />
                     </Button>
