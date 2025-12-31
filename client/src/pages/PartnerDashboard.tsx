@@ -254,15 +254,90 @@ export default function PartnerDashboard() {
             {/* Overview Tab */}
             {selectedTab === 'overview' && (
               <div className="space-y-6">
-              <TabsTrigger value="trends" className="flex items-center gap-1">
-                <TrendingUp className="w-4 h-4" />
-                <span className="hidden sm:inline">Trendlar</span>
-              </TabsTrigger>
-              <TabsTrigger value="support" className="flex items-center gap-1">
-                <MessageCircle className="w-4 h-4" />
-                <span className="hidden sm:inline">Support</span>
-              </TabsTrigger>
-            </TabsList>
+                {/* Partner Verification Section */}
+                {partner && !partner.approved && (
+                  <PartnerVerificationSection 
+                    partner={partner} 
+                    onUpdate={() => queryClient.invalidateQueries({ queryKey: ['/api/user'] })}
+                  />
+                )}
+
+                {/* Partner Tier / Plan Info Card */}
+                {partner && (() => {
+                  const planType = (partner as any).planType || 'local_full_service';
+
+                  if (planType === 'remote_ai_saas') {
+                    const aiPlanCode = (partner as any).aiPlanCode;
+                    const plan = aiPlanCode
+                      ? AI_MANAGER_PLANS[aiPlanCode as keyof typeof AI_MANAGER_PLANS]
+                      : null;
+
+                    return (
+                      <Card className="border-2 border-primary/30 shadow-lg">
+                        <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
+                          <CardTitle className="flex items-center justify-between">
+                            <span>AI Manager Rejasi</span>
+                            {plan && (
+                              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                                {plan.name}
+                              </Badge>
+                            )}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-4 space-y-2">
+                          <p className="text-sm text-muted-foreground">
+                            Reja turi: {getPlanTypeLabel(planType)}
+                          </p>
+                          {plan ? (
+                            <>
+                              <p className="text-sm">
+                                Oylik to'lov: <span className="font-semibold">${plan.monthlyFee ?? 0}/oy</span>
+                              </p>
+                              <p className="text-sm">
+                                AI Budget: <span className="font-semibold">${plan.aiBudget ?? 0}/oy</span>
+                              </p>
+                            </>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">Reja topilmadi</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  }
+
+                  return null;
+                })()}
+
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <StatCard
+                    title="Jami Mahsulotlar"
+                    value={products.length}
+                    icon={Package}
+                    delay={0}
+                  />
+                  <StatCard
+                    title="Jami Aylanma"
+                    value={formatCurrency(stats.totalRevenue)}
+                    icon={DollarSign}
+                    delay={100}
+                  />
+                  <StatCard
+                    title="Jami Buyurtmalar"
+                    value={stats.totalOrders}
+                    icon={TrendingUp}
+                    delay={200}
+                  />
+                  <StatCard
+                    title="Foyda"
+                    value={formatCurrency(stats.totalProfit)}
+                    icon={Target}
+                    delay={300}
+                    gradient={true}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* AI MANAGER TAB - NEW! */}
             {/* AI Manager Tab */}
@@ -396,139 +471,6 @@ export default function PartnerDashboard() {
               </div>
             )}
 
-
-            {/* Overview Tab Content */}
-            {selectedTab === 'overview' && (
-              <div className="space-y-6">
-              {/* Partner Verification Section */}
-              {partner && !partner.approved && (
-                <PartnerVerificationSection 
-                  partner={partner} 
-                  onUpdate={() => queryClient.invalidateQueries({ queryKey: ['/api/user'] })}
-                />
-              )}
-
-              {/* Partner Tier / Plan Info Card */}
-              {partner && (() => {
-                const planType = (partner as any).planType || 'local_full_service';
-
-                if (planType === 'remote_ai_saas') {
-                  const aiPlanCode = (partner as any).aiPlanCode;
-                  const plan = aiPlanCode
-                    ? AI_MANAGER_PLANS[aiPlanCode as keyof typeof AI_MANAGER_PLANS]
-                    : null;
-
-                  return (
-                    <Card className="border-2 border-primary/30 shadow-lg">
-                      <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
-                        <CardTitle className="flex items-center justify-between">
-                          <span>AI Manager Rejasi</span>
-                          {plan && (
-                            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
-                              {plan.name}
-                            </Badge>
-                          )}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-4 space-y-2">
-                        <p className="text-sm text-muted-foreground">
-                          Reja turi: {getPlanTypeLabel(planType)}
-                        </p>
-                        {plan ? (
-                          <>
-                            <p className="text-sm">
-                              Oylik to'lov: <span className="font-semibold">${plan.monthlyFee ?? 0}/oy</span>
-                            </p>
-                            <p className="text-sm">
-                              Komissiya: <span className="font-semibold">{((plan.revenueCommissionRate ?? 0) * 100).toFixed(2)}% savdodan</span>
-                            </p>
-                          </>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">
-                            AI Manager rejangiz hali tanlanmagan. Admin bilan bog'laning.
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                }
-
-                const tierKey = partner.pricingTier || 'free_starter';
-                const tierConfig = NEW_PRICING_TIERS[tierKey as keyof typeof NEW_PRICING_TIERS];
-
-                return (
-                  <PartnerTierInfo
-                    currentTier={tierKey}
-                    monthlyFee={parseFloat((partner as any).monthlyFee || tierConfig?.monthlyFee?.toString() || '0')}
-                    profitShareRate={parseFloat((partner as any).profitShareRate || (tierConfig?.profitShareRate || tierConfig?.commissionRate)?.toString() || '0')}
-                    monthlyRevenue={stats.totalRevenue}
-                    onUpgradeClick={() => setShowTierModal(true)}
-                  />
-                );
-              })()}
-              {/* AI Usage Tracker */}
-              {partner && (
-                <AIUsageTracker
-                  monthlyRevenue={stats.totalRevenue}
-                  pricingTier={partner.pricingTier}
-                  aiEnabled={(partner as any).aiEnabled || false}
-                  onToggleAI={async (enabled) => {
-                    try {
-                      const response = await apiRequest('POST', '/api/partners/ai-toggle', { enabled });
-                      const data = await response.json();
-                      
-                      if (data.success) {
-                        toast({
-                          title: enabled ? "AI So'rov Yuborildi" : "AI O'chirildi",
-                          description: data.message,
-                          duration: 5000,
-                        });
-                        
-                        // Refresh partner data
-                        queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-                      }
-                    } catch (error) {
-                      toast({
-                        title: "Xatolik",
-                        description: "AI sozlamalarini o'zgartirishda xatolik yuz berdi",
-                        variant: "destructive",
-                        duration: 3000,
-                      });
-                    }
-                  }}
-                />
-              )}
-              
-              <StockAlerts />
-              <div className="equal-grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="shadow-elegant">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span className="flex items-center gap-2"><Package className="w-5 h-5" />So'nggi Mahsulotlar</span>
-                      <Button onClick={() => setSelectedTab('products')} variant="ghost" size="sm">
-                        <Eye className="w-4 h-4 mr-2" />Barchasini ko'rish
-                      </Button>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {products.slice(0, 5).map((p) => (
-                        <div key={p.id} className="flex justify-between p-3 bg-muted/30 rounded-lg">
-                          <div>
-                            <p className="font-medium">{p.name}</p>
-                            <p className="text-sm text-muted-foreground">{formatCurrency(parseFloat(p.price))}</p>
-                          </div>
-                          <Badge variant={p.isActive ? 'default' : 'secondary'}>{p.isActive ? 'Faol' : 'Nofaol'}</Badge>
-                        </div>
-                      ))}
-                      {products.length === 0 && <p className="text-center py-8 text-muted-foreground">Mahsulot yo‘q</p>}
-                    </div>
-                  </CardContent>
-                </Card>
-                {/* So'rovlar kartasi ham xuddi shunday */}
-              </div>
-            </TabsContent>
-
             {/* Marketplace Tab with Sub-tabs */}
             {/* Marketplace Tab */}
             {selectedTab === 'marketplace' && (
@@ -567,7 +509,8 @@ export default function PartnerDashboard() {
                   </Tabs>
                 </CardContent>
               </Card>
-            </TabsContent>
+            </div>
+            )}
 
             {/* Inventory (Ombor) Tab with Sub-tabs */}
             {/* Inventory Tab */}
