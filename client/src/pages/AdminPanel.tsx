@@ -255,26 +255,6 @@ export default function AdminPanel() {
     );
   }
 
-  // Eski kod - o'chirilgan
-  if (false) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="pt-20 pb-16">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <Shield className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Ruxsat yo'q</h2>
-            <p className="text-muted-foreground mb-6">
-              Bu sahifaga kirish uchun admin huquqi kerak.
-            </p>
-            <Button onClick={() => setLocation('/')} variant="outline">
-              Bosh sahifaga qaytish
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // Helper functions
   const getStatusBadge = (status: string) => {
     const statusConfig = {
