@@ -1186,24 +1186,24 @@ export default function AdminPanel() {
             {/* Analytics Tab */}
             {selectedTab === 'analytics' && (
               <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
                   <BarChart3 className="w-7 h-7 text-purple-600" />
                   Platformaning to'liq tahlili
-                </h2>
-                <p className="text-muted-foreground mb-6">Hamkorlar bo'yicha foyda breakdown, AI usage, marketplace statistika</p>
-              </div>
+                  </h2>
+                  <p className="text-muted-foreground mb-6">Hamkorlar bo'yicha foyda breakdown, AI usage, marketplace statistika</p>
+                </div>
 
-              {/* ADVANCED PARTNER ANALYTICS - NEW! */}
-              <AdvancedPartnerAnalytics />
+                {/* ADVANCED PARTNER ANALYTICS - NEW! */}
+                <AdvancedPartnerAnalytics />
 
-              {/* Comprehensive Analytics */}
-              <div className="grid gap-6 mt-6">
-                <ComprehensiveAnalytics />
-              </div>
+                {/* Comprehensive Analytics */}
+                <div className="grid gap-6 mt-6">
+                  <ComprehensiveAnalytics />
+                </div>
 
-              {/* Reports Export */}
-              <Card className="mt-6">
+                {/* Reports Export */}
+                <Card className="mt-6">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Download className="w-5 h-5" />
@@ -1220,7 +1220,7 @@ export default function AdminPanel() {
                     <ScheduledReports />
                   </div>
                 </CardContent>
-              </Card>
+                </Card>
               </div>
             )}
 
