@@ -1130,7 +1130,7 @@ export default function AdminPanel() {
             {selectedTab === 'settings' && (
               <div className="space-y-6">
                 {/* Marketplace API - Full Width */}
-              <Card className="shadow-elegant">
+                <Card className="shadow-elegant">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Globe className="w-5 h-5" />
@@ -1227,8 +1227,8 @@ export default function AdminPanel() {
                     </div>
                   </CardContent>
                 </Card>
+                </div>
               </div>
-            </div>
             )}
           </div>
         </div>
