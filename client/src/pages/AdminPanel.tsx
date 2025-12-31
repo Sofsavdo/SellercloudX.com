@@ -652,13 +652,13 @@ export default function AdminPanel() {
             {/* Support Chat Tab */}
             {selectedTab === 'chat' && (
               <div className="space-y-4">
-              <Tabs defaultValue="chat" className="space-y-4">
-                <TabsList>
-                  <TabsTrigger value="chat">Chat</TabsTrigger>
-                  <TabsTrigger value="remote-access">Remote Access</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="chat">
+                <Tabs defaultValue="chat" className="space-y-4">
+                  <TabsList>
+                    <TabsTrigger value="chat">Chat</TabsTrigger>
+                    <TabsTrigger value="remote-access">Remote Access</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="chat">
                   <Card className="bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-200">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-indigo-900">
@@ -674,10 +674,10 @@ export default function AdminPanel() {
                   </Card>
                   <div className="rounded-xl border bg-white shadow-soft h-[720px]">
                     <ChatSystem isAdmin />
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="remote-access">
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="remote-access">
                   <div className="mb-6">
                     <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
                       <Monitor className="h-8 w-8 text-indigo-600" />
@@ -737,9 +737,9 @@ export default function AdminPanel() {
                       onClose={() => setSelectedRemotePartner(null)}
                     />
                   )}
-                </TabsContent>
-              </Tabs>
-            </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
             )}
 
             {/* Referrals Management Tab - Includes Campaigns */}
