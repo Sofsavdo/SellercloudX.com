@@ -1131,22 +1131,22 @@ export default function AdminPanel() {
               <div className="space-y-6">
                 {/* Marketplace API - Full Width */}
                 <Card className="shadow-elegant">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Globe className="w-5 h-5" />
-                    Marketplace API Sozlamalari
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Marketplace platformalari bilan integratsiya uchun API kalitlarini sozlang
-                  </p>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <MarketplaceApiConfig />
-                </CardContent>
-              </Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Globe className="w-5 h-5" />
+                      Marketplace API Sozlamalari
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Marketplace platformalari bilan integratsiya uchun API kalitlarini sozlang
+                    </p>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <MarketplaceApiConfig />
+                  </CardContent>
+                </Card>
 
-              {/* System Settings */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* System Settings */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Card className="shadow-elegant hover-lift">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
