@@ -458,7 +458,7 @@ export default function AdminPanel() {
             {/* Overview Tab */}
             {selectedTab === 'overview' && (
               <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Recent Activity */}
                 <Card className="shadow-elegant">
                   <CardHeader>
@@ -551,10 +551,10 @@ export default function AdminPanel() {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
+                </div>
 
-              {/* Additional Overview Cards */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Additional Overview Cards */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Monthly Trend */}
                 <Card className="shadow-elegant">
                   <CardHeader>
