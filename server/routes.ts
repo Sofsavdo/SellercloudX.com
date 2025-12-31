@@ -1192,7 +1192,7 @@ export function registerRoutes(app: express.Application): Server {
   app.use("/api/trending", requireAuth, trendingRoutes);
 
   // Referral System Routes
-  app.use("/api/referrals", requireAuth, referralRoutes);
+  app.use("/api/referrals", requireAuth, requirePartnerWithData, referralRoutes);
   
   // Admin Remote Access routes
   app.use("/api/admin/remote", requireAdmin, adminRemoteAccessRoutes);

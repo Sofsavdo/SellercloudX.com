@@ -407,6 +407,22 @@ export async function initializeDatabaseTables() {
       );
     `);
     
+    // Create audit_logs table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id TEXT PRIMARY KEY,
+        user_id TEXT REFERENCES users(id),
+        action TEXT NOT NULL,
+        entity_type TEXT NOT NULL,
+        entity_id TEXT,
+        changes TEXT,
+        payload TEXT,
+        ip_address TEXT,
+        user_agent TEXT,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch())
+      );
+    `);
+    
     console.log('✅ All database tables created successfully');
     
     // Final check: ensure all required columns exist

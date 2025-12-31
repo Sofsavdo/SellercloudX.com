@@ -63,7 +63,7 @@ export function Sidebar({ items, userRole = 'partner', selectedTab, onTabChange 
       <div
         className={cn(
           'fixed left-0 top-0 h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 border-r border-slate-700/50 transition-all duration-300 z-50 shadow-2xl',
-          isCollapsed ? 'w-20 -translate-x-full lg:translate-x-0' : 'w-64'
+          isCollapsed ? 'w-20' : 'w-64'
         )}
       >
       {/* Header */}
