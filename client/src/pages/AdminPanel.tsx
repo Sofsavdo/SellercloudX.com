@@ -405,7 +405,7 @@ export default function AdminPanel() {
 
           {/* Main Content */}
           <Tabs value={selectedTab} onValueChange={setSelectedTab} defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-9">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" />
                 Umumiy
@@ -429,10 +429,6 @@ export default function AdminPanel() {
                 <TrendingUp className="w-4 h-4" />
                 Trendlar
               </TabsTrigger>
-              <TabsTrigger value="remote" className="flex items-center gap-2">
-                <Shield className="w-4 h-4" />
-                Remote Access
-              </TabsTrigger>
               <TabsTrigger value="settings" className="flex items-center gap-2">
                 <Settings className="w-4 h-4" />
                 Sozlamalar
@@ -444,14 +440,6 @@ export default function AdminPanel() {
               <TabsTrigger value="referrals" className="flex items-center gap-2">
                 <Gift className="w-4 h-4" />
                 Referrallar
-              </TabsTrigger>
-              <TabsTrigger value="referral-campaigns" className="flex items-center gap-2">
-                <Gift className="w-4 h-4" />
-                Konkurslar
-              </TabsTrigger>
-              <TabsTrigger value="ai-management" className="flex items-center gap-2">
-                <Brain className="w-4 h-4" />
-                AI Boshqaruv
               </TabsTrigger>
             </TabsList>
 
@@ -668,39 +656,84 @@ export default function AdminPanel() {
               </div>
             </TabsContent>
 
-            {/* Referrals Management Tab */}
+            {/* Referrals Management Tab - Includes Campaigns */}
             <TabsContent value="referrals" className="space-y-6">
-              <AdminReferralManagement />
+              <Tabs defaultValue="management" className="space-y-4">
+                <TabsList>
+                  <TabsTrigger value="management">Referral Boshqaruvi</TabsTrigger>
+                  <TabsTrigger value="campaigns">Konkurslar</TabsTrigger>
+                </TabsList>
+                <TabsContent value="management">
+                  <AdminReferralManagement />
+                </TabsContent>
+                <TabsContent value="campaigns">
+                  <AdminReferralCampaignManager />
+                </TabsContent>
+              </Tabs>
             </TabsContent>
 
-            {/* Referral Campaigns Tab */}
-            <TabsContent value="referral-campaigns" className="space-y-6">
-              <AdminReferralCampaignManager />
-            </TabsContent>
-
-            {/* AI MANAGER TAB - ENHANCED */}
+            {/* AI MANAGER TAB - ENHANCED with AI Management */}
             <TabsContent value="ai-manager" className="space-y-6">
-              <div className="mb-6">
-                <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
-                  <Brain className="h-8 w-8 text-purple-600" />
-                  AI Manager Control Center
-                </h2>
-                <p className="text-slate-600">
-                  AI Manager'ni real-time kuzating, buyruqlar bering, sozlang
-                </p>
-              </div>
+              <Tabs defaultValue="monitor" className="space-y-4">
+                <TabsList>
+                  <TabsTrigger value="monitor">Live Monitor</TabsTrigger>
+                  <TabsTrigger value="commands">Buyruqlar</TabsTrigger>
+                  <TabsTrigger value="statistics">Statistika</TabsTrigger>
+                  <TabsTrigger value="management">AI Boshqaruv</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="monitor">
+                  <div className="mb-6">
+                    <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
+                      <Brain className="h-8 w-8 text-purple-600" />
+                      AI Manager Live Monitor
+                    </h2>
+                    <p className="text-slate-600">
+                      AI Manager'ni real-time kuzating
+                    </p>
+                  </div>
+                  <AIManagerLiveMonitor />
+                </TabsContent>
 
-              {/* Live Monitor */}
-              <AIManagerLiveMonitor />
+                <TabsContent value="commands">
+                  <div className="mb-6">
+                    <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
+                      <Brain className="h-8 w-8 text-purple-600" />
+                      AI Command Center
+                    </h2>
+                    <p className="text-slate-600">
+                      AI Manager'ga buyruqlar bering va sozlang
+                    </p>
+                  </div>
+                  <AICommandCenter />
+                </TabsContent>
 
-              {/* Command Center */}
-              <AICommandCenter />
+                <TabsContent value="statistics">
+                  <div className="mb-6">
+                    <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
+                      <Brain className="h-8 w-8 text-purple-600" />
+                      AI Manager Statistics
+                    </h2>
+                    <p className="text-slate-600">
+                      AI Manager statistikasi va ko'rsatkichlari
+                    </p>
+                  </div>
+                  <AIManagerDashboard />
+                </TabsContent>
 
-              {/* Original Dashboard */}
-              <div className="mt-6">
-                <h3 className="text-xl font-bold mb-4">AI Manager Statistics</h3>
-                <AIManagerDashboard />
-              </div>
+                <TabsContent value="management">
+                  <div className="mb-6">
+                    <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
+                      <Brain className="h-8 w-8 text-purple-600" />
+                      AI Boshqaruv
+                    </h2>
+                    <p className="text-slate-600">
+                      AI xizmatlarini boshqarish, xarajatlarni kuzatish va sozlash
+                    </p>
+                  </div>
+                  <AdminAIManagement />
+                </TabsContent>
+              </Tabs>
             </TabsContent>
 
             {/* Marketplace Integration Tab */}
@@ -1085,70 +1118,6 @@ export default function AdminPanel() {
               </Card>
             </TabsContent>
 
-            {/* Remote Access Tab - NEW */}
-            <TabsContent value="remote" className="space-y-6">
-              <Card className="shadow-elegant border-2 border-blue-300">
-                <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
-                  <CardTitle className="flex items-center gap-2 text-2xl">
-                    <Shield className="w-6 h-6 text-blue-600" />
-                    Remote Access - Masofadan Boshqarish
-                  </CardTitle>
-                  <p className="text-muted-foreground">
-                    Hamkorlarning kompyuterlariga xavfsiz ulanish
-                  </p>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-bold flex items-center gap-2">
-                        <Target className="w-5 h-5 text-green-600" />
-                        AnyDesk Ulanish
-                      </h3>
-                      <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                        <p className="text-sm text-gray-700 mb-3">
-                          Hamkorning AnyDesk ID'sini kiriting:
-                        </p>
-                        <Input 
-                          placeholder="123 456 789" 
-                          className="mb-3"
-                        />
-                        <Button className="w-full bg-green-600 hover:bg-green-700">
-                          <Shield className="w-4 h-4 mr-2" />
-                          Ulanish
-                        </Button>
-                      </div>
-                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                        <h4 className="font-semibold mb-2">Faol Ulanishlar</h4>
-                        <p className="text-sm text-gray-600">Hozirda faol ulanish yo'q</p>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-bold flex items-center gap-2">
-                        <Users className="w-5 h-5 text-purple-600" />
-                        Hamkorlar Ro'yxati
-                      </h3>
-                      <div className="space-y-2 max-h-96 overflow-y-auto">
-                        {partners.slice(0, 5).map((partner) => (
-                          <div key={partner.id} className="p-3 bg-white rounded-lg border hover:border-blue-300 transition-colors">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="font-semibold">{partner.businessName}</p>
-                                <p className="text-xs text-gray-500">{partner.userData?.email}</p>
-                              </div>
-                              <Button size="sm" variant="outline">
-                                <Shield className="w-4 h-4 mr-1" />
-                                Ulanish
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             {/* Settings Tab */}
             <TabsContent value="settings" className="space-y-6">
