@@ -859,20 +859,20 @@ export default function AdminPanel() {
                     <Crown className="w-4 h-4 mr-2" />
                     Tariflar
                   </TabsTrigger>
-                  {/* FULFILLMENT FEATURE - Hidden for SaaS-only mode */}
-                  {false && (
-                  <TabsTrigger value="requests">
-                    <Package className="w-4 h-4 mr-2" />
-                    So'rovlar
-                  </TabsTrigger>
-                  )}
-                </TabsList>
+                    {/* FULFILLMENT FEATURE - Hidden for SaaS-only mode */}
+                    {false && (
+                      <TabsTrigger value="requests">
+                        <Package className="w-4 h-4 mr-2" />
+                        So'rovlar
+                      </TabsTrigger>
+                    )}
+                  </TabsList>
 
-                <TabsContent value="list">
-                  <AdminPartnersManagement />
-                </TabsContent>
+                  <TabsContent value="list">
+                    <AdminPartnersManagement />
+                  </TabsContent>
 
-                <TabsContent value="tiers">
+                  <TabsContent value="tiers">
                   {/* Tier Upgrade Requests */}
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
@@ -975,11 +975,11 @@ export default function AdminPanel() {
                       )}
                     </div>
                   </div>
-                </TabsContent>
+                  </TabsContent>
 
-                {/* FULFILLMENT FEATURE - Hidden for SaaS-only mode */}
-                {false && (
-                <TabsContent value="requests">
+                  {/* FULFILLMENT FEATURE - Hidden for SaaS-only mode */}
+                  {false && (
+                    <TabsContent value="requests">
                   {/* Fulfillment Requests */}
                   <div className="space-y-6">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -1071,110 +1071,12 @@ export default function AdminPanel() {
                       )}
                     </div>
                   </div>
-                </TabsContent>
-                )}
-
-              </Tabs>
-            </TabsContent>
-
-            {/* FULFILLMENT FEATURE - Removed duplicate, already hidden inside nested Tabs */}
-
-            {/* Tier Upgrade Requests Tab */}
-            <TabsContent value="tiers" className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold">Tarif Yangilash So'rovlari</h2>
-                  <p className="text-muted-foreground">Hamkorlardan kelgan tarif yangilash so'rovlari</p>
-                </div>
-                <Badge variant="secondary">
-                  {stats.tierUpgradeRequests} ta yangi so'rov
-                </Badge>
-              </div>
-              <div className="grid gap-6">
-                {tierUpgradeRequests.map((request) => (
-                  <Card key={request.id} className="shadow-elegant hover-lift">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-3">
-                            <Crown className="w-6 h-6 text-primary" />
-                            <div>
-                              <h3 className="text-lg font-semibold">
-                                {getTierName(request.currentTier)} → {getTierName(request.requestedTier)}
-                              </h3>
-                              <p className="text-sm text-muted-foreground">
-                                {new Date(request.requestedAt).toLocaleDateString('uz-UZ')}
-                              </p>
-                            </div>
-                          </div>
-                         
-                          {request.reason && (
-                            <div className="mb-4 p-3 bg-muted/30 rounded-lg">
-                              <p className="text-sm text-muted-foreground mb-1">Sabab:</p>
-                              <p className="text-sm">{request.reason}</p>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {getStatusBadge(request.status)}
-                        </div>
-                      </div>
-                      {request.status === 'pending' && (
-                        <div className="space-y-4">
-                          <Textarea
-                            placeholder="Admin izohi..."
-                            className="min-h-[80px]"
-                            id={`admin-notes-${request.id}`}
-                          />
-                          <div className="flex gap-2">
-                            <Button
-                              onClick={() => {
-                                const textarea = document.getElementById(`admin-notes-${request.id}`) as HTMLTextAreaElement;
-                                updateTierRequestMutation.mutate({
-                                  id: request.id,
-                                  status: 'approved',
-                                  adminNotes: textarea?.value || ''
-                                });
-                              }}
-                              disabled={updateTierRequestMutation.isPending}
-                              variant="success"
-                              size="sm"
-                            >
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                              Tasdiqlash
-                            </Button>
-                            <Button
-                              onClick={() => {
-                                const textarea = document.getElementById(`admin-notes-${request.id}`) as HTMLTextAreaElement;
-                                updateTierRequestMutation.mutate({
-                                  id: request.id,
-                                  status: 'rejected',
-                                  adminNotes: textarea?.value || ''
-                                });
-                              }}
-                              disabled={updateTierRequestMutation.isPending}
-                              variant="destructive"
-                              size="sm"
-                            >
-                              <XCircle className="w-4 h-4 mr-2" />
-                              Rad etish
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                      {request.adminNotes && (
-                        <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                          <p className="text-sm text-blue-600 font-medium mb-1">Admin izohi:</p>
-                          <p className="text-sm text-blue-800">{request.adminNotes}</p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                    </TabsContent>
+                  )}
                 </Tabs>
               </div>
             )}
+
 
             {/* Trending Products Tab - ADVANCED VERSION */}
             {selectedTab === 'trends' && (
