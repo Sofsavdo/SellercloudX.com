@@ -26,6 +26,7 @@ import { AdminReferralManagement } from '@/components/AdminReferralManagement';
 import { AdminReferralCampaignManager } from '@/components/AdminReferralCampaignManager';
 import { AdminAIManagement } from '@/components/AdminAIManagement';
 import { AdminRemoteAccess } from '@/components/AdminRemoteAccess';
+import { AdminSMM } from '@/components/AdminSMM';
 import { StatCard } from '@/components/ui/StatCard';
 import { ModernButton } from '@/components/ui/ModernButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -407,13 +408,16 @@ export default function AdminPanel() {
 
           {/* Main Content */}
           <Tabs value={selectedTab} onValueChange={setSelectedTab} defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-9">
+            <TabsList className="grid w-full grid-cols-10">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" />
                 Umumiy
               </TabsTrigger>
               <TabsTrigger value="ai-manager" className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white">
                 🤖 AI Manager
+              </TabsTrigger>
+              <TabsTrigger value="smm" className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white">
+                📱 SMM
               </TabsTrigger>
               <TabsTrigger value="marketplace" className="flex items-center gap-2">
                 <Globe className="w-4 h-4" />
@@ -743,6 +747,11 @@ export default function AdminPanel() {
                   <AdminReferralCampaignManager />
                 </TabsContent>
               </Tabs>
+            </TabsContent>
+
+            {/* SMM Tab */}
+            <TabsContent value="smm" className="space-y-6">
+              <AdminSMM />
             </TabsContent>
 
             {/* AI MANAGER TAB - ENHANCED with AI Management */}

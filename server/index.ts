@@ -17,6 +17,8 @@ import { autonomousAIManager } from "./services/autonomousAIManager";
 import { geminiService } from "./services/geminiService";
 import { googleSearchService } from "./services/googleSearchService";
 import { contextCacheService } from "./services/contextCacheService";
+import { videoGenerationService } from "./services/videoGenerationService";
+import { smmService } from "./services/smmService";
 import helmet from "helmet";
 import * as Sentry from "@sentry/node";
 import winston from "winston";
@@ -249,6 +251,22 @@ app.use((req, res, next) => {
         const cacheStats = contextCacheService.getStats();
         log(`   - Cached entries: ${cacheStats.totalEntries}`);
         log(`   - Total tokens cached: ${cacheStats.totalTokens}`);
+      }
+
+      // Initialize Video Generation service
+      if (videoGenerationService.isEnabled()) {
+        log('✅ Video Generation Service initialized');
+        const providers = videoGenerationService.getAvailableProviders();
+        log(`   - Available providers: ${providers.join(', ')}`);
+      } else {
+        log('⚠️  Video Generation Service disabled (no API keys found)');
+      }
+
+      // Initialize SMM service
+      if (smmService.isEnabled()) {
+        log('✅ SMM Service initialized');
+      } else {
+        log('⚠️  SMM Service disabled (requires Gemini API)');
       }
 
       // Initialize AI task queue (SQLite-based background processor)

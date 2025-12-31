@@ -12,6 +12,7 @@ import { geminiService } from './geminiService';
 import { contextCacheService } from './contextCacheService';
 import { googleSearchService } from './googleSearchService';
 import { aiCostOptimizer } from './aiCostOptimizer';
+import { videoGenerationService } from './videoGenerationService';
 
 // ================================================================
 // CONFIGURATION
@@ -267,13 +268,49 @@ MUHIM:
       console.error('⚠️ Infographic generation failed:', infographicError.message);
       // Continue without infographic - not critical
     }
+
+    // Generate product video (if video generation is enabled)
+    let videoUrl = null;
+    try {
+      if (videoGenerationService.isEnabled()) {
+        console.log('🎬 AI: Generating product video...');
+        
+        const video = await videoGenerationService.generateProductVideo({
+          productName: result.title,
+          productDescription: result.description,
+          productCategory: input.category || undefined,
+          targetMarketplace: input.targetMarketplace,
+          duration: 15,
+          aspectRatio: '16:9',
+          style: 'product_showcase',
+          language: isRussianMarketplace ? 'ru' : 'uz',
+          includeText: true,
+          music: true,
+        });
+
+        videoUrl = video.videoUrl;
+        console.log('✅ AI: Video generated:', videoUrl);
+
+        // Update product with video URL
+        await db.run(
+          `UPDATE ai_generated_products 
+           SET video_url = ?, updated_at = CURRENT_TIMESTAMP 
+           WHERE id = ?`,
+          [videoUrl, generatedProduct.id]
+        );
+      }
+    } catch (videoError: any) {
+      console.error('⚠️ Video generation failed:', videoError.message);
+      // Continue without video - not critical
+    }
     
     console.log('✅ AI: Product card ready!', result.title);
     return { 
       success: true, 
       productId: generatedProduct.id, 
       data: result,
-      infographicUrl: infographicUrl || null
+      infographicUrl: infographicUrl || null,
+      videoUrl: videoUrl || null
     };
   } catch (error: any) {
     console.error('❌ AI: Error:', error.message);
