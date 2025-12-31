@@ -646,6 +646,7 @@ export default function AdminPanel() {
                     </div>
                   </CardContent>
                 </Card>
+                </div>
               </div>
             )}
 
@@ -1230,6 +1231,7 @@ export default function AdminPanel() {
                 </div>
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>
