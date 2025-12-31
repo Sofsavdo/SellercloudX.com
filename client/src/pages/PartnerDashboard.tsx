@@ -189,7 +189,7 @@ export default function PartnerDashboard() {
         onTabChange={setSelectedTab}
       />
      
-      <div className="flex-1 ml-64 transition-all duration-300 min-h-screen">
+      <div className="flex-1 lg:ml-64 transition-all duration-300 min-h-screen">
         <div className="p-6 space-y-6">
           {/* Header Section */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
