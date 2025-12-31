@@ -830,22 +830,26 @@ export default function AdminPanel() {
                   <AdminAIManagement />
                 </TabsContent>
               </Tabs>
-            </TabsContent>
+            </div>
+            )}
 
             {/* Marketplace Integration Tab */}
-            <TabsContent value="marketplace" className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold mb-2">Marketplace Integratsiyasi Boshqaruvi</h2>
-                <p className="text-muted-foreground mb-6">
-                  Hamkorlardan kelgan marketplace ulanish so'rovlarini ko'rib chiqing va tasdiqlang
-                </p>
+            {selectedTab === 'marketplace' && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">Marketplace Integratsiyasi Boshqaruvi</h2>
+                  <p className="text-muted-foreground mb-6">
+                    Hamkorlardan kelgan marketplace ulanish so'rovlarini ko'rib chiqing va tasdiqlang
+                  </p>
+                </div>
+                <AdminMarketplaceIntegration />
               </div>
-              <AdminMarketplaceIntegration />
-            </TabsContent>
+            )}
 
             {/* Partners Tab - YANGI MUKAMMAL with Mini Menu */}
-            <TabsContent value="partners" className="space-y-6">
-              <Tabs defaultValue="list" className="space-y-4">
+            {selectedTab === 'partners' && (
+              <div className="space-y-6">
+                <Tabs defaultValue="list" className="space-y-4">
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="list">
                     <Users className="w-4 h-4 mr-2" />
@@ -1168,12 +1172,15 @@ export default function AdminPanel() {
                   </Card>
                 ))}
               </div>
-            </TabsContent>
+                </Tabs>
+              </div>
+            )}
 
             {/* Trending Products Tab - ADVANCED VERSION */}
-            <TabsContent value="trends" className="space-y-6">
-              <TrendingProductsDashboard />
-            </div>
+            {selectedTab === 'trends' && (
+              <div className="space-y-6">
+                <TrendingProductsDashboard />
+              </div>
             )}
 
             {/* Analytics Tab */}
@@ -1214,13 +1221,13 @@ export default function AdminPanel() {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
-
+              </div>
+            )}
 
             {/* Settings Tab */}
             {selectedTab === 'settings' && (
               <div className="space-y-6">
-              {/* Marketplace API - Full Width */}
+                {/* Marketplace API - Full Width */}
               <Card className="shadow-elegant">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
