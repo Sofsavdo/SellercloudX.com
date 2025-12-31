@@ -850,15 +850,15 @@ export default function AdminPanel() {
             {selectedTab === 'partners' && (
               <div className="space-y-6">
                 <Tabs defaultValue="list" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="list">
-                    <Users className="w-4 h-4 mr-2" />
-                    Hamkorlar Ro'yxati
-                  </TabsTrigger>
-                  <TabsTrigger value="tiers">
-                    <Crown className="w-4 h-4 mr-2" />
-                    Tariflar
-                  </TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="list">
+                      <Users className="w-4 h-4 mr-2" />
+                      Hamkorlar Ro'yxati
+                    </TabsTrigger>
+                    <TabsTrigger value="tiers">
+                      <Crown className="w-4 h-4 mr-2" />
+                      Tariflar
+                    </TabsTrigger>
                     {/* FULFILLMENT FEATURE - Hidden for SaaS-only mode */}
                     {false && (
                       <TabsTrigger value="requests">
@@ -873,8 +873,8 @@ export default function AdminPanel() {
                   </TabsContent>
 
                   <TabsContent value="tiers">
-                  {/* Tier Upgrade Requests */}
-                  <div className="space-y-6">
+                    {/* Tier Upgrade Requests */}
+                    <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-xl font-bold">Tarif Yangilash So'rovlari</h3>
