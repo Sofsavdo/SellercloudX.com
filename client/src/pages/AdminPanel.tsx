@@ -1173,60 +1173,60 @@ export default function AdminPanel() {
                       </div>
                     </div>
                   </CardContent>
-                </Card>
+                  </Card>
 
-                <Card className="shadow-elegant hover-lift">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Shield className="w-5 h-5" />
-                      Xavfsizlik
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Tizim xavfsizligi va ruxsatlar
-                    </p>
-                    <div className="space-y-2">
-                      <Badge variant="default" className="w-full justify-center">
-                        SSL Faol
-                      </Badge>
-                      <Badge variant="default" className="w-full justify-center">
-                        2FA Yoqilgan
-                      </Badge>
-                      <Badge variant="default" className="w-full justify-center">
-                        Session Secure
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
+                  <Card className="shadow-elegant hover-lift">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Shield className="w-5 h-5" />
+                        Xavfsizlik
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Tizim xavfsizligi va ruxsatlar
+                      </p>
+                      <div className="space-y-2">
+                        <Badge variant="default" className="w-full justify-center">
+                          SSL Faol
+                        </Badge>
+                        <Badge variant="default" className="w-full justify-center">
+                          2FA Yoqilgan
+                        </Badge>
+                        <Badge variant="default" className="w-full justify-center">
+                          Session Secure
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                <Card className="shadow-elegant hover-lift">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Settings className="w-5 h-5" />
-                      Tizim
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Umumiy tizim sozlamalari
-                    </p>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Versiya:</span>
-                        <span className="font-semibold">2.0.1</span>
+                  <Card className="shadow-elegant hover-lift">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Settings className="w-5 h-5" />
+                        Tizim
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Umumiy tizim sozlamalari
+                      </p>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Versiya:</span>
+                          <span className="font-semibold">2.0.1</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Node:</span>
+                          <span className="font-semibold">v20.x</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Database:</span>
+                          <span className="font-semibold">SQLite</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Node:</span>
-                        <span className="font-semibold">v20.x</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Database:</span>
-                        <span className="font-semibold">SQLite</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
             )}
