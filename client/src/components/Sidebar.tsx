@@ -248,7 +248,7 @@ export const partnerSidebarItems: SidebarItem[] = [
   {
     id: 'products',
     label: 'Mahsulotlar',
-    icon: BarChart3,
+    icon: Package,
     path: '/dashboard',
   },
   {

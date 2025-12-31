@@ -361,38 +361,40 @@ export default function PartnerDashboard() {
                   </CardContent>
                 </Card>
               )}
-            </TabsContent>
+            </div>
+            )}
 
             {/* REFERRAL TAB - NEW! */}
             {/* Referral Tab */}
             {selectedTab === 'referrals' && (
               <div className="space-y-6">
-              <EnhancedReferralDashboard />
-              
-              {/* Active Campaigns */}
-              <div className="mt-6">
-                <PartnerReferralCampaigns />
+                <EnhancedReferralDashboard />
+                
+                {/* Active Campaigns */}
+                <div className="mt-6">
+                  <PartnerReferralCampaigns />
+                </div>
+                
+                <AchievementSystem />
+                
+                {/* Viral Share Section */}
+                <Card className="border-2 border-green-300 bg-gradient-to-br from-green-50 to-blue-50">
+                  <CardContent className="p-8 text-center">
+                    <h3 className="text-2xl font-bold mb-4">Muvaffaqiyatingizni Ulashing!</h3>
+                    <p className="text-gray-600 mb-6">
+                      Har bir taklif qilingan hamkor uchun birinchi haridaning 10% komissiya olasiz!
+                    </p>
+                    <ViralShareButton 
+                      data={{
+                        earnings: 24,
+                        growthPercent: 180,
+                        partnerName: user?.username || 'partner'
+                      }}
+                    />
+                  </CardContent>
+                </Card>
               </div>
-              
-              <AchievementSystem />
-              
-              {/* Viral Share Section */}
-              <Card className="border-2 border-green-300 bg-gradient-to-br from-green-50 to-blue-50">
-                <CardContent className="p-8 text-center">
-                  <h3 className="text-2xl font-bold mb-4">Muvaffaqiyatingizni Ulashing!</h3>
-                  <p className="text-gray-600 mb-6">
-                    Har bir taklif qilingan hamkor uchun birinchi haridaning 10% komissiya olasiz!
-                  </p>
-                  <ViralShareButton 
-                    data={{
-                      earnings: 24,
-                      growthPercent: 180,
-                      partnerName: user?.username || 'partner'
-                    }}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
+            )}
 
 
             {/* Overview Tab Content */}
@@ -622,38 +624,45 @@ export default function PartnerDashboard() {
                   </Tabs>
                 </CardContent>
               </Card>
-            </TabsContent>
+            </div>
+            )}
 
             {/* Profit Tab */}
-            <TabsContent value="profit">
-              <ProfitDashboard />
-            </TabsContent>
+            {selectedTab === 'profit' && (
+              <div className="space-y-6">
+                <ProfitDashboard />
+              </div>
+            )}
 
             {/* Trends Tab - ADVANCED VERSION */}
-            <TabsContent value="trends">
-              <TrendingProductsDashboard />
-            </TabsContent>
+            {selectedTab === 'trends' && (
+              <div className="space-y-6">
+                <TrendingProductsDashboard />
+              </div>
+            )}
 
             {/* Support Chat Tab */}
-            <TabsContent value="support" className="space-y-4">
-              <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-blue-900">
-                    <MessageCircle className="w-5 h-5" />
-                    Support bilan chat
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-slate-600">
-                    Admin jamoasi bilan real-time yozishmalarda savollarga javob oling, fayl yuboring va holatingizni kuzating.
-                  </p>
-                </CardContent>
-              </Card>
-              <div className="rounded-xl border bg-white shadow-soft h-[640px]">
-                <ChatSystem partnerId={partner?.id} />
+            {selectedTab === 'chat' && (
+              <div className="space-y-4">
+                <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-blue-900">
+                      <MessageCircle className="w-5 h-5" />
+                      Support bilan chat
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-slate-600">
+                      Admin jamoasi bilan real-time yozishmalarda savollarga javob oling, fayl yuboring va holatingizni kuzating.
+                    </p>
+                  </CardContent>
+                </Card>
+                <div className="rounded-xl border bg-white shadow-soft h-[640px]">
+                  <ChatSystem partnerId={partner?.id} />
+                </div>
               </div>
-            </TabsContent>
-          </Tabs>
+            )}
+          </div>
         </div>
       </div>
 
