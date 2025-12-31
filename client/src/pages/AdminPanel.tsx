@@ -744,7 +744,7 @@ export default function AdminPanel() {
             {/* Referrals Management Tab - Includes Campaigns */}
             {selectedTab === 'referrals' && (
               <div className="space-y-6">
-              <Tabs defaultValue="management" className="space-y-4">
+                <Tabs defaultValue="management" className="space-y-4">
                 <TabsList>
                   <TabsTrigger value="management">Referral Boshqaruvi</TabsTrigger>
                   <TabsTrigger value="campaigns">Konkurslar</TabsTrigger>
