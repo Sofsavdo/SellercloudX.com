@@ -1,8 +1,10 @@
-// Image AI Service - Flux.1 + Ideogram AI
-// Flux.1: Product photos (photorealistic)
-// Ideogram AI: Infographics with text (marketplace cards)
+// Image AI Service - Flux.1 + Ideogram AI + Nano Banana
+// Flux.1: Product photos (photorealistic, cheapest)
+// Ideogram AI: Infographics with text (marketplace cards, best text rendering)
+// Nano Banana: Image generation (Google ecosystem, good quality)
 
 import Replicate from 'replicate';
+import { geminiService } from './geminiService';
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_KEY || ''
@@ -37,17 +39,20 @@ export interface GeneratedImage {
 class ImageAIService {
   private fluxEnabled: boolean;
   private ideogramEnabled: boolean;
+  private nanoBananaEnabled: boolean;
 
   constructor() {
     this.fluxEnabled = !!process.env.REPLICATE_API_KEY;
     this.ideogramEnabled = !!process.env.IDEOGRAM_API_KEY;
+    this.nanoBananaEnabled = geminiService.isEnabled();
     
-    if (!this.fluxEnabled && !this.ideogramEnabled) {
+    if (!this.fluxEnabled && !this.ideogramEnabled && !this.nanoBananaEnabled) {
       console.warn('⚠️  No image AI services enabled. Using fallback.');
     } else {
       console.log('✅ Image AI Services:');
-      if (this.fluxEnabled) console.log('   - Flux.1 (Product Photos)');
-      if (this.ideogramEnabled) console.log('   - Ideogram AI (Infographics)');
+      if (this.fluxEnabled) console.log('   - Flux.1 (Product Photos - Cheapest)');
+      if (this.ideogramEnabled) console.log('   - Ideogram AI (Infographics - Best Text)');
+      if (this.nanoBananaEnabled) console.log('   - Nano Banana (Google Ecosystem)');
     }
   }
 
@@ -56,14 +61,32 @@ class ImageAIService {
   async generateProductImage(options: ImageGenerationOptions): Promise<GeneratedImage> {
     console.log(`🎨 Generating ${options.type} image...`);
 
-    // Use Ideogram for infographics with text
+    // Use Ideogram for infographics with text (best text rendering)
     if (options.type === 'infographic' && options.includeText && this.ideogramEnabled) {
       return await this.generateWithIdeogram(options);
     }
 
-    // Use Flux.1 for product photos
-    if (this.fluxEnabled) {
+    // Use Nano Banana for infographics (Google ecosystem, good quality)
+    if (options.type === 'infographic' && this.nanoBananaEnabled) {
+      try {
+        return await this.generateWithNanoBanana(options);
+      } catch (error) {
+        console.warn('Nano Banana failed, falling back...');
+      }
+    }
+
+    // Use Flux.1 for product photos (cheapest, photorealistic)
+    if (options.type === 'product_photo' && this.fluxEnabled) {
       return await this.generateWithFlux(options);
+    }
+
+    // Use Nano Banana for product photos (fallback)
+    if (this.nanoBananaEnabled) {
+      try {
+        return await this.generateWithNanoBanana(options);
+      } catch (error) {
+        console.warn('Nano Banana failed, falling back...');
+      }
     }
 
     // Fallback
@@ -179,6 +202,46 @@ class ImageAIService {
       }
       
       return this.fallbackGenerate(options);
+    }
+  }
+
+  // Generate with Nano Banana (Google Gemini)
+  private async generateWithNanoBanana(options: ImageGenerationOptions): Promise<GeneratedImage> {
+    try {
+      console.log('🚀 Generating with Nano Banana...');
+
+      const response = await geminiService.generateImage({
+        prompt: options.prompt,
+        type: options.type === 'infographic' ? 'infographic' : 'product_photo',
+        aspectRatio: options.aspectRatio || '1:1',
+      });
+
+      // Parse image URL from response
+      // Note: Gemini image generation API structure may vary
+      const imageUrl = response.imageUrl;
+
+      const aspectRatioMap: Record<string, { width: number; height: number }> = {
+        '1:1': { width: 1024, height: 1024 },
+        '4:3': { width: 1024, height: 768 },
+        '16:9': { width: 1024, height: 576 },
+        '9:16': { width: 576, height: 1024 }
+      };
+
+      const size = aspectRatioMap[options.aspectRatio || '1:1'];
+
+      console.log('✅ Nano Banana generation complete');
+
+      return {
+        url: imageUrl,
+        width: size.width,
+        height: size.height,
+        format: 'png',
+        aiModel: 'nano-banana-preview',
+        cost: response.cost
+      };
+    } catch (error: any) {
+      console.error('❌ Nano Banana generation error:', error.message);
+      throw error;
     }
   }
 

@@ -1,9 +1,13 @@
 // AI Scanner Routes - Product recognition from images
+// Using Gemini Flash (multimodal) + Google Search for product information
 import express, { Request, Response } from 'express';
 import { asyncHandler } from '../errorHandler';
 import multer from 'multer';
 import OpenAI from 'openai';
 import { imageAIService } from '../services/imageAIService';
+import { geminiService } from '../services/geminiService';
+import { googleSearchService } from '../services/googleSearchService';
+import { aiCostOptimizer } from '../services/aiCostOptimizer';
 import fs from 'fs';
 
 const router = express.Router();
@@ -18,19 +22,66 @@ router.post('/recognize', upload.single('image'), asyncHandler(async (req: Reque
   }
 
   try {
-    // Step 1: Analyze image with OpenAI Vision
+    // Step 1: Analyze image with Gemini Flash (multimodal) or GPT-4 Vision (fallback)
     const imageBuffer = fs.readFileSync(req.file.path);
     const base64Image = imageBuffer.toString('base64');
 
-    const visionResponse = await openai.chat.completions.create({
-      model: 'gpt-4-vision-preview',
-      messages: [
-        {
-          role: 'user',
-          content: [
+    let productData: any;
+    let visionModel = 'gpt-4-vision-preview';
+
+    try {
+      // Try Gemini Flash first (cheaper, faster, 1M token context)
+      if (geminiService.isEnabled()) {
+        const visionPrompt = `Bu rasmda ko'rsatilgan mahsulotni aniqlang va quyidagi JSON formatda javob bering:
+{
+  "name": "Mahsulot nomi (O'zbek tilida)",
+  "category": "Kategoriya",
+  "description": "Batafsil tavsif",
+  "brand": "Brend (agar ko'rsatilgan bo'lsa)",
+  "price": "Taxminiy narx (so'm)",
+  "specifications": ["Xususiyat 1", "Xususiyat 2"],
+  "keywords": ["kalit so'z 1", "kalit so'z 2"],
+  "barcode": "Barkod (agar ko'rsatilgan bo'lsa)",
+  "confidence": 85
+}
+
+Mahsulotni internetdan qidirib, aniq ma'lumotlarni toping.`;
+
+        const geminiResponse = await geminiService.analyzeImage(
+          imageBuffer,
+          visionPrompt
+        );
+
+        visionModel = geminiResponse.model;
+        const content = geminiResponse.text;
+
+        try {
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            productData = JSON.parse(jsonMatch[0]);
+          } else {
+            throw new Error('JSON topilmadi');
+          }
+        } catch (parseError) {
+          productData = {
+            name: extractField(content, 'name') || 'Noma\'lum mahsulot',
+            category: extractField(content, 'category') || 'Umumiy',
+            description: extractField(content, 'description') || content.substring(0, 200),
+            price: extractField(content, 'price') || '0',
+            confidence: 70
+          };
+        }
+      } else {
+        // Fallback to GPT-4 Vision
+        const visionResponse = await openai.chat.completions.create({
+          model: 'gpt-4-vision-preview',
+          messages: [
             {
-              type: 'text',
-              text: `Bu rasmda ko'rsatilgan mahsulotni aniqlang va quyidagi JSON formatda javob bering:
+              role: 'user',
+              content: [
+                {
+                  type: 'text',
+                  text: `Bu rasmda ko'rsatilgan mahsulotni aniqlang va quyidagi JSON formatda javob bering:
 {
   "name": "Mahsulot nomi (O'zbek tilida)",
   "category": "Kategoriya",
@@ -44,43 +95,67 @@ router.post('/recognize', upload.single('image'), asyncHandler(async (req: Reque
 }
 
 Mahsulotni internetdan qidirib, aniq ma'lumotlarni toping.`
-            },
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:image/jpeg;base64,${base64Image}`
-              }
+                },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:image/jpeg;base64,${base64Image}`
+                  }
+                }
+              ]
             }
-          ]
-        }
-      ],
-      max_tokens: 1000
-    });
+          ],
+          max_tokens: 1000
+        });
 
-    const content = visionResponse.choices[0].message.content || '{}';
-    let productData;
-    
-    try {
-      // Try to parse JSON from response
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        productData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('JSON topilmadi');
+        const content = visionResponse.choices[0].message.content || '{}';
+        
+        try {
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            productData = JSON.parse(jsonMatch[0]);
+          } else {
+            throw new Error('JSON topilmadi');
+          }
+        } catch (parseError) {
+          productData = {
+            name: extractField(content, 'name') || 'Noma\'lum mahsulot',
+            category: extractField(content, 'category') || 'Umumiy',
+            description: extractField(content, 'description') || content.substring(0, 200),
+            price: extractField(content, 'price') || '0',
+            confidence: 70
+          };
+        }
       }
-    } catch (parseError) {
-      // Fallback: Extract information from text
-      productData = {
-        name: extractField(content, 'name') || 'Noma\'lum mahsulot',
-        category: extractField(content, 'category') || 'Umumiy',
-        description: extractField(content, 'description') || content.substring(0, 200),
-        price: extractField(content, 'price') || '0',
-        confidence: 70
-      };
+    } catch (error: any) {
+      console.error('Vision analysis error:', error);
+      throw error;
     }
 
-    // Step 2: Search internet for more details (using AI)
-    const searchPrompt = `Internetdan "${productData.name}" mahsuloti haqida qo'shimcha ma'lumot toping:
+    // Step 2: Search internet for more details (using Google Search or AI)
+    let searchData: any = {};
+
+    try {
+      // Try Google Search first (real-time data)
+      if (googleSearchService.isEnabled()) {
+        const searchResults = await googleSearchService.search({
+          query: `${productData.name} narx O'zbekiston`,
+          maxResults: 5,
+        });
+
+        // Extract price and details from search results
+        for (const result of searchResults) {
+          const priceMatch = result.snippet?.match(/(\d+[\s,.]?\d*)\s*(so'm|sum)/i);
+          if (priceMatch) {
+            searchData.price = parseFloat(priceMatch[1].replace(/\s/g, '').replace(',', '.'));
+            searchData.priceSource = result.url;
+            break;
+          }
+        }
+      }
+
+      // Use AI to enrich data (Gemini Flash or GPT-4)
+      const searchPrompt = `Internetdan "${productData.name}" mahsuloti haqida qo'shimcha ma'lumot toping:
 - Aniq narx (O'zbekiston bozori)
 - Xususiyatlar
 - O'xshash mahsulotlar
@@ -88,23 +163,20 @@ Mahsulotni internetdan qidirib, aniq ma'lumotlarni toping.`
 
 JSON formatda javob bering.`;
 
-    const searchResponse = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'Siz professional e-commerce mahsulot tahlilchisisiz. Internetdan real ma\'lumotlarni toping.'
-        },
-        {
-          role: 'user',
-          content: searchPrompt
-        }
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.7
-    });
+      const searchResponse = await aiCostOptimizer.processRequest({
+        task: 'product_search',
+        prompt: searchPrompt,
+        complexity: 'medium',
+        language: 'uz',
+        maxTokens: 1000,
+      });
 
-    const searchData = JSON.parse(searchResponse.choices[0].message.content || '{}');
+      const enrichedData = JSON.parse(searchResponse.content || '{}');
+      searchData = { ...searchData, ...enrichedData };
+    } catch (error) {
+      console.warn('Search enrichment failed:', error);
+      // Continue without search data
+    }
     
     // Merge data
     const finalProductData = {

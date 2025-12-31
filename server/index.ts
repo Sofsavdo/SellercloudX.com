@@ -14,6 +14,9 @@ import { initializeDatabaseTables } from "./initDatabase";
 import { initializeAIQueue } from "./services/aiTaskQueue";
 import { startCronJobs } from "./cron/scheduler";
 import { autonomousAIManager } from "./services/autonomousAIManager";
+import { geminiService } from "./services/geminiService";
+import { googleSearchService } from "./services/googleSearchService";
+import { contextCacheService } from "./services/contextCacheService";
 import helmet from "helmet";
 import * as Sentry from "@sentry/node";
 import winston from "winston";
@@ -224,16 +227,39 @@ app.use((req, res, next) => {
       console.log('⚠️  Continuing without WebSocket support');
     }
 
-    // Initialize AI task queue (SQLite-based background processor)
+    // Initialize AI services
     try {
+      // Initialize Gemini services
+      if (geminiService.isEnabled()) {
+        log('✅ Gemini API Service initialized');
+      } else {
+        log('⚠️  Gemini API Service disabled (GEMINI_API_KEY not set)');
+      }
+
+      // Initialize Google Search service
+      if (googleSearchService.isEnabled()) {
+        log('✅ Google Search Service initialized');
+      } else {
+        log('⚠️  Google Search Service disabled (requires Gemini API)');
+      }
+
+      // Initialize Context Cache service
+      if (contextCacheService.isEnabled()) {
+        log('✅ Context Cache Service initialized');
+        const cacheStats = contextCacheService.getStats();
+        log(`   - Cached entries: ${cacheStats.totalEntries}`);
+        log(`   - Total tokens cached: ${cacheStats.totalTokens}`);
+      }
+
+      // Initialize AI task queue (SQLite-based background processor)
       initializeAIQueue();
       
       // Start Autonomous AI Manager
       autonomousAIManager.start();
       log('🤖 Autonomous AI Manager ishga tushdi');
     } catch (error) {
-      console.error('AI queue initialization failed:', error);
-      console.log('⚠️  Continuing without AI queue');
+      console.error('AI services initialization failed:', error);
+      console.log('⚠️  Continuing without AI services');
     }
 
     // Start cron jobs for automated billing

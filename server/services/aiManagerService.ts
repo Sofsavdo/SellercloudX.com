@@ -8,6 +8,10 @@ import { sql } from 'drizzle-orm';
 import { analytics } from '../../shared/schema';
 import { wsManager } from '../websocket';
 import { imageAIService } from './imageAIService';
+import { geminiService } from './geminiService';
+import { contextCacheService } from './contextCacheService';
+import { googleSearchService } from './googleSearchService';
+import { aiCostOptimizer } from './aiCostOptimizer';
 
 // ================================================================
 // CONFIGURATION
@@ -40,16 +44,17 @@ export async function generateProductCard(input: ProductInput, partnerId: number
   });
   
   try {
-    // Marketplace-specific qoidalar
+    // Marketplace-specific qoidalar (cached)
     const marketplaceRules = getMarketplaceRules(input.targetMarketplace);
+    const cachedRules = contextCacheService.getMarketplaceRules(input.targetMarketplace);
     
-    // AI prompt
+    // AI prompt with cached context
     const prompt = `
 Siz professional marketplace SEO va mahsulot kartochkalari mutaxassisiz.
 
 TARGET MARKETPLACE: ${input.targetMarketplace}
 MARKETPLACE QOIDALARI:
-${JSON.stringify(marketplaceRules, null, 2)}
+${cachedRules || JSON.stringify(marketplaceRules, null, 2)}
 
 MAHSULOT MA'LUMOTLARI:
 - Nomi: ${input.name}
@@ -88,28 +93,65 @@ MUHIM:
 - Professional va ishonchli ton
 `;
 
-    // AI call
+    // AI call - Use Gemini Flash (cheaper and faster) or fallback to GPT-4
     const startTime = Date.now();
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
-      messages: [
-        {
-          role: 'system',
-          content: 'Siz professional marketplace SEO mutaxassisisiz. JSON formatda javob bering.',
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.7,
-      max_tokens: 2000,
-    });
+    let result: any;
+    let tokensUsed = 0;
+    let aiModel = 'gpt-4-turbo-preview';
+
+    try {
+      // Try Gemini Flash first (cheaper, faster, 1M token context)
+      if (geminiService.isEnabled()) {
+        const geminiResponse = await geminiService.generateText({
+          prompt,
+          model: 'flash',
+          systemInstruction: 'Siz professional marketplace SEO mutaxassisisiz. JSON formatda javob bering.',
+          structuredOutput: true,
+          context: cachedRules || undefined,
+        });
+
+        result = JSON.parse(geminiResponse.text);
+        tokensUsed = geminiResponse.tokens.total;
+        aiModel = geminiResponse.model;
+      } else {
+        // Fallback to GPT-4
+        const response = await openai.chat.completions.create({
+          model: 'gpt-4-turbo-preview',
+          messages: [
+            {
+              role: 'system',
+              content: 'Siz professional marketplace SEO mutaxassisisiz. JSON formatda javob bering.',
+            },
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.7,
+          max_tokens: 2000,
+        });
+
+        result = JSON.parse(response.choices[0].message.content || '{}');
+        tokensUsed = response.usage?.total_tokens || 0;
+      }
+    } catch (error: any) {
+      console.error('AI generation error:', error);
+      // Fallback to AI Cost Optimizer
+      const optimizedResponse = await aiCostOptimizer.processRequest({
+        task: 'product_card_creation',
+        prompt,
+        complexity: 'medium',
+        language: 'uz',
+        maxTokens: 2000,
+      });
+
+      result = JSON.parse(optimizedResponse.content || '{}');
+      tokensUsed = optimizedResponse.tokens;
+      aiModel = optimizedResponse.model;
+    }
 
     const executionTime = Math.floor((Date.now() - startTime) / 1000);
-    const result = JSON.parse(response.choices[0].message.content || '{}');
-    const tokensUsed = response.usage?.total_tokens || 0;
 
     // Save to database
     const [generatedProduct] = await db
@@ -176,7 +218,7 @@ MUHIM:
         marketplace: input.targetMarketplace,
         duration: executionTime,
         progress: 100,
-        aiModel: 'gpt-4-turbo-preview',
+        aiModel: aiModel,
         cost: apiCost,
         details: `Created product card with SEO score ${result.seoScore}/100`
       };

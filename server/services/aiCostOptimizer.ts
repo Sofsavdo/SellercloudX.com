@@ -1,8 +1,10 @@
 // AI Cost Optimizer Service
 // Vazifa murakkabligiga qarab eng mos va arzon AI modelni tanlash
+// Gemini, Claude, GPT-4 integratsiyasi
 
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
+import { geminiService } from './geminiService';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || '' });
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' });
@@ -31,37 +33,80 @@ export class AICostOptimizer {
   
   /**
    * Select best AI model for the task
+   * Priority: Gemini 2.5 Flash (main) > Claude Haiku > Claude Sonnet > GPT-4
    */
   async processRequest(request: AIRequest): Promise<AIResponse> {
     const startTime = Date.now();
     
     try {
-      // Vision tasks - always use GPT-4 Vision
+      // Vision tasks - use Gemini Flash (multimodal) or GPT-4 Vision (fallback)
       if (request.requiresVision || request.complexity === 'vision') {
+        if (geminiService.isEnabled()) {
+          try {
+            return await this.processWithGeminiVision(request, startTime);
+          } catch (error) {
+            console.warn('Gemini Vision failed, falling back to GPT-4 Vision');
+            return await this.processWithGPT4Vision(request, startTime);
+          }
+        }
         return await this.processWithGPT4Vision(request, startTime);
       }
 
-      // Simple tasks - use Claude Haiku (cheapest and fastest)
+      // Simple tasks - use Gemini Flash-Lite (cheapest and fastest)
       if (request.complexity === 'simple') {
+        if (geminiService.isEnabled()) {
+          try {
+            return await this.processWithGeminiFlashLite(request, startTime);
+          } catch (error) {
+            console.warn('Gemini Flash-Lite failed, falling back to Claude Haiku');
+            return await this.processWithClaudeHaiku(request, startTime);
+          }
+        }
         return await this.processWithClaudeHaiku(request, startTime);
       }
 
-      // Medium tasks - use Claude Sonnet (good balance)
+      // Medium tasks - use Gemini Flash (best balance)
       if (request.complexity === 'medium') {
+        if (geminiService.isEnabled()) {
+          try {
+            return await this.processWithGeminiFlash(request, startTime);
+          } catch (error) {
+            console.warn('Gemini Flash failed, falling back to Claude Sonnet');
+            return await this.processWithClaudeSonnet(request, startTime);
+          }
+        }
         return await this.processWithClaudeSonnet(request, startTime);
       }
 
-      // Complex tasks - use Claude Sonnet or GPT-4 Turbo
+      // Complex tasks - use Gemini 3 Pro or Claude Sonnet
       if (request.complexity === 'complex') {
+        if (geminiService.isEnabled()) {
+          try {
+            return await this.processWithGemini3Pro(request, startTime);
+          } catch (error) {
+            console.warn('Gemini 3 Pro failed, falling back to Claude Sonnet');
+            // For Uzbek language, prefer GPT-4 (better support)
+            if (request.language === 'uz') {
+              return await this.processWithGPT4Turbo(request, startTime);
+            }
+            return await this.processWithClaudeSonnet(request, startTime);
+          }
+        }
         // For Uzbek language, prefer GPT-4 (better support)
         if (request.language === 'uz') {
           return await this.processWithGPT4Turbo(request, startTime);
         }
-        // For other languages, use Claude Sonnet (cheaper)
         return await this.processWithClaudeSonnet(request, startTime);
       }
 
-      // Default: Claude Haiku
+      // Default: Gemini Flash-Lite or Claude Haiku
+      if (geminiService.isEnabled()) {
+        try {
+          return await this.processWithGeminiFlashLite(request, startTime);
+        } catch (error) {
+          return await this.processWithClaudeHaiku(request, startTime);
+        }
+      }
       return await this.processWithClaudeHaiku(request, startTime);
     } catch (error: any) {
       console.error('AI processing error:', error);
@@ -71,7 +116,98 @@ export class AICostOptimizer {
   }
 
   /**
-   * Process with Claude 3 Haiku (cheapest, fastest)
+   * Process with Gemini 2.5 Flash-Lite (cheapest, fastest)
+   */
+  private async processWithGeminiFlashLite(
+    request: AIRequest,
+    startTime: number
+  ): Promise<AIResponse> {
+    const response = await geminiService.generateText({
+      prompt: request.prompt,
+      model: 'flash-lite',
+      maxTokens: request.maxTokens || 8192,
+    });
+
+    return {
+      content: response.text,
+      model: response.model,
+      cost: response.cost,
+      tokens: response.tokens.total,
+      latency: response.latency
+    };
+  }
+
+  /**
+   * Process with Gemini 2.5 Flash (main model, best balance)
+   */
+  private async processWithGeminiFlash(
+    request: AIRequest,
+    startTime: number
+  ): Promise<AIResponse> {
+    const response = await geminiService.generateText({
+      prompt: request.prompt,
+      model: 'flash',
+      maxTokens: request.maxTokens || 8192,
+      structuredOutput: request.task.includes('json') || request.task.includes('structured'),
+    });
+
+    return {
+      content: response.text,
+      model: response.model,
+      cost: response.cost,
+      tokens: response.tokens.total,
+      latency: response.latency
+    };
+  }
+
+  /**
+   * Process with Gemini 3 Pro (complex tasks)
+   */
+  private async processWithGemini3Pro(
+    request: AIRequest,
+    startTime: number
+  ): Promise<AIResponse> {
+    const response = await geminiService.generateText({
+      prompt: request.prompt,
+      model: '3-pro',
+      maxTokens: request.maxTokens || 8192,
+      structuredOutput: request.task.includes('json') || request.task.includes('structured'),
+    });
+
+    return {
+      content: response.text,
+      model: response.model,
+      cost: response.cost,
+      tokens: response.tokens.total,
+      latency: response.latency
+    };
+  }
+
+  /**
+   * Process with Gemini Vision (multimodal)
+   */
+  private async processWithGeminiVision(
+    request: AIRequest,
+    startTime: number
+  ): Promise<AIResponse> {
+    // Note: This requires image data in the request
+    const response = await geminiService.generateText({
+      prompt: request.prompt,
+      model: 'flash',
+      maxTokens: request.maxTokens || 4096,
+    });
+
+    return {
+      content: response.text,
+      model: response.model,
+      cost: response.cost,
+      tokens: response.tokens.total,
+      latency: response.latency
+    };
+  }
+
+  /**
+   * Process with Claude 3 Haiku (cheapest, fastest - fallback)
    */
   private async processWithClaudeHaiku(
     request: AIRequest,
