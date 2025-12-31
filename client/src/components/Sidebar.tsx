@@ -106,7 +106,8 @@ export function Sidebar({ items, userRole = 'partner', selectedTab, onTabChange 
           const Icon = item.icon;
           const isActive = selectedTab ? selectedTab === item.id : (location === item.path || location.startsWith(item.path + '/'));
           
-          const handleClick = () => {
+          const handleClick = (e: React.MouseEvent) => {
+            e.preventDefault();
             if (onTabChange) {
               onTabChange(item.id);
             }
@@ -116,6 +117,14 @@ export function Sidebar({ items, userRole = 'partner', selectedTab, onTabChange 
             <div
               key={item.id}
               onClick={handleClick}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleClick(e as any);
+                }
+              }}
               className={cn(
                 'group relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 cursor-pointer',
                 isActive

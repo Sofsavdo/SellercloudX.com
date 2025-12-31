@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Sidebar, adminSidebarItems } from '@/components/Sidebar';
+import { LoginForm } from '@/components/LoginForm';
 import { TrendingProducts } from '@/components/TrendingProducts';
 import { TrendingProductsDashboard } from '@/components/TrendingProductsDashboard';
 import { MarketplaceApiConfig } from '@/components/MarketplaceApiConfig';
@@ -245,11 +246,19 @@ export default function AdminPanel() {
     );
   }
 
-  // Ruxsat yo‘q
+  // Ruxsat yo'q
   if (!user || user.role !== 'admin') {
     return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <LoginForm isAdmin={true} />
+      </div>
+    );
+  }
+
+  // Eski kod - o'chirilgan
+  if (false) {
+    return (
       <div className="min-h-screen bg-background">
-        <Navigation />
         <div className="pt-20 pb-16">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <Shield className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
