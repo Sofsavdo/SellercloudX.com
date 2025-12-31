@@ -739,24 +739,25 @@ export default function AdminPanel() {
                   )}
                 </TabsContent>
               </Tabs>
-            </TabsContent>
+            </div>
+            )}
 
             {/* Referrals Management Tab - Includes Campaigns */}
             {selectedTab === 'referrals' && (
               <div className="space-y-6">
                 <Tabs defaultValue="management" className="space-y-4">
-                <TabsList>
-                  <TabsTrigger value="management">Referral Boshqaruvi</TabsTrigger>
-                  <TabsTrigger value="campaigns">Konkurslar</TabsTrigger>
-                </TabsList>
-                <TabsContent value="management">
-                  <AdminReferralManagement />
-                </TabsContent>
-                <TabsContent value="campaigns">
-                  <AdminReferralCampaignManager />
-                </TabsContent>
-              </Tabs>
-            </div>
+                  <TabsList>
+                    <TabsTrigger value="management">Referral Boshqaruvi</TabsTrigger>
+                    <TabsTrigger value="campaigns">Konkurslar</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="management">
+                    <AdminReferralManagement />
+                  </TabsContent>
+                  <TabsContent value="campaigns">
+                    <AdminReferralCampaignManager />
+                  </TabsContent>
+                </Tabs>
+              </div>
             )}
 
             {/* SMM Tab */}
