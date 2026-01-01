@@ -95,6 +95,8 @@ export async function initializeDatabaseTables() {
         profit_share_percent INTEGER,
         ai_enabled INTEGER DEFAULT 0,
         warehouse_space_kg INTEGER,
+        anydesk_id TEXT,
+        anydesk_password TEXT,
         notes TEXT,
         created_at INTEGER NOT NULL DEFAULT (unixepoch()),
         last_activity_at INTEGER

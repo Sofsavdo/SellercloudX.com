@@ -85,7 +85,7 @@ MIJOZ SAVOLI: "${customerMessage}"
 VAZIFA:
 Professional, do'stona va foydali javob bering. 
 ${marketplace === 'uzum' ? 'O\'zbek yoki Rus tillarida javob bering.' : 'Rus tilida javob bering.'}
-Javob qisqa va aniq bo\'lishi kerak (maksimum 200 so\'z).
+Javob qisqa va aniq bo'lishi kerak (maksimum 200 so'z).
 `;
 
   try {

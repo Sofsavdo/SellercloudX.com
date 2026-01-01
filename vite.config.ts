@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => ({
     exclude: [],
   },
   build: {
-    outDir: "dist",
+    outDir: "dist/public",
     emptyOutDir: true,
     sourcemap: mode !== 'production',
     rollupOptions: {
