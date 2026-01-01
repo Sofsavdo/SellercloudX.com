@@ -31,8 +31,7 @@ export function EnhancedReferralDashboard() {
           canWithdraw: false,
           commissionRate: 10,
           avgCommissionPerReferral: '0.00',
-          promoCode: null,
-          referralCode: null,
+          promoCode: null as string | null,
           benefits: {
             forNewUser: { discount: 5, message: 'Ro\'yxatdan o\'tganingizda $5 chegirma' },
             forReferrer: {

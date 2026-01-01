@@ -214,7 +214,7 @@ export default function PartnerDashboard() {
             </div>
           </div>
 
-          {partner && !partner.approved && (
+          {partner && !(partner as any).isApproved && !(partner as any).approved && (
             <Card className="mb-8 border-orange-200 bg-orange-50 animate-slide-up">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
@@ -230,7 +230,7 @@ export default function PartnerDashboard() {
             </Card>
           )}
           
-          {partner && partner.approved && (
+          {partner && ((partner as any).isApproved || (partner as any).approved) && (
             <Card className="mb-8 border-green-200 bg-green-50 animate-slide-up">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
@@ -256,7 +256,7 @@ export default function PartnerDashboard() {
             {selectedTab === 'overview' && (
               <div className="space-y-6">
                 {/* Partner Verification Section */}
-                {partner && !partner.approved && (
+                {partner && !(partner as any).isApproved && !(partner as any).approved && (
                   <PartnerVerificationSection 
                     partner={partner} 
                     onUpdate={() => queryClient.invalidateQueries({ queryKey: ['/api/user'] })}
@@ -295,7 +295,7 @@ export default function PartnerDashboard() {
                                 Oylik to'lov: <span className="font-semibold">${plan.monthlyFee ?? 0}/oy</span>
                               </p>
                               <p className="text-sm">
-                                AI Budget: <span className="font-semibold">${plan.aiBudget ?? 0}/oy</span>
+                                AI Budget: <span className="font-semibold">${(plan as any).aiBudget ?? 0}/oy</span>
                               </p>
                             </>
                           ) : (

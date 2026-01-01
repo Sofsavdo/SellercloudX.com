@@ -1036,8 +1036,6 @@ export default function AdminPanel() {
                                     {request.status === 'pending' && (
                                       <div className="flex gap-2 mt-4">
                                         <Button
-                                          onClick={() => acceptRequestMutation.mutate(request.id)}
-                                          disabled={acceptRequestMutation.isPending}
                                           className="bg-green-600 hover:bg-green-700"
                                           size="sm"
                                         >
@@ -1045,8 +1043,6 @@ export default function AdminPanel() {
                                           Qabul qilish
                                         </Button>
                                         <Button
-                                          onClick={() => rejectRequestMutation.mutate(request.id)}
-                                          disabled={rejectRequestMutation.isPending}
                                           variant="destructive"
                                           size="sm"
                                         >

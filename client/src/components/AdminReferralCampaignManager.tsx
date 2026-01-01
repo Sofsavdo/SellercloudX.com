@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Gift, Plus, Trash2, Edit, Users, DollarSign, Clock } from 'lucide-react';
+import { Gift, Plus, Trash2, Edit, Users, DollarSign, Clock, Target } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { Badge } from '@/components/ui/badge';
 import { ReferralCampaignTimer } from './ReferralCampaignTimer';

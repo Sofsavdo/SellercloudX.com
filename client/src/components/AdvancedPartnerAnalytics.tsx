@@ -23,6 +23,11 @@ import {
   Package
 } from 'lucide-react';
 
+interface MarketplaceData {
+  revenue: number;
+  orders: number;
+}
+
 interface Partner {
   id: string;
   businessName: string;
@@ -30,11 +35,29 @@ interface Partner {
   monthlyRevenue: number;
   monthlyFee: number;
   profitShareRate: number;
+  netProfit: number;
+  profitShareAmount: number;
+  totalProfit: number;
+  aiUsage: {
+    seoOptimization: number;
+    contentGeneration: number;
+    imageOptimization: number;
+    marketAnalysis: number;
+    priceOptimization: number;
+  };
+  aiCost: number;
+  aiProfit: number;
+  marketplaces: {
+    uzum: MarketplaceData;
+    wildberries: MarketplaceData;
+    yandex: MarketplaceData;
+    ozon: MarketplaceData;
+  };
 }
 
 // Mock data - in production, fetch from API
-const generatePartnerData = () => {
-  const partners: Partner[] = [
+const generatePartnerData = (): Partner[] => {
+  const basePartners = [
     {
       id: '1',
       businessName: 'Texno Savdo',
@@ -77,7 +100,7 @@ const generatePartnerData = () => {
     }
   ];
 
-  return partners.map(partner => {
+  return basePartners.map(partner => {
     // Calculate profit components
     const netProfit = partner.monthlyRevenue * 0.20; // 20% net profit margin
     const profitShareAmount = netProfit * partner.profitShareRate;
@@ -183,7 +206,7 @@ export function AdvancedPartnerAnalytics() {
   }
 
   // Calculate totals
-  const totals = partnersData.reduce((acc, partner) => ({
+  const totals = (partnersData as Partner[]).reduce((acc: { totalRevenue: number; totalProfit: number; totalMonthlyFees: number; totalProfitShare: number; totalAICost: number; totalAIProfit: number }, partner: Partner) => ({
     totalRevenue: acc.totalRevenue + partner.monthlyRevenue,
     totalProfit: acc.totalProfit + partner.totalProfit,
     totalMonthlyFees: acc.totalMonthlyFees + partner.monthlyFee,
@@ -276,7 +299,7 @@ export function AdvancedPartnerAnalytics() {
             </TabsList>
 
             <TabsContent value="all" className="space-y-4 mt-6">
-              {partnersData.map((partner) => (
+              {(partnersData as Partner[]).map((partner: Partner) => (
                 <Card key={partner.id} className="border-2">
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between mb-4">
@@ -341,7 +364,7 @@ export function AdvancedPartnerAnalytics() {
                         Marketplace bo'yicha
                       </h4>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {Object.entries(partner.marketplaces).map(([name, data]) => (
+                        {Object.entries(partner.marketplaces).map(([name, data]: [string, MarketplaceData]) => (
                           <div key={name} className="text-center">
                             <div className="text-sm font-semibold capitalize mb-1">{name}</div>
                             <div className="font-bold text-slate-900">
@@ -413,10 +436,10 @@ export function AdvancedPartnerAnalytics() {
               {/* Marketplace comparison across all partners */}
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {['uzum', 'wildberries', 'yandex', 'ozon'].map(marketplace => {
-                  const totalRevenue = partnersData.reduce((sum, p) => 
+                  const totalRevenue = (partnersData as Partner[]).reduce((sum: number, p: Partner) => 
                     sum + (p.marketplaces[marketplace as keyof typeof p.marketplaces]?.revenue || 0), 0
                   );
-                  const totalOrders = partnersData.reduce((sum, p) => 
+                  const totalOrders = (partnersData as Partner[]).reduce((sum: number, p: Partner) => 
                     sum + (p.marketplaces[marketplace as keyof typeof p.marketplaces]?.orders || 0), 0
                   );
 

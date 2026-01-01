@@ -50,14 +50,6 @@ export function GoogleTranslateWidget() {
     <div 
       id="google_translate_element" 
       className="inline-block"
-      style={{
-        // Hide Google branding (optional)
-        '.goog-te-banner-frame': { display: 'none !important' },
-        '.goog-te-gadget': { 
-          fontFamily: 'inherit',
-          fontSize: '0'
-        }
-      }}
     />
   );
 }

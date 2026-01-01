@@ -13,6 +13,31 @@ import {
 // SAAS MODEL: Use new SaaS-only pricing
 import { SAAS_PRICING_TIERS as NEW_PRICING_TIERS } from '../../../SAAS_PRICING_CONFIG';
 
+interface TierConfig {
+  id: string;
+  name: string;
+  nameUz: string;
+  nameRu: string;
+  nameEn: string;
+  monthlyFee: number;
+  monthlyFeeUSD: number;
+  commissionRate: number;
+  description: string;
+  limits: {
+    sku: number;
+    monthlySalesLimit: number;
+    marketplaces: number;
+    aiCards: number;
+    trendHunter: number;
+    languages: number;
+  };
+  features: string[];
+  excluded: string[];
+  popular: boolean;
+  color: string;
+  badge: string;
+}
+
 interface PartnerTierInfoProps {
   currentTier: string;
   monthlyFee: number;
@@ -28,7 +53,7 @@ export function PartnerTierInfo({
   monthlyRevenue = 0,
   onUpgradeClick 
 }: PartnerTierInfoProps) {
-  const tierConfig = NEW_PRICING_TIERS[currentTier as keyof typeof NEW_PRICING_TIERS];
+  const tierConfig = NEW_PRICING_TIERS[currentTier as keyof typeof NEW_PRICING_TIERS] as TierConfig | undefined;
   
   if (!tierConfig) {
     return null;
@@ -58,19 +83,6 @@ export function PartnerTierInfo({
   };
 
   const TierIcon = getTierIcon(currentTier);
-
-  // Calculate suggested upgrade
-  const suggestUpgrade = () => {
-    const tiers = ['starter_pro', 'business_standard', 'professional_plus', 'enterprise_elite'];
-    const currentIndex = tiers.indexOf(currentTier);
-    if (currentIndex < tiers.length - 1 && monthlyRevenue > (tierConfig.maxRevenue || 0)) {
-      return tiers[currentIndex + 1];
-    }
-    return null;
-  };
-
-  const suggestedTier = suggestUpgrade();
-  const suggestedTierConfig = suggestedTier ? NEW_PRICING_TIERS[suggestedTier as keyof typeof NEW_PRICING_TIERS] : null;
 
   return (
     <div className="space-y-4">
@@ -113,17 +125,17 @@ export function PartnerTierInfo({
 
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-slate-600">Profit Share:</span>
-                    <span className="font-bold text-green-600 text-lg">{(profitShareRate * 100).toFixed(0)}%</span>
+                    <span className="text-sm text-slate-600">Komissiya:</span>
+                    <span className="font-bold text-green-600 text-lg">{(profitShareRate * 100).toFixed(1)}%</span>
                   </div>
-                  <p className="text-xs text-slate-500">Sof foydangizdan</p>
+                  <p className="text-xs text-slate-500">Savdolardan</p>
                 </div>
 
                 <div className="bg-emerald-50 border border-emerald-300 rounded-lg p-3">
                   <div className="flex items-center gap-2 justify-center">
                     <Info className="h-4 w-4 text-emerald-600" />
                     <span className="text-xs font-medium text-emerald-700">
-                      Foyda bo'lmasa, faqat abonent to'lanadi!
+                      Savdo bo'lmasa, faqat abonent to'lanadi!
                     </span>
                   </div>
                 </div>
@@ -140,36 +152,21 @@ export function PartnerTierInfo({
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>{tierConfig.limits.marketplaces} ta marketplace</span>
+                  <span>{tierConfig.limits.marketplaces === -1 ? 'Barcha' : tierConfig.limits.marketplaces} marketplace</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>{tierConfig.limits.products} mahsulot</span>
+                  <span>{tierConfig.limits.sku === -1 ? 'Cheksiz' : tierConfig.limits.sku} mahsulot</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>{tierConfig.limits.warehouseKg} kg ombor</span>
+                  <span>{tierConfig.limits.aiCards === -1 ? 'Cheksiz' : tierConfig.limits.aiCards} AI kartochka</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>SPT xizmati BEPUL</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>Support: {tierConfig.limits.supportResponseTime}</span>
+                  <span>{tierConfig.limits.languages} tilda tarjima</span>
                 </div>
               </div>
-
-              {tierConfig.limits.consultationHours > 0 && (
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mt-4">
-                  <div className="flex items-center gap-2">
-                    <Crown className="h-4 w-4 text-purple-600" />
-                    <span className="text-sm font-medium text-purple-700">
-                      {tierConfig.limits.consultationHours} soat/oy konsultatsiya
-                    </span>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
@@ -177,9 +174,9 @@ export function PartnerTierInfo({
           <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Tavsiya etiladigan aylanma:</p>
+                <p className="text-sm text-slate-600 mb-1">Oylik savdo limiti:</p>
                 <p className="font-bold text-lg">
-                  {formatSom(tierConfig.minRevenue)} - {tierConfig.maxRevenue ? formatSom(tierConfig.maxRevenue) : 'Cheksiz'}
+                  {tierConfig.limits.monthlySalesLimit === -1 ? 'Cheksiz' : formatSom(tierConfig.limits.monthlySalesLimit)}
                 </p>
               </div>
               {monthlyRevenue > 0 && (
@@ -189,41 +186,21 @@ export function PartnerTierInfo({
               )}
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Upgrade Suggestion */}
-      {suggestedTier && suggestedTierConfig && (
-        <Card className="border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <TrendingUp className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-lg text-amber-900">Yuqori Tarifga O'ting!</h4>
-                  <p className="text-sm text-amber-700">
-                    Aylanmangiz {formatSom(tierConfig.maxRevenue || 0)}dan oshdi - 
-                    <strong> {suggestedTierConfig.name}</strong> tarifiga o'tish tavsiya etiladi
-                  </p>
-                  <p className="text-xs text-amber-600 mt-1">
-                    Profit share: {(profitShareRate * 100).toFixed(0)}% → {(suggestedTierConfig.profitShareRate * 100).toFixed(0)}% 
-                    (kam to'laysiz!)
-                  </p>
-                </div>
-              </div>
+          {/* Upgrade Button */}
+          {onUpgradeClick && (
+            <div className="mt-6">
               <Button 
                 onClick={onUpgradeClick}
-                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
               >
-                Upgrade
+                Tarifni Oshirish
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
