@@ -1,0 +1,49 @@
+{
+  "root": true,
+  "env": {
+    "es2022": true,
+    "node": true,
+    "browser": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 2022
+  },
+  "plugins": ["@typescript-eslint", "react-hooks"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "ignorePatterns": [
+    "dist/",
+    "node_modules/",
+    "vite.config.ts",
+    "tailwind.config.ts",
+    "drizzle.config.ts",
+    "server/__tests__/**",
+    "**/*.backup.ts",
+    "**/*.backup.tsx",
+    "client/src/pages/InvestorPitch.*.ts",
+    "client/src/pages/InvestorPitch.*.tsx"
+  ],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/ban-types": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "no-empty": ["error", { "allowEmptyCatch": true }],
+
+    // React Hooks linting (keep only the essential safety rule as error).
+    // Some versions of the react-hooks plugin include experimental rules (purity, refs, etc.)
+    // that are too strict for this codebase right now.
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "react-hooks/purity": "off",
+    "react-hooks/refs": "off",
+    "react-hooks/set-state-in-effect": "off",
+    "react-hooks/static-components": "off",
+    "react-hooks/preserve-manual-memoization": "off",
+    "react-hooks/immutability": "off"
+  }
+}
