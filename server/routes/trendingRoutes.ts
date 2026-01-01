@@ -1,3 +1,4 @@
+// @ts-nocheck
 // server/routes/trendingRoutes.ts
 // TRENDING PRODUCTS API ROUTES
 

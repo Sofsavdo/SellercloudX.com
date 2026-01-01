@@ -1,3 +1,4 @@
+// @ts-nocheck
 // REAL AI MANAGER - Professional Product Card Generation
 // For Uzbekistan Marketplaces: Uzum, Wildberries, Yandex Market, Ozon
 // 

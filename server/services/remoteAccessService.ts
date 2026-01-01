@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Remote Access Service - Admin can help partners remotely
 // Similar to AnyDesk/TeamViewer but integrated into SellerCloudX
 

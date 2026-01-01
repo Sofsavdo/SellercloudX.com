@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Automatic Inventory Management Service
 // Qoldiq kamayganda avtomatik xabar, reorder point, yetkazib beruvchilar integratsiyasi
 

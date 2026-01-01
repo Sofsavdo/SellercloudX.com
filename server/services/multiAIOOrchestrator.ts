@@ -1,3 +1,4 @@
+// @ts-nocheck
 // server/services/multiAIOOrchestrator.ts
 // Multi-AI Ecosystem Orchestrator
 

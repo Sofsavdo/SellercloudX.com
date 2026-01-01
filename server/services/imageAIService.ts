@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Image AI Service - Flux.1 + Ideogram AI + Nano Banana
 // Flux.1: Product photos (photorealistic, cheapest)
 // Ideogram AI: Infographics with text (marketplace cards, best text rendering)

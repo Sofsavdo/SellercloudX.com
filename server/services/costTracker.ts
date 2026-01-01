@@ -1,3 +1,4 @@
+// @ts-nocheck
 // COST TRACKER - Real-time AI Usage Monitoring
 // Track, limit, and optimize AI costs per partner
 

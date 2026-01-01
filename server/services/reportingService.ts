@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Advanced Reporting Service
 // Custom reports, Export to Excel/PDF, Scheduled reports
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";

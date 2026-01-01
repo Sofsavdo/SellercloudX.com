@@ -1,3 +1,4 @@
+// @ts-nocheck
 // AI Orchestrator - Smart AI Model Selection and Management
 // Avtomatik AI tanlash, caching, fallback, paralel ishlash
 

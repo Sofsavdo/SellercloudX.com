@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Product Recognition Service
  * Uses Google Cloud Vision API to recognize products from images

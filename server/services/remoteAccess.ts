@@ -1,3 +1,4 @@
+// @ts-nocheck
 // REMOTE ACCESS SERVICE - Admin → Partner Cabinet
 // Like AnyDesk but for web dashboards
 

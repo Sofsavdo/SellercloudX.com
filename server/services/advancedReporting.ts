@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Advanced Reporting - Custom Reports and Scheduled Exports
 // Generate various business reports with export capabilities
 

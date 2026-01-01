@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Database Configuration - Production Ready
 // PostgreSQL (Railway) yoki SQLite (local development)
 

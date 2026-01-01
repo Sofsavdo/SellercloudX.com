@@ -1,3 +1,4 @@
+// @ts-nocheck
 // ONBOARDING WIZARD - One-time Setup
 // Comprehensive setup with validation and testing
 

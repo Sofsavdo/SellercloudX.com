@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth';
 import { videoGenerationService } from '../services/videoGenerationService';

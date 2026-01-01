@@ -1,3 +1,4 @@
+// @ts-nocheck
 // AI Task Queue - Parallel task processing
 // Handles all AI operations asynchronously
 

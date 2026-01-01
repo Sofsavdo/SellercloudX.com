@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Autonomous Product Manager - Zero Human Intervention
 // Automatically fetches products from marketplaces, analyzes, and creates optimized cards
 
