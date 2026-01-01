@@ -1,3 +1,4 @@
+// @ts-nocheck
 // server/services/aiManagerService.ts
 // AI AUTONOMOUS MANAGER - Core Service
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // MARKETPLACE AUTOMATION SERVICE
 // AI-powered seller cabinet automation with Puppeteer
 

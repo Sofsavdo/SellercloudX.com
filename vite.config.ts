@@ -1,32 +1,18 @@
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 import path from "path"
-import { fileURLToPath, URL } from 'node:url'
+import { fileURLToPath } from 'node:url'
+import { componentTagger } from "lovable-tagger"
 
 // ESM compatible __dirname
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Dev plugins array
-const devPlugins = []
-
-if (process.env.NODE_ENV !== "production" && process.env.REPL_ID !== undefined) {
-  try {
-    const runtimeErrorOverlay = require("@replit/vite-plugin-runtime-error-modal").default
-    const { cartographer } = require("@replit/vite-plugin-cartographer")
-
-    devPlugins.push(runtimeErrorOverlay())
-    devPlugins.push(cartographer())
-  } catch (e) {
-    console.warn("⚠️ Replit plugins not found, skipping...")
-  }
-}
-
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
-    ...devPlugins,
-  ],
+    mode === 'development' && componentTagger(),
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "client", "src"),
@@ -42,24 +28,22 @@ export default defineConfig({
   build: {
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
-    sourcemap: process.env.NODE_ENV !== 'production',
+    sourcemap: mode !== 'production',
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: process.env.NODE_ENV === 'production',
+        drop_console: mode === 'production',
         drop_debugger: true,
       },
     },
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // React core - MUST include scheduler
           if (id.includes('node_modules/react/') || 
               id.includes('node_modules/react-dom/') ||
               id.includes('node_modules/scheduler/')) {
             return 'react-vendor';
           }
-          // Radix UI - split by component groups
           if (id.includes('node_modules/@radix-ui/react-dialog') ||
               id.includes('node_modules/@radix-ui/react-dropdown-menu') ||
               id.includes('node_modules/@radix-ui/react-popover')) {
@@ -68,51 +52,39 @@ export default defineConfig({
           if (id.includes('node_modules/@radix-ui')) {
             return 'ui-vendor-extra';
           }
-          // Charts - heavy library
           if (id.includes('node_modules/recharts')) {
             return 'chart-vendor';
           }
-          // TanStack Query
           if (id.includes('node_modules/@tanstack/react-query')) {
             return 'query-vendor';
           }
-          // Icons
           if (id.includes('node_modules/lucide-react')) {
             return 'icon-vendor';
           }
-          // Router
           if (id.includes('node_modules/wouter')) {
             return 'router-vendor';
           }
-          // Zod validation
           if (id.includes('node_modules/zod')) {
             return 'validation-vendor';
           }
-          // Date utilities
           if (id.includes('node_modules/date-fns')) {
             return 'date-vendor';
           }
-          // Other vendors
           if (id.includes('node_modules/')) {
             return 'vendor';
           }
         },
-        // Optimize chunk names with better caching
-        chunkFileNames: (chunkInfo) => {
-          const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : 'chunk';
-          return `assets/[name]-[hash].js`;
-        },
+        chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
-    // Optimize chunk size
     chunkSizeWarningLimit: 800,
   },
   server: {
+    host: "::",
     port: 8080,
     strictPort: false,
-    host: "0.0.0.0",
     hmr: false,
     watch: {
       usePolling: true,
@@ -124,9 +96,8 @@ export default defineConfig({
     allowedHosts: true,
   },
   define: {
-    // Environment variable'larni client'ga o'tkazamiz
     'import.meta.env.VITE_API_URL': JSON.stringify(
       process.env.VITE_API_URL || ''
     ),
   },
-})
+}))

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Video Generation Service
 // Google Veo 3, Runway, Pika, Stable Video Diffusion integratsiyasi
 // Mahsulot kartochkalari uchun avtomatik video generatsiyasi

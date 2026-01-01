@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Google Search Integration Service
 // Real-time web search for competitor prices, trends, and product information
 

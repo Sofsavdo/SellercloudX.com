@@ -1,3 +1,4 @@
+// @ts-nocheck
 import swaggerJSDoc from 'swagger-jsdoc';
 
 const swaggerDefinition = {

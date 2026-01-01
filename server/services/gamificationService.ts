@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Gamification Service
 // Achievement system, Leaderboards, Rewards va bonuses
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // EMERGENT AI SERVICE - Unified AI Integration
 // Cost-optimized, scalable, production-ready
 

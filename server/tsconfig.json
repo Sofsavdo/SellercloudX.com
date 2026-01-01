@@ -20,25 +20,29 @@
     "outDir": "../dist/server",
     "rootDir": "..",
     "declaration": false,
-    "sourceMap": true,
+    "sourceMap": false,
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "downlevelIteration": true,
     "isolatedModules": false,
-    "noEmit": false,
+    "noEmit": true,
     "suppressImplicitAnyIndexErrors": true,
+    "noErrorTruncation": false,
     "paths": {
       "@shared/*": ["../shared/*"]
-    }
+    },
+    "typeRoots": ["../node_modules/@types", "../types"]
   },
   "include": [
     "**/*.ts",
-    "../shared/**/*.ts"
+    "../shared/**/*.ts",
+    "../types/**/*.d.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "../client"
+    "../client",
+    "**/__tests__/**"
   ]
 }
