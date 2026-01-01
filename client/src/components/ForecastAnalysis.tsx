@@ -189,7 +189,6 @@ export function ForecastAnalysis({ historicalData = [] }: ForecastAnalysisProps)
                     fill="url(#colorRevenue)"
                     name="Aylanma"
                     strokeWidth={2}
-                    strokeDasharray={(entry: any) => entry.type === 'forecast' ? '5 5' : '0'}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -225,7 +224,6 @@ export function ForecastAnalysis({ historicalData = [] }: ForecastAnalysisProps)
                     stroke="#10b981" 
                     strokeWidth={3}
                     name="Foyda"
-                    strokeDasharray={(entry: any) => entry.type === 'forecast' ? '5 5' : '0'}
                     dot={{ fill: '#10b981', r: 4 }}
                   />
                 </LineChart>
@@ -255,7 +253,7 @@ export function ForecastAnalysis({ historicalData = [] }: ForecastAnalysisProps)
                   <Legend />
                   <Bar 
                     dataKey="orders" 
-                    fill={(entry: any) => entry.type === 'forecast' ? '#a78bfa' : '#8b5cf6'}
+                    fill="#8b5cf6"
                     name="Buyurtmalar"
                   />
                 </BarChart>

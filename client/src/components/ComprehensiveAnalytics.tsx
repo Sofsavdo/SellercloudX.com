@@ -23,7 +23,7 @@ interface AnalyticsData {
 }
 
 interface ComprehensiveAnalyticsProps {
-  data: AnalyticsData[];
+  data?: AnalyticsData[];
 }
 
 export function ComprehensiveAnalytics({ data = [] }: ComprehensiveAnalyticsProps) {

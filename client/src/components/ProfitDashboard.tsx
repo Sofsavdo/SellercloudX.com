@@ -383,13 +383,13 @@ export function ProfitDashboard() {
                 </div>
               </div>
             )}
-            {tierAccess.tier === 'business_standard' && (
+            {tierAccess.tier === 'starter_pro' && (
               <div className="p-3 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
                 <div className="flex items-start gap-2">
                   <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
                   <div>
-                    <p className="text-sm font-medium text-purple-800">Professional Plus'ga o'ting</p>
-                    <p className="text-sm text-purple-700">Trend Hunter bilan yangi imkoniyatlarni kashf eting va komissiyani 15% gacha pasaytiring</p>
+                    <p className="text-sm font-medium text-purple-800">Professional'ga o'ting</p>
+                    <p className="text-sm text-purple-700">Barcha funksiyalarga kirish va VIP yordam oling</p>
                   </div>
                 </div>
               </div>
