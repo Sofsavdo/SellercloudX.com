@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
-import crypto from 'crypto';
 
 // Simple in-memory cache
 class MemoryCache {
@@ -44,7 +43,8 @@ class MemoryCache {
 
   private cleanup(): void {
     const now = Date.now();
-    for (const [key, entry] of this.cache.entries()) {
+    const entries = Array.from(this.cache.entries());
+    for (const [key, entry] of entries) {
       if (now > entry.expires) {
         this.cache.delete(key);
       }
@@ -150,7 +150,6 @@ export function etag(req: Request, res: Response, next: NextFunction) {
 
   res.json = function(data: any) {
     const content = JSON.stringify(data);
-    const crypto = await import('crypto');
     const hash = crypto.createHash('md5').update(content).digest('hex');
     
     res.setHeader('ETag', `"${hash}"`);

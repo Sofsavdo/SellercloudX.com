@@ -110,12 +110,12 @@ export default defineConfig({
     chunkSizeWarningLimit: 800,
   },
   server: {
-    port: 5000,
+    port: 8080,
     strictPort: false,
     host: "0.0.0.0",
-    hmr: false, // Disable HMR in Replit environment to avoid WebSocket issues
+    hmr: false,
     watch: {
-      usePolling: true, // Better for container/remote environments
+      usePolling: true,
     },
     fs: {
       strict: true,

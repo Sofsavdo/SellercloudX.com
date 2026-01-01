@@ -53,7 +53,7 @@ router.get('/stats', asyncHandler(async (req: Request, res: Response) => {
       totalReferrals: totalReferrals.count,
       activeReferrals: activeReferrals.count,
       totalEarnings: totalEarnings.total,
-      topReferrers: topReferrers.map(r => ({
+      topReferrers: topReferrers.map((r: any) => ({
         partnerId: r.partnerId,
         businessName: r.businessName,
         referralCount: r.referralCount,

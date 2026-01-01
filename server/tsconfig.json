@@ -16,13 +16,15 @@
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "downlevelIteration": true,
     "paths": {
       "@shared/*": ["../shared/*"]
     }
   },
   "include": [
     "**/*.ts",
-    "../shared/**/*.ts"
+    "../shared/**/*.ts",
+    "../types/**/*.d.ts"
   ],
   "exclude": [
     "node_modules",

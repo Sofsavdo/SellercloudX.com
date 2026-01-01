@@ -186,7 +186,7 @@ router.get('/cost-breakdown', asyncHandler(async (req: Request, res: Response) =
 
   res.json({
     total: stats,
-    byPartner: partnerCosts.map(p => ({
+    byPartner: partnerCosts.map((p: any) => ({
       partnerId: p.partner_id,
       cost: p.total_cost,
       requests: p.request_count

@@ -11,7 +11,7 @@ import aiManagerService from '../services/aiManagerService';
 export async function createAIProductCard(req: Request, res: Response) {
   try {
     const { name, category, description, price, images, targetMarketplace } = req.body;
-    const partnerId = req.user?.partnerId;
+    const partnerId = (req as any).user?.partnerId;
 
     if (!partnerId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -126,7 +126,7 @@ export async function reviewAIProduct(req: Request, res: Response) {
 export async function uploadToMarketplace(req: Request, res: Response) {
   try {
     const { productId, marketplaceType } = req.body;
-    const partnerId = req.user?.partnerId;
+    const partnerId = (req as any).user?.partnerId;
 
     if (!partnerId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -156,7 +156,7 @@ export async function uploadToMarketplace(req: Request, res: Response) {
 export async function optimizePrice(req: Request, res: Response) {
   try {
     const { productId, marketplaceType } = req.body;
-    const partnerId = req.user?.partnerId;
+    const partnerId = (req as any).user?.partnerId;
 
     if (!partnerId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -192,11 +192,11 @@ export async function optimizePrice(req: Request, res: Response) {
 export async function monitorPartner(req: Request, res: Response) {
   try {
     const { partnerId } = req.params;
-    const requestUserPartnerId = req.user?.partnerId;
+    const requestUserPartnerId = (req as any).user?.partnerId;
 
     // Check authorization (admin or own partner id)
     if (
-      req.user?.role !== 'admin' &&
+      (req as any).user?.role !== 'admin' &&
       String(requestUserPartnerId ?? '') !== String(partnerId)
     ) {
       return res.status(403).json({ error: 'Forbidden' });

@@ -3,6 +3,7 @@ import session from "express-session";
 import { Server } from "http";
 import fs from "fs";
 import multer from "multer";
+import { nanoid } from "nanoid";
 import { storage } from "./storage";
 import { healthCheck } from "./health";
 import { getSessionConfig } from "./session";
@@ -593,7 +594,6 @@ export function registerRoutes(app: express.Application): Server {
         description: '',
         sku: `SKU-${Date.now()}`,
         weight: '0.5',
-        imageUrl: file ? `/uploads/${file.filename}` : null
       });
       
       // Trigger AI Manager to create marketplace cards automatically
@@ -654,13 +654,13 @@ export function registerRoutes(app: express.Application): Server {
       const product = await storage.createProduct({
         partnerId: partner.id,
         name: validatedData.name,
-        category: validatedData.category,
+        category: validatedData.category || 'general',
         price: validatedData.price,
-        description: validatedData.description || undefined,
-        costPrice: validatedData.costPrice || undefined,
-        sku: validatedData.sku || undefined,
-        barcode: validatedData.barcode || undefined,
-        weight: validatedData.weight || undefined
+        description: validatedData.description || '',
+        costPrice: validatedData.costPrice,
+        sku: validatedData.sku || `SKU-${Date.now()}`,
+        barcode: validatedData.barcode,
+        weight: validatedData.weight
       });
 
       await storage.createAuditLog({
