@@ -86,7 +86,8 @@ export class MarketplaceManager {
   getPartnerIntegrations(partnerId: string): Array<{ marketplace: MarketplaceName; integration: MarketplaceIntegration }> {
     const result: Array<{ marketplace: MarketplaceName; integration: MarketplaceIntegration }> = [];
     
-    for (const [key, integration] of this.integrations.entries()) {
+    const entries = Array.from(this.integrations.entries());
+    for (const [key, integration] of entries) {
       if (key.startsWith(`${partnerId}:`)) {
         const marketplace = key.split(':')[1] as MarketplaceName;
         result.push({ marketplace, integration });

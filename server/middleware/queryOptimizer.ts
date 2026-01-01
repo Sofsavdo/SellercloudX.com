@@ -56,7 +56,7 @@ export class QueryOptimizer {
     if (items.length === 0) return items;
 
     // Extract unique foreign keys
-    const foreignKeys = [...new Set(items.map(item => item[foreignKey]))];
+    const foreignKeys = Array.from(new Set(items.map(item => item[foreignKey])));
     
     // Load related entities in one query
     const relatedEntities = await loader(foreignKeys);
