@@ -19,6 +19,7 @@
   },
   "homepage": "https://biznesyordam.uz",
   "scripts": {
+    "build:dev": "vite build --mode development"
     "dev": "cross-env NODE_ENV=development tsx server/index.ts",
     "dev:client": "cd client && npm run dev",
     "dev:server": "cross-env NODE_ENV=development tsx server/index.ts",
