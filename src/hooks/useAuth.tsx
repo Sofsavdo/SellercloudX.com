@@ -1,7 +1,7 @@
-// client/src/hooks/useAuth.ts
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+// Frontend-only Auth Hook for Lovable
+// Backend mavjud emas, shuning uchun demo mode ishlatiladi
+import React, { createContext, useContext, useState, useMemo, useCallback, ReactNode } from 'react';
+import { DEMO_USER, DEMO_ADMIN, DEMO_PARTNER } from '@/lib/demoData';
 
 interface User {
   id: string;
@@ -20,22 +20,23 @@ interface Partner {
   businessCategory: string;
   pricingTier: string;
   isApproved: boolean;
-}
-
-interface AuthResponse {
-  user: User;
-  partner?: Partner;
-  permissions?: Record<string, boolean> | null;
+  monthlyRevenue?: string;
+  commissionRate?: string;
+  telegramConnected?: boolean;
+  marketplaces?: string[];
+  aiEnabled?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   partner: Partner | null;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<AuthResponse>;
+  login: (username: string, password: string) => Promise<{ user: User; partner?: Partner }>;
   logout: () => Promise<void>;
   refetch: () => void;
   permissions: Record<string, boolean> | null;
+  isAdmin: boolean;
+  isPartner: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,105 +44,80 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [partner, setPartner] = useState<Partner | null>(null);
-  const [permissions, setPermissions] = useState<Record<string, boolean> | null>(null);
-  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const { data: authData, isLoading, refetch, error } = useQuery<AuthResponse | null>({
-    queryKey: ['/api/auth/me'],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/auth/me');
-        const data = await response.json() as AuthResponse;
-        console.log('Auth data received:', data);
-        return data;
-      } catch (error: any) {
-        console.log('Auth check error:', error.message);
-        if (error.message?.includes('401') || error.message?.includes('Avtorizatsiya')) {
-          return null;
-        }
-        return null;
-      }
-    },
-    retry: false,
-    staleTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
-    refetchOnReconnect: false,
-    gcTime: 15 * 60 * 1000,
-  });
-
-  const loginMutation = useMutation({
-    mutationFn: async ({ username, password }: { username: string; password: string }) => {
-      const response = await apiRequest('POST', '/api/auth/login', { username, password });
-      return response.json() as Promise<AuthResponse>;
-    },
-    onSuccess: (data) => {
-      console.log('Login successful:', data);
-      queryClient.setQueryData(['/api/auth/me'], data);
-    },
-  });
-
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      await apiRequest('POST', '/api/auth/logout');
-    },
-    onSuccess: () => {
-      console.log('Logout successful');
-      queryClient.removeQueries({ queryKey: ['/api/auth/me'] });
-      setUser(null);
+  // Demo login - faqat frontend uchun
+  const login = useCallback(async (username: string, password: string) => {
+    setIsLoading(true);
+    
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Admin login
+    if (username === 'admin' || username.includes('admin')) {
+      setUser(DEMO_ADMIN);
       setPartner(null);
-      setPermissions(null);
-    },
-    onError: () => {
-      // Force clear even if API fails
-      queryClient.removeQueries({ queryKey: ['/api/auth/me'] });
-      setUser(null);
-      setPartner(null);
-      setPermissions(null);
-    },
-  });
-
-  const login = useCallback(async (username: string, password: string): Promise<AuthResponse> => {
-    const data = await loginMutation.mutateAsync({ username, password });
-    return data as AuthResponse;
-  }, [loginMutation]);
+      setIsLoading(false);
+      // Save to localStorage for persistence
+      localStorage.setItem('auth_user', JSON.stringify(DEMO_ADMIN));
+      localStorage.removeItem('auth_partner');
+      return { user: DEMO_ADMIN };
+    }
+    
+    // Partner login
+    setUser(DEMO_USER);
+    setPartner(DEMO_PARTNER as Partner);
+    setIsLoading(false);
+    localStorage.setItem('auth_user', JSON.stringify(DEMO_USER));
+    localStorage.setItem('auth_partner', JSON.stringify(DEMO_PARTNER));
+    return { user: DEMO_USER, partner: DEMO_PARTNER as Partner };
+  }, []);
 
   const logout = useCallback(async () => {
-    await logoutMutation.mutateAsync();
-  }, [logoutMutation]);
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 300));
+    setUser(null);
+    setPartner(null);
+    localStorage.removeItem('auth_user');
+    localStorage.removeItem('auth_partner');
+    setIsLoading(false);
+  }, []);
 
-  // MUHIM: Faqat authData o'zgarganda va user hali o'rnatilmagan bo'lsa set qil
-  useEffect(() => {
-    if (authData?.user && !user) {
-      console.log('Setting initial user from authData');
-      setUser(authData.user);
-      setPartner(authData.partner || null);
-      setPermissions((authData as any).permissions || null);
-    }
-  }, [authData, user]); // user qo'shildi — faqat bir marta ishlasin
-
-  // Xatolik bo'lsa — faqat 401 da tozalash
-  useEffect(() => {
-    if (error && !isLoading) {
-      const errMsg = (error as any)?.message || '';
-      if (errMsg.includes('401') || errMsg.includes('Avtorizatsiya')) {
-        console.log('Auth failed — clearing user');
-        setUser(null);
-        setPartner(null);
-        setPermissions(null);
+  const refetch = useCallback(() => {
+    // Check localStorage for persisted auth
+    const savedUser = localStorage.getItem('auth_user');
+    const savedPartner = localStorage.getItem('auth_partner');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+      if (savedPartner) {
+        setPartner(JSON.parse(savedPartner));
       }
     }
-  }, [error, isLoading]);
+  }, []);
+
+  // Load saved auth on mount
+  React.useEffect(() => {
+    const savedUser = localStorage.getItem('auth_user');
+    const savedPartner = localStorage.getItem('auth_partner');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+      if (savedPartner) {
+        setPartner(JSON.parse(savedPartner));
+      }
+    }
+  }, []);
 
   const contextValue: AuthContextType = useMemo(() => ({
     user,
     partner,
-    isLoading: isLoading || loginMutation.isPending,
+    isLoading,
     login,
     logout,
     refetch,
-    permissions,
-  }), [user, partner, isLoading, loginMutation.isPending, login, logout, refetch, permissions]);
+    permissions: null,
+    isAdmin: user?.role === 'admin',
+    isPartner: user?.role === 'partner',
+  }), [user, partner, isLoading, login, logout, refetch]);
 
   return (
     <AuthContext.Provider value={contextValue}>
