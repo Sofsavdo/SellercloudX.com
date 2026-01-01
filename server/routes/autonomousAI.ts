@@ -50,9 +50,9 @@ router.post('/create-product', asyncHandler(async (req: Request, res: Response) 
     summary: {
       totalDecisions: result.decisions.length,
       averageConfidence: Math.round(
-        result.decisions.reduce((sum, d) => sum + d.confidence, 0) / result.decisions.length
+        result.decisions.reduce((sum: number, d: any) => sum + d.confidence, 0) / result.decisions.length
       ),
-      modules: [...new Set(result.decisions.map(d => d.module))]
+      modules: Array.from(new Set(result.decisions.map((d: any) => d.module)))
     }
   });
 }));
@@ -60,8 +60,16 @@ router.post('/create-product', asyncHandler(async (req: Request, res: Response) 
 // Get AI decision log
 router.get('/decisions', asyncHandler(async (req: Request, res: Response) => {
   const decisions = autonomousAIManager.getDecisions();
+  const summary = {
+    totalDecisions: decisions.length,
+    averageConfidence: decisions.length > 0 
+      ? Math.round(decisions.reduce((sum: number, d: any) => sum + d.confidence, 0) / decisions.length)
+      : 0,
+    modules: Array.from(new Set(decisions.map((d: any) => d.module)))
+  };
   res.json({
     total: decisions.length,
+    summary,
     decisions
   });
 }));

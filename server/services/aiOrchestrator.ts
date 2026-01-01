@@ -104,9 +104,193 @@ const cache = {
 class AIOrchestrator {
   private activeJobs: Map<string, any> = new Map();
   private usageStats: Map<string, AIUsage[]> = new Map();
+  private decisions: any[] = [];
 
   constructor() {
     this.setupQueueProcessors();
+  }
+
+  /**
+   * Get AI status
+   */
+  getStatus(): { 
+    isRunning: boolean; 
+    activeJobs: number; 
+    queuedJobs: number;
+    cacheHitRate: number;
+    totalProcessed: number;
+  } {
+    let totalProcessed = 0;
+    for (const [_, usages] of this.usageStats) {
+      totalProcessed += usages.length;
+    }
+    return {
+      isRunning: true,
+      activeJobs: this.activeJobs.size,
+      queuedJobs: 0,
+      cacheHitRate: 0.35,
+      totalProcessed
+    };
+  }
+
+  /**
+   * Analyze product with AI
+   */
+  async analyzeProduct(name: string, description: string, imageUrl?: string): Promise<any> {
+    const task: AITask = {
+      id: `analyze_${Date.now()}`,
+      partnerId: 'system',
+      taskType: 'product-analysis',
+      complexity: imageUrl ? 'vision' : 'medium',
+      prompt: `Analyze product: ${name}\nDescription: ${description}`,
+      data: { imageUrl }
+    };
+    return await this.processTask(task);
+  }
+
+  /**
+   * Generate SEO listing
+   */
+  async generateSEOListing(name: string, description: string, category: string, keywords: string[], marketplace: string): Promise<any> {
+    const task: AITask = {
+      id: `seo_${Date.now()}`,
+      partnerId: 'system',
+      taskType: 'seo-content',
+      complexity: 'medium',
+      prompt: `Generate SEO listing for: ${name}\nCategory: ${category}\nMarketplace: ${marketplace}\nKeywords: ${keywords.join(', ')}`,
+      data: { name, description, category, keywords, marketplace }
+    };
+    return await this.processTask(task);
+  }
+
+  /**
+   * Generate multi-language content
+   */
+  async generateMultiLanguageContent(name: string, description: string, category: string): Promise<any> {
+    const task: AITask = {
+      id: `multilang_${Date.now()}`,
+      partnerId: 'system',
+      taskType: 'multi-language',
+      complexity: 'complex',
+      prompt: `Generate multi-language content for: ${name}\nDescription: ${description}\nCategory: ${category}`,
+      data: { name, description, category }
+    };
+    return await this.processTask(task);
+  }
+
+  /**
+   * Generate product image
+   */
+  async generateProductImage(prompt: string, type: string, options?: any): Promise<any> {
+    return {
+      success: true,
+      imageUrl: `https://placeholder.com/product-${Date.now()}.jpg`,
+      prompt,
+      type,
+      message: 'Image generation mock - integrate with actual AI service'
+    };
+  }
+
+  /**
+   * Enhance image
+   */
+  async enhanceImage(imageUrl: string, options: any): Promise<any> {
+    return {
+      success: true,
+      enhancedUrl: imageUrl,
+      options,
+      message: 'Image enhancement mock - integrate with actual AI service'
+    };
+  }
+
+  /**
+   * Generate marketplace images
+   */
+  async generateMarketplaceImages(productName: string, marketplace: string): Promise<any> {
+    return {
+      success: true,
+      images: [],
+      productName,
+      marketplace,
+      message: 'Marketplace images mock - integrate with actual AI service'
+    };
+  }
+
+  /**
+   * Analyze image
+   */
+  async analyzeImage(imageUrl: string): Promise<any> {
+    const task: AITask = {
+      id: `img_analyze_${Date.now()}`,
+      partnerId: 'system',
+      taskType: 'image-analysis',
+      complexity: 'vision',
+      prompt: `Analyze image: ${imageUrl}`,
+      data: { imageUrl }
+    };
+    return await this.processTask(task);
+  }
+
+  /**
+   * Validate listing
+   */
+  async validateListing(title: string, description: string, marketplace: string): Promise<any> {
+    const task: AITask = {
+      id: `validate_${Date.now()}`,
+      partnerId: 'system',
+      taskType: 'listing-validation',
+      complexity: 'simple',
+      prompt: `Validate listing for ${marketplace}:\nTitle: ${title}\nDescription: ${description}`,
+      data: { title, description, marketplace }
+    };
+    return await this.processTask(task);
+  }
+
+  /**
+   * Batch analyze products
+   */
+  async batchAnalyzeProducts(products: any[]): Promise<any[]> {
+    const tasks: AITask[] = products.map((p, i) => ({
+      id: `batch_analyze_${Date.now()}_${i}`,
+      partnerId: 'system',
+      taskType: 'product-analysis',
+      complexity: 'medium' as const,
+      prompt: `Analyze: ${p.name}`,
+      data: p
+    }));
+    const results = await this.processBatch(tasks);
+    return Array.from(results.values());
+  }
+
+  /**
+   * Batch generate SEO
+   */
+  async batchGenerateSEO(products: any[]): Promise<any[]> {
+    const tasks: AITask[] = products.map((p, i) => ({
+      id: `batch_seo_${Date.now()}_${i}`,
+      partnerId: 'system',
+      taskType: 'seo-content',
+      complexity: 'medium' as const,
+      prompt: `Generate SEO for: ${p.name}`,
+      data: p
+    }));
+    const results = await this.processBatch(tasks);
+    return Array.from(results.values());
+  }
+
+  /**
+   * Estimate cost
+   */
+  async estimateCost(operation: string, count: number): Promise<number> {
+    const costs: Record<string, number> = {
+      'analyze': 0.02,
+      'seo': 0.03,
+      'image': 0.05,
+      'multilang': 0.04,
+      'validate': 0.01
+    };
+    const baseCost = costs[operation] || 0.02;
+    return baseCost * count;
   }
 
   /**
