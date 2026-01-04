@@ -108,6 +108,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     credentials: true,
   }));
 
+  // Admin Management Routes
+  app.get("/api/admin-management/admins", requireAuth, requireRole(['admin']), async (req, res) => {
+    try {
+      const admins = await db
+        .select({
+          id: users.id,
+          username: users.username,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          role: users.role,
+          isActive: users.isActive,
+          createdAt: users.createdAt,
+        })
+        .from(users)
+        .where(eq(users.role, 'admin'));
+
+      res.json(admins);
+    } catch (error) {
+      res.status(500).json({ message: "Server xatosi" });
+    }
+  });
+
+  app.post("/api/admin-management/admins", requireAuth, requireRole(['admin']), async (req, res) => {
+    try {
+      const { username, email, password, roleId, firstName, lastName } = req.body;
+      
+      const existing = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      if (existing.length > 0) {
+        return res.status(400).json({ message: "Bu email allaqachon mavjud" });
+      }
+
+      const bcrypt = require('bcryptjs');
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const { nanoid } = require('nanoid');
+
+      const newAdmin = await db.insert(users).values({
+        id: nanoid(),
+        username,
+        email,
+        password: hashedPassword,
+        role: roleId || 'admin',
+        firstName,
+        lastName,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }).returning();
+
+      res.json(newAdmin[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Server xatosi" });
+    }
+  });
+
+  app.put("/api/admin-management/admins/:adminId/status", requireAuth, requireRole(['admin']), async (req, res) => {
+    try {
+      const { adminId } = req.params;
+      const { isActive } = req.body;
+
+      await db.update(users)
+        .set({ isActive, updatedAt: new Date() })
+        .where(eq(users.id, adminId));
+
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Server xatosi" });
+    }
+  });
+
+  app.delete("/api/admin-management/admins/:adminId", requireAuth, requireRole(['admin']), async (req, res) => {
+    try {
+      const { adminId } = req.params;
+      await db.delete(users).where(eq(users.id, adminId));
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Server xatosi" });
+    }
+  });
+
   // Auth routes
   app.post('/api/auth/login', rateLimit(10, 60_000), async (req, res) => {
     try {

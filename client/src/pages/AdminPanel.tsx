@@ -76,6 +76,7 @@ import {
   RefreshCw,
   Save
 } from 'lucide-react';
+import AdminManagement from './AdminManagement';
 
 // Types
 interface OverallStats {
@@ -4106,6 +4107,13 @@ export default function AdminPanel() {
             </div>
           </div>
         </div>
+      </div>
+    )}
+
+    {/* Admin Management Tab */}
+    {activeTab === 'Admin Boshqaruv' && (
+      <div className="p-6">
+        <AdminManagement />
       </div>
     )}
     </>
