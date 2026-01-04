@@ -62,6 +62,7 @@ import reportingRoutes from "./routes/reportingRoutes";
 import gamificationRoutes from "./routes/gamificationRoutes";
 import marketplaceAIManagerRoutes from "./routes/marketplaceAIManagerRoutes";
 import adminAIManagementRoutes from "./routes/adminAIManagementRoutes";
+import adminManagementRoutes from "./routes/adminManagementRoutes";
 import referralCampaignRoutes from "./routes/referralCampaignRoutes";
 import smmRoutes from "./routes/smmRoutes";
 import { checkAndProcessFirstPurchase } from "./services/referralFirstPurchaseService";
@@ -1226,6 +1227,7 @@ export function registerRoutes(app: express.Application): Server {
   
   // Admin AI Management routes
   app.use("/api/admin/ai", requireAdmin, adminAIManagementRoutes);
+  app.use("/api/admin-management", requireAuth, requireAdmin, adminManagementRoutes);
   app.use("/api/smm", requireAdmin, smmRoutes); // SMM - Admin only
 
   // Chat uploads (files/images) - used by ChatSystem UI

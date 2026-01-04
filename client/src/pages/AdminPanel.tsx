@@ -27,6 +27,7 @@ import { AdminReferralCampaignManager } from '@/components/AdminReferralCampaign
 import { AdminAIManagement } from '@/components/AdminAIManagement';
 import { AdminRemoteAccess } from '@/components/AdminRemoteAccess';
 import { AdminSMM } from '@/components/AdminSMM';
+import AdminManagement from '@/pages/AdminManagement';
 import { StatCard } from '@/components/ui/StatCard';
 import { ModernButton } from '@/components/ui/ModernButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -416,6 +417,7 @@ export default function AdminPanel() {
                     {selectedTab === 'settings' && 'Sozlamalar'}
                     {selectedTab === 'chat' && 'Support Chat'}
                     {selectedTab === 'referrals' && 'Referrallar'}
+                    {selectedTab === 'admin-management' && 'Admin Boshqaruv'}
                   </h1>
                   <p className="text-slate-600 mt-1">
                     {selectedTab === 'overview' && 'Platforma statistikasi va umumiy ko\'rinish'}
@@ -428,6 +430,7 @@ export default function AdminPanel() {
                     {selectedTab === 'settings' && 'Platforma sozlamalari'}
                     {selectedTab === 'chat' && 'Yordam va qo\'llab-quvvatlash'}
                     {selectedTab === 'referrals' && 'Referral tizimi boshqaruvi'}
+                    {selectedTab === 'admin-management' && 'Adminlarni yaratish, tahrirlash va boshqarish'}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -1113,6 +1116,13 @@ export default function AdminPanel() {
                   </div>
                 </CardContent>
                 </Card>
+              </div>
+            )}
+
+            {/* Admin Management Tab */}
+            {selectedTab === 'admin-management' && (
+              <div className="space-y-6">
+                <AdminManagement />
               </div>
             )}
 

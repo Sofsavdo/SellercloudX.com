@@ -21,6 +21,7 @@ import {
   LogOut,
   User,
   Package,
+  Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -234,6 +235,13 @@ export const adminSidebarItems: SidebarItem[] = [
     label: 'Trendlar',
     icon: TrendingUp,
     path: '/admin',
+  },
+  {
+    id: 'admin-management',
+    label: 'Admin Boshqaruv',
+    icon: Shield,
+    path: '/admin',
+    gradient: 'bg-gradient-to-r from-indigo-500/20 to-purple-500/20',
   },
   {
     id: 'settings',
