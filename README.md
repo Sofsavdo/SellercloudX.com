@@ -1,10 +1,10 @@
-# 🚀 BiznesYordam - O'zbekiston Marketplace Fulfillment Platform
+# 🚀 SellerCloudX - AI-Powered Marketplace Automation Platform
 
-> 2025-09-16 • Version 2.0.1: Production fixes applied (auth/session cookies, CORS allow-list, chat route deduplication, partner dashboard stats partnerId resolution, marketplace storage alignment). After pulling latest main, restart the server and ensure `CORS_ORIGIN` and `SESSION_SECRET` are configured.
+> 2026-01-06 • Version 3.0.0: Premium Fintech frontend integrated, SellerCloudX rebrand complete, Railway deployment ready.
 
-**Professional marketplace fulfillment platform for Uzbekistan businesses**
+**Professional AI-powered marketplace automation platform for global e-commerce**
 
-[![Production Status](https://img.shields.io/badge/Status-Production%20Ready-green)](https://biznes-yordam.onrender.com)
+[![Production Status](https://img.shields.io/badge/Status-Production%20Ready-green)](https://sellercloudx.com)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL-blue)](https://www.postgresql.org/)
 [![Framework](https://img.shields.io/badge/Framework-React%20%2B%20Express-orange)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6.3-blue)](https://www.typescriptlang.org/)
@@ -12,58 +12,58 @@
 
 ## 🌟 **Platform Overview**
 
-BiznesYordam is a comprehensive fulfillment platform designed specifically for Uzbekistan's growing e-commerce ecosystem. It connects businesses with marketplace opportunities across Uzum, Wildberries, Yandex Market, and Ozon.
+SellerCloudX is a comprehensive AI-powered marketplace automation platform designed for modern e-commerce businesses. It provides 24/7 AI management, automated product optimization, and seamless integration with major marketplaces including Uzum, Wildberries, Yandex Market, and Ozon.
 
 ### ✨ **Key Features**
 
+- 🤖 **24/7 AI Manager** - Autonomous product management and optimization
 - 🛒 **Multi-Marketplace Integration** - Uzum, Wildberries, Yandex, Ozon
-- 📊 **Real-time Analytics** - Profit tracking, trend analysis
-- 💬 **Live Chat System** - WebSocket-powered communication with file sharing
-- 🎯 **Tier-based Access** - Starter Pro to Enterprise Elite
-- 🔐 **Secure Authentication** - Role-based access control with audit logging
-- 📱 **Responsive Design** - Mobile-first approach
-- 🚀 **Production Ready** - Real PostgreSQL database with fallback
+- 📊 **Premium Analytics** - Real-time profit tracking, trend analysis, fintech-style dashboards
+- 🎯 **SaaS Pricing Tiers** - Flexible plans from Starter to Enterprise
+- 🔐 **Enterprise Security** - Role-based access control with audit logging
+- 📱 **Premium UI/UX** - Modern fintech-style design with dark mode
+- 🚀 **Production Ready** - PostgreSQL database with SQLite fallback
 - 🔄 **Real-time Updates** - WebSocket connections with heartbeat monitoring
-- 📁 **File Management** - Chat file uploads and document sharing
-- 📈 **Advanced Analytics** - Profit breakdown and trending products
+- � **Advanced Analytics** - AI-powered insights and recommendations
+- ⚡ **90x Faster** - Automated workflows vs manual management
 
 ## 🔑 **Default Credentials**
 
 ### Admin Access
 ```
-URL: /admin-panel
-Username: admin
-Password: BiznesYordam2024!
-Email: admin@biznesyordam.uz
+URL: /admin-login
+Username: Medik
+Password: Medik9298
+Email: medik@sellercloudx.com
 ```
 
 ### Test Partner
 ```
-URL: /partner-dashboard  
-Username: testpartner
-Password: Partner2024!
-Email: partner@biznesyordam.uz
+URL: /login
+Username: partner
+Password: partner123
+Email: partner@sellercloudx.com
 ```
 
 ## 🏗️ **Architecture**
 
 ```
-BiznesYordam/
+SellerCloudX/
 ├── client/                 # React Frontend (Vite + TypeScript)
 │   ├── src/
-│   │   ├── components/     # Reusable UI components
+│   │   ├── components/     # Premium UI components (202 files)
 │   │   ├── hooks/         # Custom React hooks (useAuth, useWebSocket)
 │   │   ├── lib/           # Utilities and API client
-│   │   └── pages/         # Application pages
-│   └── package.json
+│   │   └── pages/         # Application pages (Landing, Admin, Partner)
+│   └── index.html
 ├── server/                # Express Backend (TypeScript)
-│   ├── routes.ts          # API routes with enhanced error handling
+│   ├── routes/            # API routes with enhanced error handling
 │   ├── storage.ts         # Database layer
 │   ├── websocket.ts       # WebSocket manager with heartbeat
 │   └── index.ts           # Server entry point
 ├── shared/                # Shared types and schemas
 │   └── schema.ts          # Drizzle ORM schemas
-├── start.sh               # Automated startup script
+├── railway.toml           # Railway deployment config
 └── package.json           # Root package configuration
 ```
 
@@ -78,8 +78,8 @@ BiznesYordam/
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/your-username/BiznesYordam.uz.git
-cd BiznesYordam.uz
+git clone https://github.com/Sofsavdo/SellercloudX.com.git
+cd SellercloudX.com
 ```
 
 2. **Run the automated startup script**
@@ -152,23 +152,15 @@ npm start
 
 ## 🌐 **Production Deployment**
 
-### Render.com (Current)
-```yaml
-services:
-  - type: web
-    name: biznes-yordam
-    env: node
-    plan: starter
-    branch: main
-    buildCommand: npm install && npm run build
-    startCommand: npm start
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: DATABASE_URL
-        sync: false
-      - key: SESSION_SECRET
-        generateValue: true
+### Railway (Current)
+```toml
+[build]
+builder = "DOCKERFILE"
+
+[deploy]
+startCommand = "npm start"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
 ```
 
 ### Environment Variables
@@ -310,9 +302,9 @@ PORT=5000
 
 ## 📞 **Support & Contact**
 
-- **Email:** admin@biznes-yordam.uz
-- **Telegram:** @biznes_yordam_support
-- **Website:** [BiznesYordam.uz](https://biznes-yordam.onrender.com)
+- **Email:** SellercloudX@gmail.com
+- **Website:** [SellerCloudX.com](https://sellercloudx.com)
+- **GitHub:** [Sofsavdo/SellercloudX.com](https://github.com/Sofsavdo/SellercloudX.com)
 
 ## 📄 **License**
 
@@ -320,9 +312,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**⚡ Built with ❤️ for Uzbekistan's entrepreneurial ecosystem**
+**⚡ Built with ❤️ for Global E-commerce**
 
-*Empowering businesses to thrive in the digital marketplace*
+*Empowering businesses with AI-powered marketplace automation*
 
 ## 🚀 **Quick Access**
 
@@ -334,6 +326,5 @@ After starting the application:
 - **Partner Registration:** http://localhost:5000/partner-registration
 
 ### Default Login Credentials:
-- **Admin:** admin / BiznesYordam2024!
-- **Partner:** testpartner / Partner2024!
-"# Biznesyordam.uz" 
+- **Admin:** Medik / Medik9298
+- **Partner:** partner / partner123 

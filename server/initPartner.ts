@@ -34,7 +34,7 @@ export async function initializePartner() {
     await db.insert(users).values({
       id: partnerUserId,
       username: "partner",
-      email: "partner@biznesyordam.uz",
+      email: "partner@sellercloudx.com",
       password: partnerPassword,
       firstName: "Test",
       lastName: "Partner",
@@ -50,9 +50,9 @@ export async function initializePartner() {
     await db.insert(partners).values({
       id: partnerId,
       userId: partnerUserId,
-      businessName: "Test Partner Business",
-      businessAddress: "Toshkent, O'zbekiston",
-      businessCategory: "E-commerce",
+      businessName: "SellerCloudX Test Partner",
+      businessAddress: "Global E-commerce",
+      businessCategory: "Marketplace Automation",
       phone: "+998901234568",
       approved: true,
       pricingTier: "free_starter",
@@ -67,7 +67,7 @@ export async function initializePartner() {
     console.log("🔑 Partner Login Credentials:");
     console.log("   Username: partner");
     console.log("   Password: partner123");
-    console.log("   Email: partner@biznesyordam.uz");
+    console.log("   Email: partner@sellercloudx.com");
     
   } catch (error) {
     console.error("❌ Error initializing partner user:", error);

@@ -1,23 +1,23 @@
 {
-  "name": "biznesyordam-platform",
+  "name": "sellercloudx-platform",
   "version": "3.0.0",
-  "description": "Professional Marketplace Fulfillment Platform for Uzbekistan",
+  "description": "AI-Powered Marketplace Automation Platform - 24/7 Autonomous Management",
   "type": "module",
   "license": "MIT",
-  "author": "BiznesYordam Team",
+  "author": "SellerCloudX Team",
   "keywords": [
     "marketplace",
-    "fulfillment",
-    "uzbekistan",
+    "automation",
+    "ai-manager",
     "e-commerce",
-    "uzum",
-    "wildberries"
+    "saas",
+    "sellercloudx"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Sofsavdo/BiznesYordam.uz"
+    "url": "https://github.com/Sofsavdo/SellercloudX.com"
   },
-  "homepage": "https://biznesyordam.uz",
+  "homepage": "https://sellercloudx.com",
   "scripts": {
     "build:dev": "vite build --mode development",
     "dev": "cross-env NODE_ENV=development tsx server/index.ts",

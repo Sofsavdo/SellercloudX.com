@@ -31,7 +31,7 @@ export async function initializeAdmin() {
     await db.insert(users).values({
       id: nanoid(),
       username: "Medik",
-      email: "medik@biznesyordam.uz",
+      email: "medik@sellercloudx.com",
       password: adminPassword,
       firstName: "Medik",
       lastName: "Admin",
@@ -46,7 +46,7 @@ export async function initializeAdmin() {
     console.log("🔑 Admin Login Credentials:");
     console.log("   Username: Medik");
     console.log("   Password: Medik9298");
-    console.log("   Email: medik@biznesyordam.uz");
+    console.log("   Email: medik@sellercloudx.com");
     
   } catch (error) {
     console.error("❌ Error initializing admin user:", error);

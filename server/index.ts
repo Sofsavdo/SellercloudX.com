@@ -62,10 +62,10 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:8080',
   'http://127.0.0.1:1337', // Browser preview
-  'https://biznesyordam.uz',
-  'https://www.biznesyordam.uz',
-  'https://biznesyordam-backend.onrender.com',
-  'https://biznes-yordam.onrender.com'
+  'https://sellercloudx.com',
+  'https://www.sellercloudx.com',
+  'http://sellercloudx.com',
+  'http://www.sellercloudx.com'
 ];
 
 // Environment'dan qo'shimcha originlarni qo'shamiz
