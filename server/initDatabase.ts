@@ -426,6 +426,22 @@ export async function initializeDatabaseTables() {
       );
     `);
     
+    // Create admin_permissions table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS admin_permissions (
+        user_id TEXT PRIMARY KEY REFERENCES users(id),
+        can_manage_admins INTEGER NOT NULL DEFAULT 0,
+        can_manage_content INTEGER NOT NULL DEFAULT 0,
+        can_manage_chat INTEGER NOT NULL DEFAULT 0,
+        can_view_reports INTEGER NOT NULL DEFAULT 0,
+        can_receive_products INTEGER NOT NULL DEFAULT 0,
+        can_activate_partners INTEGER NOT NULL DEFAULT 0,
+        can_manage_integrations INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+        updated_at INTEGER DEFAULT (unixepoch())
+      );
+    `);
+    
     // Create audit_logs table
     sqlite.exec(`
       CREATE TABLE IF NOT EXISTS audit_logs (
