@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 // SAAS MODEL: Use new SaaS-only pricing
-import { AI_MANAGER_PLANS } from '@/lib/pricingConfig';
+import { AI_MANAGER_PLANS } from '../../../SAAS_PRICING_CONFIG';
 
 interface Partner {
   id: string;

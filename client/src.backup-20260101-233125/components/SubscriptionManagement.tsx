@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import { SAAS_PRICING_TIERS } from '@/lib/pricingConfig';
+import { SAAS_PRICING_TIERS } from '../../../SAAS_PRICING_CONFIG';
 
 interface Subscription {
   id: string;
