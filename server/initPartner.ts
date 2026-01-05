@@ -36,15 +36,11 @@ export async function initializePartner() {
           id: partnerId,
           userId: existingPartner[0].id,
           businessName: "SellerCloudX Test Partner",
-          businessAddress: "Global E-commerce",
           businessCategory: "Marketplace Automation",
           phone: existingPartner[0].phone || "+998901234568",
           approved: true,
           pricingTier: "free_starter",
-          aiEnabled: true,
-          anydeskId: null,
-          anydeskPassword: null
-          // createdAt uses database default
+          aiEnabled: true
         });
         console.log("✅ Partner record created for existing user");
       }
@@ -78,15 +74,11 @@ export async function initializePartner() {
       id: partnerId,
       userId: partnerUserId,
       businessName: "SellerCloudX Test Partner",
-      businessAddress: "Global E-commerce",
       businessCategory: "Marketplace Automation",
       phone: "+998901234568",
       approved: true,
       pricingTier: "free_starter",
-      aiEnabled: true,
-      anydeskId: null,
-      anydeskPassword: null
-      // createdAt uses database default
+      aiEnabled: true
     });
     
     console.log("✅ Partner user created successfully!");
