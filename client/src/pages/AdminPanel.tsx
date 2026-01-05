@@ -1,4 +1,4 @@
-// client/src/pages/AdminPanel.tsx
+// Admin Panel - Premium Fintech Style Dashboard
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,12 +7,24 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Sidebar, adminSidebarItems } from '@/components/Sidebar';
+import { DashboardSidebar, adminNavItems } from '@/components/layout/DashboardSidebar';
+import { DashboardHeader, QuickStatsHeader } from '@/components/ui/dashboard-header';
+import { PremiumStatCard } from '@/components/ui/premium-stat-card';
+import { DataCard, MiniCard, ActionCard } from '@/components/ui/data-card';
 import { LoginForm } from '@/components/LoginForm';
 import { TrendingProducts } from '@/components/TrendingProducts';
 import { TrendingProductsDashboard } from '@/components/TrendingProductsDashboard';
 import { MarketplaceApiConfig } from '@/components/MarketplaceApiConfig';
 import { ComprehensiveAnalytics } from '@/components/ComprehensiveAnalytics';
+import { 
+  RevenueChart, 
+  OrdersChart, 
+  GrowthChart, 
+  MultiMetricChart,
+  DistributionChart,
+  ChartCard,
+  FINTECH_COLORS 
+} from '@/components/ui/fintech-charts';
 import { DataExportButton } from '@/components/DataExportButton';
 import { ScheduledReports } from '@/components/ScheduledReports';
 import { AdminMarketplaceIntegration } from '@/components/AdminMarketplaceIntegration';
@@ -27,50 +39,17 @@ import { AdminReferralCampaignManager } from '@/components/AdminReferralCampaign
 import { AdminAIManagement } from '@/components/AdminAIManagement';
 import { AdminRemoteAccess } from '@/components/AdminRemoteAccess';
 import { AdminSMM } from '@/components/AdminSMM';
-import { StatCard } from '@/components/ui/StatCard';
-import { ModernButton } from '@/components/ui/ModernButton';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/currency';
 import {
-  Users,
-  Package,
-  TrendingUp,
-  Settings,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Crown,
-  Shield,
-  BarChart3,
-  DollarSign,
-  Target,
-  Zap,
-  Globe,
-  Database,
-  FileText,
-  UserCheck,
-  UserX,
-  Eye,
-  Edit,
-  Trash2,
-  Plus,
-  Search,
-  Filter,
-  Download,
-  Upload,
-  AlertCircle,
-  RefreshCw,
-  Brain,
-  MessageCircle,
-  Gift,
-  Monitor
+  Users, Package, TrendingUp, Settings, CheckCircle, XCircle, Clock, Crown, Shield,
+  BarChart3, DollarSign, Target, Zap, Globe, Database, FileText, Eye, AlertCircle,
+  RefreshCw, Brain, MessageCircle, Gift, Monitor, ArrowUpRight, Activity, Sparkles,
+  LayoutDashboard, Download
 } from 'lucide-react';
-
-
 
 interface Partner {
   id: string;
@@ -98,29 +77,6 @@ interface Partner {
   };
 }
 
-// FULFILLMENT FEATURE - Hidden for SaaS-only mode
-// Uncomment when fulfillment services are ready
-/*
-interface FulfillmentRequest {
-  id: string;
-  partnerId: string;
-  productId: string | null;
-  requestType: string;
-  title: string;
-  description: string;
-  priority: string;
-  status: string;
-  estimatedCost: string | null;
-  actualCost: string | null;
-  assignedTo: string | null;
-  dueDate: string | null;
-  completedAt: string | null;
-  metadata: any;
-  createdAt: string;
-  updatedAt: string;
-}
-*/
-
 interface TierUpgradeRequest {
   id: string;
   partnerId: string;
@@ -145,108 +101,93 @@ export default function AdminPanel() {
   const [selectedRemotePartner, setSelectedRemotePartner] = useState<Partner | null>(null);
   const isAdmin = !!user && user.role === 'admin';
 
-  // Data queries (must be declared before any early returns)
+  // Data queries
   const { data: partners = [], isLoading: partnersLoading } = useQuery<Partner[]>({
     queryKey: ['/api/admin/partners'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/admin/partners');
-      return response.json();
+      try {
+        const response = await apiRequest('GET', '/api/admin/partners');
+        if (!response.ok) {
+          console.error('Admin partners API error:', response.status);
+          return [];
+        }
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (err) {
+        console.error('Admin partners fetch error:', err);
+        return [];
+      }
     },
     enabled: isAdmin,
   });
-
-  // FULFILLMENT FEATURE - Hidden for SaaS-only mode
-  // Uncomment when fulfillment services are ready
-  /*
-  const { data: fulfillmentRequests = [], isLoading: requestsLoading } = useQuery<FulfillmentRequest[]>({
-    queryKey: ['/api/fulfillment-requests'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/fulfillment-requests');
-      return response.json();
-    },
-    enabled: isAdmin,
-  });
-  */
-  const fulfillmentRequests: any[] = [];
-  const requestsLoading = false;
 
   const { data: tierUpgradeRequests = [], isLoading: tierRequestsLoading } = useQuery<TierUpgradeRequest[]>({
     queryKey: ['/api/admin/tier-upgrade-requests'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/admin/tier-upgrade-requests');
-      return response.json();
+      try {
+        const response = await apiRequest('GET', '/api/admin/tier-upgrade-requests');
+        if (!response.ok) {
+          console.error('Tier requests API error:', response.status);
+          return [];
+        }
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (err) {
+        console.error('Tier requests fetch error:', err);
+        return [];
+      }
     },
     enabled: isAdmin,
   });
 
-  // Mutations (also must be declared before any early returns)
+  // Mutations
   const approvePartnerMutation = useMutation({
     mutationFn: async (partnerId: string) => {
       const response = await apiRequest('PUT', `/api/admin/partners/${partnerId}/approve`);
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Hamkor tasdiqlandi",
-        description: "Hamkor muvaffaqiyatli tasdiqlandi",
-      });
+      toast({ title: "Hamkor tasdiqlandi", description: "Hamkor muvaffaqiyatli tasdiqlandi" });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/partners'] });
     },
     onError: (error: Error) => {
-      toast({
-        title: "Xatolik",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Xatolik", description: error.message, variant: "destructive" });
     },
   });
 
   const updateTierRequestMutation = useMutation({
     mutationFn: async ({ id, status, adminNotes }: { id: string; status: string; adminNotes?: string }) => {
-      const response = await apiRequest('PUT', `/api/admin/tier-upgrade-requests/${id}`, {
-        status,
-        adminNotes
-      });
+      const response = await apiRequest('PUT', `/api/admin/tier-upgrade-requests/${id}`, { status, adminNotes });
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Tarif so'rovi yangilandi",
-        description: "Tarif yangilash so'rovi ko'rib chiqildi",
-      });
+      toast({ title: "Tarif so'rovi yangilandi", description: "Tarif yangilash so'rovi ko'rib chiqildi" });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/tier-upgrade-requests'] });
     },
     onError: (error: Error) => {
-      toast({
-        title: "Xatolik",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Xatolik", description: error.message, variant: "destructive" });
     },
   });
 
-  // Auth tekshiruvi + redirect
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
-      setLocation('/login');
-    } else if (user.role !== 'admin') {
-      setLocation('/');
-    }
+    if (!user) setLocation('/login');
+    else if (user.role !== 'admin') setLocation('/');
   }, [user, authLoading, setLocation]);
 
-  // Loading holati - Modern Design
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <LoadingSpinner size="lg" text="Admin panel yuklanmoqda..." />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center animate-pulse">
+            <Sparkles className="w-6 h-6 text-primary" />
+          </div>
+          <p className="text-muted-foreground">Yuklanmoqda...</p>
         </div>
       </div>
     );
   }
 
-  // Ruxsat yo'q
   if (!user || user.role !== 'admin') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -258,467 +199,578 @@ export default function AdminPanel() {
   // Helper functions
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { label: 'Kutilmoqda', variant: 'secondary' as const, icon: Clock },
-      approved: { label: 'Tasdiqlangan', variant: 'default' as const, icon: CheckCircle },
-      rejected: { label: 'Rad etilgan', variant: 'destructive' as const, icon: XCircle },
-      completed: { label: 'Yakunlangan', variant: 'default' as const, icon: CheckCircle },
-      in_progress: { label: 'Jarayonda', variant: 'secondary' as const, icon: RefreshCw }
+      pending: { label: 'Kutilmoqda', className: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
+      approved: { label: 'Tasdiqlangan', className: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+      rejected: { label: 'Rad etilgan', className: 'bg-red-500/10 text-red-600 border-red-500/20' },
+      completed: { label: 'Yakunlangan', className: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+      in_progress: { label: 'Jarayonda', className: 'bg-blue-500/10 text-blue-600 border-blue-500/20' }
     };
-   
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
-    const Icon = config.icon;
-   
-    return (
-      <Badge variant={config.variant} className="flex items-center gap-1">
-        <Icon className="w-3 h-3" />
-        {config.label}
-      </Badge>
-    );
+    return <Badge variant="outline" className={config.className}>{config.label}</Badge>;
   };
 
   const getTierName = (tier: string) => {
-    const tierNames = {
-      starter_pro: 'Starter Pro',
-      business_standard: 'Business Standard',
-      professional_plus: 'Professional Plus',
-      enterprise_elite: 'Enterprise Elite'
+    const tierNames: Record<string, string> = {
+      starter_pro: 'Starter Pro', business_standard: 'Business Standard',
+      professional_plus: 'Professional Plus', enterprise_elite: 'Enterprise Elite'
     };
-    return tierNames[tier as keyof typeof tierNames] || tier;
+    return tierNames[tier] || tier;
   };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'text-red-600 bg-red-50 border-red-200';
-      case 'high': return 'text-orange-600 bg-orange-50 border-orange-200';
-      case 'medium': return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'low': return 'text-green-600 bg-green-50 border-green-200';
-      default: return 'text-slate-600 bg-slate-50 border-slate-200';
-    }
-  };
-
-  // Filter data
-  const filteredPartners = partners.filter(partner => {
-    const matchesSearch = !searchTerm ||
-      partner.businessName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      partner.userData?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      partner.userData?.lastName?.toLowerCase().includes(searchTerm.toLowerCase());
-   
-    const matchesStatus = filterStatus === 'all' ||
-      (filterStatus === 'approved' && partner.approved) ||
-      (filterStatus === 'pending' && !partner.approved);
-   
-    return matchesSearch && matchesStatus;
-  });
-
-  const filteredRequests = fulfillmentRequests.filter(request => {
-    const matchesSearch = !searchTerm ||
-      request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.description.toLowerCase().includes(searchTerm.toLowerCase());
-   
-    const matchesStatus = filterStatus === 'all' || request.status === filterStatus;
-   
-    return matchesSearch && matchesStatus;
-  });
 
   // Statistics
   const stats = {
     totalPartners: partners.length,
     approvedPartners: partners.filter(p => p.approved).length,
     pendingPartners: partners.filter(p => !p.approved).length,
-    totalRequests: fulfillmentRequests.length,
-    pendingRequests: fulfillmentRequests.filter(r => r.status === 'pending').length,
-    completedRequests: fulfillmentRequests.filter(r => r.status === 'completed').length,
-    tierUpgradeRequests: tierUpgradeRequests.filter(r => r.status === 'pending').length
+    totalRevenue: partners.reduce((sum, p) => sum + parseFloat(p.monthlyRevenue || '0'), 0),
+    pendingTierRequests: tierUpgradeRequests.filter(r => r.status === 'pending').length
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
-      <Sidebar 
-        items={adminSidebarItems} 
-        userRole="admin" 
-        selectedTab={selectedTab}
+    <div className="dashboard-layout flex w-full">
+      <DashboardSidebar
+        items={adminNavItems}
+        activeTab={selectedTab}
         onTabChange={setSelectedTab}
+        userRole="admin"
+        userName={`${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username}
+        userPlan="Admin"
       />
-     
-      <div className="flex-1 lg:ml-64 transition-all duration-300 min-h-screen">
-        <div className="p-6 space-y-6">
-          {/* Header */}
-          <div className="mb-8 animate-fade-in">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-4xl font-bold text-gradient-business">Admin Panel</h1>
-                <p className="text-muted-foreground mt-2">
-                  Platform boshqaruvi va hamkorlar nazorati
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                  <Shield className="w-3 h-3 mr-1" />
-                  Admin
-                </Badge>
-                <Badge variant="secondary">
-                  {user.firstName} {user.lastName}
-                </Badge>
-              </div>
-            </div>
-          </div>
 
-          {/* Stats Overview - Modern Design */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <StatCard
-              title="Jami Hamkorlar"
-              value={stats.totalPartners}
-              icon={Users}
-              trend={{ value: 12, isPositive: true }}
-              subtitle="Oxirgi oyda"
-              delay={0}
-            />
-            <StatCard
-              title="Tasdiqlangan"
-              value={stats.approvedPartners}
-              icon={CheckCircle}
-              trend={{ value: 8, isPositive: true }}
-              subtitle="Faol hamkorlar"
-              delay={100}
-            />
-            <StatCard
-              title="Kutilayotgan"
-              value={stats.pendingPartners}
-              icon={Clock}
-              subtitle="Tasdiqlash kutilmoqda"
-              delay={200}
-            />
-            <StatCard
-              title="So'rovlar"
-              value={stats.totalRequests}
-              icon={Package}
-              trend={{ value: 15, isPositive: true }}
-              subtitle="Jami so'rovlar"
-              delay={300}
-              gradient={true}
-            />
-          </div>
+      <main className="dashboard-main lg:ml-[280px] flex-1">
+        <div className="dashboard-content">
+          {/* Quick Stats Bar */}
+          <QuickStatsHeader
+            stats={[
+              { label: 'Jami Hamkorlar', value: stats.totalPartners, change: 12 },
+              { label: 'Faol', value: stats.approvedPartners, change: 8 },
+              { label: 'Kutilmoqda', value: stats.pendingPartners },
+              { label: 'Oylik Aylanma', value: formatCurrency(stats.totalRevenue), change: 15 },
+            ]}
+            className="animate-fade-in"
+          />
 
-          {/* Main Content - Professional Finance Style */}
-          <div className="space-y-6">
-            {/* Header Section */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold text-slate-900">
-                    {selectedTab === 'overview' && 'Umumiy Ko\'rinish'}
-                    {selectedTab === 'ai-manager' && 'AI Manager'}
-                    {selectedTab === 'smm' && 'Social Media Management'}
-                    {selectedTab === 'marketplace' && 'Marketplace'}
-                    {selectedTab === 'analytics' && 'Tahlil'}
-                    {selectedTab === 'partners' && 'Hamkorlar'}
-                    {selectedTab === 'trends' && 'Trendlar'}
-                    {selectedTab === 'settings' && 'Sozlamalar'}
-                    {selectedTab === 'chat' && 'Support Chat'}
-                    {selectedTab === 'referrals' && 'Referrallar'}
-                  </h1>
-                  <p className="text-slate-600 mt-1">
-                    {selectedTab === 'overview' && 'Platforma statistikasi va umumiy ko\'rinish'}
-                    {selectedTab === 'ai-manager' && 'AI xizmatlarini boshqarish va monitoring'}
-                    {selectedTab === 'smm' && 'Ijtimoiy tarmoqlarni boshqarish va kontent yaratish'}
-                    {selectedTab === 'marketplace' && 'Marketplace integratsiyalari'}
-                    {selectedTab === 'analytics' && 'Batafsil tahlil va hisobotlar'}
-                    {selectedTab === 'partners' && 'Hamkorlarni boshqarish'}
-                    {selectedTab === 'trends' && 'Trend mahsulotlar va bozor tahlili'}
-                    {selectedTab === 'settings' && 'Platforma sozlamalari'}
-                    {selectedTab === 'chat' && 'Yordam va qo\'llab-quvvatlash'}
-                    {selectedTab === 'referrals' && 'Referral tizimi boshqaruvi'}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    <Shield className="w-3 h-3 mr-1" />
-                    Admin
-                  </Badge>
-                  <Badge variant="secondary">
-                    {user.firstName} {user.lastName}
-                  </Badge>
-                </div>
+          {/* Overview Tab */}
+          {selectedTab === 'overview' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader
+                title="Umumiy Ko'rinish"
+                subtitle="Platform statistikasi va real-time monitoring"
+                icon={LayoutDashboard}
+                badge={{ text: 'Admin', icon: Shield }}
+              />
+
+              {/* Stat Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                <PremiumStatCard
+                  title="Jami Hamkorlar"
+                  value={stats.totalPartners}
+                  icon={Users}
+                  change={{ value: 12, type: 'increase', period: 'Oxirgi oy' }}
+                  delay={0}
+                />
+                <PremiumStatCard
+                  title="Tasdiqlangan"
+                  value={stats.approvedPartners}
+                  icon={CheckCircle}
+                  change={{ value: 8, type: 'increase', period: 'Faol hamkorlar' }}
+                  delay={50}
+                />
+                <PremiumStatCard
+                  title="Kutilayotgan"
+                  value={stats.pendingPartners}
+                  icon={Clock}
+                  subtitle="Tasdiqlash kutilmoqda"
+                  delay={100}
+                />
+                <PremiumStatCard
+                  title="Oylik Aylanma"
+                  value={formatCurrency(stats.totalRevenue)}
+                  icon={DollarSign}
+                  change={{ value: 15, type: 'increase', period: 'Oxirgi oy' }}
+                  variant="gradient"
+                  delay={150}
+                />
               </div>
-            </div>
 
-            {/* Content Section */}
-            <div className="space-y-6">
-            {/* Overview Tab */}
-            {selectedTab === 'overview' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Recent Activity */}
-                <Card className="shadow-elegant">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Clock className="w-5 h-5" />
-                      So'nggi Faoliyat
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {partners.slice(0, 5).map((partner) => (
-                        <div key={partner.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
-                          <div>
-                            <p className="font-medium text-sm">{partner.businessName}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(partner.createdAt).toLocaleDateString('uz-UZ')}
-                            </p>
-                          </div>
-                          {getStatusBadge(partner.approved ? 'approved' : 'pending')}
+              {/* Main Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Recent Partners */}
+                <DataCard
+                  title="So'nggi Hamkorlar"
+                  subtitle="Yangi ro'yxatdan o'tganlar"
+                  icon={Users}
+                >
+                  <div className="space-y-3">
+                    {partners.slice(0, 5).map((partner, idx) => (
+                      <div
+                        key={partner.id}
+                        className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-semibold text-sm">
+                          {partner.businessName?.charAt(0) || 'P'}
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{partner.businessName}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(partner.createdAt).toLocaleDateString('uz-UZ')}
+                          </p>
+                        </div>
+                        {getStatusBadge(partner.approved ? 'approved' : 'pending')}
+                      </div>
+                    ))}
+                  </div>
+                </DataCard>
 
                 {/* Top Partners */}
-                <Card className="shadow-elegant">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Crown className="w-5 h-5 text-amber-500" />
-                      Top Hamkorlar
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {partners
-                        .sort((a, b) => (parseFloat(b.monthlyRevenue || '0') - parseFloat(a.monthlyRevenue || '0')))
-                        .slice(0, 5)
-                        .map((partner, idx) => (
-                          <div key={partner.id} className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-100">
-                            <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                              {idx + 1}
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-medium text-sm">{partner.businessName}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {formatCurrency(parseFloat(partner.monthlyRevenue || '0'))}
-                              </p>
-                            </div>
+                <DataCard
+                  title="Top Hamkorlar"
+                  subtitle="Eng yuqori aylanma"
+                  icon={Crown}
+                >
+                  <div className="space-y-3">
+                    {partners
+                      .sort((a, b) => parseFloat(b.monthlyRevenue || '0') - parseFloat(a.monthlyRevenue || '0'))
+                      .slice(0, 5)
+                      .map((partner, idx) => (
+                        <div
+                          key={partner.id}
+                          className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-amber-500/5 to-orange-500/5 border border-amber-500/10"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold text-sm">
+                            {idx + 1}
                           </div>
-                        ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{partner.businessName}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatCurrency(parseFloat(partner.monthlyRevenue || '0'))}
+                            </p>
+                          </div>
+                          <ArrowUpRight className="w-4 h-4 text-emerald-500" />
+                        </div>
+                      ))}
+                  </div>
+                </DataCard>
 
                 {/* Quick Actions */}
-                <Card className="shadow-elegant">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Zap className="w-5 h-5" />
-                      Tezkor Amallar
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <Button onClick={() => setSelectedTab('partners')} variant="outline" className="w-full justify-start" size="sm">
-                        <Users className="w-4 h-4 mr-2" />
-                        Hamkorlarni boshqarish
-                      </Button>
-                      <Button onClick={() => setSelectedTab('requests')} variant="outline" className="w-full justify-start" size="sm">
-                        <Package className="w-4 h-4 mr-2" />
-                        So'rovlarni ko'rish
-                      </Button>
-                      <Button onClick={() => setSelectedTab('tiers')} variant="outline" className="w-full justify-start" size="sm">
-                        <Crown className="w-4 h-4 mr-2" />
-                        Tarif so'rovlari
-                      </Button>
-                      <Button onClick={() => setSelectedTab('marketplace')} variant="outline" className="w-full justify-start" size="sm">
-                        <Globe className="w-4 h-4 mr-2" />
-                        Marketplace
-                      </Button>
-                      <Button onClick={() => setSelectedTab('analytics')} variant="outline" className="w-full justify-start" size="sm">
-                        <FileText className="w-4 h-4 mr-2" />
-                        Tahlil
-                      </Button>
-                      <Button onClick={() => setSelectedTab('reports')} variant="outline" className="w-full justify-start" size="sm">
-                        <Download className="w-4 h-4 mr-2" />
-                        Hisobotlar
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-                </div>
+                <DataCard
+                  title="Tezkor Amallar"
+                  subtitle="Asosiy funksiyalar"
+                  icon={Zap}
+                >
+                  <div className="grid grid-cols-2 gap-3">
+                    <MiniCard
+                      title="Hamkorlar"
+                      value={stats.totalPartners}
+                      icon={Users}
+                      onClick={() => setSelectedTab('partners')}
+                    />
+                    <MiniCard
+                      title="Tariflar"
+                      value={stats.pendingTierRequests}
+                      icon={Crown}
+                      onClick={() => setSelectedTab('partners')}
+                    />
+                    <MiniCard
+                      title="Marketplace"
+                      value="Faol"
+                      icon={Globe}
+                      onClick={() => setSelectedTab('marketplace')}
+                    />
+                    <MiniCard
+                      title="Tahlil"
+                      value="Ko'rish"
+                      icon={BarChart3}
+                      onClick={() => setSelectedTab('analytics')}
+                    />
+                  </div>
+                </DataCard>
+              </div>
 
-                {/* Additional Overview Cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Monthly Trend */}
-                <Card className="shadow-elegant">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5 text-green-500" />
-                      Oylik Aylanma Trendi
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
+              {/* Pending Actions */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <DataCard
+                  title="Kutilayotgan Amallar"
+                  subtitle="Diqqat talab qiluvchi vazifalar"
+                  icon={AlertCircle}
+                >
+                  <div className="space-y-3">
+                    <div
+                      className="flex items-center justify-between p-4 rounded-lg bg-amber-500/5 border border-amber-500/10 cursor-pointer hover:bg-amber-500/10 transition-colors"
+                      onClick={() => setSelectedTab('partners')}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                          <Users className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">Yangi Hamkorlar</p>
+                          <p className="text-xs text-muted-foreground">Tasdiqlash kutmoqda</p>
+                        </div>
+                      </div>
+                      <Badge className="bg-amber-500 text-white">{stats.pendingPartners}</Badge>
+                    </div>
+
+                    <div
+                      className="flex items-center justify-between p-4 rounded-lg bg-violet-500/5 border border-violet-500/10 cursor-pointer hover:bg-violet-500/10 transition-colors"
+                      onClick={() => setSelectedTab('partners')}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center">
+                          <Crown className="w-5 h-5 text-violet-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">Tarif So'rovlari</p>
+                          <p className="text-xs text-muted-foreground">Yangi tarifga o'tish</p>
+                        </div>
+                      </div>
+                      <Badge className="bg-violet-500 text-white">{stats.pendingTierRequests}</Badge>
+                    </div>
+                  </div>
+                </DataCard>
+
+                <DataCard
+                  title="Oylik Trend"
+                  subtitle="Aylanma statistikasi"
+                  icon={TrendingUp}
+                >
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-lg bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20">
+                      <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-muted-foreground">Jami Aylanma</p>
-                          <p className="text-2xl font-bold text-green-700">
-                            {formatCurrency(partners.reduce((sum, p) => sum + parseFloat(p.monthlyRevenue || '0'), 0))}
+                          <p className="text-2xl font-bold text-emerald-600">
+                            {formatCurrency(stats.totalRevenue)}
                           </p>
                         </div>
-                        <TrendingUp className="w-12 h-12 text-green-500 opacity-50" />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                          <p className="text-xs text-muted-foreground">O'rtacha</p>
-                          <p className="text-lg font-bold text-blue-700">
-                            {formatCurrency(partners.length > 0 ? partners.reduce((sum, p) => sum + parseFloat(p.monthlyRevenue || '0'), 0) / partners.length : 0)}
-                          </p>
-                        </div>
-                        <div className="p-3 bg-purple-50 rounded-lg border border-purple-100">
-                          <p className="text-xs text-muted-foreground">Faol Hamkorlar</p>
-                          <p className="text-lg font-bold text-purple-700">
-                            {partners.filter(p => p.approved).length}
-                          </p>
-                        </div>
+                        <Activity className="w-10 h-10 text-emerald-500/50" />
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-
-                {/* Pending Actions */}
-                <Card className="shadow-elegant">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <AlertCircle className="w-5 h-5 text-orange-500" />
-                      Kutilayotgan Amallar
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-100 hover:bg-orange-100 transition-colors cursor-pointer" onClick={() => setSelectedTab('partners')}>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                            <Users className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">Yangi Hamkorlar</p>
-                            <p className="text-xs text-muted-foreground">Tasdiqlash kutmoqda</p>
-                          </div>
-                        </div>
-                        <Badge className="bg-orange-500">{partners.filter(p => !p.approved).length}</Badge>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 rounded-lg bg-muted/50">
+                        <p className="text-xs text-muted-foreground">O'rtacha</p>
+                        <p className="text-lg font-semibold">
+                          {formatCurrency(stats.totalRevenue / (stats.totalPartners || 1))}
+                        </p>
                       </div>
-                      
-                      {/* FULFILLMENT FEATURE - Hidden for SaaS-only mode */}
-                      {false && (
-                      <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer" onClick={() => setSelectedTab('requests')}>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                            <Package className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">Fulfillment So'rovlar</p>
-                            <p className="text-xs text-muted-foreground">Ko'rib chiqish kerak</p>
-                          </div>
-                        </div>
-                        <Badge className="bg-blue-500">{fulfillmentRequests.filter(r => r.status === 'pending').length}</Badge>
-                      </div>
-                      )}
-
-                      <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-100 hover:bg-purple-100 transition-colors cursor-pointer" onClick={() => setSelectedTab('tiers')}>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-                            <Crown className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">Tarif So'rovlari</p>
-                            <p className="text-xs text-muted-foreground">Yangi tarifga o'tish</p>
-                          </div>
-                        </div>
-                        <Badge className="bg-purple-500">{tierUpgradeRequests.filter(r => r.status === 'pending').length}</Badge>
+                      <div className="p-3 rounded-lg bg-muted/50">
+                        <p className="text-xs text-muted-foreground">Faol</p>
+                        <p className="text-lg font-semibold">{stats.approvedPartners}</p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-                </div>
+                  </div>
+                </DataCard>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Support Chat Tab */}
-            {selectedTab === 'chat' && (
-              <div className="space-y-4">
-                <Tabs defaultValue="chat" className="space-y-4">
-                  <TabsList>
-                    <TabsTrigger value="chat">Chat</TabsTrigger>
-                    <TabsTrigger value="remote-access">Remote Access</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="chat">
-                  <Card className="bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-200">
+          {/* AI Manager Tab */}
+          {selectedTab === 'ai-manager' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader
+                title="AI Manager"
+                subtitle="AI xizmatlarini boshqarish va monitoring"
+                icon={Brain}
+                badge={{ text: 'Premium', icon: Sparkles }}
+              />
+
+              <Tabs defaultValue="monitor" className="space-y-6">
+                <TabsList className="bg-muted/50 p-1">
+                  <TabsTrigger value="monitor">Live Monitor</TabsTrigger>
+                  <TabsTrigger value="commands">Buyruqlar</TabsTrigger>
+                  <TabsTrigger value="statistics">Statistika</TabsTrigger>
+                  <TabsTrigger value="management">Boshqaruv</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="monitor"><AIManagerLiveMonitor /></TabsContent>
+                <TabsContent value="commands"><AICommandCenter /></TabsContent>
+                <TabsContent value="statistics"><AIManagerDashboard /></TabsContent>
+                <TabsContent value="management"><AdminAIManagement /></TabsContent>
+              </Tabs>
+            </div>
+          )}
+
+          {/* SMM Tab */}
+          {selectedTab === 'smm' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader
+                title="SMM & Marketing"
+                subtitle="Ijtimoiy tarmoqlar va kontent boshqaruvi"
+                icon={Globe}
+                badge={{ text: 'New', variant: 'secondary' }}
+              />
+              <AdminSMM />
+            </div>
+          )}
+
+          {/* Marketplace Tab */}
+          {selectedTab === 'marketplace' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader
+                title="Marketplace"
+                subtitle="Marketplace integratsiyalari va sozlamalar"
+                icon={Globe}
+              />
+              <AdminMarketplaceIntegration />
+            </div>
+          )}
+
+          {/* Analytics Tab - Fintech Charts */}
+          {selectedTab === 'analytics' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader
+                title="Tahlillar"
+                subtitle="Platform statistikasi va grafiklar"
+                icon={BarChart3}
+                actions={
+                  <DataExportButton data={partners} filename="platform-analytics" type="analytics" />
+                }
+              />
+              
+              {/* Main Charts Grid */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <ChartCard
+                  title="Platform Daromadi"
+                  subtitle="Oylik trend"
+                  icon={DollarSign}
+                  value={formatCurrency(stats.totalRevenue)}
+                  change={15}
+                >
+                  <RevenueChart 
+                    data={[
+                      { name: 'Yan', value: stats.totalRevenue * 0.5 },
+                      { name: 'Fev', value: stats.totalRevenue * 0.55 },
+                      { name: 'Mar', value: stats.totalRevenue * 0.6 },
+                      { name: 'Apr', value: stats.totalRevenue * 0.65 },
+                      { name: 'May', value: stats.totalRevenue * 0.7 },
+                      { name: 'Iyn', value: stats.totalRevenue * 0.75 },
+                      { name: 'Iyl', value: stats.totalRevenue * 0.8 },
+                      { name: 'Avg', value: stats.totalRevenue * 0.85 },
+                      { name: 'Sen', value: stats.totalRevenue * 0.9 },
+                      { name: 'Okt', value: stats.totalRevenue * 0.95 },
+                      { name: 'Noy', value: stats.totalRevenue * 0.98 },
+                      { name: 'Dek', value: stats.totalRevenue },
+                    ]} 
+                    height={300} 
+                  />
+                </ChartCard>
+
+                <ChartCard
+                  title="Hamkorlar O'sishi"
+                  subtitle="Oylik dinamika"
+                  icon={Users}
+                  value={stats.totalPartners}
+                  change={12}
+                >
+                  <OrdersChart 
+                    data={[
+                      { name: 'Yan', value: Math.floor(stats.totalPartners * 0.3) },
+                      { name: 'Fev', value: Math.floor(stats.totalPartners * 0.35) },
+                      { name: 'Mar', value: Math.floor(stats.totalPartners * 0.4) },
+                      { name: 'Apr', value: Math.floor(stats.totalPartners * 0.5) },
+                      { name: 'May', value: Math.floor(stats.totalPartners * 0.6) },
+                      { name: 'Iyn', value: Math.floor(stats.totalPartners * 0.7) },
+                      { name: 'Iyl', value: Math.floor(stats.totalPartners * 0.75) },
+                      { name: 'Avg', value: Math.floor(stats.totalPartners * 0.8) },
+                      { name: 'Sen', value: Math.floor(stats.totalPartners * 0.85) },
+                      { name: 'Okt', value: Math.floor(stats.totalPartners * 0.9) },
+                      { name: 'Noy', value: Math.floor(stats.totalPartners * 0.95) },
+                      { name: 'Dek', value: stats.totalPartners },
+                    ]} 
+                    height={300} 
+                  />
+                </ChartCard>
+              </div>
+
+              {/* Secondary Charts */}
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <ChartCard
+                  title="Kvartallik O'sish"
+                  subtitle="Yillik trend"
+                  icon={TrendingUp}
+                  value="+24%"
+                  change={8}
+                >
+                  <GrowthChart 
+                    data={[
+                      { name: 'Q1', value: 12 },
+                      { name: 'Q2', value: 18 },
+                      { name: 'Q3', value: 15 },
+                      { name: 'Q4', value: 24 },
+                    ]} 
+                    height={200} 
+                  />
+                </ChartCard>
+
+                <ChartCard
+                  title="Tarif Taqsimoti"
+                  subtitle="Hamkorlar bo'yicha"
+                  icon={Crown}
+                >
+                  <DistributionChart 
+                    data={[
+                      { name: 'Enterprise', value: 15 },
+                      { name: 'Professional', value: 25 },
+                      { name: 'Business', value: 35 },
+                      { name: 'Starter', value: 25 },
+                    ]} 
+                    height={200}
+                    innerRadius={45}
+                  />
+                </ChartCard>
+
+                <ChartCard
+                  title="Ko'p Metrikali"
+                  subtitle="Daromad vs Hamkorlar"
+                  icon={ArrowUpRight}
+                >
+                  <MultiMetricChart
+                    data={[
+                      { name: 'Yan', revenue: 50, partners: 30 },
+                      { name: 'Fev', revenue: 55, partners: 35 },
+                      { name: 'Mar', revenue: 60, partners: 40 },
+                      { name: 'Apr', revenue: 70, partners: 50 },
+                      { name: 'May', revenue: 80, partners: 60 },
+                      { name: 'Iyn', revenue: 90, partners: 70 },
+                    ]}
+                    metrics={[
+                      { key: 'revenue', name: 'Daromad', color: FINTECH_COLORS.primary },
+                      { key: 'partners', name: 'Hamkorlar', color: FINTECH_COLORS.gold },
+                    ]}
+                    height={200}
+                  />
+                </ChartCard>
+              </div>
+
+              {/* Legacy Analytics */}
+              <AdvancedPartnerAnalytics />
+              <ComprehensiveAnalytics />
+              <ScheduledReports />
+            </div>
+          )}
+
+          {/* Partners Tab */}
+          {selectedTab === 'partners' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader
+                title="Hamkorlar"
+                subtitle="Hamkorlarni boshqarish va tasdiqlash"
+                icon={Users}
+              />
+
+              <Tabs defaultValue="list" className="space-y-6">
+                <TabsList className="bg-muted/50 p-1">
+                  <TabsTrigger value="list" className="flex items-center gap-2">
+                    <Users className="w-4 h-4" /> Ro'yxat
+                  </TabsTrigger>
+                  <TabsTrigger value="payments" className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4" /> To'lovlar
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="list"><AdminPartnersManagement /></TabsContent>
+                <TabsContent value="payments">
+                  <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-indigo-900">
-                        <MessageCircle className="w-5 h-5" />
-                        Support Chat
+                      <CardTitle className="flex items-center gap-2">
+                        <DollarSign className="w-5 h-5" />
+                        To'lovlar Boshqaruvi
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-slate-600">
-                        Hamkorlar bilan real-time yozishma, fayl almashinuvi va statuslarni shu yerda boshqaring.
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <div className="rounded-xl border bg-white shadow-soft h-[720px]">
-                    <ChatSystem isAdmin />
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="remote-access">
-                  <div className="mb-6">
-                    <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
-                      <Monitor className="h-8 w-8 text-indigo-600" />
-                      Remote Access
-                    </h2>
-                    <p className="text-slate-600">
-                      Hamkor kabinetlariga masofadan kirish va sozlash
-                    </p>
-                  </div>
-                  <div className="space-y-4">
-                    {partners.length > 0 ? (
-                      partners.map((partner) => (
-                        <Card key={partner.id} className="shadow-elegant hover-lift">
-                          <CardHeader>
-                            <CardTitle className="flex items-center justify-between">
-                              <span>{partner.businessName}</span>
-                              <Badge variant={partner.approved ? "default" : "secondary"}>
-                                {partner.approved ? 'Tasdiqlangan' : 'Kutilmoqda'}
-                              </Badge>
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-sm text-muted-foreground">
-                                  {partner.businessCategory} • {partner.userData?.email || 'Email yo\'q'}
-                                </p>
-                              </div>
-                              <Button
-                                onClick={() => setSelectedRemotePartner(partner)}
-                                variant="outline"
-                                size="sm"
-                              >
-                                <Monitor className="w-4 h-4 mr-2" />
-                                Remote Access
-                              </Button>
-                            </div>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Card className="bg-green-50 border-green-200">
+                          <CardContent className="p-4 text-center">
+                            <CheckCircle className="w-8 h-8 mx-auto text-green-600 mb-2" />
+                            <p className="text-2xl font-bold text-green-700">0</p>
+                            <p className="text-sm text-green-600">Muvaffaqiyatli</p>
                           </CardContent>
                         </Card>
-                      ))
-                    ) : (
-                      <Card>
-                        <CardContent className="p-8 text-center">
-                          <Monitor className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                          <p className="text-muted-foreground">Hozircha hamkorlar yo'q</p>
+                        <Card className="bg-yellow-50 border-yellow-200">
+                          <CardContent className="p-4 text-center">
+                            <Clock className="w-8 h-8 mx-auto text-yellow-600 mb-2" />
+                            <p className="text-2xl font-bold text-yellow-700">0</p>
+                            <p className="text-sm text-yellow-600">Kutilmoqda</p>
+                          </CardContent>
+                        </Card>
+                        <Card className="bg-blue-50 border-blue-200">
+                          <CardContent className="p-4 text-center">
+                            <DollarSign className="w-8 h-8 mx-auto text-blue-600 mb-2" />
+                            <p className="text-2xl font-bold text-blue-700">0 so'm</p>
+                            <p className="text-sm text-blue-600">Jami aylanma</p>
+                          </CardContent>
+                        </Card>
+                      </div>
+                      <div className="text-center py-8 text-muted-foreground">
+                        <DollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>To'lovlar self-service tizimida avtomatik qayta ishlanadi.</p>
+                        <p className="text-sm mt-2">Hamkorlar o'zlari tarif tanlab, to'lov qiladilar.</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
+
+          {/* Trends Tab */}
+          {selectedTab === 'trends' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader
+                title="Trendlar"
+                subtitle="Trend mahsulotlar va bozor tahlili"
+                icon={TrendingUp}
+              />
+              <TrendingProductsDashboard />
+            </div>
+          )}
+
+          {/* Chat Tab */}
+          {selectedTab === 'chat' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader
+                title="Support"
+                subtitle="Hamkorlar bilan aloqa va yordam"
+                icon={MessageCircle}
+              />
+
+              <Tabs defaultValue="chat" className="space-y-6">
+                <TabsList className="bg-muted/50 p-1">
+                  <TabsTrigger value="chat">Chat</TabsTrigger>
+                  <TabsTrigger value="remote">Remote Access</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="chat">
+                  <Card className="h-[700px]">
+                    <ChatSystem isAdmin />
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="remote">
+                  <div className="space-y-4">
+                    {partners.map((partner) => (
+                      <Card key={partner.id} className="hover-lift">
+                        <CardContent className="p-4 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <Monitor className="w-5 h-5 text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-medium">{partner.businessName}</p>
+                              <p className="text-sm text-muted-foreground">{partner.userData?.email}</p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedRemotePartner(partner)}
+                          >
+                            <Monitor className="w-4 h-4 mr-2" /> Kirish
+                          </Button>
                         </CardContent>
                       </Card>
-                    )}
+                    ))}
                   </div>
-                  
-                  {/* Remote Access Modal */}
                   {selectedRemotePartner && (
                     <AdminRemoteAccess
                       partnerId={selectedRemotePartner.id}
@@ -727,499 +779,78 @@ export default function AdminPanel() {
                       onClose={() => setSelectedRemotePartner(null)}
                     />
                   )}
-                  </TabsContent>
-                </Tabs>
-              </div>
-            )}
-
-            {/* Referrals Management Tab - Includes Campaigns */}
-            {selectedTab === 'referrals' && (
-              <div className="space-y-6">
-                <Tabs defaultValue="management" className="space-y-4">
-                  <TabsList>
-                    <TabsTrigger value="management">Referral Boshqaruvi</TabsTrigger>
-                    <TabsTrigger value="campaigns">Konkurslar</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="management">
-                    <AdminReferralManagement />
-                  </TabsContent>
-                  <TabsContent value="campaigns">
-                    <AdminReferralCampaignManager />
-                  </TabsContent>
-                </Tabs>
-              </div>
-            )}
-
-            {/* SMM Tab */}
-            {selectedTab === 'smm' && (
-              <div className="space-y-6">
-                <AdminSMM />
-              </div>
-            )}
-
-            {/* AI MANAGER TAB - ENHANCED with AI Management */}
-            {selectedTab === 'ai-manager' && (
-              <div className="space-y-6">
-              <Tabs defaultValue="monitor" className="space-y-4">
-                <TabsList>
-                  <TabsTrigger value="monitor">Live Monitor</TabsTrigger>
-                  <TabsTrigger value="commands">Buyruqlar</TabsTrigger>
-                  <TabsTrigger value="statistics">Statistika</TabsTrigger>
-                  <TabsTrigger value="management">AI Boshqaruv</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="monitor">
-                  <div className="mb-6">
-                    <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
-                      <Brain className="h-8 w-8 text-purple-600" />
-                      AI Manager Live Monitor
-                    </h2>
-                    <p className="text-slate-600">
-                      AI Manager'ni real-time kuzating
-                    </p>
-                  </div>
-                  <AIManagerLiveMonitor />
-                </TabsContent>
-
-                <TabsContent value="commands">
-                  <div className="mb-6">
-                    <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
-                      <Brain className="h-8 w-8 text-purple-600" />
-                      AI Command Center
-                    </h2>
-                    <p className="text-slate-600">
-                      AI Manager'ga buyruqlar bering va sozlang
-                    </p>
-                  </div>
-                  <AICommandCenter />
-                </TabsContent>
-
-                <TabsContent value="statistics">
-                  <div className="mb-6">
-                    <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
-                      <Brain className="h-8 w-8 text-purple-600" />
-                      AI Manager Statistics
-                    </h2>
-                    <p className="text-slate-600">
-                      AI Manager statistikasi va ko'rsatkichlari
-                    </p>
-                  </div>
-                  <AIManagerDashboard />
-                </TabsContent>
-
-                <TabsContent value="management">
-                  <div className="mb-6">
-                    <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
-                      <Brain className="h-8 w-8 text-purple-600" />
-                      AI Boshqaruv
-                    </h2>
-                    <p className="text-slate-600">
-                      AI xizmatlarini boshqarish, xarajatlarni kuzatish va sozlash
-                    </p>
-                  </div>
-                  <AdminAIManagement />
                 </TabsContent>
               </Tabs>
             </div>
-            )}
+          )}
 
-            {/* Marketplace Integration Tab */}
-            {selectedTab === 'marketplace' && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-bold mb-2">Marketplace Integratsiyasi Boshqaruvi</h2>
-                  <p className="text-muted-foreground mb-6">
-                    Hamkorlardan kelgan marketplace ulanish so'rovlarini ko'rib chiqing va tasdiqlang
-                  </p>
-                </div>
-                <AdminMarketplaceIntegration />
-              </div>
-            )}
+          {/* Referrals Tab */}
+          {selectedTab === 'referrals' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader
+                title="Referrallar"
+                subtitle="Referral tizimi va kampaniyalar"
+                icon={Gift}
+              />
 
-            {/* Partners Tab - YANGI MUKAMMAL with Mini Menu */}
-            {selectedTab === 'partners' && (
-              <div className="space-y-6">
-                <Tabs defaultValue="list" className="space-y-4">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="list">
-                      <Users className="w-4 h-4 mr-2" />
-                      Hamkorlar Ro'yxati
-                    </TabsTrigger>
-                    <TabsTrigger value="tiers">
-                      <Crown className="w-4 h-4 mr-2" />
-                      Tariflar
-                    </TabsTrigger>
-                    {/* FULFILLMENT FEATURE - Hidden for SaaS-only mode */}
-                    {false && (
-                      <TabsTrigger value="requests">
-                        <Package className="w-4 h-4 mr-2" />
-                        So'rovlar
-                      </TabsTrigger>
-                    )}
-                  </TabsList>
+              <Tabs defaultValue="management" className="space-y-6">
+                <TabsList className="bg-muted/50 p-1">
+                  <TabsTrigger value="management">Boshqaruv</TabsTrigger>
+                  <TabsTrigger value="campaigns">Kampaniyalar</TabsTrigger>
+                </TabsList>
 
-                  <TabsContent value="list">
-                    <AdminPartnersManagement />
-                  </TabsContent>
+                <TabsContent value="management"><AdminReferralManagement /></TabsContent>
+                <TabsContent value="campaigns"><AdminReferralCampaignManager /></TabsContent>
+              </Tabs>
+            </div>
+          )}
 
-                  <TabsContent value="tiers">
-                    {/* Tier Upgrade Requests */}
-                    <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-xl font-bold">Tarif Yangilash So'rovlari</h3>
-                        <p className="text-muted-foreground">Hamkorlardan kelgan tarif yangilash so'rovlari</p>
-                      </div>
-                      <Badge variant="secondary">
-                        {tierUpgradeRequests.length} ta so'rov
-                      </Badge>
-                    </div>
-                    <div className="grid gap-4">
-                      {tierUpgradeRequests.length === 0 ? (
-                        <Card>
-                          <CardContent className="p-8 text-center">
-                            <Crown className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                            <p className="text-muted-foreground">Hozircha tarif yangilash so'rovlari yo'q</p>
-                          </CardContent>
-                        </Card>
-                      ) : (
-                        tierUpgradeRequests.map((request) => (
-                          <Card key={request.id} className="shadow-elegant hover-lift">
-                            <CardContent className="p-6">
-                              <div className="flex items-start justify-between mb-4">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-3 mb-3">
-                                    <Crown className="w-6 h-6 text-primary" />
-                                    <div>
-                                      <h4 className="text-lg font-semibold">
-                                        {getTierName(request.currentTier)} → {getTierName(request.requestedTier)}
-                                      </h4>
-                                      <p className="text-sm text-muted-foreground">
-                                        {new Date(request.requestedAt).toLocaleDateString('uz-UZ')}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  {request.reason && (
-                                    <div className="mb-4 p-3 bg-muted/30 rounded-lg">
-                                      <p className="text-sm text-muted-foreground mb-1">Sabab:</p>
-                                      <p className="text-sm">{request.reason}</p>
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  {getStatusBadge(request.status)}
-                                </div>
-                              </div>
-                              {request.status === 'pending' && (
-                                <div className="space-y-4">
-                                  <Textarea
-                                    placeholder="Admin izohi..."
-                                    className="min-h-[80px]"
-                                    id={`admin-notes-${request.id}`}
-                                  />
-                                  <div className="flex gap-2">
-                                    <Button
-                                      onClick={() => {
-                                        const textarea = document.getElementById(`admin-notes-${request.id}`) as HTMLTextAreaElement;
-                                        updateTierRequestMutation.mutate({
-                                          id: request.id,
-                                          status: 'approved',
-                                          adminNotes: textarea?.value || ''
-                                        });
-                                      }}
-                                      disabled={updateTierRequestMutation.isPending}
-                                      className="bg-green-600 hover:bg-green-700"
-                                      size="sm"
-                                    >
-                                      <CheckCircle className="w-4 h-4 mr-2" />
-                                      Tasdiqlash
-                                    </Button>
-                                    <Button
-                                      onClick={() => {
-                                        const textarea = document.getElementById(`admin-notes-${request.id}`) as HTMLTextAreaElement;
-                                        updateTierRequestMutation.mutate({
-                                          id: request.id,
-                                          status: 'rejected',
-                                          adminNotes: textarea?.value || ''
-                                        });
-                                      }}
-                                      disabled={updateTierRequestMutation.isPending}
-                                      variant="destructive"
-                                      size="sm"
-                                    >
-                                      <XCircle className="w-4 h-4 mr-2" />
-                                      Rad etish
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
-                              {request.adminNotes && (
-                                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                  <p className="text-sm text-blue-600 font-medium mb-1">Admin izohi:</p>
-                                  <p className="text-sm text-blue-800">{request.adminNotes}</p>
-                                </div>
-                              )}
-                            </CardContent>
-                          </Card>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                  </TabsContent>
+          {/* Settings Tab */}
+          {selectedTab === 'settings' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader
+                title="Sozlamalar"
+                subtitle="Platforma sozlamalari va konfiguratsiya"
+                icon={Settings}
+              />
 
-                  {/* FULFILLMENT FEATURE - Hidden for SaaS-only mode */}
-                  {false && (
-                    <TabsContent value="requests">
-                      {/* Fulfillment Requests */}
-                      <div className="space-y-6">
-                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                          <div>
-                            <h3 className="text-xl font-bold">Fulfillment So'rovlari</h3>
-                            <p className="text-muted-foreground">Hamkorlardan kelgan so'rovlarni boshqarish</p>
-                          </div>
-                          <div className="flex gap-2">
-                            <Input
-                              placeholder="So'rov qidirish..."
-                              value={searchTerm}
-                              onChange={(e) => setSearchTerm(e.target.value)}
-                              className="w-64"
-                            />
-                            <select
-                              value={filterStatus}
-                              onChange={(e) => setFilterStatus(e.target.value)}
-                              className="px-3 py-2 border rounded-md"
-                            >
-                              <option value="all">Barchasi</option>
-                              <option value="pending">Kutilmoqda</option>
-                              <option value="in_progress">Jarayonda</option>
-                              <option value="completed">Bajarildi</option>
-                              <option value="rejected">Rad etildi</option>
-                            </select>
-                          </div>
-                        </div>
-                        <div className="grid gap-4">
-                          {fulfillmentRequests.length === 0 ? (
-                            <Card>
-                              <CardContent className="p-8 text-center">
-                                <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                                <p className="text-muted-foreground">Hozircha so'rovlar yo'q</p>
-                              </CardContent>
-                            </Card>
-                          ) : (
-                            fulfillmentRequests
-                              .filter(req => {
-                                const matchesSearch = req.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                                    req.description.toLowerCase().includes(searchTerm.toLowerCase());
-                                const matchesStatus = filterStatus === 'all' || req.status === filterStatus;
-                                return matchesSearch && matchesStatus;
-                              })
-                              .map((request) => (
-                                <Card key={request.id} className="shadow-elegant hover-lift">
-                                  <CardContent className="p-6">
-                                    <div className="flex items-start justify-between mb-4">
-                                      <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-2">
-                                          <Package className="w-5 h-5 text-primary" />
-                                          <h4 className="text-lg font-semibold">{request.title}</h4>
-                                        </div>
-                                        <p className="text-sm text-muted-foreground mb-3">{request.description}</p>
-                                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                          <span>Turi: {request.requestType}</span>
-                                          <span>Muhimlik: {request.priority || 'medium'}</span>
-                                          <span>{new Date(request.createdAt).toLocaleDateString('uz-UZ')}</span>
-                                        </div>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        {getStatusBadge(request.status)}
-                                      </div>
-                                    </div>
-                                    {request.status === 'pending' && (
-                                      <div className="flex gap-2 mt-4">
-                                        <Button
-                                          className="bg-green-600 hover:bg-green-700"
-                                          size="sm"
-                                        >
-                                          <CheckCircle className="w-4 h-4 mr-2" />
-                                          Qabul qilish
-                                        </Button>
-                                        <Button
-                                          variant="destructive"
-                                          size="sm"
-                                        >
-                                          <XCircle className="w-4 h-4 mr-2" />
-                                          Rad etish
-                                        </Button>
-                                      </div>
-                                    )}
-                                  </CardContent>
-                                </Card>
-                              ))
-                          )}
-                        </div>
-                      </div>
-                    </TabsContent>
-                  )}
-                </Tabs>
-              </div>
-            )}
-
-
-            {/* Trending Products Tab - ADVANCED VERSION */}
-            {selectedTab === 'trends' && (
-              <div className="space-y-6">
-                <TrendingProductsDashboard />
-              </div>
-            )}
-
-            {/* Analytics Tab */}
-            {selectedTab === 'analytics' && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
-                  <BarChart3 className="w-7 h-7 text-purple-600" />
-                  Platformaning to'liq tahlili
-                  </h2>
-                  <p className="text-muted-foreground mb-6">Hamkorlar bo'yicha foyda breakdown, AI usage, marketplace statistika</p>
-                </div>
-
-                {/* ADVANCED PARTNER ANALYTICS - NEW! */}
-                <AdvancedPartnerAnalytics />
-
-                {/* Comprehensive Analytics */}
-                <div className="grid gap-6 mt-6">
-                  <ComprehensiveAnalytics />
-                </div>
-
-                {/* Reports Export */}
-                <Card className="mt-6">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Download className="w-5 h-5" />
-                    Hisobotlarni Yuklab Olish
+                    <Globe className="w-5 h-5" /> Marketplace API
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex gap-4">
-                    <DataExportButton 
-                      data={partners} 
-                      filename="platform-analytics"
-                      type="analytics"
-                    />
-                    <ScheduledReports />
-                  </div>
+                  <MarketplaceApiConfig />
                 </CardContent>
-                </Card>
+              </Card>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <ActionCard
+                  title="Ma'lumotlar Bazasi"
+                  description="Database sozlamalari va backup"
+                  icon={Database}
+                  action={{ label: "Sozlash", onClick: () => {} }}
+                />
+                <ActionCard
+                  title="Hisobotlar"
+                  description="Jadval va hisobot sozlamalari"
+                  icon={FileText}
+                  action={{ label: "Sozlash", onClick: () => {} }}
+                  variant="primary"
+                />
+                <ActionCard
+                  title="API Dokumentatsiya"
+                  description="Developer uchun API ma'lumotlari"
+                  icon={Target}
+                  action={{ label: "Ko'rish", onClick: () => {} }}
+                  variant="accent"
+                />
               </div>
-            )}
-
-            {/* Settings Tab */}
-            {selectedTab === 'settings' && (
-              <div className="space-y-6">
-                {/* Marketplace API - Full Width */}
-                <Card className="shadow-elegant">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Globe className="w-5 h-5" />
-                      Marketplace API Sozlamalari
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Marketplace platformalari bilan integratsiya uchun API kalitlarini sozlang
-                    </p>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <MarketplaceApiConfig />
-                  </CardContent>
-                </Card>
-
-                {/* System Settings */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <Card className="shadow-elegant hover-lift">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Database className="w-5 h-5" />
-                      Ma'lumotlar Bazasi
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Database sozlamalari va backup
-                    </p>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Jami yozuvlar:</span>
-                        <span className="font-semibold">{partners.length + fulfillmentRequests.length}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Hamkorlar:</span>
-                        <span className="font-semibold">{partners.length}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>So'rovlar:</span>
-                        <span className="font-semibold">{fulfillmentRequests.length}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                  </Card>
-
-                  <Card className="shadow-elegant hover-lift">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Shield className="w-5 h-5" />
-                        Xavfsizlik
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Tizim xavfsizligi va ruxsatlar
-                      </p>
-                      <div className="space-y-2">
-                        <Badge variant="default" className="w-full justify-center">
-                          SSL Faol
-                        </Badge>
-                        <Badge variant="default" className="w-full justify-center">
-                          2FA Yoqilgan
-                        </Badge>
-                        <Badge variant="default" className="w-full justify-center">
-                          Session Secure
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="shadow-elegant hover-lift">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Settings className="w-5 h-5" />
-                        Tizim
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Umumiy tizim sozlamalari
-                      </p>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span>Versiya:</span>
-                          <span className="font-semibold">2.0.1</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Node:</span>
-                          <span className="font-semibold">v20.x</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Database:</span>
-                          <span className="font-semibold">SQLite</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            )}
             </div>
-          </div>
+          )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

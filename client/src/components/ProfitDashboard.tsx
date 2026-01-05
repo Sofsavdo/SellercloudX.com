@@ -43,12 +43,22 @@ export function ProfitDashboard() {
   const tierAccess = useTierAccess();
   const { user } = useAuth();
 
-  const { data: profitData, isLoading } = useQuery<ProfitData[]>({
+  const { data: profitData, isLoading, error } = useQuery<ProfitData[]>({
     queryKey: ['/api/profit-breakdown', selectedPeriod, selectedMarketplace],
     queryFn: async () => {
-      const url = `/api/profit-breakdown?period=${selectedPeriod}&marketplace=${selectedMarketplace}`;
-      const response = await apiRequest('GET', url);
-      return response.json();
+      try {
+        const url = `/api/profit-breakdown?period=${selectedPeriod}&marketplace=${selectedMarketplace}`;
+        const response = await apiRequest('GET', url);
+        if (!response.ok) {
+          console.error('Profit API error:', response.status);
+          return [];
+        }
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (err) {
+        console.error('Profit fetch error:', err);
+        return [];
+      }
     },
     retry: false,
     enabled: !!user && (user.role === 'admin' || tierAccess.hasProfitDashboard),

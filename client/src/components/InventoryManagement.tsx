@@ -81,17 +81,32 @@ export function InventoryManagement() {
   const { data: stats } = useQuery<InventoryStats>({
     queryKey: ['/api/inventory/stats'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/inventory/stats');
-      return response.json();
+      try {
+        const response = await apiRequest('GET', '/api/inventory/stats');
+        if (!response.ok) return null;
+        return response.json();
+      } catch {
+        return null;
+      }
     }
   });
 
   // Fetch products
-  const { data: products = [], isLoading } = useQuery<Product[]>({
+  const { data: products = [], isLoading, error } = useQuery<Product[]>({
     queryKey: ['/api/products'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/products');
-      return response.json();
+      try {
+        const response = await apiRequest('GET', '/api/products');
+        if (!response.ok) {
+          console.error('Products API error:', response.status);
+          return [];
+        }
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (err) {
+        console.error('Products fetch error:', err);
+        return [];
+      }
     }
   });
 

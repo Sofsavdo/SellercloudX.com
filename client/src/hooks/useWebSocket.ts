@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useAuth } from './useAuth';
 
 interface WebSocketMessage {
-  type: 'message' | 'notification' | 'tier_upgrade' | 'system' | 'ping' | 'pong';
+  type: 'message' | 'notification' | 'tier_upgrade' | 'system' | 'ping' | 'pong' | 'sale' | 'order' | 'revenue_update';
   data: any;
   timestamp?: number;
 }
@@ -72,22 +72,30 @@ export function useWebSocket(): UseWebSocketReturn {
           switch (message.type) {
             case 'message':
               console.log('📨 New message received:', message.data);
-              // You can add toast notification here
               break;
             case 'tier_upgrade':
               console.log('📈 Tier upgrade notification:', message.data);
               break;
+            case 'sale':
+              console.log('💰 New sale:', message.data);
+              break;
+            case 'order':
+              console.log('📦 New order:', message.data);
+              break;
+            case 'revenue_update':
+              console.log('💵 Revenue update:', message.data);
+              break;
             case 'system':
               console.log('🔧 System message:', message.data);
-              if (message.data.error) {
+              if (message.data?.error) {
                 console.error('WebSocket system error:', message.data.error);
               }
               break;
             case 'pong':
-              console.log('🏓 Pong received');
+              // Silent pong
               break;
             default:
-              console.log('📨 Unknown message type:', message.type);
+              console.log('📨 Message:', message.type, message.data);
           }
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);

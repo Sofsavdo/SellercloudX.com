@@ -30,7 +30,7 @@ import {
   XCircle,
   Clock
 } from 'lucide-react';
-import { apiRequest } from '@/lib/api';
+import { apiRequest } from '@/lib/queryClient';
 
 interface Payment {
   id: string;

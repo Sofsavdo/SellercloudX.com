@@ -5,27 +5,24 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "gradient-primary text-primary-foreground hover:shadow-glow scale-hover font-semibold",
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 scale-hover",
-        outline:
-          "border-2 border-primary bg-background text-primary hover:gradient-primary hover:text-primary-foreground scale-hover",
-        secondary:
-          "gradient-secondary text-secondary-foreground hover:shadow-elegant scale-hover font-semibold",
-        ghost: "hover:bg-accent/10 hover:text-accent scale-hover",
+        default: "gradient-primary text-primary-foreground hover:shadow-glow hover:scale-[1.02] font-semibold",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-[1.02]",
+        outline: "border-2 border-primary bg-background text-primary hover:bg-primary hover:text-primary-foreground hover:scale-[1.02]",
+        secondary: "gradient-secondary text-secondary-foreground hover:shadow-elegant hover:scale-[1.02] font-semibold",
+        ghost: "hover:bg-accent/10 hover:text-accent hover:scale-[1.02]",
         link: "text-primary underline-offset-4 hover:underline",
-        premium: "gradient-business text-primary-foreground hover:shadow-business scale-hover font-bold tracking-wide",
-        success: "gradient-success text-accent-foreground hover:shadow-glow scale-hover font-semibold",
+        premium: "gradient-business text-primary-foreground hover:shadow-business hover:scale-[1.02] font-bold tracking-wide",
+        success: "gradient-success text-success-foreground hover:shadow-glow hover:scale-[1.02] font-semibold",
       },
       size: {
-        default: "h-12 px-6 py-3",
+        default: "h-11 px-6 py-2.5",
         sm: "h-9 rounded-md px-4 py-2",
         lg: "h-14 rounded-xl px-10 py-4 text-base",
-        icon: "h-12 w-12",
+        icon: "h-11 w-11",
       },
     },
     defaultVariants: {

@@ -125,12 +125,21 @@ export function ChatSystem({ partnerId, isAdmin = false }: ChatSystemProps) {
       setIsLoading(true);
       // Admin: load chat rooms list
       const response = await apiRequest('GET', '/api/chat/rooms');
+      
+      if (!response.ok) {
+        console.error('Chat rooms API error:', response.status);
+        setPartners([]);
+        return;
+      }
+      
       const data = await response.json();
-      const roomsAsPartners: ChatPartner[] = (Array.isArray(data) ? data : []).map((room: any) => ({
-        id: room.id, // chatRoomId
-        businessName: room.partnerName || 'Partner',
-        businessCategory: room.partnerPhone || 'Partner',
-        userData: { id: room.partnerId || '', username: room.partnerName || 'partner' },
+      // Ensure data is always an array
+      const rooms = Array.isArray(data) ? data : [];
+      const roomsAsPartners: ChatPartner[] = rooms.map((room: any) => ({
+        id: room?.id || '', // chatRoomId
+        businessName: room?.partnerName || 'Partner',
+        businessCategory: room?.partnerPhone || 'Partner',
+        userData: { id: room?.partnerId || '', username: room?.partnerName || 'partner' },
         isOnline: false,
       }));
       setPartners(roomsAsPartners);
@@ -141,6 +150,7 @@ export function ChatSystem({ partnerId, isAdmin = false }: ChatSystemProps) {
       }
     } catch (error) {
       console.error('Error loading chat partners:', error);
+      setPartners([]);
       toast({
         title: "Xatolik",
         description: "Hamkorlar yuklanmadi",
@@ -157,10 +167,19 @@ export function ChatSystem({ partnerId, isAdmin = false }: ChatSystemProps) {
       const response = isAdmin
         ? await apiRequest('GET', `/api/chat/messages/${chatRoomId}`)
         : await apiRequest('GET', `/api/chat/messages`);
+      
+      if (!response.ok) {
+        console.error('Messages API error:', response.status);
+        setMessages([]);
+        return;
+      }
+      
       const data = await response.json();
-      setMessages(data);
+      // Ensure data is always an array to prevent .map errors
+      setMessages(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error loading messages:', error);
+      setMessages([]);
       toast({
         title: "Xatolik",
         description: "Xabarlar yuklanmadi",

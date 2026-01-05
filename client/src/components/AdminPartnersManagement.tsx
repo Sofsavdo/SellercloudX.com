@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 // SAAS MODEL: Use new SaaS-only pricing
-import { AI_MANAGER_PLANS } from '../../../SAAS_PRICING_CONFIG';
+import { AI_MANAGER_PLANS } from '@/lib/pricingConfig';
 
 interface Partner {
   id: string;
@@ -71,11 +71,21 @@ export function AdminPartnersManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: partners = [] } = useQuery<Partner[]>({
+  const { data: partners = [], isLoading, error } = useQuery<Partner[]>({
     queryKey: ['/api/admin/partners'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/admin/partners');
-      return response.json();
+      try {
+        const response = await apiRequest('GET', '/api/admin/partners');
+        if (!response.ok) {
+          console.error('Partners API error:', response.status);
+          return [];
+        }
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (err) {
+        console.error('Partners fetch error:', err);
+        return [];
+      }
     }
   });
 

@@ -11,7 +11,7 @@ import {
   Info
 } from "lucide-react";
 // SAAS MODEL: Use new SaaS-only pricing
-import { SAAS_PRICING_TIERS as NEW_PRICING_TIERS } from '../../../SAAS_PRICING_CONFIG';
+import { SAAS_PRICING_TIERS as NEW_PRICING_TIERS } from '@/lib/pricingConfig';
 
 interface TierConfig {
   id: string;

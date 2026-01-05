@@ -49,11 +49,21 @@ export function OrderManagement() {
   const [showOrderDialog, setShowOrderDialog] = useState(false);
 
   // Fetch orders
-  const { data: orders = [], isLoading } = useQuery<Order[]>({
+  const { data: orders = [], isLoading, error } = useQuery<Order[]>({
     queryKey: ['/api/orders'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/orders');
-      return response.json();
+      try {
+        const response = await apiRequest('GET', '/api/orders');
+        if (!response.ok) {
+          console.error('Orders API error:', response.status);
+          return [];
+        }
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (err) {
+        console.error('Orders fetch error:', err);
+        return [];
+      }
     }
   });
 

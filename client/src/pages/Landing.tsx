@@ -12,7 +12,8 @@ import {
   Crown, Clock, Users, DollarSign, Rocket, Play, Eye,
   MessageCircle, AlertCircle, Bot, Image as ImageIcon,
   LineChart, PieChart, ShoppingCart, Box, Warehouse,
-  Infinity, Gauge, UserCheck, Lock, Award, Plus, X, FileText, ChevronDown
+  Infinity, Gauge, UserCheck, Lock, Award, Plus, X, FileText, ChevronDown,
+  Camera, Lightbulb
 } from 'lucide-react';
 
 export default function Landing() {
@@ -21,60 +22,60 @@ export default function Landing() {
   const [showLoginMenu, setShowLoginMenu] = useState(false);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b shadow-sm">
+      {/* Navigation - Premium Fintech Style */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-b border-border/50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 bg-gradient-to-br from-[hsl(220,70%,45%)] to-[hsl(250,84%,50%)] rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
                 <Sparkles className="w-7 h-7 text-white" />
               </div>
               <div>
-                <span className="text-2xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <span className="text-2xl font-black text-gradient-primary">
                   SellerCloudX
                 </span>
-                <div className="text-xs text-gray-500 font-medium">AI-Powered Marketplace Automation</div>
+                <div className="text-xs text-muted-foreground font-medium">AI-Powered Marketplace Automation</div>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Button variant="ghost" onClick={() => setLocation('/demo')} className="hidden md:flex">
+              <Button variant="ghost" onClick={() => setLocation('/demo')} className="hidden md:flex text-foreground hover:bg-muted">
                 <Eye className="w-4 h-4 mr-2" />
                 Demo
               </Button>
-              <Button variant="outline" onClick={() => setLocation('/partner-registration')}>
+              <Button variant="outline" onClick={() => setLocation('/partner-registration')} className="border-border hover:border-primary/50 hover:bg-primary/5">
                 Ro'yxatdan o'tish
               </Button>
               <div className="relative">
                 <Button 
                   onClick={() => setShowLoginMenu(!showLoginMenu)}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  className="bg-gradient-to-r from-[hsl(220,70%,45%)] to-[hsl(250,84%,50%)] hover:from-[hsl(220,70%,40%)] hover:to-[hsl(250,84%,45%)] shadow-lg shadow-primary/20"
                 >
                   Kirish
                   <ChevronDown className="w-4 h-4 ml-2" />
                 </Button>
                 {showLoginMenu && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-2xl border-2 border-blue-200 z-50">
+                  <div className="absolute right-0 mt-2 w-56 bg-card rounded-xl shadow-xl border border-border z-50 overflow-hidden">
                     <button
                       onClick={() => {
                         setShowLoginMenu(false);
                         setLocation('/login');
                       }}
-                      className="block w-full text-left px-5 py-4 hover:bg-blue-50 transition-colors rounded-t-lg"
+                      className="block w-full text-left px-5 py-4 hover:bg-primary/5 transition-colors"
                     >
-                      <div className="font-bold text-blue-600 text-lg">Hamkor Kirish</div>
-                      <div className="text-xs text-gray-500 mt-1">Partner Dashboard</div>
+                      <div className="font-bold text-primary text-lg">Hamkor Kirish</div>
+                      <div className="text-xs text-muted-foreground mt-1">Partner Dashboard</div>
                     </button>
                     <button
                       onClick={() => {
                         setShowLoginMenu(false);
                         setLocation('/admin-login');
                       }}
-                      className="block w-full text-left px-5 py-4 hover:bg-purple-50 transition-colors border-t rounded-b-lg"
+                      className="block w-full text-left px-5 py-4 hover:bg-accent/10 transition-colors border-t border-border"
                     >
-                      <div className="font-bold text-purple-600 text-lg">Admin Kirish</div>
-                      <div className="text-xs text-gray-500 mt-1">Admin Panel</div>
+                      <div className="font-bold text-[hsl(45,93%,40%)] text-lg">Admin Kirish</div>
+                      <div className="text-xs text-muted-foreground mt-1">Admin Panel</div>
                     </button>
                   </div>
                 )}
@@ -84,39 +85,42 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-purple-50 to-blue-50 relative overflow-hidden">
+      {/* Hero - Premium Fintech Style */}
+      <section className="pt-32 pb-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        {/* Premium Background */}
+        <div className="absolute inset-0 gradient-hero" />
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-tr from-purple-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute -top-1/3 -right-1/4 w-[600px] h-[600px] bg-gradient-to-br from-primary/10 to-[hsl(250,84%,54%)]/10 rounded-full blur-3xl animate-float" />
+          <div className="absolute -bottom-1/3 -left-1/4 w-[500px] h-[500px] bg-gradient-to-tr from-[hsl(45,93%,47%)]/8 to-primary/5 rounded-full blur-3xl animate-float-delayed" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-primary/5 to-transparent rounded-full blur-3xl" />
         </div>
         
         <div className="max-w-7xl mx-auto relative">
           <div className="text-center mb-16">
-            <Badge className="mb-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 text-base font-semibold shadow-lg">
+            <Badge className="mb-6 bg-gradient-to-r from-[hsl(220,70%,45%)] to-[hsl(250,84%,50%)] text-white px-6 py-2.5 text-base font-semibold shadow-lg shadow-primary/25 animate-fade-in">
               <Zap className="w-4 h-4 mr-2" />
               O'zbekiston #1 AI Marketplace Automation Platform
             </Badge>
             
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black mb-8 leading-tight">
-              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black mb-8 leading-tight animate-fade-in-up">
+              <span className="text-gradient-primary">
                 AI Manager 24/7
               </span>
               <br />
-              <span className="text-gray-900">Sizning Biznesingiz Uchun</span>
+              <span className="text-foreground">Sizning Biznesingiz Uchun</span>
             </h1>
             
-            <p className="text-xl sm:text-2xl text-gray-700 mb-10 max-w-4xl mx-auto leading-relaxed">
-              <span className="font-bold text-blue-600">100% avtomatik marketplace boshqaruvi</span> AI bilan.
+            <p className="text-xl sm:text-2xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed animate-fade-in-up stagger-2">
+              <span className="font-bold text-primary">100% avtomatik marketplace boshqaruvi</span> AI bilan.
               <br />
               Mahsulot yaratish, yuklash, narx optimizatsiya - barchasi avtomatik!
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8 animate-fade-in-up stagger-3">
               <Button 
                 size="lg"
                 onClick={() => setLocation('/partner-registration')}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-xl px-12 py-8 shadow-2xl hover:shadow-blue-500/50 transition-all hover:scale-105"
+                className="bg-gradient-to-r from-[hsl(220,70%,45%)] to-[hsl(250,84%,50%)] hover:from-[hsl(220,70%,40%)] hover:to-[hsl(250,84%,45%)] text-xl px-12 py-8 shadow-xl shadow-primary/25 transition-all hover:scale-105 hover:shadow-2xl hover:shadow-primary/30"
               >
                 <Rocket className="w-6 h-6 mr-3" />
                 Bepul Boshlash
@@ -126,7 +130,7 @@ export default function Landing() {
                 size="lg" 
                 variant="outline"
                 onClick={() => setLocation('/demo')}
-                className="text-lg px-10 py-8 border-2"
+                className="text-lg px-10 py-8 border-2 border-border hover:border-primary/50 hover:bg-primary/5 transition-all"
               >
                 <Play className="w-5 h-5 mr-2" />
                 Demo Ko'rish
@@ -134,257 +138,234 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Stats */}
+          {/* Stats - Premium Fintech Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {[
-              { icon: TrendingUp, value: '2,847', label: 'Faol Hamkorlar' },
-              { icon: Package, value: '127K+', label: 'AI Kartochkalar' },
-              { icon: DollarSign, value: '45.7B', label: "So'm Aylanma" },
-              { icon: Star, value: '4.9/5', label: 'Baho' }
+              { icon: TrendingUp, value: '2,847', label: 'Faol Hamkorlar', color: 'primary' },
+              { icon: Package, value: '127K+', label: 'AI Kartochkalar', color: 'secondary' },
+              { icon: DollarSign, value: '45.7B', label: "So'm Aylanma", color: 'success' },
+              { icon: Star, value: '4.9/5', label: 'Baho', color: 'accent' }
             ].map((stat, i) => (
-              <Card key={i} className="border-2 hover:border-blue-400 transition-all hover:shadow-2xl bg-white/80">
-                <CardContent className="p-6 text-center">
-                  <stat.icon className="w-8 h-8 mx-auto mb-3 text-blue-600" />
-                  <div className="text-4xl font-black text-gray-900">{stat.value}</div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
-                </CardContent>
-              </Card>
+              <div 
+                key={i} 
+                className="card-fintech p-6 text-center animate-fade-in-up"
+                style={{ animationDelay: `${i * 100 + 200}ms` }}
+              >
+                <div className={`w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center ${
+                  stat.color === 'primary' ? 'bg-primary/10 text-primary' :
+                  stat.color === 'secondary' ? 'bg-secondary/10 text-secondary' :
+                  stat.color === 'success' ? 'bg-success/10 text-success' :
+                  'bg-[hsl(45,93%,47%)]/10 text-[hsl(45,93%,40%)]'
+                }`}>
+                  <stat.icon className="w-7 h-7" />
+                </div>
+                <div className="text-4xl font-black text-foreground mb-1">{stat.value}</div>
+                <div className="text-sm text-muted-foreground font-medium">{stat.label}</div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Model Selection */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-black mb-4 text-gray-900">2 Ta Model - Sizning Ehtiyojingiz Uchun</h2>
+      {/* Model Selection - Premium Fintech */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-card relative">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23000000\' fill-opacity=\'0.02\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]" />
+        <div className="max-w-6xl mx-auto relative">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-primary/10 text-primary border border-primary/20">
+              <Brain className="w-4 h-4 mr-2" />
+              Biznes Modeli
+            </Badge>
+            <h2 className="text-4xl font-black mb-4 text-foreground">Sizning Ehtiyojingiz Uchun</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">AI asosida to'liq avtomatlashtirilgan marketplace boshqaruvi</p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* SAAS Model */}
-            <Card 
-              className={`border-4 cursor-pointer transition-all ${
-                selectedModel === 'saas' ? 'border-blue-500 shadow-2xl scale-105' : 'border-gray-200 hover:border-blue-300'
+          <div className="max-w-xl mx-auto">
+            {/* SAAS Model Card - Premium Style */}
+            <div 
+              className={`card-fintech card-fintech-active cursor-pointer p-8 ${
+                selectedModel === 'saas' ? 'border-primary shadow-lg shadow-primary/10' : ''
               }`}
               onClick={() => setSelectedModel('saas')}
             >
-              <CardHeader>
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                  <Brain className="w-9 h-9 text-white" />
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[hsl(220,70%,45%)] to-[hsl(250,84%,50%)] flex items-center justify-center shadow-lg shadow-primary/25">
+                  <Brain className="w-8 h-8 text-white" />
                 </div>
-                <CardTitle className="text-3xl font-black text-center">SAAS - AI Manager</CardTitle>
-                <p className="text-center text-gray-600">Faqat AI avtomatizatsiya</p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600 mt-1 flex-shrink-0" />
-                    <span className="text-sm">AI 24/7 marketplace boshqaradi</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600 mt-1 flex-shrink-0" />
-                    <span className="text-sm">Siz mahsulotni o'zingiz tayyorlaysiz</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600 mt-1 flex-shrink-0" />
-                    <span className="text-sm">Siz marketplace ga yetkazasiz</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600 mt-1 flex-shrink-0" />
-                    <span className="text-sm font-bold text-blue-600">1-1.5% savdodan to'lov</span>
-                  </div>
+                <div>
+                  <h3 className="text-2xl font-black text-foreground">SAAS - AI Manager</h3>
+                  <p className="text-muted-foreground">Faqat AI avtomatizatsiya</p>
                 </div>
-                <Badge className="w-full justify-center py-2 bg-blue-100 text-blue-700">Minimal inson ishtiroki</Badge>
-              </CardContent>
-            </Card>
-
-            {/* Fulfillment Model - HIDDEN for IT Park compliance */}
-            {/* Fulfillment services provided through partner company, not shown on public site */}
-            {false && (
-            <Card 
-              className={`border-4 cursor-pointer transition-all ${
-                selectedModel === 'fulfillment' ? 'border-purple-500 shadow-2xl scale-105' : 'border-gray-200 hover:border-purple-300'
-              }`}
-              onClick={() => setSelectedModel('fulfillment')}
-            >
-              <CardHeader>
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                  <Truck className="w-9 h-9 text-white" />
+                <Badge className="ml-auto bg-success/10 text-success border border-success/20">Tavsiya</Badge>
+              </div>
+              
+              <div className="space-y-4 mb-6">
+                {[
+                  'AI 24/7 marketplace boshqaradi',
+                  'Siz mahsulotni o\'zingiz tayyorlaysiz',
+                  'Siz marketplace ga yetkazasiz',
+                ].map((text, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
+                    <span className="text-foreground">{text}</span>
+                  </div>
+                ))}
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
+                  <span className="font-bold text-primary">1-1.5% savdodan to'lov</span>
                 </div>
-                <CardTitle className="text-3xl font-black text-center">Fulfillment + AI</CardTitle>
-                <p className="text-center text-gray-600">To'liq xizmat</p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600 mt-1 flex-shrink-0" />
-                    <span className="text-sm">AI 24/7 marketplace boshqaradi</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600 mt-1 flex-shrink-0" />
-                    <span className="text-sm font-bold text-purple-600">BIZ qabul, saqlash, qadoqlash qilamiz</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600 mt-1 flex-shrink-0" />
-                    <span className="text-sm font-bold text-purple-600">BIZ marketplace ga yetkazamiz</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600 mt-1 flex-shrink-0" />
-                    <span className="text-sm">Abonent + foyda %</span>
-                  </div>
-                </div>
-                <Badge className="w-full justify-center py-2 bg-purple-100 text-purple-700">To'liq operatsion xizmat</Badge>
-              </CardContent>
-            </Card>
-            )}
+              </div>
+              
+              <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border">
+                <span className="text-muted-foreground">Xizmat turi</span>
+                <Badge className="bg-primary/10 text-primary border-0">Minimal inson ishtiroki</Badge>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* SAAS Pricing */}
+      {/* SAAS Pricing - Premium Fintech Style */}
       {selectedModel === 'saas' && (
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-cyan-50">
+        <section className="py-24 px-4 sm:px-6 lg:px-8 gradient-hero relative">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <Badge className="mb-4 bg-blue-600 text-white px-6 py-2">
+            <div className="text-center mb-16">
+              <Badge className="mb-4 bg-gradient-to-r from-[hsl(220,70%,45%)] to-[hsl(250,84%,50%)] text-white px-6 py-2.5 shadow-lg shadow-primary/20">
                 <Brain className="w-4 h-4 mr-2" />
                 SAAS Model - AI Manager
               </Badge>
               <h2 className="text-5xl font-black mb-4">
-                <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                <span className="text-gradient-primary">
                   Faqat AI - Maksimal Avtomatizatsiya
                 </span>
               </h2>
-              <p className="text-xl text-gray-600">Siz mahsulot tayyorlaysiz, AI qolganini qiladi. 1-1.5% savdodan.</p>
+              <p className="text-xl text-muted-foreground">Siz mahsulot tayyorlaysiz, AI qolganini qiladi. 1-1.5% savdodan.</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
               {/* AI Starter */}
-              <Card className="border-2 border-blue-300 hover:shadow-2xl transition-all">
-                <CardHeader className="text-center pb-4">
-                  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                    <Brain className="w-10 h-10 text-white" />
+              <div className="card-fintech p-8">
+                <div className="text-center mb-8">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/20">
+                    <Brain className="w-10 h-10 text-primary" />
                   </div>
-                  <CardTitle className="text-3xl font-black">AI Starter</CardTitle>
+                  <h3 className="text-3xl font-black text-foreground">AI Starter</h3>
                   <div className="mt-4">
-                    <span className="text-5xl font-black text-gray-900">$349</span>
-                    <span className="text-xl text-gray-600">/oy</span>
+                    <span className="text-5xl font-black text-foreground">$349</span>
+                    <span className="text-xl text-muted-foreground">/oy</span>
                   </div>
-                  <p className="text-lg font-bold text-blue-600 mt-2">+ 1.5% savdodan</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
-                      <Package className="w-5 h-5 text-blue-600" />
-                      <span className="font-semibold">100 SKU</span>
+                  <p className="text-lg font-bold text-primary mt-2">+ 1.5% savdodan</p>
+                </div>
+                
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-xl border border-primary/10">
+                    <Package className="w-5 h-5 text-primary" />
+                    <span className="font-semibold text-foreground">100 SKU</span>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-xl border border-primary/10">
+                    <Globe className="w-5 h-5 text-primary" />
+                    <span className="font-semibold text-foreground">2 marketplace</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-2 mb-4">
+                  <p className="font-bold text-sm text-foreground">✅ Included:</p>
+                  {[
+                    'AI kartochka yaratish',
+                    'Marketplace avtomatik yuklash',
+                    'SEO optimizatsiya',
+                    'Narx monitoring',
+                    'Buyurtma boshqaruvi',
+                    'Basic analytics',
+                    'Email support'
+                  ].map((f, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
+                      <span className="text-sm text-foreground">{f}</span>
                     </div>
-                    <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
-                      <Globe className="w-5 h-5 text-blue-600" />
-                      <span className="font-semibold">2 marketplace</span>
+                  ))}
+                </div>
+                
+                <div className="space-y-2 mb-6">
+                  <p className="font-bold text-sm text-destructive">❌ Cheklovlar:</p>
+                  {[
+                    'Trend Hunter yopiq',
+                    'Foyda analizi yopiq',
+                    'Advanced analytics yopiq'
+                  ].map((f, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <X className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+                      <span className="text-sm text-muted-foreground">{f}</span>
                     </div>
-                  </div>
-                  
-                  <div className="space-y-2 mb-4">
-                    <p className="font-bold text-sm text-gray-900">✅ Included:</p>
-                    {[
-                      'AI kartochka yaratish',
-                      'Marketplace avtomatik yuklash',
-                      'SEO optimizatsiya',
-                      'Narx monitoring',
-                      'Buyurtma boshqaruvi',
-                      'Basic analytics',
-                      'Email support'
-                    ].map((f, i) => (
-                      <div key={i} className="flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm">{f}</span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="space-y-2 mb-6">
-                    <p className="font-bold text-sm text-red-700">❌ Cheklovlar:</p>
-                    {[
-                      'Trend Hunter yopiq',
-                      'Foyda analizi yopiq',
-                      'Advanced analytics yopiq'
-                    ].map((f, i) => (
-                      <div key={i} className="flex items-start gap-2">
-                        <X className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-gray-600">{f}</span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <Button 
-                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
-                    onClick={() => setLocation('/partner-registration')}
-                  >
-                    Boshlash
-                  </Button>
-                </CardContent>
-              </Card>
+                  ))}
+                </div>
+                
+                <Button 
+                  className="w-full bg-gradient-to-r from-[hsl(220,70%,45%)] to-[hsl(250,84%,50%)] hover:from-[hsl(220,70%,40%)] hover:to-[hsl(250,84%,45%)] shadow-lg shadow-primary/20"
+                  onClick={() => setLocation('/partner-registration')}
+                >
+                  Boshlash
+                </Button>
+              </div>
 
-              {/* AI Manager Pro */}
-              <Card className="border-4 border-purple-500 shadow-2xl relative">
+              {/* AI Manager Pro - Premium Gold Style */}
+              <div className="card-fintech p-8 border-2 border-[hsl(45,93%,47%)]/30 shadow-xl shadow-[hsl(45,93%,47%)]/10 relative">
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2">
+                  <Badge className="bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] text-[hsl(220,70%,10%)] px-6 py-2.5 font-bold shadow-lg">
                     <Crown className="w-4 h-4 mr-2" />
                     FULL ACCESS
                   </Badge>
                 </div>
-                <CardHeader className="text-center pb-4 pt-8">
-                  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                    <Sparkles className="w-10 h-10 text-white" />
+                <div className="text-center mb-8 pt-4">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] flex items-center justify-center shadow-lg shadow-[hsl(45,93%,47%)]/30">
+                    <Sparkles className="w-10 h-10 text-[hsl(220,70%,10%)]" />
                   </div>
-                  <CardTitle className="text-3xl font-black">AI Manager Pro</CardTitle>
+                  <h3 className="text-3xl font-black text-foreground">AI Manager Pro</h3>
                   <div className="mt-4">
-                    <span className="text-5xl font-black text-gray-900">$899</span>
-                    <span className="text-xl text-gray-600">/oy</span>
+                    <span className="text-5xl font-black text-foreground">$899</span>
+                    <span className="text-xl text-muted-foreground">/oy</span>
                   </div>
-                  <p className="text-lg font-bold text-purple-600 mt-2">+ 1% savdodan</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg">
-                      <Package className="w-5 h-5 text-purple-600" />
-                      <span className="font-semibold">250 SKU</span>
-                      <Badge className="ml-auto bg-purple-600 text-white text-xs">+250 alohida</Badge>
+                  <p className="text-lg font-bold text-[hsl(45,93%,40%)] mt-2">+ 1% savdodan</p>
+                </div>
+                
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center gap-3 p-3 bg-[hsl(45,93%,47%)]/10 rounded-xl border border-[hsl(45,93%,47%)]/20">
+                    <Package className="w-5 h-5 text-[hsl(45,93%,40%)]" />
+                    <span className="font-semibold text-foreground">250 SKU</span>
+                    <Badge className="ml-auto bg-[hsl(45,93%,47%)]/20 text-[hsl(45,93%,35%)] border-0 text-xs">+250 alohida</Badge>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-[hsl(45,93%,47%)]/10 rounded-xl border border-[hsl(45,93%,47%)]/20">
+                    <Globe className="w-5 h-5 text-[hsl(45,93%,40%)]" />
+                    <span className="font-semibold text-foreground">Cheksiz marketplace</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-2 mb-6">
+                  <p className="font-bold text-sm text-foreground">✅ BARCHA Features:</p>
+                  {[
+                    'AI Starter features',
+                    'Trend Hunter FULL',
+                    'Sof foyda analizi',
+                    'Advanced analytics',
+                    'Priority support',
+                    'API access',
+                    'Custom integrations'
+                  ].map((f, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
+                      <span className="text-sm font-medium text-foreground">{f}</span>
                     </div>
-                    <div className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg">
-                      <Globe className="w-5 h-5 text-purple-600" />
-                      <span className="font-semibold">Cheksiz marketplace</span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2 mb-6">
-                    <p className="font-bold text-sm text-gray-900">✅ BARCHA Features:</p>
-                    {[
-                      'AI Starter features',
-                      'Trend Hunter FULL',
-                      'Sof foyda analizi',
-                      'Advanced analytics',
-                      'Priority support',
-                      'API access',
-                      'Custom integrations'
-                    ].map((f, i) => (
-                      <div key={i} className="flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm font-medium">{f}</span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <Button 
-                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                    onClick={() => setLocation('/partner-registration')}
-                  >
-                    <Crown className="w-5 h-5 mr-2" />
-                    Boshlash
-                  </Button>
-                </CardContent>
-              </Card>
+                  ))}
+                </div>
+                
+                <Button 
+                  className="w-full bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] hover:from-[hsl(45,93%,50%)] hover:to-[hsl(38,92%,58%)] text-[hsl(220,70%,10%)] font-bold shadow-lg shadow-[hsl(45,93%,47%)]/25"
+                  onClick={() => setLocation('/partner-registration')}
+                >
+                  <Crown className="w-5 h-5 mr-2" />
+                  Boshlash
+                </Button>
+              </div>
             </div>
           </div>
         </section>
@@ -554,79 +535,286 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* AI Capabilities */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="max-w-7xl mx-auto">
+      {/* AI Manager Features - Premium Showcase */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 gradient-hero relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[hsl(45,93%,47%)]/10 to-primary/5 rounded-full blur-3xl" />
+        </div>
+        <div className="max-w-7xl mx-auto relative">
           <div className="text-center mb-16">
-            <Badge className="mb-4 bg-purple-600 text-white px-6 py-2">
+            <Badge className="mb-4 bg-gradient-to-r from-primary to-secondary text-white px-6 py-2.5 shadow-lg shadow-primary/20">
               <Sparkles className="w-4 h-4 mr-2" />
-              AI Technology
+              Super AI Manager
             </Badge>
             <h2 className="text-5xl font-black mb-6">
-              <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                AI Manager Nima Qiladi?
+              <span className="text-gradient-primary">
+                AI Nima Qiladi?
               </span>
             </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Bir lahzada mahsulot yaratish, marketplacelarga yuklash, foyda hisoblash - barchasi avtomatik!
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          {/* Main AI Features Grid */}
+          <div className="grid lg:grid-cols-3 gap-8 mb-16">
+            {/* AI Product Scanner */}
+            <div className="card-fintech p-8 group hover:border-primary/50 transition-all duration-300">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-primary/20">
+                <Camera className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3 text-foreground">AI Product Scanner</h3>
+              <p className="text-muted-foreground mb-6">Mahsulotni rasmga oling - AI bir lahzada to'liq kartochka yaratadi!</p>
+              <div className="space-y-3">
+                {[
+                  { icon: Camera, text: 'Kamera yoki rasm yuklash' },
+                  { icon: Brain, text: 'GPT-5 Vision tahlili' },
+                  { icon: Globe, text: 'Marketplace narxlarini qidirish' },
+                  { icon: DollarSign, text: 'Foyda/zarar hisoblash' },
+                  { icon: Target, text: 'SEO optimallashtirish' }
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <item.icon className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="text-sm text-foreground">{item.text}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 p-4 bg-success/10 rounded-xl border border-success/20">
+                <div className="flex items-center gap-2 text-success">
+                  <Zap className="w-5 h-5" />
+                  <span className="font-bold">3 soniyada tayyor!</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Trend Hunter */}
+            <div className="card-fintech p-8 group hover:border-[hsl(45,93%,47%)]/50 transition-all duration-300">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-[hsl(45,93%,47%)]/20">
+                <TrendingUp className="w-8 h-8 text-[hsl(220,70%,10%)]" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3 text-foreground">Trend Hunter Pro</h3>
+              <p className="text-muted-foreground mb-6">Eng ko'p sotiladigan mahsulotlarni AI topadi va sizga tavsiya qiladi!</p>
+              <div className="space-y-3">
+                {[
+                  { icon: BarChart3, text: 'Real-time bozor tahlili' },
+                  { icon: Lightbulb, text: 'Yashirin imkoniyatlarni topish' },
+                  { icon: Target, text: 'Raqobatchilar tahlili' },
+                  { icon: Clock, text: 'Mavsumiy prognozlar' },
+                  { icon: Crown, text: 'TOP 100 trendlar' }
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-[hsl(45,93%,47%)]/10 flex items-center justify-center">
+                      <item.icon className="w-4 h-4 text-[hsl(45,93%,40%)]" />
+                    </div>
+                    <span className="text-sm text-foreground">{item.text}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 p-4 bg-[hsl(45,93%,47%)]/10 rounded-xl border border-[hsl(45,93%,47%)]/20">
+                <div className="flex items-center gap-2 text-[hsl(45,93%,40%)]">
+                  <Award className="w-5 h-5" />
+                  <span className="font-bold">+340% ROI o'rtacha</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Profit Analysis */}
+            <div className="card-fintech p-8 group hover:border-success/50 transition-all duration-300">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-success to-success/80 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-success/20">
+                <DollarSign className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3 text-foreground">Sof Foyda Tahlili</h3>
+              <p className="text-muted-foreground mb-6">Har bir mahsulotning sof foydasini real-time hisoblash!</p>
+              <div className="space-y-3">
+                {[
+                  { icon: DollarSign, text: 'Tannarx + xarajatlar' },
+                  { icon: Package, text: 'Fulfillment kalkulyator' },
+                  { icon: Globe, text: 'Marketplace komissiyalar' },
+                  { icon: BarChart3, text: '6 oylik prognozlar' },
+                  { icon: Target, text: 'Optimal narx AI' }
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
+                      <item.icon className="w-4 h-4 text-success" />
+                    </div>
+                    <span className="text-sm text-foreground">{item.text}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 p-4 bg-success/10 rounded-xl border border-success/20">
+                <div className="flex items-center gap-2 text-success">
+                  <TrendingUp className="w-5 h-5" />
+                  <span className="font-bold">+45% foyda oshirish</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Speed & Efficiency Stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { value: '3 sek', label: 'Kartochka yaratish', icon: Zap, color: 'primary' },
+              { value: '99.2%', label: 'AI aniqlik', icon: Brain, color: '[hsl(45,93%,47%)]' },
+              { value: '24/7', label: 'Avtomatik ishlash', icon: Clock, color: 'success' },
+              { value: '5+', label: 'Marketplace parallel', icon: Globe, color: 'secondary' }
+            ].map((stat, i) => (
+              <div key={i} className="card-fintech p-6 text-center">
+                <stat.icon className={`w-10 h-10 mx-auto mb-3 text-${stat.color}`} />
+                <div className="text-3xl font-black text-foreground mb-1">{stat.value}</div>
+                <div className="text-sm text-muted-foreground">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us - Benefits Section */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-card relative">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-success/10 text-success border border-success/20">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Afzalliklar
+            </Badge>
+            <h2 className="text-4xl font-black mb-6 text-foreground">Nima Uchun SellerCloudX?</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Marketplacelardagi savdoni AI bilan boshqarish - vaqt tejash, foyda ko'paytirish
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                icon: FileText,
-                title: 'Kartochka Yaratish',
-                desc: 'Professional mahsulot tavsifi, SEO optimizatsiya, keyword research',
-                features: ['GPT-5 text generation', 'SEO optimization', '20+ til support']
+                icon: Clock,
+                title: 'Vaqtni 90% Tejash',
+                desc: 'Eskidan 2 soatda qilinadigan ish - endi 3 soniya!',
+                stats: '2 soat → 3 sek',
+                color: 'primary'
               },
               {
-                icon: ImageIcon,
-                title: 'Rasm Optimizatsiya',
-                desc: 'AI rasm generatsiya yoki mavjud rasmlarni optimizatsiya',
-                features: ['AI image generation', 'Background removal', 'Quality enhancement']
-              },
-              {
-                icon: Globe,
-                title: 'Marketplace Upload',
-                desc: 'Avtomatik yuklash barcha marketplace larga API orqali',
-                features: ['Uzum API', 'Wildberries API', 'Ozon, Yandex, etc.']
-              },
-              {
-                icon: Target,
-                title: 'Narx Optimizatsiya',
-                desc: 'Real-time narx monitoring va optimal narx aniqlash',
-                features: ['Competitor tracking', 'Dynamic pricing', 'Profit maximization']
+                icon: DollarSign,
+                title: 'Xarajatni 60% Kamaytirish',
+                desc: 'AI xarajatlarini biz qoplaymiz, siz faqat foyda ko\'rasiz',
+                stats: '$0 AI xarajat',
+                color: 'success'
               },
               {
                 icon: TrendingUp,
-                title: 'Trend Hunter',
-                desc: 'Bozor trendlarini aniqlash, bestseller prognoz',
-                features: ['Market analysis', 'Demand forecasting', 'Seasonal trends']
+                title: 'Foyda 45% Oshirish',
+                desc: 'AI optimal narx va trend mahsulotlarni topadi',
+                stats: '+45% sof foyda',
+                color: '[hsl(45,93%,47%)]'
               },
               {
-                icon: BarChart3,
-                title: 'Analytics',
-                desc: 'Sof foyda tahlili, ROI, performance metrics',
-                features: ['Profit analysis', 'ROI tracking', 'Performance reports']
+                icon: Globe,
+                title: 'Multi-Marketplace',
+                desc: 'Bir vaqtda 5+ marketplaceda parallel savdo qilish',
+                stats: 'Uzum, WB, Ozon...',
+                color: 'secondary'
+              },
+              {
+                icon: Bot,
+                title: '24/7 Avtomatik',
+                desc: 'AI hech qachon dam olmaydi - doimo ishlaydi',
+                stats: '24/7 ishlash',
+                color: 'primary'
+              },
+              {
+                icon: Shield,
+                title: 'Xavfsiz va Ishonchli',
+                desc: 'IT Park rezidensi, bank darajasida himoya',
+                stats: '99.9% uptime',
+                color: 'success'
               }
-            ].map((ai, i) => (
-              <Card key={i} className="border-2 hover:border-purple-400 hover:shadow-xl transition-all">
-                <CardHeader>
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center mb-4">
-                    <ai.icon className="w-8 h-8 text-white" />
+            ].map((benefit, i) => (
+              <div key={i} className="card-fintech p-6 group hover:border-primary/30 transition-all">
+                <div className={`w-14 h-14 rounded-2xl bg-${benefit.color}/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <benefit.icon className={`w-7 h-7 text-${benefit.color}`} />
+                </div>
+                <h3 className="text-xl font-bold mb-2 text-foreground">{benefit.title}</h3>
+                <p className="text-muted-foreground mb-4">{benefit.desc}</p>
+                <Badge variant="outline" className={`text-${benefit.color} border-${benefit.color}/30`}>
+                  {benefit.stats}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Real Results Section */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-[hsl(45,93%,47%)]/10 text-[hsl(45,93%,40%)] border border-[hsl(45,93%,47%)]/20">
+              <Star className="w-4 h-4 mr-2" />
+              Haqiqiy Natijalar
+            </Badge>
+            <h2 className="text-4xl font-black mb-6 text-foreground">Hamkorlarimiz Natijalari</h2>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-8">
+            {[
+              {
+                name: 'Texno Pro',
+                category: 'Elektronika',
+                before: '15M so\'m/oy',
+                after: '85M so\'m/oy',
+                growth: '+467%',
+                time: '3 oy',
+                quote: 'AI Manager bizning savdoni 5 baravar oshirdi!'
+              },
+              {
+                name: 'Fashion House',
+                category: 'Kiyim-kechak',
+                before: '8M so\'m/oy',
+                after: '42M so\'m/oy',
+                growth: '+425%',
+                time: '4 oy',
+                quote: 'Endi 3ta marketplaceda parallel savdo qilamiz'
+              },
+              {
+                name: 'Organic Kids',
+                category: 'Bolalar tovarlari',
+                before: '12M so\'m/oy',
+                after: '67M so\'m/oy',
+                growth: '+458%',
+                time: '2 oy',
+                quote: 'Trend Hunter eng yaxshi mahsulotlarni topdi'
+              }
+            ].map((result, i) => (
+              <div key={i} className="card-fintech p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-xl">
+                    {result.name[0]}
                   </div>
-                  <CardTitle className="text-xl font-bold">{ai.title}</CardTitle>
-                  <p className="text-sm text-gray-600">{ai.desc}</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {ai.features.map((f, j) => (
-                      <div key={j} className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                        <span className="text-sm">{f}</span>
-                      </div>
-                    ))}
+                  <div>
+                    <h3 className="font-bold text-foreground">{result.name}</h3>
+                    <p className="text-sm text-muted-foreground">{result.category}</p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="p-3 bg-muted/30 rounded-xl">
+                    <p className="text-xs text-muted-foreground">Oldin</p>
+                    <p className="text-lg font-bold text-muted-foreground">{result.before}</p>
+                  </div>
+                  <div className="p-3 bg-success/10 rounded-xl border border-success/20">
+                    <p className="text-xs text-success">Keyin</p>
+                    <p className="text-lg font-bold text-success">{result.after}</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-4 bg-[hsl(45,93%,47%)]/10 rounded-xl border border-[hsl(45,93%,47%)]/20 mb-4">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-[hsl(45,93%,40%)]" />
+                    <span className="text-2xl font-black text-[hsl(45,93%,40%)]">{result.growth}</span>
+                  </div>
+                  <Badge variant="outline">{result.time}da</Badge>
+                </div>
+                <p className="text-sm italic text-muted-foreground">"{result.quote}"</p>
+              </div>
             ))}
           </div>
         </div>
