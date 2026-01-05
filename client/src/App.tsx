@@ -16,7 +16,7 @@ import PartnerAIDashboard from "@/pages/PartnerAIDashboard";
 import EnhancedAIDashboard from "@/pages/EnhancedAIDashboard";
 import RemoteAccessDashboard from "@/pages/RemoteAccessDashboard";
 import OnboardingWizard from "@/pages/OnboardingWizard";
-import AdminPanel from "@/pages/AdminPanel";
+// import AdminPanel from "@/pages/AdminPanel";
 import InvestorPitch from "@/pages/InvestorPitch";
 import PlatformDemo from "@/pages/PlatformDemo";
 import NotFound from "@/pages/not-found";
@@ -34,7 +34,7 @@ function Router() {
       <Route path="/partner-ai-dashboard" component={PartnerAIDashboard} />
       <Route path="/enhanced-ai-dashboard" component={EnhancedAIDashboard} />
       <Route path="/remote-access" component={RemoteAccessDashboard} />
-      <Route path="/admin-panel" component={AdminPanel} />
+      {/* <Route path="/admin-panel" component={AdminPanel} /> */}
       <Route path="/investor-pitch" component={InvestorPitch} />
       <Route path="/demo" component={PlatformDemo} />
       <Route component={NotFound} />
