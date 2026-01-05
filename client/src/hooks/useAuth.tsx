@@ -1,7 +1,6 @@
-// Frontend-only Auth Hook for Lovable
-// Backend mavjud emas, shuning uchun demo mode ishlatiladi
-import React, { createContext, useContext, useState, useMemo, useCallback, ReactNode } from 'react';
-import { DEMO_USER, DEMO_ADMIN, DEMO_PARTNER } from '@/lib/demoData';
+// Real Backend Auth Hook for SellerCloudX
+import React, { createContext, useContext, useState, useMemo, useCallback, ReactNode, useEffect } from 'react';
+import { apiRequest } from '@/lib/queryClient';
 
 interface User {
   id: string;
@@ -46,66 +45,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [partner, setPartner] = useState<Partner | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Demo login - faqat frontend uchun
+  // Real backend login
   const login = useCallback(async (username: string, password: string) => {
     setIsLoading(true);
     
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // Admin login
-    if (username === 'admin' || username.includes('admin')) {
-      setUser(DEMO_ADMIN);
-      setPartner(null);
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ username, password })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Login failed');
+      }
+      
+      const data = await response.json();
+      setUser(data.user);
+      setPartner(data.partner || null);
       setIsLoading(false);
-      // Save to localStorage for persistence
-      localStorage.setItem('auth_user', JSON.stringify(DEMO_ADMIN));
-      localStorage.removeItem('auth_partner');
-      return { user: DEMO_ADMIN };
+      
+      return { user: data.user, partner: data.partner };
+    } catch (error: any) {
+      setIsLoading(false);
+      throw error;
     }
-    
-    // Partner login
-    setUser(DEMO_USER);
-    setPartner(DEMO_PARTNER as Partner);
-    setIsLoading(false);
-    localStorage.setItem('auth_user', JSON.stringify(DEMO_USER));
-    localStorage.setItem('auth_partner', JSON.stringify(DEMO_PARTNER));
-    return { user: DEMO_USER, partner: DEMO_PARTNER as Partner };
   }, []);
 
   const logout = useCallback(async () => {
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 300));
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
     setUser(null);
     setPartner(null);
-    localStorage.removeItem('auth_user');
-    localStorage.removeItem('auth_partner');
     setIsLoading(false);
   }, []);
 
-  const refetch = useCallback(() => {
-    // Check localStorage for persisted auth
-    const savedUser = localStorage.getItem('auth_user');
-    const savedPartner = localStorage.getItem('auth_partner');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-      if (savedPartner) {
-        setPartner(JSON.parse(savedPartner));
+  const refetch = useCallback(async () => {
+    try {
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+        setPartner(data.partner || null);
       }
+    } catch (error) {
+      console.error('Refetch error:', error);
     }
   }, []);
 
-  // Load saved auth on mount
-  React.useEffect(() => {
-    const savedUser = localStorage.getItem('auth_user');
-    const savedPartner = localStorage.getItem('auth_partner');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-      if (savedPartner) {
-        setPartner(JSON.parse(savedPartner));
-      }
-    }
-  }, []);
+  // Load auth on mount
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   const contextValue: AuthContextType = useMemo(() => ({
     user,
