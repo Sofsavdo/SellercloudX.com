@@ -199,6 +199,38 @@ BEGIN
   ) THEN
     ALTER TABLE "audit_logs" ADD COLUMN "changes" text;
   END IF;
+
+  -- Fix products.stock_quantity column
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'products' AND column_name = 'stock_quantity'
+  ) THEN
+    ALTER TABLE "products" ADD COLUMN "stock_quantity" integer DEFAULT 0;
+  END IF;
+
+  -- Fix products.cost_price column
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'products' AND column_name = 'cost_price'
+  ) THEN
+    ALTER TABLE "products" ADD COLUMN "cost_price" decimal(10,2) DEFAULT 0;
+  END IF;
+
+  -- Fix products.weight column
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'products' AND column_name = 'weight'
+  ) THEN
+    ALTER TABLE "products" ADD COLUMN "weight" decimal(8,2) DEFAULT 0;
+  END IF;
+
+  -- Fix products.dimensions column
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'products' AND column_name = 'dimensions'
+  ) THEN
+    ALTER TABLE "products" ADD COLUMN "dimensions" varchar(100);
+  END IF;
 END $$;
 `;
 
