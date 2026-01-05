@@ -57,6 +57,8 @@ export async function initializePartner() {
       approved: true,
       pricingTier: "free_starter",
       aiEnabled: true,
+      anydeskId: null,
+      anydeskPassword: null,
       createdAt: new Date(),
       lastActivityAt: new Date()
     });
