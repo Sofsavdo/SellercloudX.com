@@ -97,9 +97,8 @@ export async function createUser(userData: {
       lastName: userData.lastName,
       phone: userData.phone,
       role: userData.role || 'customer',
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      isActive: true
+      // createdAt and updatedAt use database defaults
     }).returning();
     
     console.log('✅ User created successfully:', user.id);
@@ -211,8 +210,8 @@ export async function createPartner(partnerData: {
       pricingTier: tier,
       phone: partnerData.phone,
       approved: isAutoApproved, // Auto-approve free/starter tiers
-      createdAt: new Date(),
       notes: partnerData.notes
+      // createdAt uses database default
     }).returning();
     
     // If referral code was provided, create referral relationship

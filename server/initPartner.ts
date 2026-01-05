@@ -43,9 +43,8 @@ export async function initializePartner() {
           pricingTier: "free_starter",
           aiEnabled: true,
           anydeskId: null,
-          anydeskPassword: null,
-          createdAt: new Date(),
-          lastActivityAt: new Date()
+          anydeskPassword: null
+          // createdAt uses database default
         });
         console.log("✅ Partner record created for existing user");
       }
@@ -69,9 +68,8 @@ export async function initializePartner() {
       lastName: "Partner",
       phone: "+998901234568",
       role: "partner",
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      isActive: true
+      // createdAt and updatedAt use database defaults
     });
     
     // Create partner record
@@ -87,9 +85,8 @@ export async function initializePartner() {
       pricingTier: "free_starter",
       aiEnabled: true,
       anydeskId: null,
-      anydeskPassword: null,
-      createdAt: new Date(),
-      lastActivityAt: new Date()
+      anydeskPassword: null
+      // createdAt uses database default
     });
     
     console.log("✅ Partner user created successfully!");

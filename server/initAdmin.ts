@@ -37,9 +37,8 @@ export async function initializeAdmin() {
       lastName: "Admin",
       phone: "+998901234567",
       role: "admin",
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      isActive: true
+      // createdAt and updatedAt use database defaults
     });
     
     console.log("✅ Admin user created successfully!");
