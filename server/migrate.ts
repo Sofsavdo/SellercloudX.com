@@ -183,6 +183,22 @@ BEGIN
   ) THEN
     ALTER TABLE "partners" ALTER COLUMN "monthly_revenue" TYPE varchar(50) USING "monthly_revenue"::text;
   END IF;
+
+  -- Fix products.brand column
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'products' AND column_name = 'brand'
+  ) THEN
+    ALTER TABLE "products" ADD COLUMN "brand" varchar(100);
+  END IF;
+
+  -- Fix audit_logs.changes column
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'audit_logs' AND column_name = 'changes'
+  ) THEN
+    ALTER TABLE "audit_logs" ADD COLUMN "changes" text;
+  END IF;
 END $$;
 `;
 
