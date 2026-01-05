@@ -21,6 +21,35 @@ export async function initializePartner() {
     
     if (existingPartner.length > 0) {
       console.log("✅ Partner user already exists");
+      
+      // Check if partner record exists
+      const existingPartnerRecord = await db
+        .select()
+        .from(partners)
+        .where(eq(partners.userId, existingPartner[0].id))
+        .limit(1);
+      
+      if (existingPartnerRecord.length === 0) {
+        console.log("⚠️  Partner record missing, creating...");
+        const partnerId = nanoid();
+        await db.insert(partners).values({
+          id: partnerId,
+          userId: existingPartner[0].id,
+          businessName: "SellerCloudX Test Partner",
+          businessAddress: "Global E-commerce",
+          businessCategory: "Marketplace Automation",
+          phone: existingPartner[0].phone || "+998901234568",
+          approved: true,
+          pricingTier: "free_starter",
+          aiEnabled: true,
+          anydeskId: null,
+          anydeskPassword: null,
+          createdAt: new Date(),
+          lastActivityAt: new Date()
+        });
+        console.log("✅ Partner record created for existing user");
+      }
+      
       return;
     }
     

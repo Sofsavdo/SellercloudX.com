@@ -28,11 +28,11 @@ import { InventoryManagement } from '@/components/InventoryManagement';
 import { OrderManagement } from '@/components/OrderManagement';
 import { MarketplaceIntegrationManager } from '@/components/MarketplaceIntegrationManager';
 import { ChatSystem } from '@/components/ChatSystem';
-import { EnhancedReferralDashboard } from '@/components/EnhancedReferralDashboard';
-import { PartnerReferralCampaigns } from '@/components/PartnerReferralCampaigns';
-import { AchievementSystem } from '@/components/AchievementSystem';
-import { LegalEntityForm } from '@/components/LegalEntityForm';
-import { PaymentHistory } from '@/components/PaymentHistory';
+// import { EnhancedReferralDashboard } from '@/components/EnhancedReferralDashboard'; // Temporarily disabled
+// import { PartnerReferralCampaigns } from '@/components/PartnerReferralCampaigns'; // Temporarily disabled
+// import { AchievementSystem } from '@/components/AchievementSystem'; // Temporarily disabled
+// import { LegalEntityForm } from '@/components/LegalEntityForm'; // Temporarily disabled
+// import { PaymentHistory } from '@/components/PaymentHistory'; // Temporarily disabled
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
