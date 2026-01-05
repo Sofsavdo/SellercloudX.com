@@ -57,6 +57,23 @@ export async function initializeDatabaseTables() {
       // Table might not exist yet, will be created below
     }
     
+    // Check and add anydesk columns to partners if missing
+    try {
+      const partnersInfo = sqlite.prepare("PRAGMA table_info(partners)").all() as any[];
+      const hasAnydeskId = partnersInfo.some((col: any) => col.name === 'anydesk_id');
+      const hasAnydeskPassword = partnersInfo.some((col: any) => col.name === 'anydesk_password');
+      if (!hasAnydeskId) {
+        console.log('📝 Adding anydesk_id column to partners table...');
+        sqlite.exec('ALTER TABLE partners ADD COLUMN anydesk_id TEXT');
+      }
+      if (!hasAnydeskPassword) {
+        console.log('📝 Adding anydesk_password column to partners table...');
+        sqlite.exec('ALTER TABLE partners ADD COLUMN anydesk_password TEXT');
+      }
+    } catch (e) {
+      // Table might not exist yet, will be created below
+    }
+    
     // Create all tables from schema
     // We'll use raw SQL to create tables based on schema definitions
     
@@ -95,6 +112,8 @@ export async function initializeDatabaseTables() {
         profit_share_percent INTEGER,
         ai_enabled INTEGER DEFAULT 0,
         warehouse_space_kg INTEGER,
+        anydesk_id TEXT,
+        anydesk_password TEXT,
         notes TEXT,
         created_at INTEGER NOT NULL DEFAULT (unixepoch()),
         last_activity_at INTEGER
