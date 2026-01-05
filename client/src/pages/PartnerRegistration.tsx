@@ -105,11 +105,11 @@ export default function PartnerRegistration() {
     },
     onSuccess: () => {
       toast({
-        title: "✅ Muvaffaqiyatli!",
-        description: "Admin tez orada tasdiqlab, platformaga kirish beradi.",
+        title: "✅ Muvaffaqiyatli ro'yxatdan o'tdingiz!",
+        description: "Hoziroq tizimga kirishingiz mumkin. Kirish sahifasiga yo'naltirilmoqdasiz...",
       });
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = '/login';
       }, 2000);
     },
     onError: (error: Error) => {
@@ -151,7 +151,7 @@ export default function PartnerRegistration() {
             <Sparkles className="w-9 h-9 text-white" />
           </div>
           <CardTitle className="text-3xl font-black">SellerCloudX ga Qo'shiling!</CardTitle>
-          <p className="text-white/90 mt-2">2 daqiqida ro'yxatdan o'ting - Admin tasdiqlab platformaga kirish beradi</p>
+          <p className="text-white/90 mt-2">2 daqiqida ro'yxatdan o'ting va darhol ishlashni boshlang!</p>
         </CardHeader>
         
         <CardContent className="p-8">

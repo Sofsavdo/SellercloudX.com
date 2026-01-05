@@ -24,7 +24,8 @@ let dbType: 'postgres' | 'sqlite' = 'sqlite';
 let sqliteInstance: Database | null = null;
 
 // Check if DATABASE_URL is provided (Railway PostgreSQL)
-if (DATABASE_URL && DATABASE_URL.startsWith('postgres://')) {
+// Support both postgres:// and postgresql:// prefixes
+if (DATABASE_URL && (DATABASE_URL.startsWith('postgres://') || DATABASE_URL.startsWith('postgresql://'))) {
   console.log('✅ Using PostgreSQL (Railway)');
   dbType = 'postgres';
   

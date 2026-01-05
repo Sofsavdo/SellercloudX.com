@@ -199,15 +199,18 @@ export async function createPartner(partnerData: {
     const promoCode = `SCX-${nanoid(6).toUpperCase()}`;
     console.log('🎁 Generated promo code for partner:', promoCode);
     
+    const tier = partnerData.pricingTier || 'free_starter';
+    const isAutoApproved = tier === 'free_starter' || tier === 'starter_pro';
+    
     const [partner] = await db.insert(partners).values({
       id: partnerId,
       userId: partnerData.userId,
       businessName: partnerData.businessName || 'Yangi Biznes',
       businessCategory: partnerData.businessCategory as any,
       monthlyRevenue: partnerData.monthlyRevenue,
-      pricingTier: partnerData.pricingTier || 'starter_pro',
+      pricingTier: tier,
       phone: partnerData.phone,
-      approved: false,
+      approved: isAutoApproved, // Auto-approve free/starter tiers
       createdAt: new Date(),
       notes: partnerData.notes
     }).returning();
