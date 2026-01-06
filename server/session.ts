@@ -21,14 +21,20 @@ export function getSessionConfig() {
       connectionString: databaseUrl,
       ssl: databaseUrl.includes('localhost') ? false : {
         rejectUnauthorized: false
-      }
+      },
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000
     });
     
     store = new PgSession({
       pool,
       tableName: 'session',
-      createTableIfMissing: true, // Auto-create for Railway
-      pruneSessionInterval: 60 * 15 // Prune expired sessions every 15 minutes
+      createTableIfMissing: true,
+      pruneSessionInterval: 60 * 15,
+      errorLog: (err: Error) => {
+        console.error('🔴 Session store error:', err);
+      }
     });
   } else {
     // Use MemoryStore for development or SQLite production
@@ -41,6 +47,13 @@ export function getSessionConfig() {
     });
   }
 
+  // Determine if we're behind a proxy (Railway, Render, etc.)
+  const isBehindProxy = isProd || process.env.TRUST_PROXY === 'true';
+  
+  // For Railway/production: use 'lax' instead of 'none' for better compatibility
+  // This works because Railway serves both frontend and backend from same domain
+  const cookieSameSite = isProd ? 'lax' as const : 'lax' as const;
+  
   const sessionConfig = {
     store,
     secret: process.env.SESSION_SECRET || "your-secret-key-dev-only",
@@ -48,21 +61,27 @@ export function getSessionConfig() {
     saveUninitialized: false,
     name: 'connect.sid',
     cookie: {
-      secure: isProd ? true : false, // true in production (Railway has HTTPS)
+      secure: isProd, // true in production (Railway has HTTPS)
       httpOnly: true,
-      sameSite: isProd ? "none" as const : "lax" as const, // "none" for cross-origin in production
+      sameSite: cookieSameSite, // 'lax' works for same-domain deployments
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/',
-      domain: undefined
+      domain: undefined // Let browser set domain automatically
     },
-    rolling: true,
-    proxy: true // Trust Railway proxy
+    rolling: true, // Reset expiration on each request
+    proxy: isBehindProxy // Trust proxy headers (Railway, Render, etc.)
   } as session.SessionOptions;
 
   console.log('🔧 Session config:', {
     name: sessionConfig.name,
     storeType: isPostgres ? 'PostgreSQL' : 'Memory',
-    cookie: sessionConfig.cookie,
+    cookie: {
+      secure: sessionConfig.cookie.secure,
+      httpOnly: sessionConfig.cookie.httpOnly,
+      sameSite: sessionConfig.cookie.sameSite,
+      maxAge: sessionConfig.cookie.maxAge,
+      path: sessionConfig.cookie.path
+    },
     proxy: sessionConfig.proxy,
     environment: isProd ? 'production' : 'development'
   });
