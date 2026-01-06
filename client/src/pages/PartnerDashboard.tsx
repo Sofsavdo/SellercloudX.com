@@ -447,11 +447,24 @@ export default function PartnerDashboard() {
                 </TabsContent>
                 
                 <TabsContent value="legal">
-                  <LegalEntityForm />
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <Building className="w-16 h-16 mx-auto mb-4 text-slate-400" />
+                      <h3 className="text-xl font-semibold mb-2">Yuridik Ma'lumotlar</h3>
+                      <p className="text-slate-600">Tez orada qo'shiladi...</p>
+                    </CardContent>
+                  </Card>
                 </TabsContent>
                 
                 <TabsContent value="payments">
-                  <PaymentHistory />
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <Wallet className="w-16 h-16 mx-auto mb-4 text-slate-400" />
+                      <h3 className="text-xl font-semibold mb-2">To'lov Tarixi</h3>
+                      <p className="text-slate-600">Tez orada qo'shiladi...</p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
                 </TabsContent>
               </Tabs>
             </div>
