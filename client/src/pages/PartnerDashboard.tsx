@@ -465,7 +465,6 @@ export default function PartnerDashboard() {
                     </CardContent>
                   </Card>
                 </TabsContent>
-                </TabsContent>
               </Tabs>
             </div>
           )}
