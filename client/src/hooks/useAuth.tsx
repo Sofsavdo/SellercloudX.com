@@ -43,32 +43,52 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [partner, setPartner] = useState<Partner | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start with true for initial auth check
 
-  // Real backend login
+  // Real backend login with enhanced error handling
   const login = useCallback(async (username: string, password: string) => {
     setIsLoading(true);
     
     try {
+      console.log('🔐 Attempting login:', { username });
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include', // Critical for cookies
         body: JSON.stringify({ username, password })
+      });
+      
+      console.log('📡 Login response:', { 
+        status: response.status, 
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
       });
       
       if (!response.ok) {
         const error = await response.json();
+        console.error('❌ Login failed:', error);
         throw new Error(error.message || 'Login failed');
       }
       
       const data = await response.json();
+      console.log('✅ Login successful:', { 
+        userId: data.user?.id, 
+        role: data.user?.role,
+        hasPartner: !!data.partner,
+        sessionId: data.sessionId
+      });
+      
       setUser(data.user);
       setPartner(data.partner || null);
       setIsLoading(false);
       
       return { user: data.user, partner: data.partner };
     } catch (error: any) {
+      console.error('❌ Login error:', error);
       setIsLoading(false);
       throw error;
     }
@@ -77,12 +97,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     setIsLoading(true);
     try {
+      console.log('👋 Logging out...');
       await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include'
       });
+      console.log('✅ Logout successful');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('❌ Logout error:', error);
     }
     setUser(null);
     setPartner(null);
@@ -91,16 +113,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refetch = useCallback(async () => {
     try {
+      console.log('🔄 Refetching auth state...');
       const response = await fetch('/api/auth/me', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json'
+        }
       });
+      
+      console.log('📡 Auth check response:', { 
+        status: response.status, 
+        ok: response.ok 
+      });
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Auth state loaded:', { 
+          userId: data.user?.id, 
+          role: data.user?.role,
+          hasPartner: !!data.partner
+        });
         setUser(data.user);
         setPartner(data.partner || null);
+      } else {
+        console.log('⚠️ Not authenticated');
+        setUser(null);
+        setPartner(null);
       }
     } catch (error) {
-      console.error('Refetch error:', error);
+      console.error('❌ Refetch error:', error);
+      setUser(null);
+      setPartner(null);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
