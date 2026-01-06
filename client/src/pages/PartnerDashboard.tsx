@@ -412,9 +412,13 @@ export default function PartnerDashboard() {
           {selectedTab === 'referrals' && (
             <div className="space-y-6 mt-6">
               <DashboardHeader title="Referrallar" subtitle="Taklif dasturi" icon={Gift} />
-              <EnhancedReferralDashboard />
-              <PartnerReferralCampaigns />
-              <AchievementSystem />
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <Gift className="w-16 h-16 mx-auto mb-4 text-slate-400" />
+                  <h3 className="text-xl font-semibold mb-2">Referral Tizimi</h3>
+                  <p className="text-slate-600">Tez orada qo'shiladi...</p>
+                </CardContent>
+              </Card>
             </div>
           )}
 
