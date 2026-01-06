@@ -253,7 +253,7 @@ export function registerRoutes(app: express.Application): Server {
   // Authentication routes
   app.post("/api/auth/login", asyncHandler(async (req: Request, res: Response) => {
     try {
-      console.log('🔐 Login attempt:', { username: req.body.username, hasSession: !!req.session });
+      console.log('🔐 Login attempt:', { username: req.body.username, hasSession: !!req.session, ip: req.ip });
       
       const { username, password } = loginSchema.parse(req.body);
       
@@ -279,7 +279,20 @@ export function registerRoutes(app: express.Application): Server {
         });
       }
 
-      // Set session
+      // Regenerate session to prevent fixation attacks
+      await new Promise<void>((resolve, reject) => {
+        req.session.regenerate((err) => {
+          if (err) {
+            console.error('❌ Session regenerate error:', err);
+            reject(err);
+          } else {
+            console.log('✅ Session regenerated');
+            resolve();
+          }
+        });
+      });
+
+      // Set session user data
       req.session.user = {
         id: user.id,
         username: user.username,
@@ -299,13 +312,6 @@ export function registerRoutes(app: express.Application): Server {
         permissions = await storage.getAdminPermissions(user.id);
       }
 
-      await storage.createAuditLog({
-        userId: user.id,
-        action: 'LOGIN_SUCCESS',
-        entityType: 'user',
-        payload: { username, role: user.role }
-      });
-
       // Save session before sending response
       await new Promise<void>((resolve, reject) => {
         req.session.save((err) => {
@@ -315,21 +321,25 @@ export function registerRoutes(app: express.Application): Server {
           } else {
             console.log('✅ Session saved successfully for user:', user.id);
             console.log('📝 Session ID:', req.sessionID);
-            console.log('🍪 Session cookie will be set');
+            console.log('🍪 Session data:', { hasUser: !!req.session.user, role: req.session.user?.role });
             resolve();
           }
         });
       });
 
-      // Explicitly set cookie header for debugging
-      const cookieValue = `connect.sid=${req.sessionID}; Path=/; HttpOnly; SameSite=Lax`;
-      console.log('🍪 Setting cookie:', cookieValue);
+      await storage.createAuditLog({
+        userId: user.id,
+        action: 'LOGIN_SUCCESS',
+        entityType: 'user',
+        payload: { username, role: user.role }
+      });
 
       res.json({ 
         user: req.session.user, 
         partner,
         permissions,
-        message: "Muvaffaqiyatli kirildi"
+        message: "Muvaffaqiyatli kirildi",
+        sessionId: req.sessionID // Debug only - remove in production
       });
     } catch (error) {
       if (error instanceof ZodError) {
@@ -339,6 +349,7 @@ export function registerRoutes(app: express.Application): Server {
           errors: error.errors
         });
       }
+      console.error('❌ Login error:', error);
       throw error;
     }
   }));
