@@ -8,18 +8,18 @@ import { LanguageProvider } from "./context/LanguageContext";
 import { GlobalErrorBoundary } from "./components/GlobalErrorBoundary";
 
 // Pages
-import LandingNew from "@/pages/LandingNew";
-import AuthPage from "@/pages/AuthPage";
-import AdminLogin from "@/pages/AdminLogin";
-import PartnerDashboard from "@/pages/PartnerDashboard";
-import PartnerAIDashboard from "@/pages/PartnerAIDashboard";
-import EnhancedAIDashboard from "@/pages/EnhancedAIDashboard";
-import RemoteAccessDashboard from "@/pages/RemoteAccessDashboard";
-import OnboardingWizard from "@/pages/OnboardingWizard";
-import AdminPanel from "@/pages/AdminPanel";
-import InvestorPitch from "@/pages/InvestorPitch";
-import PlatformDemo from "@/pages/PlatformDemo";
-import NotFound from "@/pages/not-found";
+import LandingNew from "./pages/LandingNew";
+import AuthPage from "./pages/AuthPage";
+import AdminLogin from "./pages/AdminLogin";
+import PartnerDashboard from "./pages/PartnerDashboard";
+import PartnerAIDashboard from "./pages/PartnerAIDashboard";
+import EnhancedAIDashboard from "./pages/EnhancedAIDashboard";
+import RemoteAccessDashboard from "./pages/RemoteAccessDashboard";
+import OnboardingWizard from "./pages/OnboardingWizard";
+import AdminPanel from "./pages/AdminPanel";
+import InvestorPitch from "./pages/InvestorPitch";
+import PlatformDemo from "./pages/PlatformDemo";
+import NotFound from "./pages/not-found";
 
 function Router() {
   return (
