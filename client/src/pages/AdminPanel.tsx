@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '../hooks/useAuth';
 import { useLocation } from 'wouter';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Button } from '../components/ui/button';
 import { 
   Users, 
   Settings, 
@@ -12,7 +12,7 @@ import {
   LogOut,
   Loader2
 } from 'lucide-react';
-import AdminPartnersManagement from '@/components/AdminPartnersManagement';
+import AdminPartnersManagement from '../components/AdminPartnersManagement';
 
 export default function AdminPanel() {
   const { user, isLoading, logout } = useAuth();
