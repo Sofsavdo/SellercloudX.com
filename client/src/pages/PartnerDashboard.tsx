@@ -42,7 +42,7 @@ import {
   Package, Settings, Crown, BarChart3, DollarSign, Target, Zap,
   Clock, AlertTriangle, Brain, MessageCircle, Gift,
   LayoutDashboard, Sparkles, ShoppingCart, Wallet, ArrowRight,
-  TrendingUp, CheckCircle
+  TrendingUp, CheckCircle, Building
 } from 'lucide-react';
 
 interface Product { id: string; name: string; category: string; price: string; costPrice: string; sku: string; isActive: boolean; createdAt: string; }
