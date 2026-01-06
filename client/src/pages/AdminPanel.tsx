@@ -12,7 +12,7 @@ import {
   LogOut,
   Loader2
 } from 'lucide-react';
-import AdminPartnersManagement from '../components/AdminPartnersManagement';
+import { AdminPartnersManagement } from '../components/AdminPartnersManagement';
 
 export default function AdminPanel() {
   const { user, isLoading, logout } = useAuth();
