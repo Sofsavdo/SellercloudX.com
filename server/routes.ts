@@ -53,6 +53,7 @@ import paymentHistoryRoutes from "./routes/paymentHistoryRoutes";
 import referralDashboardRoutes from "./routes/referralDashboardRoutes";
 import impersonationRoutes from "./routes/impersonationRoutes";
 import businessAnalyticsRoutes from "./routes/businessAnalyticsRoutes";
+import adminManagementRoutes from "./routes/adminManagementRoutes";
 import telegramRoutes from "./routes/telegramRoutes";
 import premiumFeaturesRoutes from "./routes/premiumFeaturesRoutes";
 import advancedFeaturesRoutes from "./routes/advancedFeaturesRoutes";
