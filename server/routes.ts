@@ -1256,6 +1256,9 @@ export function registerRoutes(app: express.Application): Server {
   
   // Admin Business Analytics
   app.use("/api/admin", requireAdmin, businessAnalyticsRoutes);
+  
+  // Admin Management (Super Admin only)
+  app.use("/api/admin", adminManagementRoutes);
 
   // Chat uploads (files/images) - used by ChatSystem UI
   app.post(
