@@ -1248,6 +1248,9 @@ export function registerRoutes(app: express.Application): Server {
   app.use("/api/partner", requirePartnerWithData, walletRoutes);
   app.use("/api/partner", requirePartnerWithData, paymentHistoryRoutes);
   app.use("/api/partner", requirePartnerWithData, referralDashboardRoutes);
+  
+  // Admin Impersonation routes
+  app.use("/api/admin", impersonationRoutes);
 
   // Chat uploads (files/images) - used by ChatSystem UI
   app.post(
