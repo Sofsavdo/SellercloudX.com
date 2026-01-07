@@ -30,11 +30,13 @@ export async function setupVite(app: Express, server: Server) {
   const vite = await createViteServer({
     ...viteConfig,
     configFile: false,
+    root: path.resolve(process.cwd(), "client"),
     customLogger: {
       ...viteLogger,
       error: (msg, options) => {
         viteLogger.error(msg, options);
-        process.exit(1);
+        // Don't exit on errors - just log them
+        console.error('Vite error (non-fatal):', msg);
       },
     },
     server: serverOptions,
