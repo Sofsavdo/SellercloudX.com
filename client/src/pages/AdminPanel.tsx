@@ -838,20 +838,20 @@ export default function AdminPanel() {
                   title="Ma'lumotlar Bazasi"
                   description="Database sozlamalari va backup"
                   icon={Database}
-                  action={{ label: "Sozlash", onClick: () => {} }}
+                  action={{ label: "Sozlash", onClick: () => toast({ title: "Database", description: "Ma'lumotlar bazasi sozlamalari tez orada qo'shiladi" }) }}
                 />
                 <ActionCard
                   title="Hisobotlar"
                   description="Jadval va hisobot sozlamalari"
                   icon={FileText}
-                  action={{ label: "Sozlash", onClick: () => {} }}
+                  action={{ label: "Sozlash", onClick: () => toast({ title: "Hisobotlar", description: "Hisobot sozlamalari tez orada qo'shiladi" }) }}
                   variant="primary"
                 />
                 <ActionCard
                   title="API Dokumentatsiya"
                   description="Developer uchun API ma'lumotlari"
                   icon={Target}
-                  action={{ label: "Ko'rish", onClick: () => {} }}
+                  action={{ label: "Ko'rish", onClick: () => window.open('/api/docs', '_blank') }}
                   variant="accent"
                 />
               </div>
