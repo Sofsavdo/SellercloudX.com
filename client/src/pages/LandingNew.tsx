@@ -707,7 +707,17 @@ export default function LandingNew() {
                     plan.popular && 'gradient-primary border-0 shadow-glow btn-glow'
                   )}
                   variant={plan.ctaVariant}
-                  onClick={() => setLocation('/partner-registration')}
+                  onClick={() => {
+                    // Store selected tier in sessionStorage
+                    sessionStorage.setItem('selectedTier', JSON.stringify({
+                      id: plan.name.toLowerCase().replace(/\s+/g, '_'),
+                      name: plan.name,
+                      price: plan.priceNum,
+                      priceSom: plan.priceSom,
+                      commission: plan.commission,
+                    }));
+                    setLocation('/partner-registration');
+                  }}
                 >
                   {plan.cta}
                   {plan.popular ? <Star className="w-4 h-4 ml-2" /> : <ArrowRight className="w-4 h-4 ml-2" />}
