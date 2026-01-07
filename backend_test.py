@@ -265,7 +265,7 @@ class SellerCloudXTester:
             ("Partner Products", self.test_partner_products),
             ("Partner Analytics", self.test_partner_analytics),
             ("Admin Partners List", self.test_admin_partners),
-            ("Admin Analytics", self.test_admin_analytics),
+            ("Admin Business Metrics", self.test_admin_analytics),
             ("Logout", self.test_logout),
         ]
         
