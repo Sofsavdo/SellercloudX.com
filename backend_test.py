@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend API Testing for BiznesYordam
-Tests all backend endpoints systematically
+Comprehensive Backend API Testing for SellerCloudX Platform
+Tests all backend endpoints systematically including new features
 """
 
 import requests
@@ -12,8 +12,8 @@ from typing import Dict, Any, Optional
 # Configuration
 BASE_URL = "http://localhost:5000"
 ADMIN_CREDENTIALS = {"username": "admin", "password": "BiznesYordam2024!"}
-# Note: testpartner user exists but may not have partner profile
-PARTNER_CREDENTIALS = {"username": "testpartner", "password": "partner123"}
+# Use the correct partner credentials from review request
+PARTNER_CREDENTIALS = {"username": "partner", "password": "partner123"}
 
 class Colors:
     GREEN = '\033[92m'
