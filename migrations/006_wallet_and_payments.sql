@@ -1,3 +1,14 @@
+-- Add low_stock_threshold column to products if not exists
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'products' AND column_name = 'low_stock_threshold'
+  ) THEN
+    ALTER TABLE products ADD COLUMN low_stock_threshold INTEGER DEFAULT 10;
+  END IF;
+END $$;
+
 -- Add wallet_transactions table
 CREATE TABLE IF NOT EXISTS wallet_transactions (
   id TEXT PRIMARY KEY,
@@ -49,5 +60,14 @@ CREATE INDEX IF NOT EXISTS idx_impersonation_logs_admin ON impersonation_logs(ad
 CREATE INDEX IF NOT EXISTS idx_impersonation_logs_partner ON impersonation_logs(partner_id);
 
 -- Add referral_code column to partners if not exists
-ALTER TABLE partners ADD COLUMN referral_code TEXT;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'partners' AND column_name = 'referral_code'
+  ) THEN
+    ALTER TABLE partners ADD COLUMN referral_code TEXT;
+  END IF;
+END $$;
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_partners_referral_code ON partners(referral_code);
