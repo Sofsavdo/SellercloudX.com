@@ -44,6 +44,7 @@ import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/currency';
+import { AdminBusinessAnalytics } from '@/components/AdminBusinessAnalytics';
 import {
   Users, Package, TrendingUp, Settings, CheckCircle, XCircle, Clock, Crown, Shield,
   BarChart3, DollarSign, Target, Zap, Globe, Database, FileText, Eye, AlertCircle,
