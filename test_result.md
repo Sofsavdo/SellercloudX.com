@@ -150,17 +150,53 @@ backend:
         comment: "✅ PASSED - Admin business metrics endpoint working correctly at /api/admin/business-metrics"
 
 frontend:
-  - task: "Frontend Testing"
+  - task: "Partner Login Flow"
     implemented: true
     working: "NA"
-    file: "client/src/App.tsx"
+    file: "client/src/pages/AuthPage.tsx"
     stuck_count: 0
-    priority: "low"
-    needs_retesting: false
+    priority: "high"
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Frontend testing not required per system instructions"
+        comment: "Partner login flow implemented, needs testing with credentials: partner/partner123"
+
+  - task: "Admin Login Flow"
+    implemented: true
+    working: "NA"
+    file: "client/src/pages/AdminLogin.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Admin login flow implemented, needs testing with credentials: Medik/Medik9298"
+
+  - task: "Partner Dashboard"
+    implemented: true
+    working: "NA"
+    file: "client/src/pages/PartnerDashboard.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Partner dashboard with tabs implemented, needs testing for p.reduce errors and functionality"
+
+  - task: "Admin Panel"
+    implemented: true
+    working: "NA"
+    file: "client/src/pages/AdminPanel.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Admin panel implemented, needs testing for functionality and errors"
 
 metadata:
   created_by: "testing_agent"
