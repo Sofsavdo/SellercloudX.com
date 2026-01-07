@@ -26,7 +26,7 @@ function Router() {
     <Switch>
       <Route path="/" component={LandingNew} />
       <Route path="/login" component={AuthPage} />
-      <Route path="/partner-registration" component={AuthPage} />
+      <Route path="/partner-registration" component={PartnerRegistrationNew} />
       <Route path="/admin-login" component={AdminLogin} />
       <Route path="/onboarding" component={OnboardingWizard} />
       <Route path="/partner-dashboard" component={PartnerDashboard} />
