@@ -461,17 +461,17 @@ export function registerRoutes(app: express.Application): Server {
       });
       console.log('[REGISTRATION] Partner created:', partner.id);
 
-      // Handle referral code if provided (already handled in createPartner, but keep for backward compatibility)
+      // Handle referral/promo code if provided
       if (referralCode) {
         try {
-          // Find referrer by searching referrals table for matching promo code
-          const existingReferral = await db.select()
-            .from(referrals)
-            .where(eq(referrals.promoCode, referralCode))
+          // Find referrer by promo code in partners table
+          const referrerPartner = await db.select()
+            .from(partners)
+            .where(eq(partners.promoCode, referralCode))
             .limit(1);
 
-          if (existingReferral.length > 0) {
-            const referrerId = existingReferral[0].referrerPartnerId;
+          if (referrerPartner.length > 0) {
+            const referrerId = referrerPartner[0].id;
             
             // Create referral record for new partner
             await db.insert(referrals).values({
@@ -484,9 +484,9 @@ export function registerRoutes(app: express.Application): Server {
               createdAt: new Date()
             });
 
-            console.log('✅ Referral created:', referralCode, '→', partner.id);
+            console.log('✅ Referral created via promo code:', referralCode, '→', partner.id);
           } else {
-            console.log('⚠️ Promo code not found:', referralCode);
+            console.log('⚠️ Promo code not found in partners:', referralCode);
           }
         } catch (refError) {
           console.error('⚠️ Referral creation failed:', refError);
