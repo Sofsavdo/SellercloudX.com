@@ -764,3 +764,52 @@ export type OrderItem = typeof orderItems.$inferSelect;
 export type Customer = typeof customers.$inferSelect;
 export type StockAlert = typeof stockAlerts.$inferSelect;
 export type InventoryReport = typeof inventoryReports.$inferSelect;
+
+
+// ==================== WALLET & PAYMENTS ====================
+
+// Wallet Transactions
+export const walletTransactions = sqliteTable('wallet_transactions', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => partners.id),
+  type: text('type').notNull(), // 'income', 'expense', 'commission', 'withdrawal'
+  amount: text('amount').notNull(),
+  description: text('description'),
+  status: text('status').notNull().default('pending'), // 'pending', 'completed', 'failed'
+  metadata: text('metadata'), // JSON string for additional data
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').default(sql`(datetime('now'))`),
+});
+
+// Payment History
+export const paymentHistory = sqliteTable('payment_history', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => partners.id),
+  amount: text('amount').notNull(),
+  currency: text('currency').default('UZS'),
+  paymentMethod: text('payment_method'), // 'click', 'payme', 'uzcard', 'stripe'
+  transactionId: text('transaction_id'),
+  status: text('status').notNull().default('pending'), // 'pending', 'completed', 'failed', 'refunded'
+  description: text('description'),
+  metadata: text('metadata'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  completedAt: text('completed_at'),
+});
+
+// Impersonation Logs
+export const impersonationLogs = sqliteTable('impersonation_logs', {
+  id: text('id').primaryKey(),
+  adminId: text('admin_id').notNull().references(() => users.id),
+  partnerId: text('partner_id').notNull().references(() => partners.id),
+  action: text('action').notNull(), // 'start', 'end'
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  notes: text('notes'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+});
+
+// Type exports
+export type WalletTransaction = typeof walletTransactions.$inferSelect;
+export type PaymentHistory = typeof paymentHistory.$inferSelect;
+export type ImpersonationLog = typeof impersonationLogs.$inferSelect;
+
