@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { formatCurrency } from '@/lib/currency';
+import { ImpersonationButton } from '@/components/ImpersonationButton';
 import {
   Users, MessageSquare, Bell, Ban, TrendingUp, DollarSign, Package, Eye, Send,
   CheckCircle, AlertTriangle, BarChart3, Mail, Phone, Building, MapPin, Calendar,
