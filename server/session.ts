@@ -50,9 +50,11 @@ export function getSessionConfig() {
   // Determine if we're behind a proxy (Railway, Render, etc.)
   const isBehindProxy = isProd || process.env.TRUST_PROXY === 'true';
   
-  // For Railway/production: use 'lax' instead of 'none' for better compatibility
-  // This works because Railway serves both frontend and backend from same domain
-  const cookieSameSite = isProd ? 'lax' as const : 'lax' as const;
+  // Railway specific: If on Railway, sameSite should be 'none' with secure: true
+  // Because Railway serves frontend and backend from different internal services
+  const isRailway = databaseUrl.includes('railway.app') || process.env.RAILWAY_ENVIRONMENT;
+  const cookieSameSite = isRailway ? 'none' as const : (isProd ? 'lax' as const : 'lax' as const);
+  const cookieSecure = isProd; // Always true in production
   
   const sessionConfig = {
     store,
@@ -61,9 +63,9 @@ export function getSessionConfig() {
     saveUninitialized: false,
     name: 'connect.sid',
     cookie: {
-      secure: isProd, // true in production (Railway has HTTPS)
+      secure: cookieSecure, // true in production (Railway has HTTPS)
       httpOnly: true,
-      sameSite: cookieSameSite, // 'lax' works for same-domain deployments
+      sameSite: cookieSameSite, // 'none' for Railway, 'lax' for others
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/',
       domain: undefined // Let browser set domain automatically
