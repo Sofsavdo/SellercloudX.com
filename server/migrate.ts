@@ -231,7 +231,121 @@ BEGIN
   ) THEN
     ALTER TABLE "products" ADD COLUMN "dimensions" varchar(100);
   END IF;
+
+  -- Fix partners.ai_cards_used column (CRITICAL FOR RAILWAY)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'partners' AND column_name = 'ai_cards_used'
+  ) THEN
+    ALTER TABLE "partners" ADD COLUMN "ai_cards_used" integer DEFAULT 0;
+  END IF;
+
+  -- Fix partners.ai_cards_limit column
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'partners' AND column_name = 'ai_cards_limit'
+  ) THEN
+    ALTER TABLE "partners" ADD COLUMN "ai_cards_limit" integer DEFAULT 50;
+  END IF;
+
+  -- Fix products.low_stock_threshold column
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'products' AND column_name = 'low_stock_threshold'
+  ) THEN
+    ALTER TABLE "products" ADD COLUMN "low_stock_threshold" integer DEFAULT 10;
+  END IF;
+
+  -- Fix audit_logs.ip_address column
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'audit_logs' AND column_name = 'ip_address'
+  ) THEN
+    ALTER TABLE "audit_logs" ADD COLUMN "ip_address" text;
+  END IF;
+
+  -- Fix audit_logs.user_agent column
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'audit_logs' AND column_name = 'user_agent'
+  ) THEN
+    ALTER TABLE "audit_logs" ADD COLUMN "user_agent" text;
+  END IF;
+
+  -- Fix analytics.metric_type column
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'analytics' AND column_name = 'metric_type'
+  ) THEN
+    ALTER TABLE "analytics" ADD COLUMN "metric_type" text DEFAULT 'revenue';
+  END IF;
+
+  -- Fix partners.referral_code column
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'partners' AND column_name = 'referral_code'
+  ) THEN
+    ALTER TABLE "partners" ADD COLUMN "referral_code" text;
+  END IF;
+
 END $$;
+
+-- Create wallet_transactions table if not exists
+CREATE TABLE IF NOT EXISTS wallet_transactions (
+  id TEXT PRIMARY KEY,
+  partner_id TEXT NOT NULL,
+  type TEXT NOT NULL,
+  amount TEXT NOT NULL,
+  description TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+  metadata TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Create payment_history table if not exists
+CREATE TABLE IF NOT EXISTS payment_history (
+  id TEXT PRIMARY KEY,
+  partner_id TEXT NOT NULL,
+  amount TEXT NOT NULL,
+  currency TEXT DEFAULT 'UZS',
+  payment_method TEXT,
+  transaction_id TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+  description TEXT,
+  metadata TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  completed_at TIMESTAMP
+);
+
+-- Create impersonation_logs table if not exists
+CREATE TABLE IF NOT EXISTS impersonation_logs (
+  id TEXT PRIMARY KEY,
+  admin_id TEXT NOT NULL,
+  partner_id TEXT NOT NULL,
+  action TEXT NOT NULL,
+  ip_address TEXT,
+  user_agent TEXT,
+  notes TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Create business_metrics table if not exists
+CREATE TABLE IF NOT EXISTS business_metrics (
+  id TEXT PRIMARY KEY,
+  metric_date TEXT NOT NULL,
+  total_partners INTEGER DEFAULT 0,
+  active_partners INTEGER DEFAULT 0,
+  paying_partners INTEGER DEFAULT 0,
+  churned_partners INTEGER DEFAULT 0,
+  mrr TEXT DEFAULT '0',
+  arr TEXT DEFAULT '0',
+  total_revenue TEXT DEFAULT '0',
+  total_costs TEXT DEFAULT '0',
+  profit_margin TEXT DEFAULT '0',
+  metadata TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
 `;
 
   try {
