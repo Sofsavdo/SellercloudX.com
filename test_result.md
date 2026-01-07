@@ -219,3 +219,5 @@ agent_communication:
     message: "Starting comprehensive backend API testing for SellerCloudX. Focus on p.reduce error in partner APIs and session handling."
   - agent: "testing"
     message: "✅ TESTING COMPLETE - All 13 backend API tests PASSED! Key findings: 1) Fixed missing database tables (wallet_transactions, payment_history) 2) No p.reduce errors detected - all endpoints return proper data structures 3) Session handling working correctly 4) All authentication flows working 5) Admin business metrics endpoint corrected to /api/admin/business-metrics. The reported p.reduce error was caused by missing database tables, now resolved."
+  - agent: "testing"
+    message: "🎯 STARTING FRONTEND TESTING - Testing login flows and dashboard functionality as requested. Will test Partner login (partner/partner123), Admin login (Medik/Medik9298), and dashboard tabs for p.reduce errors."
