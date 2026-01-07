@@ -10,9 +10,14 @@ const __dirname = path.dirname(__filename)
 
 export default defineConfig(({ mode }) => ({
   plugins: [
-    react(),
+    react({
+      jsxRuntime: 'automatic',
+    }),
     mode === 'development' && componentTagger(),
   ].filter(Boolean),
+  esbuild: {
+    jsxInject: `import React from 'react'`,
+  },
   resolve: {
     alias: [
       { find: "@", replacement: path.resolve(__dirname, "client", "src") },
