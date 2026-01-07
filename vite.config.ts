@@ -15,9 +15,6 @@ export default defineConfig(({ mode }) => ({
     }),
     mode === 'development' && componentTagger(),
   ].filter(Boolean),
-  esbuild: {
-    jsxInject: `import React from 'react'`,
-  },
   resolve: {
     alias: [
       { find: "@", replacement: path.resolve(__dirname, "client", "src") },
