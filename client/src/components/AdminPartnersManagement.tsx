@@ -280,6 +280,11 @@ export function AdminPartnersManagement() {
                 </div>
 
                 <div className="lg:col-span-3 flex flex-col gap-2">
+                  <ImpersonationButton 
+                    partnerId={p.id}
+                    partnerName={p.businessName}
+                    partnerUsername={p.ownerName}
+                  />
                   <Button 
                     onClick={() => { setSelectedPartner(p); setShowDetailsModal(true); }} 
                     variant="outline" 
