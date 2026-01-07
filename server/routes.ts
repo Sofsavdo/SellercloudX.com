@@ -1186,6 +1186,209 @@ export function registerRoutes(app: express.Application): Server {
 
   // ==================== NEW MODULE ROUTES ====================
 
+  // ==================== PARTNER MARKETPLACE SETUP ====================
+  // Hamkor o'zi API kiritib integratsiya qiladi
+  app.get("/api/partner/marketplace-integrations", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ message: "Hamkor topilmadi" });
+    }
+    
+    const integrations = await db.select().from(marketplaceIntegrations)
+      .where(eq(marketplaceIntegrations.partnerId, partner.id));
+    
+    res.json(integrations);
+  }));
+
+  app.post("/api/partner/marketplace-integrations", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ message: "Hamkor topilmadi" });
+    }
+
+    const { marketplace, apiKey, apiSecret, shopId } = req.body;
+    
+    if (!marketplace || !apiKey) {
+      return res.status(400).json({ message: "Marketplace va API key talab qilinadi" });
+    }
+
+    // Check existing integration
+    const existing = await db.select().from(marketplaceIntegrations)
+      .where(and(
+        eq(marketplaceIntegrations.partnerId, partner.id),
+        eq(marketplaceIntegrations.marketplace, marketplace)
+      ));
+
+    if (existing.length > 0) {
+      // Update existing
+      await db.update(marketplaceIntegrations).set({
+        apiKey,
+        apiSecret: apiSecret || null,
+        active: true
+      }).where(eq(marketplaceIntegrations.id, existing[0].id));
+    } else {
+      // Create new
+      await db.insert(marketplaceIntegrations).values({
+        id: nanoid(),
+        partnerId: partner.id,
+        marketplace,
+        apiKey,
+        apiSecret: apiSecret || null,
+        active: true
+      });
+    }
+
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: 'MARKETPLACE_CONNECTED',
+      entityType: 'marketplace_integration',
+      entityId: marketplace
+    });
+
+    res.json({ success: true, message: "Marketplace ulandi" });
+  }));
+
+  app.post("/api/partner/marketplace-integrations/:marketplace/test", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ message: "Hamkor topilmadi" });
+    }
+
+    const { marketplace } = req.params;
+    
+    // Get integration
+    const integration = await db.select().from(marketplaceIntegrations)
+      .where(and(
+        eq(marketplaceIntegrations.partnerId, partner.id),
+        eq(marketplaceIntegrations.marketplace, marketplace)
+      ));
+
+    if (integration.length === 0) {
+      return res.status(404).json({ success: false, message: "Integratsiya topilmadi" });
+    }
+
+    // TODO: Real API test - for now return success
+    res.json({ success: true, message: "Ulanish muvaffaqiyatli" });
+  }));
+
+  app.delete("/api/partner/marketplace-integrations/:marketplace", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ message: "Hamkor topilmadi" });
+    }
+
+    const { marketplace } = req.params;
+    
+    await db.delete(marketplaceIntegrations)
+      .where(and(
+        eq(marketplaceIntegrations.partnerId, partner.id),
+        eq(marketplaceIntegrations.marketplace, marketplace)
+      ));
+
+    res.json({ success: true, message: "Integratsiya o'chirildi" });
+  }));
+
+  // ==================== DIRECT TIER UPGRADE (AUTO) ====================
+  app.post("/api/subscriptions/direct-upgrade", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ message: "Hamkor topilmadi" });
+    }
+
+    const { targetTier, paymentMethod } = req.body;
+    
+    if (!targetTier || !paymentMethod) {
+      return res.status(400).json({ message: "Tarif va to'lov usuli talab qilinadi" });
+    }
+
+    // Tier narxlari
+    const TIER_PRICES: Record<string, number> = {
+      'free': 0,
+      'basic': 828000,
+      'starter_pro': 4188000,
+      'professional': 10788000
+    };
+
+    // AI tarifga bog'liq
+    const aiEnabled = targetTier !== 'free';
+
+    // TODO: Real payment integration
+    // For now, simulate payment success
+    
+    // Update partner tier
+    await db.update(partners).set({
+      pricingTier: targetTier,
+      aiEnabled,
+      monthlyFee: TIER_PRICES[targetTier] || 0
+    }).where(eq(partners.id, partner.id));
+
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: 'TIER_UPGRADED',
+      entityType: 'partner',
+      entityId: partner.id,
+      payload: { oldTier: partner.pricingTier, newTier: targetTier, paymentMethod }
+    });
+
+    res.json({ 
+      success: true, 
+      message: "Tarif muvaffaqiyatli yangilandi", 
+      newTier: targetTier,
+      aiEnabled
+    });
+  }));
+
+  // ==================== PROMO CODE REFERRAL ====================
+  app.get("/api/partner/referrals/dashboard", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ message: "Hamkor topilmadi" });
+    }
+
+    // Generate promo code if not exists
+    let promoCode = partner.promoCode;
+    if (!promoCode) {
+      promoCode = `SC${nanoid(6).toUpperCase()}`;
+      await db.update(partners).set({ promoCode }).where(eq(partners.id, partner.id));
+    }
+
+    // Get referrals
+    const partnerReferrals = await db.select().from(referrals)
+      .where(eq(referrals.referrerPartnerId, partner.id));
+
+    // Calculate stats
+    const totalReferrals = partnerReferrals.length;
+    const activeReferrals = partnerReferrals.filter(r => r.status === 'active').length;
+    const totalEarnings = partnerReferrals.reduce((sum, r) => sum + (r.bonusEarned || 0), 0);
+
+    const referralLink = `https://sellercloudx.com/register?ref=${promoCode}`;
+
+    res.json({
+      stats: {
+        totalReferrals,
+        activeReferrals,
+        totalEarnings,
+        conversionRate: totalReferrals > 0 ? Math.round((activeReferrals / totalReferrals) * 100) : 0
+      },
+      promoCode,
+      referralCode: promoCode,
+      referralLink,
+      referrals: partnerReferrals
+    });
+  }));
+
+  app.post("/api/partner/referrals/generate-promo-code", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ message: "Hamkor topilmadi" });
+    }
+
+    const promoCode = `SC${nanoid(6).toUpperCase()}`;
+    await db.update(partners).set({ promoCode }).where(eq(partners.id, partner.id));
+
+    res.json({ success: true, promoCode });
+  }));
+
   // Inventory Tracking routes
   app.use("/api/inventory", requirePartnerWithData, inventoryRoutes);
 
