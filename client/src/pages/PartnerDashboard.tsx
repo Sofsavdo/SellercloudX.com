@@ -412,11 +412,11 @@ export default function PartnerDashboard() {
             </div>
           )}
 
-          {/* Referrals */}
+          {/* Referrals - Promo Code System */}
           {selectedTab === 'referrals' && (
             <div className="space-y-6 mt-6">
-              <DashboardHeader title="Referrallar" subtitle="Taklif dasturi" icon={Gift} />
-              <PartnerReferralSystem />
+              <DashboardHeader title="Referrallar" subtitle="Promo kod bilan taklif qiling" icon={Gift} />
+              <PartnerPromoCodeSystem />
             </div>
           )}
 
@@ -428,7 +428,7 @@ export default function PartnerDashboard() {
             </div>
           )}
 
-          {/* Settings */}
+          {/* Settings - Marketplace Setup */}
           {selectedTab === 'settings' && (
             <div className="space-y-6 mt-6">
               <DashboardHeader title="Sozlamalar" subtitle="Profil va sozlamalar" icon={Settings} />
@@ -436,12 +436,21 @@ export default function PartnerDashboard() {
               <Tabs defaultValue="marketplace" className="space-y-6">
                 <TabsList className="bg-muted/50 p-1">
                   <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
+                  <TabsTrigger value="tier">Tarif</TabsTrigger>
                   <TabsTrigger value="legal">Yuridik ma'lumotlar</TabsTrigger>
                   <TabsTrigger value="payments">To'lov tarixi</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="marketplace">
-                  <MarketplaceIntegrationManager isPartnerView={true} />
+                  <PartnerMarketplaceSetup />
+                </TabsContent>
+
+                <TabsContent value="tier">
+                  <DirectTierUpgrade 
+                    currentTier={partner?.pricingTier || 'free'} 
+                    partnerId={partner?.id}
+                    aiCardsUsed={(partner as any)?.aiCardsUsed || 0}
+                  />
                 </TabsContent>
                 
                 <TabsContent value="legal">
@@ -463,7 +472,7 @@ export default function PartnerDashboard() {
         </div>
       </main>
 
-      {/* Tier Upgrade Modal - Improved */}
+      {/* Tier Upgrade Modal - Direct Payment */}
       {showTierModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-background rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto p-6">
@@ -473,9 +482,10 @@ export default function PartnerDashboard() {
                 <XCircle className="w-6 h-6" />
               </Button>
             </div>
-            <ImprovedTierUpgrade 
+            <DirectTierUpgrade 
               currentTier={partner?.pricingTier || 'free'} 
               partnerId={partner?.id}
+              aiCardsUsed={(partner as any)?.aiCardsUsed || 0}
             />
           </div>
         </div>
