@@ -1252,6 +1252,9 @@ export function registerRoutes(app: express.Application): Server {
   
   // Admin Impersonation routes
   app.use("/api/admin", impersonationRoutes);
+  
+  // Admin Business Analytics
+  app.use("/api/admin", requireAdmin, businessAnalyticsRoutes);
 
   // Chat uploads (files/images) - used by ChatSystem UI
   app.post(
