@@ -66,8 +66,8 @@ export default function PartnerRegistrationNew() {
           ...data,
           businessCategory: 'general',
           monthlyRevenue: '0',
-          pricingTier: 'free_starter', // Default SaaS tier
-          notes: ''
+          pricingTier: selectedTier?.id || 'free_starter', // Use selected tier
+          notes: selectedTier ? `Selected tier: ${selectedTier.name}` : ''
         }),
       });
       
