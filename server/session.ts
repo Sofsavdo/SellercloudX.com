@@ -85,7 +85,8 @@ export function getSessionConfig() {
       path: sessionConfig.cookie.path
     },
     proxy: sessionConfig.proxy,
-    environment: isProd ? 'production' : 'development'
+    environment: isProd ? 'production' : 'development',
+    isRailway: !!isRailway
   });
 
   return sessionConfig;
