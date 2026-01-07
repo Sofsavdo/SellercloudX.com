@@ -390,6 +390,7 @@ class APITester:
             ("Analytics", self.test_analytics),
             ("AI Manager", self.test_ai_manager_endpoints),
             ("Partner AI Toggle", self.test_partner_ai_toggle),
+            ("New Features", self.test_new_features),
             ("Pricing Tiers", self.test_pricing_tiers),
             ("Logout", self.test_logout),
         ]
