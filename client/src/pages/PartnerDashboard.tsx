@@ -458,12 +458,23 @@ export default function PartnerDashboard() {
         </div>
       </main>
 
-      <SelfServiceTierUpgrade
-        isOpen={showTierModal}
-        onClose={() => setShowTierModal(false)}
-        currentTier={partner?.pricingTier || 'free_starter'}
-        onUpgradeComplete={() => { queryClient.invalidateQueries({ queryKey: ['/api/partners/me'] }); setShowTierModal(false); }}
-      />
+      {/* Tier Upgrade Modal - Improved */}
+      {showTierModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-background rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Tarifni O'zgartirish</h2>
+              <Button variant="ghost" size="icon" onClick={() => setShowTierModal(false)}>
+                <XCircle className="w-6 h-6" />
+              </Button>
+            </div>
+            <ImprovedTierUpgrade 
+              currentTier={partner?.pricingTier || 'free'} 
+              partnerId={partner?.id}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
