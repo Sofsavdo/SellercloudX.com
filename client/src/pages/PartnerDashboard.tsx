@@ -30,8 +30,9 @@ import { MarketplaceIntegrationManager } from '@/components/MarketplaceIntegrati
 import { ChatSystem } from '@/components/ChatSystem';
 import { PartnerWallet } from '@/components/PartnerWallet';
 import { PartnerPaymentHistory } from '@/components/PartnerPaymentHistory';
-import { PartnerReferralSystem } from '@/components/PartnerReferralSystem';
-import { ImprovedTierUpgrade } from '@/components/ImprovedTierUpgrade';
+import { PartnerPromoCodeSystem } from '@/components/PartnerPromoCodeSystem';
+import { DirectTierUpgrade } from '@/components/DirectTierUpgrade';
+import { PartnerMarketplaceSetup } from '@/components/PartnerMarketplaceSetup';
 import { ImpersonationBanner } from '@/components/ImpersonationButton';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
@@ -42,7 +43,7 @@ import {
   Package, Settings, Crown, BarChart3, DollarSign, Target, Zap,
   Clock, AlertTriangle, Brain, MessageCircle, Gift,
   LayoutDashboard, Sparkles, ShoppingCart, Wallet, ArrowRight,
-  TrendingUp, CheckCircle, Building, XCircle
+  TrendingUp, CheckCircle, Building, XCircle, Globe
 } from 'lucide-react';
 
 interface Product { id: string; name: string; category: string; price: string; costPrice: string; sku: string; isActive: boolean; createdAt: string; }
