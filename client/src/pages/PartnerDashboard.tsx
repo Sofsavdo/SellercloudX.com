@@ -112,6 +112,9 @@ export default function PartnerDashboard() {
 
   return (
     <div className="dashboard-layout flex w-full">
+      {/* Impersonation Banner */}
+      <ImpersonationBanner />
+      
       <DashboardSidebar
         items={partnerNavItems}
         activeTab={selectedTab}
