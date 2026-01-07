@@ -659,7 +659,15 @@ export function registerRoutes(app: express.Application): Server {
 
   app.post("/api/products", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
     try {
-      const validatedData = insertProductSchema.parse(req.body);
+      // Pre-process: convert string numbers to actual numbers
+      const processedBody = {
+        ...req.body,
+        price: typeof req.body.price === 'string' ? parseFloat(req.body.price) : req.body.price,
+        costPrice: typeof req.body.costPrice === 'string' ? parseFloat(req.body.costPrice) : req.body.costPrice,
+        weight: req.body.weight ? (typeof req.body.weight === 'string' ? parseFloat(req.body.weight) : req.body.weight) : undefined
+      };
+      
+      const validatedData = insertProductSchema.parse(processedBody);
       
       const partner = await storage.getPartnerByUserId(req.session!.user!.id);
       if (!partner) {
