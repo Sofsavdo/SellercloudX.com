@@ -27,10 +27,19 @@ export async function setupVite(app: Express, server: Server) {
     allowedHosts: true as const,
   };
 
+  const clientRoot = path.resolve(process.cwd(), "client");
+  
   const vite = await createViteServer({
     ...viteConfig,
     configFile: false,
-    root: path.resolve(process.cwd(), "client"),
+    root: clientRoot,
+    resolve: {
+      alias: [
+        { find: "@", replacement: path.resolve(clientRoot, "src") },
+        { find: "@shared", replacement: path.resolve(process.cwd(), "shared") },
+        { find: "@assets", replacement: path.resolve(process.cwd(), "attached_assets") },
+      ],
+    },
     customLogger: {
       ...viteLogger,
       error: (msg, options) => {
