@@ -37,6 +37,8 @@ export const partners = sqliteTable('partners', {
   monthlyFee: integer('monthly_fee'),
   profitSharePercent: integer('profit_share_percent'),
   aiEnabled: integer('ai_enabled', { mode: 'boolean' }).default(false),
+  aiCardsUsed: integer('ai_cards_used').default(0), // Track AI cards used for free tier
+  promoCode: text('promo_code').unique(), // Unique promo code for referrals
   warehouseSpaceKg: integer('warehouse_space_kg'),
   anydeskId: text('anydesk_id'),
   anydeskPassword: text('anydesk_password'),
