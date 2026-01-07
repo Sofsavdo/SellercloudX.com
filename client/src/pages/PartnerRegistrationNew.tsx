@@ -5,14 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { Rocket, Home, Gift, User, Building, Mail, Phone, Lock, Tag } from 'lucide-react';
+import { Rocket, Home, Gift, User, Building, Mail, Phone, Lock, Tag, Crown, CheckCircle } from 'lucide-react';
 
 export default function PartnerRegistrationNew() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [promoCode, setPromoCode] = useState<string>('');
+  const [selectedTier, setSelectedTier] = useState<any>(null);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -26,6 +28,7 @@ export default function PartnerRegistrationNew() {
   });
 
   useEffect(() => {
+    // Get referral code
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref');
     if (ref) {
@@ -35,6 +38,21 @@ export default function PartnerRegistrationNew() {
         title: "🎁 Promo kod qo'llandi!",
         description: `Kod: ${ref}`,
       });
+    }
+
+    // Get selected tier from sessionStorage
+    const savedTier = sessionStorage.getItem('selectedTier');
+    if (savedTier) {
+      try {
+        const tier = JSON.parse(savedTier);
+        setSelectedTier(tier);
+        toast({
+          title: "✅ Tarif tanlandi",
+          description: `${tier.name} - ${tier.priceSom}`,
+        });
+      } catch (error) {
+        console.error('Failed to parse selected tier:', error);
+      }
     }
   }, [toast]);
 
