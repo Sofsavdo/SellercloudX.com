@@ -1243,6 +1243,11 @@ export function registerRoutes(app: express.Application): Server {
   app.use("/api/admin/ai", requireAdmin, adminAIManagementRoutes);
   app.use("/api/smm", requireAdmin, smmRoutes); // SMM - Admin only
 
+  // Wallet & Payment routes
+  app.use("/api/partner", requirePartnerWithData, walletRoutes);
+  app.use("/api/partner", requirePartnerWithData, paymentHistoryRoutes);
+  app.use("/api/partner", requirePartnerWithData, referralDashboardRoutes);
+
   // Chat uploads (files/images) - used by ChatSystem UI
   app.post(
     "/api/chat/upload",
