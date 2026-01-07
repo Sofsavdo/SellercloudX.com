@@ -31,8 +31,8 @@ export function ImprovedTierUpgrade({ currentTier, partnerId }: ImprovedTierUpgr
     },
     onSuccess: () => {
       toast({
-        title: \"So'rov yuborildi\",
-        description: \"Tarif yangilash so'rovingiz ko'rib chiqilmoqda\",
+        title: "So'rov yuborildi",
+        description: "Tarif yangilash so'rovingiz ko'rib chiqilmoqda",
       });
       setSelectedTier(null);
       setReason('');
