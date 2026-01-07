@@ -819,6 +819,9 @@ export default function AdminPanel() {
                 icon={Settings}
               />
 
+              {/* Super Admin Management */}
+              <SuperAdminManagement />
+
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
