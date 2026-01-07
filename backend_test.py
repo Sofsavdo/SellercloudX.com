@@ -216,12 +216,12 @@ class SellerCloudXTester:
         )
     
     def test_admin_analytics(self):
-        """Test admin analytics"""
-        self.log("\n=== Testing Admin Analytics ===", "info")
+        """Test admin business metrics"""
+        self.log("\n=== Testing Admin Business Metrics ===", "info")
         return self.test_endpoint(
-            "Admin Analytics",
+            "Admin Business Metrics",
             "GET",
-            "/api/admin/analytics",
+            "/api/admin/business-metrics",
             session=self.admin_session,
             check_array_structure=True
         )
