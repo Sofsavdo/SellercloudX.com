@@ -28,11 +28,10 @@ import { InventoryManagement } from '@/components/InventoryManagement';
 import { OrderManagement } from '@/components/OrderManagement';
 import { MarketplaceIntegrationManager } from '@/components/MarketplaceIntegrationManager';
 import { ChatSystem } from '@/components/ChatSystem';
-// import { EnhancedReferralDashboard } from '@/components/EnhancedReferralDashboard'; // Temporarily disabled
-// import { PartnerReferralCampaigns } from '@/components/PartnerReferralCampaigns'; // Temporarily disabled
-// import { AchievementSystem } from '@/components/AchievementSystem'; // Temporarily disabled
-// import { LegalEntityForm } from '@/components/LegalEntityForm'; // Temporarily disabled
-// import { PaymentHistory } from '@/components/PaymentHistory'; // Temporarily disabled
+import { PartnerWallet } from '@/components/PartnerWallet';
+import { PartnerPaymentHistory } from '@/components/PartnerPaymentHistory';
+import { PartnerReferralSystem } from '@/components/PartnerReferralSystem';
+import { ImprovedTierUpgrade } from '@/components/ImprovedTierUpgrade';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
