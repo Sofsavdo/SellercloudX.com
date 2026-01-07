@@ -32,6 +32,7 @@ import { PartnerWallet } from '@/components/PartnerWallet';
 import { PartnerPaymentHistory } from '@/components/PartnerPaymentHistory';
 import { PartnerReferralSystem } from '@/components/PartnerReferralSystem';
 import { ImprovedTierUpgrade } from '@/components/ImprovedTierUpgrade';
+import { ImpersonationBanner } from '@/components/ImpersonationButton';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
