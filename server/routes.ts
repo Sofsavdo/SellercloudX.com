@@ -1163,8 +1163,7 @@ export function registerRoutes(app: express.Application): Server {
   app.post("/api/admin/partners/:partnerId/approve-ai", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
     const { partnerId } = req.params;
     await db.update(partners).set({ 
-      aiEnabled: true, aiApprovedAt: new Date(), 
-      aiApprovedBy: req.session!.user!.id, updatedAt: new Date() 
+      aiEnabled: true
     }).where(eq(partners.id, partnerId));
 
     await storage.createAuditLog({
