@@ -51,7 +51,7 @@ export function ImprovedTierUpgrade({ currentTier, partnerId }: ImprovedTierUpgr
     if (!reason.trim()) {
       toast({
         title: 'Xatolik',
-        description: Iltimos, o'zgartirish sababini kiriting,
+        description: "Iltimos, o'zgartirish sababini kiriting",
         variant: 'destructive',
       });
       return;
@@ -64,4 +64,137 @@ export function ImprovedTierUpgrade({ currentTier, partnerId }: ImprovedTierUpgr
   };
 
   return (
-    <div className=space-y-6>\n      {/* Current Tier */}\n      <Card className=card-premium border-primary>\n        <CardHeader>\n          <CardTitle className=flex items-center gap-2>\n            <Crown className=w-5 h-5 text-primary />\n            Joriy Tarifingiz: {currentTierData?.name}\n          </CardTitle>\n        </CardHeader>\n        <CardContent>\n          <div className=flex items-center justify-between>\n            <div>\n              <p className=text-3xl font-bold>{currentTierData?.priceSom}</p>\n              <p className=text-sm text-muted-foreground mt-1>{currentTierData?.commission}</p>\n            </div>\n            <Badge className={currentTierData?.badgeColor}>{currentTierData?.badge}</Badge>\n          </div>\n        </CardContent>\n      </Card>\n\n      {/* Available Tiers */}\n      <div className=grid grid-cols-1 md:grid-cols-2 gap-6>\n        {PRICING_TIERS.map((tier, index) => {\n          const isCurrent = tier.id === currentTierData?.id;\n          const isLower = index < currentIndex;\n          const isHigher = index > currentIndex;\n          const Icon = tier.popular ? Sparkles : tier.id === 'professional' ? Crown : Zap;\n\n          return (\n            <Card\n              key={tier.id}\n              className={`\n                ${isCurrent ? 'border-primary card-premium' : ''}\n                ${tier.popular ? 'border-primary' : ''}\n                ${isLower ? 'opacity-60' : ''}\n                transition-all hover:shadow-lg\n              `}\n            >\n              <CardContent className=p-6>\n                <div className=space-y-4>\n                  {/* Header */}\n                  <div className=flex items-start justify-between>\n                    <div>\n                      <h3 className=text-xl font-bold flex items-center gap-2>\n                        <Icon className=w-5 h-5 />\n                        {tier.name}\n                      </h3>\n                      <p className=text-sm text-muted-foreground>{tier.description}</p>\n                    </div>\n                    <Badge className={tier.badgeColor}>{tier.badge}</Badge>\n                  </div>\n\n                  {/* Price */}\n                  <div>\n                    <p className=text-3xl font-bold>{tier.priceSom}</p>\n                    <p className=text-sm text-muted-foreground>{tier.commission}</p>\n                  </div>\n\n                  {/* Limits */}\n                  <div className=space-y-2>\n                    {tier.limits.slice(0, 4).map((limit, i) => {\n                      const LimitIcon = limit.icon;\n                      return (\n                        <div key={i} className=flex items-center gap-2 text-sm>\n                          <LimitIcon className=w-4 h-4 text-primary />\n                          <span>{limit.text}</span>\n                        </div>\n                      );\n                    })}\n                  </div>\n\n                  {/* Action Button */}\n                  <div>\n                    {isCurrent ? (\n                      <Button className=w-full disabled>\n                        <CheckCircle className=w-4 h-4 mr-2 />\n                        Joriy Tarif\n                      </Button>\n                    ) : isLower ? (\n                      <Button className=w-full variant=outline disabled>\n                        Pastroq Tarif\n                      </Button>\n                    ) : (\n                      <Button\n                        className=w-full\n                        variant={tier.ctaVariant}\n                        onClick={() => setSelectedTier(tier.id)}\n                      >\n                        {tier.cta}\n                      </Button>\n                    )}\n                  </div>\n                </div>\n              </CardContent>\n            </Card>\n          );\n        })}\n      </div>\n\n      {/* Upgrade Request Modal */}\n      {selectedTier && (\n        <Card className=border-primary>\n          <CardHeader>\n            <CardTitle>\n              {getTierById(selectedTier)?.name} tarifiga o'tish\n            </CardTitle>\n          </CardHeader>\n          <CardContent className=space-y-4>\n            <div>\n              <label className=text-sm font-medium>O'zgartirish sababi</label>\n              <Textarea\n                value={reason}\n                onChange={(e) => setReason(e.target.value)}\n                placeholder=Nima uchun ushbu tarifga o'tmoqchisiz?\n                rows={4}\n              />\n            </div>\n            <div className=flex gap-2>\n              <Button\n                onClick={() => handleRequestUpgrade(selectedTier)}\n                disabled={requestUpgradeMutation.isPending}\n              >\n                {requestUpgradeMutation.isPending ? Yuborilmoqda... : So'rov Yuborish}\n              </Button>\n              <Button variant=outline onClick={() => setSelectedTier(null)}>\n                Bekor qilish\n              </Button>\n            </div>\n          </CardContent>\n        </Card>\n      )}\n    </div>\n  );\n}\n
+    <div className="space-y-6">
+      {/* Current Tier */}
+      <Card className="card-premium border-primary">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Crown className="w-5 h-5 text-primary" />
+            Joriy Tarifingiz: {currentTierData?.name}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-3xl font-bold">{currentTierData?.priceSom}</p>
+              <p className="text-sm text-muted-foreground mt-1">{currentTierData?.commission}</p>
+            </div>
+            <Badge className={currentTierData?.badgeColor}>{currentTierData?.badge}</Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Available Tiers */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {PRICING_TIERS.map((tier, index) => {
+          const isCurrent = tier.id === currentTierData?.id;
+          const isLower = index < currentIndex;
+          const isHigher = index > currentIndex;
+          const Icon = tier.popular ? Sparkles : tier.id === 'professional' ? Crown : Zap;
+
+          return (
+            <Card
+              key={tier.id}
+              className={`
+                ${isCurrent ? 'border-primary card-premium' : ''}
+                ${tier.popular ? 'border-primary' : ''}
+                ${isLower ? 'opacity-60' : ''}
+                transition-all hover:shadow-lg
+              `}
+            >
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  {/* Header */}
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold flex items-center gap-2">
+                        <Icon className="w-5 h-5" />
+                        {tier.name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">{tier.description}</p>
+                    </div>
+                    <Badge className={tier.badgeColor}>{tier.badge}</Badge>
+                  </div>
+
+                  {/* Price */}
+                  <div>
+                    <p className="text-3xl font-bold">{tier.priceSom}</p>
+                    <p className="text-sm text-muted-foreground">{tier.commission}</p>
+                  </div>
+
+                  {/* Limits */}
+                  <div className="space-y-2">
+                    {tier.limits.slice(0, 4).map((limit, i) => {
+                      const LimitIcon = limit.icon;
+                      return (
+                        <div key={i} className="flex items-center gap-2 text-sm">
+                          <LimitIcon className="w-4 h-4 text-primary" />
+                          <span>{limit.text}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Action Button */}
+                  <div>
+                    {isCurrent ? (
+                      <Button className="w-full" disabled>
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Joriy Tarif
+                      </Button>
+                    ) : isLower ? (
+                      <Button className="w-full" variant="outline" disabled>
+                        Pastroq Tarif
+                      </Button>
+                    ) : (
+                      <Button
+                        className="w-full"
+                        variant={tier.ctaVariant}
+                        onClick={() => setSelectedTier(tier.id)}
+                      >
+                        {tier.cta}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Upgrade Request Modal */}
+      {selectedTier && (
+        <Card className="border-primary">
+          <CardHeader>
+            <CardTitle>
+              {getTierById(selectedTier)?.name} tarifiga o'tish
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">O'zgartirish sababi</label>
+              <Textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Nima uchun ushbu tarifga o'tmoqchisiz?"
+                rows={4}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => handleRequestUpgrade(selectedTier)}
+                disabled={requestUpgradeMutation.isPending}
+              >
+                {requestUpgradeMutation.isPending ? "Yuborilmoqda..." : "So'rov Yuborish"}
+              </Button>
+              <Button variant="outline" onClick={() => setSelectedTier(null)}>
+                Bekor qilish
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
