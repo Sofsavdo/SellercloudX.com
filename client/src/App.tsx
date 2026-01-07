@@ -20,6 +20,7 @@ import AdminPanel from "./pages/AdminPanel";
 import InvestorPitch from "./pages/InvestorPitch";
 import PlatformDemo from "./pages/PlatformDemo";
 import NotFound from "./pages/not-found";
+import PartnerRegistrationNew from "./pages/PartnerRegistrationNew";
 
 function Router() {
   return (
