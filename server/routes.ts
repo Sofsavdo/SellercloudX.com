@@ -1128,7 +1128,7 @@ export function registerRoutes(app: express.Application): Server {
     }
   }));
 
-  // AI Services Toggle - Partner Request & Admin Approval
+  // AI Services Toggle - Tarifga bog'liq (Admin tasdiqi shart emas)
   app.post("/api/partners/ai-toggle", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
     const partner = await storage.getPartnerByUserId(req.session!.user!.id);
     if (!partner) {
@@ -1136,9 +1136,28 @@ export function registerRoutes(app: express.Application): Server {
     }
 
     const { enabled } = req.body;
+    const currentTier = partner.pricingTier || 'free';
+    
+    // Free tarifda AI cheklangan
+    const FREE_AI_LIMIT = 10;
+    const aiCardsUsed = partner.aiCardsUsed || 0;
 
     if (enabled) {
-      // Request AI - for now auto-approve for testing
+      // Free tarifda limit tekshirish
+      if (currentTier === 'free' || currentTier === 'free_starter') {
+        if (aiCardsUsed >= FREE_AI_LIMIT) {
+          return res.status(400).json({ 
+            success: false,
+            message: "Bepul AI limitingiz tugadi. Davom etish uchun tarifni yangilang.",
+            code: "AI_LIMIT_EXCEEDED",
+            aiCardsUsed,
+            limit: FREE_AI_LIMIT,
+            requiresUpgrade: true
+          });
+        }
+      }
+      
+      // AI yoqish - avtomatik (admin tasdiqi shart emas)
       await db.update(partners).set({ 
         aiEnabled: true
       }).where(eq(partners.id, partner.id));
@@ -1150,9 +1169,15 @@ export function registerRoutes(app: express.Application): Server {
         entityId: partner.id
       });
 
-      res.json({ success: true, message: "AI yoqildi", aiEnabled: true, pendingApproval: false });
+      res.json({ 
+        success: true, 
+        message: "AI yoqildi", 
+        aiEnabled: true,
+        aiCardsUsed,
+        limit: currentTier === 'free' || currentTier === 'free_starter' ? FREE_AI_LIMIT : null
+      });
     } else {
-      // Disable AI immediately
+      // AI o'chirish
       await db.update(partners).set({ 
         aiEnabled: false
       }).where(eq(partners.id, partner.id));
@@ -1166,6 +1191,33 @@ export function registerRoutes(app: express.Application): Server {
 
       res.json({ success: true, message: "AI o'chirildi", aiEnabled: false });
     }
+  }));
+
+  // AI Card usage tracking
+  app.post("/api/partners/ai-card-used", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ message: "Hamkor topilmadi" });
+    }
+
+    const currentTier = partner.pricingTier || 'free';
+    const aiCardsUsed = (partner.aiCardsUsed || 0) + 1;
+    const FREE_AI_LIMIT = 10;
+
+    // Update usage
+    await db.update(partners).set({ 
+      aiCardsUsed 
+    }).where(eq(partners.id, partner.id));
+
+    // Check limit for free tier
+    const requiresUpgrade = (currentTier === 'free' || currentTier === 'free_starter') && aiCardsUsed >= FREE_AI_LIMIT;
+
+    res.json({ 
+      success: true, 
+      aiCardsUsed,
+      limit: currentTier === 'free' || currentTier === 'free_starter' ? FREE_AI_LIMIT : null,
+      requiresUpgrade
+    });
   }));
 
   app.post("/api/admin/partners/:partnerId/approve-ai", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
