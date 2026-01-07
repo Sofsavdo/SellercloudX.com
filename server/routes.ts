@@ -1130,23 +1130,23 @@ export function registerRoutes(app: express.Application): Server {
     const { enabled } = req.body;
 
     if (enabled) {
-      // Request AI - admin approval needed
-      await db.update(partners).set({ aiRequestedAt: new Date(), updatedAt: new Date() })
-        .where(eq(partners.id, partner.id));
+      // Request AI - for now auto-approve for testing
+      await db.update(partners).set({ 
+        aiEnabled: true
+      }).where(eq(partners.id, partner.id));
 
       await storage.createAuditLog({
         userId: req.session!.user!.id,
-        action: 'AI_REQUESTED',
+        action: 'AI_ENABLED',
         entityType: 'partner',
         entityId: partner.id
       });
 
-      res.json({ success: true, message: "AI so'rov yuborildi", aiEnabled: false, pendingApproval: true });
+      res.json({ success: true, message: "AI yoqildi", aiEnabled: true, pendingApproval: false });
     } else {
       // Disable AI immediately
       await db.update(partners).set({ 
-        aiEnabled: false, aiRequestedAt: null, aiApprovedAt: null, 
-        aiApprovedBy: null, updatedAt: new Date() 
+        aiEnabled: false
       }).where(eq(partners.id, partner.id));
 
       await storage.createAuditLog({
