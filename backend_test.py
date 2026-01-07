@@ -307,6 +307,39 @@ class APITester:
             json_data={"enabled": True}
         )
     
+    def test_new_features(self):
+        """Test new features mentioned in review request"""
+        self.log("\n=== Testing New Features ===", "info")
+        
+        results = []
+        
+        # Test Partner Marketplace Setup
+        results.append(self.test_endpoint(
+            "Partner Marketplace Integrations",
+            "GET",
+            "/api/partner/marketplace-integrations",
+            session=self.partner_session
+        ))
+        
+        # Test Direct Tier Upgrade
+        results.append(self.test_endpoint(
+            "Direct Tier Upgrade",
+            "POST",
+            "/api/subscriptions/direct-upgrade",
+            session=self.partner_session,
+            json_data={"targetTier": "basic", "paymentMethod": "click"}
+        ))
+        
+        # Test Promo Code System
+        results.append(self.test_endpoint(
+            "Promo Code Dashboard",
+            "GET",
+            "/api/partner/referrals/dashboard",
+            session=self.partner_session
+        ))
+        
+        return all(results)
+    
     def test_pricing_tiers(self):
         """Test pricing tiers endpoint"""
         self.log("\n=== Testing Pricing Tiers ===", "info")
