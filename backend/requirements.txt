@@ -1,2 +1,3 @@
-# Main server runs via yarn dev
-# This file exists for supervisor compatibility
+fastapi>=0.100.0
+uvicorn>=0.22.0
+httpx>=0.24.0
