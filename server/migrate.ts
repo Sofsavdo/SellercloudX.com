@@ -307,6 +307,39 @@ export async function runMigrations() {
     await pool.query(`
       CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");
     `);
+
+    // Create referrals table
+    console.log('🔄 Creating referrals table...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "referrals" (
+        "id" TEXT PRIMARY KEY,
+        "referrer_partner_id" TEXT NOT NULL,
+        "referred_partner_id" TEXT NOT NULL,
+        "promo_code" TEXT,
+        "contract_type" TEXT NOT NULL,
+        "status" TEXT DEFAULT 'invited',
+        "bonus_earned" NUMERIC DEFAULT 0,
+        "bonus_paid" NUMERIC DEFAULT 0,
+        "created_at" TIMESTAMP DEFAULT NOW(),
+        "activated_at" TIMESTAMP,
+        "expires_at" TIMESTAMP
+      );
+    `);
+
+    // Create marketplace_integrations table
+    console.log('🔄 Creating marketplace_integrations table...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "marketplace_integrations" (
+        "id" TEXT PRIMARY KEY,
+        "partner_id" TEXT NOT NULL,
+        "marketplace" TEXT NOT NULL,
+        "api_key" TEXT,
+        "api_secret" TEXT,
+        "active" BOOLEAN DEFAULT false,
+        "last_sync_at" TIMESTAMP,
+        "created_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
     
     console.log('✅ Session table created successfully');
     
