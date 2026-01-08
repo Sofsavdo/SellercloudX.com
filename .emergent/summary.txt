@@ -1,0 +1,144 @@
+<analysis>**original_problem_statement:**
+Foydalanuvchi SellerCloudX loyihasining holati haqida so'radi va uning barcha qismlari (API ulanishlari, admin paneli, frontend, backend, hamkorlar boshqaruv paneli va landing sahifasi) ishlashiga ishonch hosil qilishni xohladi. Foydalanuvchi, shuningdek, sozlamalar va AI sozlamalari bo'limlarida ko'plab tugmalar ishlamayotganini ta'kidladi.
+
+Keyinchalik, foydalanuvchi aniqroq talablarni qo'ydi:
+1.  **Marketplace integratsiyasi:** Hamkorlar admin tasdig'isiz o'zlarining marketplace API kalitlarini o'zlari qo'shishi kerak.
+2.  **Tarif rejasini o'zgartirish:** To'lovdan so'ng tarif rejalari avtomatik tarzda yangilanishi kerak.
+3.  **Referral tizimi:** Tizim faqat referral havolalar o'rniga promo-kodlarni yaratishi kerak.
+4.  **AI faollashtirish:** AI funksiyasi admin tasdig'i o'rniga to'g'ridan-to'g'ri hamkorning tarif rejasiga bog'liq bo'lishi kerak. Bepul tarifda 10 ta AI karta ishlatilgandan so'ng, foydalanuvchiga tarifni yangilash taklif qilinishi kerak.
+5.  **Blog tizimi:** Landing sahifasidagi Demo bo'limi o'rniga, admin panelidan boshqariladigan (postlarni qo'shish/tahrirlash/o'chirish) va SEO uchun optimallashtirilgan Blog bo'limi bo'lishi kerak.
+
+Foydalanuvchi  xatosi va production muhitida PostgreSQL ma'lumotlar bazasida  ustuni yo'qligi haqida xabar berdi.
+
+**User's preferred language**: Uzbek
+
+**what currently exists?**
+Bu React (Vite), Express.js (TypeScript) va ma'lumotlar bazasi (PostgreSQL) yordamida qurilgan SellerCloudX nomli to'liq stack SaaS platformasi. Agent dastlabki renderlash muammolarini hal qildi va foydalanuvchi tomonidan so'ralgan bir nechta asosiy funksiyalarni (o'z-o'ziga xizmat ko'rsatadigan marketplace integratsiyasi, avtomatik tariflarni yangilash, promo-kodga asoslangan referral tizimi va tarifga bog'liq AI faollashtirish) muvaffaqiyatli amalga oshirdi. Hozirda Demo sahifasini almashtirish uchun blog tizimini joriy etish ustida ish olib borilmoqda.
+
+**Last working item**:
+*   **Last item agent was working:** Agent to'liq funksiyali blog tizimini joriy etish ustida ishlayotgan edi. U ma'lumotlar bazasi sxemasini, frontend sahifalarini va admin boshqaruv komponentini yaratdi. Keyingi qadamlar API marshrutlarini amalga oshirish va hamma narsani UI da birlashtirishdan iborat.
+*   **Status:** IN PROGRESS
+*   **Agent Testing Done:** N
+*   **Which testing method agent to use?** Frontend testing agent va yangi blog API endpoint'lari uchun manual  testi.
+*   **User Testing Done:** N
+
+**All Pending/In progress Issue list**:
+*   **Issue 1 (P0 - CRITICAL):** Production deploy xatosi: PostgreSQL ma'lumotlar bazasida  ustuni mavjud emasligi sababli dastur ishga tushmayapti.
+*   **Issue 2 (P1 - HIGH):** Frontend xatosi: . Bu xato, ehtimol, backend ma'lumotlar bazasidagi xatolar tufayli API kutilgan massiv o'rniga xato ob'ektini qaytarayotganidan kelib chiqmoqda.
+*   **Issue 3 (P2 - MEDIUM):** Hamkorlar panelidagi yon menyu (sidebar) navigatsiyasi noto'g'ri ishlamoqda. Sozlamalar tugmasi bosilganda sahifa kontenti yangilanmayapti.
+
+**Issues Detail:**
+*   **Issue 1: PostgreSQL Migration Failure**
+    *   **Attempted fixes:** Agent  fayliga yangi ustunlar va jadvallarni qo'shish uchun SQL kodini qo'shgan. Biroq, bu o'zgarishlar production muhitida qo'llanilmagan.
+    *   **Next debug checklist:**
+        1.   faylidagi PostgreSQL sintaksisining to'g'riligini tekshirish.
+        2.  Dastur ishga tushganda migratsiya skripti qanday chaqirilishini tekshirish.
+        3.  Production muhitida migratsiyalarni boshqarish uchun Drizzle Kit-dan foydalanishni standartlashtirishni ko'rib chiqish.
+    *   **Why fix this issue?** Bu production deploy uchun bloklovchi muammo. Yangi funksiyalarning barchasi ushbu ma'lumotlar bazasi o'zgarishlariga bog'liq.
+    *   **Status:** IN PROGRESS
+    *   **Is recurring issue?** Y
+    *   **Should Test frontend/backend/both after fix?** Backend
+*   **Issue 2:  Error**
+    *   **Attempted fixes:** Agent xato yuzaga kelishi mumkin bo'lgan  va  fayllarini ko'rib chiqdi.
+    *   **Next debug checklist:**
+        1.  Ushbu muammo 1-sonli muammo hal qilingandan keyin o'z-o'zidan yo'qolishi ehtimoli katta.
+        2.  Agar xato davom etsa, frontend kodiga  kabi himoya tekshiruvlarini qo'shish kerak.
+    *   **Why fix this issue?** Admin va Hamkor panellarining ishlashini buzadi.
+    *   **Status:** BLOCKED (on Issue 1)
+    *   **Is recurring issue?** N
+    *   **Should Test frontend/backend/both after fix?** Frontend
+*   **Issue 3: Partner Dashboard Sidebar Navigation Bug**
+    *   **Attempted fixes:** Agent  va  fayllarini ko'rib chiqdi, ammo muammoni topa olmadi.
+    *   **Next debug checklist:**
+        1.  Brauzer konsolidan foydalanib,  holatining o'zgarishini kuzatish.
+        2.   komponenti  qiymatiga mos ravishda to'g'ri kontentni render qilayotganini tekshirish.
+    *   **Why fix this issue?** Foydalanuvchilar hamkorlar panelidagi muhim sozlamalar sahifalariga kira olmayapti.
+    *   **Status:** IN PROGRESS
+    *   **Is recurring issue?** N
+    *   **Should Test frontend/backend/both after fix?** Frontend
+
+**In progress Task List**:
+*   **Task 1: Complete Blog Implementation (P0)**
+    *   **Where to resume:** Blog uchun API endpoint'larini  da amalga oshirish va , ,  frontend komponentlarini to'liq ishlab chiqish kerak. Shuningdek,  jadvali migratsiya skriptiga qo'shilganligiga ishonch hosil qilish kerak.
+    *   **What will be achieved with this?** Foydalanuvchining SEO uchun admin panelidan boshqariladigan blog tizimini yaratish bo'yicha asosiy talabi bajariladi.
+    *   **Status:** IN PROGRESS
+    *   **Should Test frontend/backend/both after fix?** Both
+    *   **Blocked on something:** No
+
+**Upcoming and Future Tasks**
+*   **Upcoming Tasks:**
+    *   **(P1) To'lov tizimi integratsiyasi:** Mavjud to'lov modalini (Click, Payme, UzCard) real to'lov tizimlari bilan integratsiya qilish.
+    *   **(P2) Yakuniy E2E testi:** Barcha xatolar va yangi funksiyalar tugallangandan so'ng, barcha foydalanuvchi stsenariylarini qamrab oluvchi to'liq sinovdan o'tkazish.
+
+**Completed work in this session**
+*   **Asosiy Funksiyalar:** Hamkorlar uchun o'z-o'ziga xizmat ko'rsatadigan marketplace integratsiyasi, avtomatik tariflarni yangilash va promo-kodli referral tizimi muvaffaqiyatli joriy etildi.
+*   **AI mantig'i:** AI faollashtirish endi admin tasdig'i o'rniga hamkorning tarif rejasiga bog'liq.
+*   **Xatoliklarni tuzatish:**  xatosi, SQL sintaksis xatolari va mahsulot yaratishdagi validatsiya muammolari kabi ko'plab dastlabki xatoliklar tuzatildi.
+*   **Renderlash muammolari:** Vite va Express serverining murakkab konfiguratsiyasi tuzatilib, frontendning barqaror ishlashi ta'minlandi.
+*   **Deploy Konfiguratsiyasi:**  noto'g'ri konfiguratsiyasi uchun vaqtinchalik yechim topilib, dasturning  orqali ishga tushishi ta'minlandi.
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+*   **Frontend:** React, TypeScript, Vite, Tailwind CSS, shadcn/ui, wouter, TanStack Query
+*   **Backend:** Node.js, Express.js, TypeScript
+*   **Database:** Drizzle ORM (SQLite lokal va PostgreSQL production uchun)
+*   **Architecture:** Yagona repozitoriyda birlashtirilgan Vite+Express serveri.
+
+**key DB schema**
+*   **partners:** 
+*   **referrals (New):** 
+*   **marketplace_integrations (New):** 
+*   **blog_posts (New):** 
+
+**All files of reference**
+*   : Barcha yangi API logikasi uchun markaziy fayl.
+*   : Yangi jadvallar va ustunlar uchun sxema ta'riflari.
+*   : PostgreSQL sxemasini yangilash uchun muhim fayl.
+*   : Hamkorlar paneliga yangi komponentlarni integratsiya qilish uchun o'zgartirilgan.
+*   : Blog boshqaruvini qo'shish uchun o'zgartirilgan.
+
+**Critical Info for New Agent**
+*   **Ma'lumotlar bazasi nomuvofiqligi:** Eng katta muammo - production (PostgreSQL) va lokal (SQLite) ma'lumotlar bazalari o'rtasidagi sxema farqi. Barcha sxema o'zgarishlari **** fayliga to'g'ri PostgreSQL sintaksisi bilan qo'shilishi SHART.
+*   **Foydalanuvchi talablari:** Asosiy maqsad jarayonlarni avtomatlashtirishdir. Admin tasdig'ini talab qiladigan har qanday funksiya (AI, marketplace, tarif) o'z-o'ziga xizmat ko'rsatishga o'zgartirilgan. Shu yondashuvni saqlab qoling.
+*   **Blogni amalga oshirish:** Blog tizimini yakunlash asosiy faol vazifadir.
+*   **Deploy xatosi manbasi:** Foydalanuvchi yuborgan loglar aniq ko'rsatadiki,  xatosi ilovaning ishga tushishini bloklamoqda. Bu tuzatilishi kerak bo'lgan birinchi xato.
+
+**documents and test reports created in this job**
+*   
+*   
+*   
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **Foydalanuvchi:** Deploy qilingan versiyada yangi funksiyalar (marketplace, tarif, promo-kod) ko'rinmayotganini aytdi.
+2.  **Agent:** Muammoni tekshirib,  konfiguratsiyasida xatolik borligini aniqladi va tuzatdi.
+3.  **Foydalanuvchi:** Deploy qilishda Git conflict haqida xabar berdi.
+4.  **Agent:** Force Push qilishni tavsiya qildi.
+5.  **Foydalanuvchi:** Yangi deploy xatolarini yubordi:  va .
+6.  **Agent:** Muammoning ildizi PostgreSQL migratsiyasida ekanligini aniqladi.
+7.  **Foydalanuvchi:** Barcha talablarni qayta takrorladi: avtomatik tizimlar, promo-kodlar va SEO uchun to'liq blog.
+8.  **Agent:** Blog tizimini yaratishni boshladi (sxema, sahifalar, komponentlar).
+9.  **Foydalanuvchi:** Davom etishni so'radi.
+10. **Agent:** Blog uchun API marshrutlarini va UI integratsiyasini amalga oshirishni davom ettirdi.
+
+**Project Health Check:**
+*   **Broken:** Production deploy PostgreSQL ma'lumotlar bazasi migratsiyasidagi xatolik ( ustuni yo'qligi) tufayli ishlamayapti. Bu CRITICAL bloklovchi muammo.
+*   **Mocked:** To'lov tizimi va AI boshqaruv panelining ba'zi qismlari hozirda mock ma'lumotlar bilan ishlaydi.
+
+**3rd Party Integrations**
+*   **Gemini/Google:** API kaliti kerak (hozirda o'chirilgan).
+*   **Telegram:** Bot tokeni va chat ID kerak.
+*   **To'lov tizimlari (UI mavjud):** Click, Payme, UzCard (integratsiya qilinmagan).
+
+**Testing status**
+*   **Testing agent used after significant changes:** YES
+*   **Troubleshoot agent used after agent stuck in loop:** YES
+*   **Known regressions:** Foydalanuvchi ilgari mavjud bo'lgan Blog funksiyasi Demo bilan almashtirilganini ta'kidladi. Agent hozirda blogni qayta tiklash ustida ishlamoqda.
+
+**Credentials to test flow:**
+*   **Admin:**  (parol  da)
+*   **Partner:**  (parol  da)
+
+**What agent forgot to execute**
+Agent ma'lumotlar bazasi sxemasini yangilash kerakligini to'g'ri aniqladi, lekin faqat lokal SQLite uchun migratsiyani samarali bajardi. Production PostgreSQL muhiti uchun migratsiya skripti () to'g'ri yangilanishini va muvaffaqiyatli ishlashini ta'minlamadi, bu esa deploy xatosiga olib keldi.</analysis>
