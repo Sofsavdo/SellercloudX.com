@@ -311,6 +311,65 @@ class APITester:
             json_data={"enabled": True}
         )
     
+    def test_payment_apis(self):
+        """Test payment API endpoints as specified in review request"""
+        self.log("\n=== Testing Payment API Endpoints ===", "info")
+        
+        results = []
+        
+        # Test POST /api/payment/create-payment with partner auth
+        payment_data = {
+            "amount": 100000,
+            "pricingTier": "starter", 
+            "billingPeriod": "monthly",
+            "provider": "click"
+        }
+        
+        create_payment_result = self.test_endpoint(
+            "Payment Creation - POST /api/payment/create-payment",
+            "POST",
+            "/api/payment/create-payment",
+            session=self.partner_session,
+            json_data=payment_data,
+            expected_status=200
+        )
+        results.append(create_payment_result)
+        
+        # Test POST /api/payment/callback/click - Click webhook callback
+        # This would normally be called by Click payment system, but we can test the endpoint exists
+        callback_data = {
+            "click_trans_id": "12345",
+            "service_id": "test_service",
+            "click_paydoc_id": "67890",
+            "merchant_trans_id": "test_merchant_123",
+            "amount": "100000",
+            "action": "1",
+            "error": "0",
+            "error_note": "",
+            "sign_time": "2024-01-01 12:00:00",
+            "sign_string": "test_signature"
+        }
+        
+        callback_result = self.test_endpoint(
+            "Click Webhook Callback - POST /api/payment/callback/click",
+            "POST", 
+            "/api/payment/callback/click",
+            json_data=callback_data,
+            expected_status=200
+        )
+        results.append(callback_result)
+        
+        # Test GET /api/payment/history with partner auth
+        history_result = self.test_endpoint(
+            "Payment History - GET /api/payment/history",
+            "GET",
+            "/api/payment/history",
+            session=self.partner_session
+        )
+        results.append(history_result)
+        
+        return all(results)
+
     def test_blog_endpoints(self):
         """Test blog API endpoints as specified in review request"""
         self.log("\n=== Testing Blog API Endpoints ===", "info")
