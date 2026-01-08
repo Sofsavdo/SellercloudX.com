@@ -80,185 +80,130 @@ export function DirectTierUpgrade({ currentTier, partnerId, aiCardsUsed = 0 }: D
   const selectedTierData = selectedTier ? getTierById(selectedTier) : null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* AI Upgrade Prompt for Free Users */}
       {showAIUpgradePrompt && (
-        <Card className="border-warning bg-warning/5">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-warning/20 flex items-center justify-center">
-                <Bot className="w-6 h-6 text-warning" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-bold mb-1">AI limitingiz tugadi!</h3>
-                <p className="text-muted-foreground mb-4">
-                  Siz {FREE_AI_LIMIT} ta bepul AI kartochkangizni ishlatdingiz. 
-                  AI dan davom etish uchun tarifni yangilang.
-                </p>
-                <Button onClick={() => handleSelectTier('basic')} className="gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  Tarifni yangilash
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="p-4 bg-warning/10 border border-warning/30 rounded-lg flex items-center gap-3">
+          <Bot className="w-5 h-5 text-warning flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium">AI limitingiz tugadi! ({aiCardsUsed}/{FREE_AI_LIMIT})</p>
+          </div>
+          <Button size="sm" onClick={() => handleSelectTier('basic')} className="gap-1">
+            <Sparkles className="w-3 h-3" /> Yangilash
+          </Button>
+        </div>
       )}
 
-      {/* Current Tier */}
-      <Card className="card-premium border-primary">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Crown className="w-5 h-5 text-primary" />
-            Joriy Tarifingiz: {currentTierData?.name}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-3xl font-bold">{currentTierData?.priceSom}</p>
-              <p className="text-sm text-muted-foreground mt-1">{currentTierData?.commission}</p>
-            </div>
-            <Badge className={currentTierData?.badgeColor}>{currentTierData?.badge}</Badge>
-          </div>
-          {currentTierData?.id === 'free' && (
-            <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-              <p className="text-sm">
-                <Bot className="w-4 h-4 inline mr-1" />
-                AI kartochka: <strong>{aiCardsUsed}/{FREE_AI_LIMIT}</strong> ishlatildi
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Current Tier - Compact */}
+      <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20">
+        <div className="flex items-center gap-2">
+          <Crown className="w-4 h-4 text-primary" />
+          <span className="font-medium">Joriy: {currentTierData?.name}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold">{currentTierData?.priceSom}</span>
+          <Badge variant="outline" className="text-xs">{currentTierData?.badge}</Badge>
+        </div>
+      </div>
 
-      {/* Available Tiers */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Available Tiers - 2x2 Compact Grid */}
+      <div className="grid grid-cols-2 gap-3">
         {PRICING_TIERS.map((tier, index) => {
           const isCurrent = tier.id === currentTierData?.id;
           const isLower = index < currentIndex;
-          const isHigher = index > currentIndex;
           const Icon = tier.popular ? Sparkles : tier.id === 'professional' ? Crown : Zap;
-          const hasAI = tier.id !== 'free';
 
           return (
-            <Card
+            <div
               key={tier.id}
               className={`
-                ${isCurrent ? 'border-primary card-premium' : ''}
-                ${tier.popular ? 'border-primary ring-2 ring-primary/20' : ''}
-                ${isLower ? 'opacity-60' : ''}
-                transition-all hover:shadow-lg
+                p-3 rounded-lg border transition-all
+                ${isCurrent ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
+                ${tier.popular ? 'ring-1 ring-primary/30' : ''}
+                ${isLower ? 'opacity-50' : ''}
               `}
             >
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  {/* Header */}
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-xl font-bold flex items-center gap-2">
-                        <Icon className="w-5 h-5" />
-                        {tier.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">{tier.description}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <Badge className={tier.badgeColor}>{tier.badge}</Badge>
-                      {hasAI && (
-                        <Badge variant="outline" className="text-xs">
-                          <Bot className="w-3 h-3 mr-1" />
-                          AI faol
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Price */}
-                  <div>
-                    <p className="text-3xl font-bold">{tier.priceSom}</p>
-                    <p className="text-sm text-muted-foreground">{tier.commission}</p>
-                  </div>
-
-                  {/* Limits */}
-                  <div className="space-y-2">
-                    {tier.limits.slice(0, 4).map((limit, i) => {
-                      const LimitIcon = limit.icon;
-                      return (
-                        <div key={i} className="flex items-center gap-2 text-sm">
-                          <LimitIcon className="w-4 h-4 text-primary" />
-                          <span>{limit.text}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Action Button */}
-                  <div>
-                    {isCurrent ? (
-                      <Button className="w-full" disabled>
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Joriy Tarif
-                      </Button>
-                    ) : isLower ? (
-                      <Button className="w-full" variant="outline" disabled>
-                        Pastroq Tarif
-                      </Button>
-                    ) : (
-                      <Button
-                        className="w-full gap-2"
-                        variant={tier.popular ? 'default' : 'outline'}
-                        onClick={() => handleSelectTier(tier.id)}
-                      >
-                        <CreditCard className="w-4 h-4" />
-                        {tier.cta}
-                        <ArrowRight className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <Icon className="w-4 h-4 text-primary" />
+                  <span className="font-semibold text-sm">{tier.name}</span>
                 </div>
-              </CardContent>
-            </Card>
+                {tier.popular && <Badge className="text-[10px] px-1.5 py-0">MASHHUR</Badge>}
+              </div>
+              
+              <p className="text-lg font-bold mb-1">{tier.priceSom}</p>
+              <p className="text-[10px] text-muted-foreground mb-2">{tier.commission}</p>
+              
+              <div className="text-[10px] text-muted-foreground space-y-0.5 mb-2">
+                {tier.limits.slice(0, 2).map((limit, i) => (
+                  <div key={i} className="flex items-center gap-1">
+                    <CheckCircle className="w-2.5 h-2.5 text-primary" />
+                    <span>{limit.text}</span>
+                  </div>
+                ))}
+              </div>
+
+              {isCurrent ? (
+                <Button size="sm" className="w-full h-7 text-xs" disabled>
+                  <CheckCircle className="w-3 h-3 mr-1" /> Joriy
+                </Button>
+              ) : isLower ? (
+                <Button size="sm" variant="ghost" className="w-full h-7 text-xs" disabled>
+                  Pastroq
+                </Button>
+              ) : (
+                <Button 
+                  size="sm" 
+                  variant={tier.popular ? 'default' : 'outline'}
+                  className="w-full h-7 text-xs"
+                  onClick={() => handleSelectTier(tier.id)}
+                >
+                  Tanlash <ArrowRight className="w-3 h-3 ml-1" />
+                </Button>
+              )}
+            </div>
           );
         })}
       </div>
 
-      {/* Payment Modal */}
-      {showPayment && selectedTierData && (
-        <Card className="border-primary card-premium">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5" />
-              To'lov - {selectedTierData.name} tarifiga o'tish
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+      {/* Payment Modal - Compact Dialog */}
+      <Dialog open={showPayment} onOpenChange={setShowPayment}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <CreditCard className="w-4 h-4" />
+              {selectedTierData?.name} tarifiga o'tish
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
             {/* Summary */}
-            <div className="bg-muted/50 p-4 rounded-lg">
-              <div className="flex justify-between items-center mb-2">
-                <span>Tarif</span>
-                <span className="font-semibold">{selectedTierData.name}</span>
+            <div className="bg-muted/50 p-3 rounded-lg text-sm">
+              <div className="flex justify-between mb-1">
+                <span className="text-muted-foreground">Tarif</span>
+                <span className="font-medium">{selectedTierData?.name}</span>
               </div>
-              <div className="flex justify-between items-center mb-2">
-                <span>Narxi</span>
-                <span className="font-semibold">{selectedTierData.priceSom}</span>
-              </div>
-              <div className="flex justify-between items-center pt-2 border-t">
-                <span className="font-semibold">Jami to'lov</span>
-                <span className="text-xl font-bold text-primary">{selectedTierData.priceSom}</span>
+              <div className="flex justify-between pt-2 border-t">
+                <span className="font-medium">Jami</span>
+                <span className="text-lg font-bold text-primary">{selectedTierData?.priceSom}</span>
               </div>
             </div>
 
-            {/* Payment Method */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">To'lov usulini tanlang</Label>
-              <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+            {/* Payment Methods - Horizontal */}
+            <div>
+              <Label className="text-xs font-medium mb-2 block">To'lov usuli</Label>
+              <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="flex gap-2">
                 {PAYMENT_METHODS.map((method) => (
-                  <div key={method.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
-                    <RadioGroupItem value={method.id} id={method.id} />
-                    <Label htmlFor={method.id} className="flex items-center gap-2 cursor-pointer flex-1">
-                      <span className="text-xl">{method.logo}</span>
-                      <span>{method.name}</span>
-                    </Label>
+                  <div 
+                    key={method.id} 
+                    className={`flex-1 flex items-center justify-center gap-1.5 p-2 border rounded cursor-pointer transition-colors
+                      ${paymentMethod === method.id ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'}
+                    `}
+                    onClick={() => setPaymentMethod(method.id)}
+                  >
+                    <RadioGroupItem value={method.id} id={method.id} className="sr-only" />
+                    <span>{method.logo}</span>
+                    <span className="text-xs font-medium">{method.name}</span>
                   </div>
                 ))}
               </RadioGroup>
@@ -269,32 +214,34 @@ export function DirectTierUpgrade({ currentTier, partnerId, aiCardsUsed = 0 }: D
               <Button 
                 onClick={handlePayment} 
                 disabled={upgradeMutation.isPending}
-                className="flex-1 gap-2"
+                className="flex-1 gap-1.5"
+                size="sm"
               >
                 {upgradeMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-3 h-3 animate-spin" />
                 ) : (
-                  <CreditCard className="w-4 h-4" />
+                  <CreditCard className="w-3 h-3" />
                 )}
-                To'lovni amalga oshirish
+                To'lov qilish
               </Button>
               <Button 
                 variant="outline" 
+                size="sm"
                 onClick={() => {
                   setShowPayment(false);
                   setSelectedTier(null);
                 }}
               >
-                Bekor qilish
+                Bekor
               </Button>
             </div>
 
-            <p className="text-xs text-muted-foreground text-center">
-              To'lov muvaffaqiyatli bo'lgach, tarif avtomatik yangilanadi. Admin tasdig'i talab qilinmaydi.
+            <p className="text-[10px] text-muted-foreground text-center">
+              To'lov muvaffaqiyatli bo'lgach tarif avtomatik yangilanadi
             </p>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
