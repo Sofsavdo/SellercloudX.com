@@ -340,8 +340,65 @@ export async function runMigrations() {
         "created_at" TIMESTAMP DEFAULT NOW()
       );
     `);
+
+    // Create blog_categories table
+    console.log('🔄 Creating blog_categories table...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "blog_categories" (
+        "id" TEXT PRIMARY KEY,
+        "name" TEXT NOT NULL,
+        "slug" TEXT NOT NULL UNIQUE,
+        "description" TEXT,
+        "icon" TEXT,
+        "color" TEXT,
+        "sort_order" INTEGER DEFAULT 0,
+        "created_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create blog_posts table
+    console.log('🔄 Creating blog_posts table...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "blog_posts" (
+        "id" TEXT PRIMARY KEY,
+        "slug" TEXT NOT NULL UNIQUE,
+        "title" TEXT NOT NULL,
+        "excerpt" TEXT,
+        "content" TEXT NOT NULL,
+        "featured_image" TEXT,
+        "video_url" TEXT,
+        "category" TEXT NOT NULL DEFAULT 'news',
+        "tags" TEXT,
+        "status" TEXT NOT NULL DEFAULT 'draft',
+        "author_id" TEXT NOT NULL,
+        "author_name" TEXT,
+        "view_count" INTEGER DEFAULT 0,
+        "like_count" INTEGER DEFAULT 0,
+        "meta_title" TEXT,
+        "meta_description" TEXT,
+        "meta_keywords" TEXT,
+        "published_at" TIMESTAMP,
+        "created_at" TIMESTAMP DEFAULT NOW(),
+        "updated_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create blog_comments table
+    console.log('🔄 Creating blog_comments table...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "blog_comments" (
+        "id" TEXT PRIMARY KEY,
+        "post_id" TEXT NOT NULL,
+        "user_id" TEXT,
+        "author_name" TEXT,
+        "author_email" TEXT,
+        "content" TEXT NOT NULL,
+        "status" TEXT DEFAULT 'pending',
+        "created_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
     
-    console.log('✅ Session table created successfully');
+    console.log('✅ All tables created successfully');
     
     await pool.end();
   } catch (error) {
