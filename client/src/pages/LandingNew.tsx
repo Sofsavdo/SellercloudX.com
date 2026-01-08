@@ -879,7 +879,7 @@ export default function LandingNew() {
               <div className="space-y-3 text-sm text-muted-foreground">
                 <a href="#features" className="block hover:text-foreground transition-colors">Imkoniyatlar</a>
                 <a href="#pricing" className="block hover:text-foreground transition-colors">Narxlar</a>
-                <a href="#" className="block hover:text-foreground transition-colors">Demo</a>
+                <a href="/blog" className="block hover:text-foreground transition-colors">Blog</a>
                 <a href="#" className="block hover:text-foreground transition-colors">API</a>
               </div>
             </div>
@@ -891,7 +891,7 @@ export default function LandingNew() {
                 <a href="#" className="block hover:text-foreground transition-colors">Biz haqimizda</a>
                 <a href="#" className="block hover:text-foreground transition-colors">Jamoa</a>
                 <a href="#" className="block hover:text-foreground transition-colors">Vakansiyalar</a>
-                <a href="#" className="block hover:text-foreground transition-colors">Blog</a>
+                <a href="/blog" className="block hover:text-foreground transition-colors">Yangiliklar</a>
               </div>
             </div>
 
