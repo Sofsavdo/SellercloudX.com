@@ -810,8 +810,63 @@ export const impersonationLogs = sqliteTable('impersonation_logs', {
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
 });
 
+// ==================== BLOG SYSTEM ====================
+
+// Blog Posts - Yangiliklar va maqolalar
+export const blogPosts = sqliteTable('blog_posts', {
+  id: text('id').primaryKey(),
+  slug: text('slug').notNull().unique(), // SEO-friendly URL
+  title: text('title').notNull(),
+  excerpt: text('excerpt'), // Qisqa tavsif
+  content: text('content').notNull(), // HTML/Markdown content
+  featuredImage: text('featured_image'), // Asosiy rasm URL
+  videoUrl: text('video_url'), // Video URL (YouTube, etc.)
+  category: text('category').notNull().default('news'), // news, updates, tutorials, tips
+  tags: text('tags'), // JSON array of tags
+  status: text('status').notNull().default('draft'), // draft, published, archived
+  authorId: text('author_id').notNull().references(() => users.id),
+  authorName: text('author_name'),
+  viewCount: integer('view_count').default(0),
+  likeCount: integer('like_count').default(0),
+  // SEO fields
+  metaTitle: text('meta_title'),
+  metaDescription: text('meta_description'),
+  metaKeywords: text('meta_keywords'),
+  // Dates
+  publishedAt: integer('published_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
+});
+
+// Blog Categories
+export const blogCategories = sqliteTable('blog_categories', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  slug: text('slug').notNull().unique(),
+  description: text('description'),
+  icon: text('icon'),
+  color: text('color'),
+  sortOrder: integer('sort_order').default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+});
+
+// Blog Comments (optional)
+export const blogComments = sqliteTable('blog_comments', {
+  id: text('id').primaryKey(),
+  postId: text('post_id').notNull().references(() => blogPosts.id),
+  userId: text('user_id').references(() => users.id),
+  authorName: text('author_name'),
+  authorEmail: text('author_email'),
+  content: text('content').notNull(),
+  status: text('status').default('pending'), // pending, approved, spam
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+});
+
 // Type exports
 export type WalletTransaction = typeof walletTransactions.$inferSelect;
 export type PaymentHistory = typeof paymentHistory.$inferSelect;
 export type ImpersonationLog = typeof impersonationLogs.$inferSelect;
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type BlogCategory = typeof blogCategories.$inferSelect;
+export type BlogComment = typeof blogComments.$inferSelect;
 
