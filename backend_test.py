@@ -308,6 +308,90 @@ class APITester:
             json_data={"enabled": True}
         )
     
+    def test_blog_endpoints(self):
+        """Test blog API endpoints as specified in review request"""
+        self.log("\n=== Testing Blog API Endpoints ===", "info")
+        
+        results = []
+        
+        # Test GET /api/blog/posts - should return empty array
+        results.append(self.test_endpoint(
+            "Blog Posts - GET /api/blog/posts",
+            "GET",
+            "/api/blog/posts"
+        ))
+        
+        # Test GET /api/blog/categories
+        results.append(self.test_endpoint(
+            "Blog Categories - GET /api/blog/categories", 
+            "GET",
+            "/api/blog/categories"
+        ))
+        
+        return all(results)
+    
+    def test_admin_blog_management(self):
+        """Test admin blog management endpoints"""
+        self.log("\n=== Testing Admin Blog Management ===", "info")
+        
+        results = []
+        
+        # Create a new blog post
+        blog_post_data = {
+            "title": "Test Blog Post",
+            "content": "This is a test blog post content for SellerCloudX platform testing.",
+            "category": "technology",
+            "imageUrl": "https://example.com/test-image.jpg",
+            "videoUrl": "https://example.com/test-video.mp4",
+            "slug": "test-blog-post",
+            "tags": ["test", "blog", "sellercloudx"]
+        }
+        
+        # Test POST /api/admin/blog/posts - Create new post (needs admin auth)
+        create_result = self.test_endpoint(
+            "Admin Blog Post Creation - POST /api/admin/blog/posts",
+            "POST",
+            "/api/admin/blog/posts",
+            session=self.admin_session,
+            json_data=blog_post_data,
+            expected_status=201
+        )
+        results.append(create_result)
+        
+        # If post creation was successful, test other operations
+        if create_result and hasattr(self, 'last_created_post_id'):
+            post_id = self.last_created_post_id
+            
+            # Test PUT /api/admin/blog/posts/:id - Update post
+            updated_data = blog_post_data.copy()
+            updated_data["title"] = "Updated Test Blog Post"
+            
+            results.append(self.test_endpoint(
+                f"Admin Blog Post Update - PUT /api/admin/blog/posts/{post_id}",
+                "PUT",
+                f"/api/admin/blog/posts/{post_id}",
+                session=self.admin_session,
+                json_data=updated_data
+            ))
+            
+            # Test POST /api/admin/blog/posts/:id/publish - Publish post
+            results.append(self.test_endpoint(
+                f"Admin Blog Post Publish - POST /api/admin/blog/posts/{post_id}/publish",
+                "POST",
+                f"/api/admin/blog/posts/{post_id}/publish",
+                session=self.admin_session
+            ))
+            
+            # Test DELETE /api/admin/blog/posts/:id - Delete post (do this last)
+            results.append(self.test_endpoint(
+                f"Admin Blog Post Delete - DELETE /api/admin/blog/posts/{post_id}",
+                "DELETE",
+                f"/api/admin/blog/posts/{post_id}",
+                session=self.admin_session
+            ))
+        
+        return all(results)
+
     def test_new_features(self):
         """Test new features mentioned in review request"""
         self.log("\n=== Testing New Features ===", "info")
