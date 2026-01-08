@@ -1,0 +1,2 @@
+# Main server runs via yarn dev
+# This file exists for supervisor compatibility
