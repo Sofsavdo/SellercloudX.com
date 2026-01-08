@@ -118,6 +118,13 @@ app.use(
         return;
       }
       
+      // Allow emergentagent.com domains (preview environments)
+      if (origin && origin.includes('.emergentagent.com')) {
+        console.log("✅ CORS: EmergentAgent domain allowed:", origin);
+        callback(null, true);
+        return;
+      }
+      
       // Allow all known origins
       if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
         console.log("✅ CORS: Known origin allowed:", origin);
