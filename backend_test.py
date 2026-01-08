@@ -184,19 +184,22 @@ class APITester:
         
         for i, creds in enumerate(credential_formats):
             self.log(f"Trying credential format {i+1}: {creds}", "info")
-            result = self.test_endpoint(
-                f"Partner Login Attempt {i+1}",
-                "POST",
-                "/api/auth/login",
-                session=self.partner_session,
-                json_data=creds,
-                expected_status=200
-            )
-            if result:
-                # Update global credentials if successful
-                global PARTNER_CREDENTIALS
-                PARTNER_CREDENTIALS = creds
-                return True
+            
+            # Test without adding to results for the first attempts
+            url = f"{BASE_URL}/api/auth/login"
+            try:
+                response = self.partner_session.post(url, json=creds, timeout=10)
+                if response.status_code == 200:
+                    self.log(f"Partner Login Successful with format {i+1}", "success")
+                    # Update global credentials if successful
+                    global PARTNER_CREDENTIALS
+                    PARTNER_CREDENTIALS = creds
+                    self.results["passed"].append("Partner Login")
+                    return True
+                else:
+                    self.log(f"Format {i+1} failed: {response.status_code}", "warning")
+            except Exception as e:
+                self.log(f"Format {i+1} error: {str(e)}", "warning")
         
         # If all login attempts fail, try to register a new partner
         self.log("All login attempts failed, trying to register new partner", "warning")
@@ -210,6 +213,7 @@ class APITester:
                 json_data=PARTNER_CREDENTIALS
             )
         
+        self.results["failed"].append("Partner Login (All formats failed)")
         return False
     
     def test_partner_me(self):
