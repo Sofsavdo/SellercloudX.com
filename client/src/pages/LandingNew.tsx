@@ -11,7 +11,7 @@ import {
   Brain, Target, Clock, Users, DollarSign, Rocket, Play, BarChart3, Shield,
   Crown, Package, Globe, Bot, LineChart, Award, Menu, X, ArrowUpRight,
   ChevronUp, Lock, Mail, MessageCircle, Phone, Instagram, Send, Layers,
-  RefreshCw, Bell, FileText, Settings, Plus, Minus
+  RefreshCw, Bell, FileText, Settings, Plus, Minus, Newspaper
 } from 'lucide-react';
 
 // Counter animation hook
