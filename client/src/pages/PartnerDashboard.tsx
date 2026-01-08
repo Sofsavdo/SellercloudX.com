@@ -60,13 +60,29 @@ export default function PartnerDashboard() {
 
   const { data: products = [] } = useQuery<Product[]>({
     queryKey: ['/api/products'],
-    queryFn: async () => { const res = await apiRequest('GET', '/api/products'); return res.json(); },
+    queryFn: async () => { 
+      try {
+        const res = await apiRequest('GET', '/api/products'); 
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    },
     enabled: isPartner,
   });
 
   const { data: analytics = [] } = useQuery<Analytics[]>({
     queryKey: ['/api/analytics'],
-    queryFn: async () => { const res = await apiRequest('GET', '/api/analytics'); return res.json(); },
+    queryFn: async () => { 
+      try {
+        const res = await apiRequest('GET', '/api/analytics'); 
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    },
     enabled: isPartner,
   });
 
