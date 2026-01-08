@@ -460,14 +460,16 @@ class APITester:
     def run_all_tests(self):
         """Run all tests in sequence"""
         self.log("\n" + "="*60, "info")
-        self.log("BIZNESYORDAM BACKEND API COMPREHENSIVE TEST", "info")
+        self.log("SELLERCLOUDX BLOG FUNCTIONALITY TEST", "info")
         self.log("="*60 + "\n", "info")
         
-        # Test sequence
+        # Test sequence - prioritizing blog functionality as per review request
         tests = [
             ("Health Check", self.test_health),
             ("Admin Login", self.test_admin_login),
             ("Admin Auth Check", self.test_admin_me),
+            ("Blog Endpoints", self.test_blog_endpoints),
+            ("Admin Blog Management", self.test_admin_blog_management),
             ("Partner Registration", self.test_partner_registration),
             ("Partner Login", self.test_partner_login),
             ("Partner Auth Check", self.test_partner_me),
