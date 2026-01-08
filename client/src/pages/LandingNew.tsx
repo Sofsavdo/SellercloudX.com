@@ -380,8 +380,8 @@ export default function LandingNew() {
               <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                 Narxlar
               </a>
-              <Button variant="ghost" onClick={() => setLocation('/demo')} className="gap-2">
-                <Play className="w-4 h-4" /> Demo
+              <Button variant="ghost" onClick={() => setLocation('/blog')} className="gap-2">
+                <Newspaper className="w-4 h-4" /> Blog
               </Button>
             </div>
 
