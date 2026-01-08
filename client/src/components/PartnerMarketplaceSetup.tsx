@@ -44,13 +44,16 @@ export function PartnerMarketplaceSetup() {
   });
 
   // Fetch partner's marketplace integrations
-  const { data: integrations = [], isLoading } = useQuery({
+  const { data: integrationsData, isLoading } = useQuery({
     queryKey: ['/api/partner/marketplace-integrations'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/partner/marketplace-integrations');
       return response.json();
     },
   });
+  
+  // Ensure integrations is always an array
+  const integrations = Array.isArray(integrationsData) ? integrationsData : (integrationsData?.integrations || []);
 
   // Save integration
   const saveMutation = useMutation({
