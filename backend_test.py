@@ -407,6 +407,15 @@ class APITester:
         
         results = []
         
+        # Test GET /api/admin/blog/posts - Get admin posts list
+        admin_posts_result = self.test_endpoint(
+            "Admin Blog Posts List - GET /api/admin/blog/posts",
+            "GET",
+            "/api/admin/blog/posts",
+            session=self.admin_session
+        )
+        results.append(admin_posts_result)
+        
         # Create a new blog post
         blog_post_data = {
             "title": "Test Blog Post",
