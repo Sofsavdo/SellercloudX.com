@@ -501,10 +501,10 @@ export default function LandingNew() {
             <Button 
               size="lg" 
               variant="outline" 
-              onClick={() => setLocation('/demo')} 
+              onClick={() => setLocation('/blog')} 
               className="text-lg px-8 py-6 hover-scale-sm"
             >
-              <Play className="w-5 h-5 mr-2" /> Demo ko'rish
+              <Newspaper className="w-5 h-5 mr-2" /> Yangiliklar
             </Button>
           </div>
 
