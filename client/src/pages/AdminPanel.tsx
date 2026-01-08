@@ -219,13 +219,16 @@ export default function AdminPanel() {
     return tierNames[tier] || tier;
   };
 
-  // Statistics
+  // Statistics - ensure arrays are safe
+  const safePartners = Array.isArray(partners) ? partners : [];
+  const safeTierRequests = Array.isArray(tierUpgradeRequests) ? tierUpgradeRequests : [];
+  
   const stats = {
-    totalPartners: partners.length,
-    approvedPartners: partners.filter(p => p.approved).length,
-    pendingPartners: partners.filter(p => !p.approved).length,
-    totalRevenue: partners.reduce((sum, p) => sum + parseFloat(p.monthlyRevenue || '0'), 0),
-    pendingTierRequests: tierUpgradeRequests.filter(r => r.status === 'pending').length
+    totalPartners: safePartners.length,
+    approvedPartners: safePartners.filter(p => p?.approved).length,
+    pendingPartners: safePartners.filter(p => !p?.approved).length,
+    totalRevenue: safePartners.reduce((sum, p) => sum + parseFloat(p?.monthlyRevenue || '0'), 0),
+    pendingTierRequests: safeTierRequests.filter(r => r?.status === 'pending').length
   };
 
   return (
