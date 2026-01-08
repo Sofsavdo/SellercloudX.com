@@ -112,11 +112,15 @@ export default function PartnerDashboard() {
     return <div className="min-h-screen bg-background flex items-center justify-center"><LoginForm /></div>;
   }
 
+  // Ensure arrays are valid before reduce operations
+  const safeProducts = Array.isArray(products) ? products : [];
+  const safeAnalytics = Array.isArray(analytics) ? analytics : [];
+  
   const stats = {
-    totalRevenue: analytics.reduce((sum, item) => sum + parseFloat(item.revenue || '0'), 0),
-    totalOrders: analytics.reduce((sum, item) => sum + (item.orders || 0), 0),
-    totalProfit: analytics.reduce((sum, item) => sum + parseFloat(item.profit || '0'), 0),
-    activeProducts: products.filter(p => p.isActive).length,
+    totalRevenue: safeAnalytics.reduce((sum, item) => sum + parseFloat(item?.revenue || '0'), 0),
+    totalOrders: safeAnalytics.reduce((sum, item) => sum + (item?.orders || 0), 0),
+    totalProfit: safeAnalytics.reduce((sum, item) => sum + parseFloat(item?.profit || '0'), 0),
+    activeProducts: safeProducts.filter(p => p?.isActive).length,
   };
 
   const getTierName = (tier: string) => {
