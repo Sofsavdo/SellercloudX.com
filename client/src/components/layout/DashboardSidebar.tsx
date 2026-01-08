@@ -262,6 +262,7 @@ export const adminNavItems: SidebarNavItem[] = [
   { id: 'marketplace', label: 'Marketplace', icon: Globe },
   { id: 'analytics', label: 'Tahlillar', icon: BarChart3 },
   { id: 'partners', label: 'Hamkorlar', icon: Users },
+  { id: 'blog', label: 'Blog', icon: FileText, isNew: true },
   { id: 'trends', label: 'Trendlar', icon: TrendingUp },
   { id: 'chat', label: 'Support', icon: MessageSquare },
   { id: 'referrals', label: 'Referrallar', icon: Gift },
