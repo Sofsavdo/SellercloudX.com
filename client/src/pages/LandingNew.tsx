@@ -132,17 +132,20 @@ export default function LandingNew() {
     {
       quote: "Platform biznesingizni 10 baravar tez o'stiradi. AI funksiyalar ajoyib!",
       name: "Sardor Rahimov",
-      role: "CEO, Textile Uzbekistan"
+      role: "CEO, Textile Uzbekistan",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
     },
     {
       quote: "Bir necha oyda ROI 300% ga yetdi. Eng yaxshi investitsiya!",
       name: "Dilnoza Karimova",
-      role: "E-commerce Manager"
+      role: "E-commerce Manager, Online Shop UZ",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face"
     },
     {
       quote: "24/7 monitoring va AI yordam biznesni avtomatlashtirdi.",
       name: "Aziz Tursunov",
-      role: "Online Store Owner"
+      role: "Founder, Digital Market",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
     }
   ];
 
