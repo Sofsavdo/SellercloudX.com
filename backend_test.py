@@ -86,6 +86,9 @@ class APITester:
                             self.partner_id = json_response["partner"]["id"]
                         if "id" in json_response and "product" in name.lower():
                             self.product_id = json_response["id"]
+                        # Store blog post ID for admin blog tests
+                        if "id" in json_response and "blog" in name.lower() and "creation" in name.lower():
+                            self.last_created_post_id = json_response["id"]
                 except:
                     pass
                 
