@@ -347,7 +347,7 @@ class APITester:
             "imageUrl": "https://example.com/test-image.jpg",
             "videoUrl": "https://example.com/test-video.mp4",
             "slug": "test-blog-post",
-            "tags": ["test", "blog", "sellercloudx"]
+            "tags": "test,blog,sellercloudx"  # Changed from array to comma-separated string
         }
         
         # Test POST /api/admin/blog/posts - Create new post (needs admin auth)
