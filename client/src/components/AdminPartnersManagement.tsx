@@ -236,8 +236,20 @@ export function AdminPartnersManagement() {
                     <div>
                       <h3 className="text-xl font-bold flex items-center gap-2">
                         {p.businessName}
-                        {!p.approved && <Badge variant="secondary">Kutilmoqda</Badge>}
-                        {!p.isActive && <Badge variant="destructive">Bloklangan</Badge>}
+                        {p.approved ? (
+                          <Badge className="bg-green-100 text-green-800 border-green-200">
+                            <CheckCircle className="w-3 h-3 mr-1" />Faol
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">
+                            <AlertTriangle className="w-3 h-3 mr-1" />Kutilmoqda
+                          </Badge>
+                        )}
+                        {p.isActive === false && (
+                          <Badge variant="destructive">
+                            <Ban className="w-3 h-3 mr-1" />Bloklangan
+                          </Badge>
+                        )}
                       </h3>
                       <p className="text-sm text-muted-foreground flex items-center gap-1">
                         <Building className="w-3 h-3" />
