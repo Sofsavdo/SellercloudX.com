@@ -1,16 +1,17 @@
 // Direct Tier Upgrade - To'lov qilib avtomatik tarif almashish
+// Kompakt bir ekranga sig'adigan dizayn
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
-import { CheckCircle, Crown, Sparkles, Zap, CreditCard, Loader2, ArrowRight, Bot } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { CheckCircle, Crown, Sparkles, Zap, CreditCard, Loader2, ArrowRight, Bot, X } from 'lucide-react';
 import { PRICING_TIERS, getTierById } from '@/constants/pricing';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { formatCurrency } from '@/lib/currency';
 
 interface DirectTierUpgradeProps {
   currentTier: string;
