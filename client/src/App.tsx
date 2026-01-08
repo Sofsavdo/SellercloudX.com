@@ -18,7 +18,8 @@ import RemoteAccessDashboard from "./pages/RemoteAccessDashboard";
 import OnboardingWizard from "./pages/OnboardingWizard";
 import AdminPanel from "./pages/AdminPanel";
 import InvestorPitch from "./pages/InvestorPitch";
-import PlatformDemo from "./pages/PlatformDemo";
+import BlogPage from "./pages/BlogPage";
+import BlogPostPage from "./pages/BlogPostPage";
 import NotFound from "./pages/not-found";
 import PartnerRegistrationNew from "./pages/PartnerRegistrationNew";
 
@@ -37,7 +38,8 @@ function Router() {
       <Route path="/remote-access" component={RemoteAccessDashboard} />
       <Route path="/admin-panel" component={AdminPanel} />
       <Route path="/investor-pitch" component={InvestorPitch} />
-      <Route path="/demo" component={PlatformDemo} />
+      <Route path="/blog" component={BlogPage} />
+      <Route path="/blog/:slug" component={BlogPostPage} />
       <Route component={NotFound} />
     </Switch>
   );
