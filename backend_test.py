@@ -9,9 +9,10 @@ import json
 import sys
 from typing import Dict, Any, Optional
 
-# Configuration
-BASE_URL = "http://localhost:5000"
-ADMIN_CREDENTIALS = {"username": "admin", "password": "BiznesYordam2024!"}
+# Configuration - Using the external URL from frontend/.env
+BASE_URL = "https://saas-marketplace-7.preview.emergentagent.com"
+# Admin credentials from review request
+ADMIN_CREDENTIALS = {"username": "Medik", "password": "Medik9298"}
 # Use the correct partner credentials from review request
 PARTNER_CREDENTIALS = {"username": "partner", "password": "partner123"}
 
