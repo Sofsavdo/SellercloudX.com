@@ -39,6 +39,7 @@ import { AdminReferralCampaignManager } from '@/components/AdminReferralCampaign
 import { AdminAIManagement } from '@/components/AdminAIManagement';
 import { AdminRemoteAccess } from '@/components/AdminRemoteAccess';
 import { AdminSMM } from '@/components/AdminSMM';
+import { AdminBlogManagement } from '@/components/AdminBlogManagement';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
