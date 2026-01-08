@@ -231,6 +231,22 @@ BEGIN
   ) THEN
     ALTER TABLE "products" ADD COLUMN "dimensions" varchar(100);
   END IF;
+
+  -- Add promo_code column to partners
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'partners' AND column_name = 'promo_code'
+  ) THEN
+    ALTER TABLE "partners" ADD COLUMN "promo_code" varchar(50) UNIQUE;
+  END IF;
+
+  -- Add ai_cards_used column to partners
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'partners' AND column_name = 'ai_cards_used'
+  ) THEN
+    ALTER TABLE "partners" ADD COLUMN "ai_cards_used" integer DEFAULT 0;
+  END IF;
 END $$;
 `;
 
