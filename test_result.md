@@ -23,6 +23,18 @@ backend:
         agent: "testing"
         comment: "✅ PASSED - GET /api/blog/categories returns categories (Status 200)"
 
+  - task: "Blog Post by Slug API - GET /api/blog/posts/:slug"
+    implemented: true
+    working: true
+    file: "server/routes.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - GET /api/blog/posts/:slug returns 404 for non-existent posts (correct behavior)"
+
   - task: "Admin Blog CRUD APIs"
     implemented: true
     working: true
@@ -34,6 +46,81 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ PASSED - All Admin blog CRUD endpoints working correctly"
+      - working: true
+        agent: "testing"
+        comment: "✅ RE-TESTED - GET /api/admin/blog/posts, POST, PUT, DELETE all working correctly"
+
+  - task: "Payment Creation API - POST /api/payment/create-payment"
+    implemented: true
+    working: true
+    file: "server/routes.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Payment creation with partner auth working (Status 200)"
+
+  - task: "Click Payment Callback API - POST /api/payment/callback/click"
+    implemented: true
+    working: true
+    file: "server/routes.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Click webhook callback endpoint responding correctly (Status 200)"
+
+  - task: "Payment History API - GET /api/payment/history"
+    implemented: true
+    working: true
+    file: "server/routes.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Payment history with partner auth working (Status 200)"
+
+  - task: "Partner Authentication System"
+    implemented: true
+    working: true
+    file: "server/routes.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Partner login working with credentials: username='partner', password='partner123'"
+
+  - task: "Partner Marketplace Integration"
+    implemented: true
+    working: true
+    file: "server/routes.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - GET /api/partner/marketplace-integrations working with partner auth"
+
+  - task: "Partner Promo Code System"
+    implemented: true
+    working: true
+    file: "server/routes.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - GET /api/partner/referrals/dashboard working with partner auth"
 
 frontend:
   - task: "Blog List Page - /blog"
