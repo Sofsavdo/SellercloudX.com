@@ -2016,6 +2016,216 @@ export function registerRoutes(app: express.Application): Server {
     });
   }));
 
+  // ==================== BLOG SYSTEM ====================
+
+  // Public: Get published blog posts
+  app.get("/api/blog/posts", asyncHandler(async (req: Request, res: Response) => {
+    const { category, status = 'published', limit } = req.query;
+    
+    let query = db.select().from(blogPosts);
+    
+    if (status === 'published') {
+      query = query.where(eq(blogPosts.status, 'published'));
+    }
+    
+    if (category && category !== 'all') {
+      query = query.where(and(
+        eq(blogPosts.status, status as string),
+        eq(blogPosts.category, category as string)
+      ));
+    }
+    
+    const posts = await query.orderBy(desc(blogPosts.createdAt));
+    
+    if (limit) {
+      return res.json(posts.slice(0, parseInt(limit as string)));
+    }
+    
+    res.json(posts);
+  }));
+
+  // Public: Get single blog post by slug
+  app.get("/api/blog/posts/:slug", asyncHandler(async (req: Request, res: Response) => {
+    const { slug } = req.params;
+    
+    const post = await db.select().from(blogPosts)
+      .where(eq(blogPosts.slug, slug))
+      .limit(1);
+    
+    if (post.length === 0) {
+      return res.status(404).json({ message: "Maqola topilmadi" });
+    }
+    
+    res.json(post[0]);
+  }));
+
+  // Public: Increment view count
+  app.post("/api/blog/posts/:id/view", asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    
+    await db.update(blogPosts)
+      .set({ viewCount: db.raw('view_count + 1') })
+      .where(eq(blogPosts.id, id));
+    
+    res.json({ success: true });
+  }));
+
+  // Public: Get blog categories
+  app.get("/api/blog/categories", asyncHandler(async (req: Request, res: Response) => {
+    const categories = await db.select().from(blogCategories);
+    res.json(categories);
+  }));
+
+  // Admin: Get all blog posts (including drafts)
+  app.get("/api/admin/blog/posts", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    const { category, status } = req.query;
+    
+    let query = db.select().from(blogPosts);
+    
+    if (status && status !== 'all') {
+      query = query.where(eq(blogPosts.status, status as string));
+    }
+    
+    if (category && category !== 'all') {
+      query = query.where(eq(blogPosts.category, category as string));
+    }
+    
+    const posts = await query.orderBy(desc(blogPosts.createdAt));
+    res.json(posts);
+  }));
+
+  // Admin: Create blog post
+  app.post("/api/admin/blog/posts", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    const { 
+      title, slug, excerpt, content, featuredImage, videoUrl,
+      category, tags, status, metaTitle, metaDescription, metaKeywords
+    } = req.body;
+    
+    if (!title || !content) {
+      return res.status(400).json({ message: "Sarlavha va matn kiritilishi shart" });
+    }
+    
+    const postSlug = slug || title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
+    
+    // Check if slug exists
+    const existing = await db.select().from(blogPosts).where(eq(blogPosts.slug, postSlug));
+    if (existing.length > 0) {
+      return res.status(400).json({ message: "Bu slug allaqachon mavjud" });
+    }
+    
+    const tagsJson = tags ? JSON.stringify(tags.split(',').map((t: string) => t.trim())) : null;
+    
+    const [post] = await db.insert(blogPosts).values({
+      id: nanoid(),
+      slug: postSlug,
+      title,
+      excerpt,
+      content,
+      featuredImage,
+      videoUrl,
+      category: category || 'news',
+      tags: tagsJson,
+      status: status || 'draft',
+      authorId: req.session!.user!.id,
+      authorName: req.session!.user!.username,
+      metaTitle,
+      metaDescription,
+      metaKeywords,
+      publishedAt: status === 'published' ? new Date() : null,
+    }).returning();
+    
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: 'BLOG_POST_CREATED',
+      entityType: 'blog_post',
+      entityId: post.id,
+      payload: { title, status }
+    });
+    
+    res.status(201).json(post);
+  }));
+
+  // Admin: Update blog post
+  app.put("/api/admin/blog/posts/:id", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { 
+      title, slug, excerpt, content, featuredImage, videoUrl,
+      category, tags, status, metaTitle, metaDescription, metaKeywords
+    } = req.body;
+    
+    const tagsJson = tags ? JSON.stringify(tags.split(',').map((t: string) => t.trim())) : null;
+    
+    const [post] = await db.update(blogPosts).set({
+      title,
+      slug,
+      excerpt,
+      content,
+      featuredImage,
+      videoUrl,
+      category,
+      tags: tagsJson,
+      status,
+      metaTitle,
+      metaDescription,
+      metaKeywords,
+      publishedAt: status === 'published' ? new Date() : null,
+      updatedAt: new Date(),
+    }).where(eq(blogPosts.id, id)).returning();
+    
+    if (!post) {
+      return res.status(404).json({ message: "Maqola topilmadi" });
+    }
+    
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: 'BLOG_POST_UPDATED',
+      entityType: 'blog_post',
+      entityId: id,
+      payload: { title, status }
+    });
+    
+    res.json(post);
+  }));
+
+  // Admin: Delete blog post
+  app.delete("/api/admin/blog/posts/:id", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    
+    await db.delete(blogPosts).where(eq(blogPosts.id, id));
+    
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: 'BLOG_POST_DELETED',
+      entityType: 'blog_post',
+      entityId: id
+    });
+    
+    res.json({ success: true, message: "Maqola o'chirildi" });
+  }));
+
+  // Admin: Publish blog post
+  app.post("/api/admin/blog/posts/:id/publish", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    
+    const [post] = await db.update(blogPosts).set({
+      status: 'published',
+      publishedAt: new Date(),
+    }).where(eq(blogPosts.id, id)).returning();
+    
+    if (!post) {
+      return res.status(404).json({ message: "Maqola topilmadi" });
+    }
+    
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: 'BLOG_POST_PUBLISHED',
+      entityType: 'blog_post',
+      entityId: id
+    });
+    
+    res.json(post);
+  }));
+
   // Error handling middleware
   app.use(handleValidationError);
 
