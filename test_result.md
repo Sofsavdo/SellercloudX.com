@@ -168,7 +168,6 @@ metadata:
 test_plan:
   current_focus:
     - "Admin Blog Management UI test"
-    - "Click payment integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -176,3 +175,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Blog tizimi to'liq joriy etildi. API testlari o'tdi. Frontend localhost da ishlayapti. Screenshot orqali tasdiqlandi."
+  - agent: "testing"
+    message: "✅ COMPREHENSIVE BACKEND TESTING COMPLETE - All payment APIs, blog APIs, admin CRUD, and partner features tested successfully. Payment system (Click integration), partner authentication (username='partner'), marketplace integration, and promo code system all working correctly. 19/19 tests passed."
