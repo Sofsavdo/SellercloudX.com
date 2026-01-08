@@ -206,8 +206,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Admin Blog Management UI test"
-  stuck_tasks: []
+    - "Partner authentication issue - partner user may not exist"
+  stuck_tasks:
+    - "Partner Dashboard Tariff Change Component - authentication failure"
   test_all: false
   test_priority: "high_first"
 
