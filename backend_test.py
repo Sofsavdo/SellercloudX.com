@@ -230,7 +230,7 @@ class APITester:
             "description": "Test product description",
             "costPrice": "50.00",
             "sku": "TEST-001",
-            "weight": "1.5"
+            "weight": "1.5"  # Already a string, this should work
         }
         
         create_result = self.test_endpoint(
