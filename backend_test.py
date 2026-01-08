@@ -551,5 +551,6 @@ class APITester:
 
 if __name__ == "__main__":
     tester = APITester()
-    exit_code = tester.run_all_tests()
+    # Run focused blog tests as per review request
+    exit_code = tester.run_blog_tests_only()
     sys.exit(exit_code)
