@@ -814,6 +814,18 @@ export default function AdminPanel() {
             </div>
           )}
 
+          {/* Blog Tab */}
+          {selectedTab === 'blog' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader
+                title="Blog Boshqaruvi"
+                subtitle="Maqolalar, yangiliklar va SEO kontentni boshqaring"
+                icon={FileText}
+              />
+              <AdminBlogManagement />
+            </div>
+          )}
+
           {/* Settings Tab */}
           {selectedTab === 'settings' && (
             <div className="space-y-6 mt-6">
