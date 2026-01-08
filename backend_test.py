@@ -534,19 +534,23 @@ class APITester:
         
         return admin_logout and partner_logout
     
-    def run_blog_tests_only(self):
-        """Run only blog-related tests as per review request"""
+    def run_review_request_tests(self):
+        """Run tests specifically mentioned in the review request"""
         self.log("\n" + "="*60, "info")
-        self.log("SELLERCLOUDX BLOG FUNCTIONALITY TEST - FOCUSED", "info")
+        self.log("SELLERCLOUDX REVIEW REQUEST TESTS", "info")
         self.log("="*60 + "\n", "info")
         
-        # Test sequence - only blog functionality
+        # Test sequence based on review request priorities
         tests = [
             ("Health Check", self.test_health),
             ("Admin Login", self.test_admin_login),
             ("Admin Auth Check", self.test_admin_me),
+            ("Partner Login", self.test_partner_login),
+            ("Partner Auth Check", self.test_partner_me),
+            ("Payment APIs", self.test_payment_apis),
             ("Blog Endpoints", self.test_blog_endpoints),
             ("Admin Blog Management", self.test_admin_blog_management),
+            ("Partner Marketplace Integration", self.test_new_features),
         ]
         
         for test_name, test_func in tests:
@@ -557,7 +561,7 @@ class APITester:
                 self.results["failed"].append(f"{test_name} (Crashed)")
         
         # Print summary
-        self.print_summary()
+        return self.print_summary()
 
     def run_all_tests(self):
         """Run all tests in sequence"""
