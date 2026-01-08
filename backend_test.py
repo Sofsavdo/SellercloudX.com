@@ -14,7 +14,7 @@ BASE_URL = "https://saas-marketplace-7.preview.emergentagent.com"
 # Admin credentials from review request
 ADMIN_CREDENTIALS = {"username": "Medik", "password": "Medik9298"}
 # Use the correct partner credentials from review request
-PARTNER_CREDENTIALS = {"username": "partner", "password": "partner123"}
+PARTNER_CREDENTIALS = {"email": "partner@sellercloudx.com", "password": "partner123"}
 
 class Colors:
     GREEN = '\033[92m'
