@@ -9,9 +9,9 @@ import { storage } from "./storage";
 import { healthCheck } from "./health";
 import { getSessionConfig } from "./session";
 import { asyncHandler } from "./errorHandler";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { db } from "./db";
-import { partners, referrals, marketplaceIntegrations } from "@shared/schema";
+import { partners, referrals, marketplaceIntegrations, blogPosts, blogCategories } from "@shared/schema";
 
 import { 
   loginSchema, 
