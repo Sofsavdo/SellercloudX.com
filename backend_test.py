@@ -376,11 +376,20 @@ class APITester:
         
         results = []
         
-        # Test GET /api/blog/posts - should return empty array
+        # Test GET /api/blog/posts - should return published posts
         results.append(self.test_endpoint(
             "Blog Posts - GET /api/blog/posts",
             "GET",
             "/api/blog/posts"
+        ))
+        
+        # Test GET /api/blog/posts/:slug - get single post by slug
+        # We'll use a test slug - if no posts exist, this should return 404
+        results.append(self.test_endpoint(
+            "Blog Post by Slug - GET /api/blog/posts/test-blog-post",
+            "GET",
+            "/api/blog/posts/test-blog-post",
+            expected_status=404  # Expecting 404 if post doesn't exist
         ))
         
         # Test GET /api/blog/categories
