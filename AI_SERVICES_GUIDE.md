@@ -40,7 +40,27 @@ AI Manager (aiManagerService.ts)
 
 ---
 
-## 🔑 KERAKLI API KEYS
+## 🔑 API KALITLARI TUZILMASI
+
+### ADMIN Sozlaydi (Bir Marta, Platformaga):
+| Xizmat | Environment Variable | Olish | Vazifasi |
+|--------|---------------------|-------|----------|
+| **Google Gemini** | `GEMINI_API_KEY` | [makersuite.google.com](https://makersuite.google.com) | Text + Image AI |
+| **Replicate (Flux)** | `REPLICATE_API_KEY` | [replicate.com](https://replicate.com) | Mahsulot rasmlari |
+| **OpenAI** | `OPENAI_API_KEY` | [platform.openai.com](https://platform.openai.com) | Fallback AI |
+| **Anthropic** | `ANTHROPIC_API_KEY` | [anthropic.com](https://anthropic.com) | Advanced AI |
+
+### HAMKORLAR Sozlaydi (Har bir hamkor o'zi):
+| Marketplace | API kaliti | Olish joyi |
+|-------------|------------|------------|
+| **Uzum Market** | API Token | seller.uzum.uz → Sozlamalar → API |
+| **Wildberries** | API Token | seller.wildberries.ru → API |
+| **Ozon** | Client ID + API Key | seller.ozon.ru → Sozlamalar → API |
+| **Yandex Market** | OAuth Token | partner.market.yandex.ru → API |
+
+---
+
+## 🔑 KERAKLI API KEYS (ADMIN UCHUN)
 
 ### Asosiy (REQUIRED)
 | Xizmat | Environment Variable | Olish |
