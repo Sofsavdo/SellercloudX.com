@@ -245,14 +245,14 @@ Hamkorlar **Partner Dashboard → Integratsiyalar** bo'limida:
 
 ---
 
-## 🚀 AI XIZMATLARINI YOQISH
+## 🚀 ADMIN UCHUN AI YOQISH QADAMLARI
 
-### 1. Minimal Setup (faqat Gemini)
+### 1. Minimal Setup (Tavsiya etiladi)
 ```bash
 # .env ga qo'shing:
 GEMINI_API_KEY=your-gemini-api-key
 ```
-**Natija:** Text + Image generation ishlaydi (~$0.0003/request)
+**Natija:** Text + Image generation ishlaydi, ~$0.0003/request
 
 ### 2. Recommended Setup (Gemini + Flux)
 ```bash
@@ -267,9 +267,44 @@ GEMINI_API_KEY=your-gemini-api-key
 OPENAI_API_KEY=your-openai-key
 REPLICATE_API_KEY=your-replicate-key
 ANTHROPIC_API_KEY=your-anthropic-key
-IDEOGRAM_API_KEY=your-ideogram-key
 ```
 **Natija:** Barcha AI features to'liq ishlaydi
+
+---
+
+## 💡 AI PARALLEL ISHLASH TIZIMI
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    SELLERCLOUDX SERVER                       │
+│                                                              │
+│  ┌──────────────────┐    ┌──────────────────────────────┐  │
+│  │   AI Manager     │───▶│  AI API Keys (Admin sozladi)  │  │
+│  │  (Orchestrator)  │    │  - Gemini API                 │  │
+│  └────────┬─────────┘    │  - Replicate API              │  │
+│           │              │  - OpenAI API (fallback)      │  │
+│           ▼              └──────────────────────────────┘  │
+│  ┌──────────────────┐                                       │
+│  │   Task Queue     │  AI bir vaqtda barcha hamkorlar      │
+│  │   (Parallel)     │  uchun parallel ishlaydi!            │
+│  └────────┬─────────┘                                       │
+│           │                                                 │
+│     ┌─────┴─────┬─────────┬─────────┐                      │
+│     ▼           ▼         ▼         ▼                      │
+│ ┌───────┐  ┌───────┐  ┌───────┐  ┌───────┐                │
+│ │Hamkor1│  │Hamkor2│  │Hamkor3│  │Hamkor4│  ...           │
+│ │ Uzum  │  │  WB   │  │ Ozon  │  │Yandex │                │
+│ │ API   │  │ API   │  │ API   │  │ API   │                │
+│ └───────┘  └───────┘  └───────┘  └───────┘                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Jarayon:**
+1. Hamkor mahsulot qo'shadi
+2. AI Manager vazifani qabul qiladi
+3. AI (Gemini/Flux) kartochka yaratadi
+4. Kartochka hamkorning marketplace'iga yuboriladi
+5. Hamkor faqat o'z marketplace API'si orqali mahsulot yuklaydi
 
 ---
 
