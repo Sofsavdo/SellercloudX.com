@@ -310,12 +310,36 @@ ANTHROPIC_API_KEY=your-anthropic-key
 
 ## 📝 MUHIM ESLATMALAR
 
-1. **Gemini PRIMARY** - Loyiha asosan Gemini'ga asoslangan (arzon va tez)
-2. **OpenAI FALLBACK** - Gemini ishlamasa OpenAI ishlatiladi
-3. **Nano Banana** - Google'ning yangi image generation modeli
-4. **Cost Optimizer** - Avtomatik eng arzon variantni tanlaydi
-5. **Fallback Chain** - Har bir xizmat uchun zaxira variant bor
+1. **AI API kalitlari = ADMIN vazifasi** - Hamkorlar ko'rmaydi
+2. **Marketplace API kalitlari = HAMKOR vazifasi** - Har biri o'zi sozlaydi
+3. **AI xarajatlari = Platforma to'laydi** - SaaS obunaga kiritilgan
+4. **Gemini PRIMARY** - Eng arzon va tez
+5. **Parallel ishlash** - AI bir vaqtda 100+ hamkor uchun ishlaydi
+6. **Fallback Chain** - Xizmat ishlamasa avtomatik zaxiraga o'tadi
 
 ---
 
-*Hujjat versiyasi: 1.0 | Yangilangan: Yanvar 2026*
+## ✅ ADMIN CHECKLIST (AI Setup)
+
+- [ ] GEMINI_API_KEY sozlandi
+- [ ] REPLICATE_API_KEY sozlandi (optional)
+- [ ] OPENAI_API_KEY sozlandi (fallback)
+- [ ] Server restart qilindi
+- [ ] AI Manager test qilindi
+- [ ] Birinchi kartochka yaratildi
+
+---
+
+## ✅ HAMKOR CHECKLIST (Marketplace Setup)
+
+- [ ] SellerCloudX'ga ro'yxatdan o'tdi
+- [ ] Partner Dashboard'ga kirdi
+- [ ] Integratsiyalar bo'limiga o'tdi
+- [ ] Marketplace API kalitini oldi
+- [ ] SellerCloudX'ga API kalitini kiritdi
+- [ ] Integratsiya test qilindi
+- [ ] Birinchi mahsulot yuklandi
+
+---
+
+*Hujjat versiyasi: 2.0 | Yangilangan: Yanvar 2026*
