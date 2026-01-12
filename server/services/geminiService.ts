@@ -88,6 +88,13 @@ class GeminiService {
   }
 
   /**
+   * Check if Gemini service is enabled
+   */
+  isEnabled(): boolean {
+    return this.enabled;
+  }
+
+  /**
    * Generate text content using Gemini
    */
   async generateText(request: GeminiRequest): Promise<GeminiResponse> {
