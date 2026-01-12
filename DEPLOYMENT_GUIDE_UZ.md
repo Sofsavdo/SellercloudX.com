@@ -42,27 +42,39 @@ npm run db:push
 
 ---
 
-### BOSQICH 2: AI API Keys (15 daqiqa)
+### BOSQICH 2: AI API Keys (ADMIN SOZLAYDI - 15 daqiqa)
 
-#### 2.1 OpenAI API Key
+⚠️ **Bu qadamni faqat ADMIN bajaradi!**
+Hamkorlar AI kalitlarini ko'rmaydi va ularni sozlamaydi.
+AI barcha hamkorlar uchun parallel ishlaydi.
+
+#### 2.1 Google Gemini API Key (ASOSIY)
+```bash
+# makersuite.google.com ga kiring
+# Get API key
+# .env ga qo'shing:
+GEMINI_API_KEY=AIzaSy...
+```
+
+#### 2.2 Replicate API Key (Rasm generation uchun)
+```bash
+# replicate.com ga kiring
+# Account → API Tokens
+# .env ga qo'shing:
+REPLICATE_API_KEY=r8_...
+```
+
+#### 2.3 OpenAI API Key (Fallback - ixtiyoriy)
 ```bash
 # platform.openai.com ga kiring
 # API Keys → Create new secret key
 # .env ga qo'shing:
-OPENAI_API_KEY=sk-xxx
-```
-
-#### 2.2 Google Gemini API Key (ixtiyoriy)
-```bash
-# makersuite.google.com
-# Get API key
-# .env ga qo'shing:
-GEMINI_API_KEY=xxx
+OPENAI_API_KEY=sk-...
 ```
 
 ---
 
-### BOSQICH 3: Marketplace API Keys (hamkor o'zi sozlaydi)
+### BOSQICH 3: Hamkorlar Marketplace API (HAMKOR O'ZI SOZLAYDI)
 
 #### 3.1 Uzum Market
 ```
