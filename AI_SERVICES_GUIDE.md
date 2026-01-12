@@ -135,26 +135,69 @@ AI Manager (aiManagerService.ts)
 
 ---
 
-## ⚙️ ENV FAYLI NAMUNASI
+## ⚙️ ADMIN ENV FAYLI (Server-side)
 
 ```bash
-# AI SERVICES - PRODUCTION
+# =====================================================
+# AI SERVICES - ADMIN BIR MARTA SOZLAYDI
+# Barcha hamkorlar uchun parallel ishlaydi
+# =====================================================
 
-# PRIMARY (Required)
+# PRIMARY - Google Gemini (Text + Image)
 GEMINI_API_KEY=AIzaSy...
-OPENAI_API_KEY=sk-...
 
-# IMAGE GENERATION
+# IMAGE GENERATION - Flux (Replicate)
 REPLICATE_API_KEY=r8_...
-IDEOGRAM_API_KEY=api_key_...
+
+# FALLBACK - OpenAI (Gemini ishlamasa)
+OPENAI_API_KEY=sk-...
 
 # ADVANCED (Optional)
 ANTHROPIC_API_KEY=sk-ant-...
-PERPLEXITY_API_KEY=pplx-...
-RUNWAY_API_KEY=key_...
+IDEOGRAM_API_KEY=api_key_...
 
-# EMERGENT (Alternative)
-EMERGENT_LLM_KEY=your-emergent-key
+# =====================================================
+# DATABASE & SERVER (Admin sozlaydi)
+# =====================================================
+DATABASE_URL=postgresql://...
+SESSION_SECRET=min-32-character-secret
+NODE_ENV=production
+```
+
+**⚠️ Hamkorlar bu kalitlarni ko'rmaydi va ularga kirish yo'q!**
+
+---
+
+## 🏪 HAMKOR MARKETPLACE API SOZLASH
+
+Hamkorlar **Partner Dashboard → Integratsiyalar** bo'limida:
+
+### Uzum Market
+```
+1. seller.uzum.uz ga kiring
+2. Sozlamalar → API → Token yaratish
+3. SellerCloudX → Integratsiyalar → Uzum → API Key kiritish
+```
+
+### Wildberries
+```
+1. seller.wildberries.ru ga kiring
+2. Profil → API → Token olish
+3. SellerCloudX → Integratsiyalar → WB → API Key kiritish
+```
+
+### Ozon
+```
+1. seller.ozon.ru ga kiring
+2. Sozlamalar → API → Client ID va API Key olish
+3. SellerCloudX → Integratsiyalar → Ozon → Ma'lumotlarni kiritish
+```
+
+### Yandex Market
+```
+1. partner.market.yandex.ru ga kiring
+2. Sozlamalar → API → OAuth token olish
+3. SellerCloudX → Integratsiyalar → Yandex → Token kiritish
 ```
 
 ---
