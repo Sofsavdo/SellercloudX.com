@@ -589,9 +589,9 @@ export async function getAIReports(req: Request, res: Response) {
     try {
       aiCards = await db
         .select()
-        .from(aiGeneratedProducts)
-        .where(eq(aiGeneratedProducts.partnerId, partner.id))
-        .orderBy(desc(aiGeneratedProducts.createdAt))
+        .from(aiProductCards)
+        .where(eq(aiProductCards.partnerId, partner.id))
+        .orderBy(desc(aiProductCards.createdAt))
         .limit(20);
     } catch (e) {
       console.log('AI cards query error:', e);
