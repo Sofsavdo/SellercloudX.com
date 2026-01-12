@@ -183,6 +183,7 @@ Password: StrongPassword123!
 
 ## 🔧 ENVIRONMENT VARIABLES TO'LIQ RO'YXATI
 
+### ADMIN SOZLAYDI (Server .env):
 ```bash
 # DATABASE (REQUIRED)
 DATABASE_URL=postgresql://...
@@ -197,9 +198,20 @@ SESSION_SECRET=min-32-character-secret-key
 FRONTEND_ORIGIN=https://sellercloudx.com
 CORS_ORIGIN=https://sellercloudx.com
 
-# AI SERVICES (REQUIRED for AI features)
-OPENAI_API_KEY=sk-xxx
-GEMINI_API_KEY=xxx
+# =====================================================
+# AI SERVICES - ADMIN BIR MARTA SOZLAYDI
+# Barcha hamkorlar uchun parallel ishlaydi!
+# =====================================================
+
+# PRIMARY - Google Gemini (REQUIRED)
+GEMINI_API_KEY=AIzaSy...
+
+# IMAGE GENERATION (Recommended)
+REPLICATE_API_KEY=r8_...
+
+# FALLBACK (Optional)
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
 
 # EMAIL (OPTIONAL - for notifications)
 SMTP_HOST=smtp.gmail.com
@@ -215,6 +227,18 @@ ADMIN_EMAIL=admin@sellercloudx.com
 # LOGGING (OPTIONAL)
 LOG_LEVEL=info
 ```
+
+### HAMKORLAR SOZLAYDI (Partner Dashboard orqali):
+```
+Integratsiyalar sahifasida:
+- Uzum Market API Token
+- Wildberries API Token  
+- Ozon Client ID + API Key
+- Yandex Market OAuth Token
+```
+
+⚠️ **Hamkorlar AI kalitlarini ko'rmaydi!**
+AI xarajatlari platformaga tegishli (SaaS modeliga kiritilgan).
 
 ---
 
