@@ -287,56 +287,6 @@ BEGIN
   ) THEN
     ALTER TABLE "partners" ADD COLUMN "notes" text;
   END IF;
-
-  -- ==================== PRODUCTS TABLE COLUMNS ====================
-  
-  -- Fix products.optimized_title column (AI generated SEO title)
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'products' AND column_name = 'optimized_title'
-  ) THEN
-    ALTER TABLE "products" ADD COLUMN "optimized_title" varchar(500);
-  END IF;
-
-  -- Fix products.low_stock_threshold column
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'products' AND column_name = 'low_stock_threshold'
-  ) THEN
-    ALTER TABLE "products" ADD COLUMN "low_stock_threshold" integer DEFAULT 10;
-  END IF;
-
-  -- Fix products.is_active column
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'products' AND column_name = 'is_active'
-  ) THEN
-    ALTER TABLE "products" ADD COLUMN "is_active" boolean DEFAULT true;
-  END IF;
-
-  -- Fix products.barcode column
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'products' AND column_name = 'barcode'
-  ) THEN
-    ALTER TABLE "products" ADD COLUMN "barcode" varchar(100);
-  END IF;
-
-  -- Fix products.sku column
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'products' AND column_name = 'sku'
-  ) THEN
-    ALTER TABLE "products" ADD COLUMN "sku" varchar(100);
-  END IF;
-
-  -- Fix products.updated_at column
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'products' AND column_name = 'updated_at'
-  ) THEN
-    ALTER TABLE "products" ADD COLUMN "updated_at" timestamp;
-  END IF;
 END $$;
 `;
 
