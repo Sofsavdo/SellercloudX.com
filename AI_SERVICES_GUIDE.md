@@ -1,5 +1,15 @@
 # 🤖 SellerCloudX - AI Xizmatlari To'liq Ro'yxati
 
+## ⚠️ MUHIM: AI Kalitlari Faqat Admin Tomonidan Sozlanadi!
+
+**Biznes Modeli:**
+- ✅ **Hamkorlar** → Faqat **Marketplace API** kalitlarini kiritadi (Uzum, WB, Ozon, Yandex)
+- ✅ **Admin** → **AI API kalitlari**ni BIR MARTA platformaga sozlaydi
+- ✅ **AI xizmatlari** → Barcha hamkorlar uchun **PARALLEL** ishlaydi
+- ✅ **AI xarajatlari** → Platformaga tegishli (SaaS modeliga kiritilgan)
+
+---
+
 ## Loyihada Ishlatilgan AI Xizmatlari
 
 ### 📊 AI SERVICE HIERARCHY
