@@ -287,6 +287,49 @@ BEGIN
   ) THEN
     ALTER TABLE "partners" ADD COLUMN "notes" text;
   END IF;
+
+  -- ==================== MARKETPLACE_INTEGRATIONS COLUMNS ====================
+  
+  -- Add api_key column to marketplace_integrations
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'marketplace_integrations' AND column_name = 'api_key'
+  ) THEN
+    ALTER TABLE "marketplace_integrations" ADD COLUMN "api_key" TEXT;
+  END IF;
+
+  -- Add api_secret column to marketplace_integrations
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'marketplace_integrations' AND column_name = 'api_secret'
+  ) THEN
+    ALTER TABLE "marketplace_integrations" ADD COLUMN "api_secret" TEXT;
+  END IF;
+
+  -- Add active column to marketplace_integrations
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'marketplace_integrations' AND column_name = 'active'
+  ) THEN
+    ALTER TABLE "marketplace_integrations" ADD COLUMN "active" BOOLEAN DEFAULT false;
+  END IF;
+
+  -- Add last_sync_at column to marketplace_integrations
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'marketplace_integrations' AND column_name = 'last_sync_at'
+  ) THEN
+    ALTER TABLE "marketplace_integrations" ADD COLUMN "last_sync_at" TIMESTAMP;
+  END IF;
+
+  -- Add created_at column to marketplace_integrations
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'marketplace_integrations' AND column_name = 'created_at'
+  ) THEN
+    ALTER TABLE "marketplace_integrations" ADD COLUMN "created_at" TIMESTAMP DEFAULT NOW();
+  END IF;
+
 END $$;
 `;
 
