@@ -357,15 +357,7 @@ class GeminiService {
       throw new Error(`Gemini Document Analysis error: ${error.message}`);
     }
   }
-
-  /**
-   * Check if service is enabled
-   */
-  isEnabled(): boolean {
-    return this.enabled;
-  }
 }
 
 export const geminiService = new GeminiService();
 export default geminiService;
-
