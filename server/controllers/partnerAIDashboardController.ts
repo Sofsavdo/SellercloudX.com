@@ -4,7 +4,7 @@
 import { Request, Response } from 'express';
 import { storage } from '../storage';
 import { db } from '../db';
-import { aiTasks, products, orders, analytics, marketplaceIntegrations, aiGeneratedProducts } from '@shared/schema';
+import { aiTasks, products, orders, analytics, marketplaceIntegrations, aiProductCards } from '@shared/schema';
 import { eq, and, gte, sql, desc, count } from 'drizzle-orm';
 import { geminiService } from '../services/geminiService';
 
