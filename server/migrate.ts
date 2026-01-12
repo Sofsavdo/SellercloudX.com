@@ -429,6 +429,136 @@ export async function runMigrations() {
         "created_at" TIMESTAMP DEFAULT NOW()
       );
     `);
+
+    // Create ai_generated_products table
+    console.log('🔄 Creating ai_generated_products table...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "ai_generated_products" (
+        "id" TEXT PRIMARY KEY,
+        "partner_id" TEXT NOT NULL,
+        "product_id" TEXT,
+        "marketplace" TEXT NOT NULL,
+        "title" TEXT NOT NULL,
+        "description" TEXT,
+        "bullet_points" TEXT,
+        "seo_keywords" TEXT,
+        "image_prompts" TEXT,
+        "generated_images" TEXT,
+        "status" TEXT DEFAULT 'draft',
+        "quality_score" INTEGER,
+        "ai_model" TEXT,
+        "generation_cost" DECIMAL(10,4),
+        "created_at" TIMESTAMP DEFAULT NOW(),
+        "updated_at" TIMESTAMP DEFAULT NOW(),
+        "published_at" TIMESTAMP
+      );
+    `);
+
+    // Create audit_logs table
+    console.log('🔄 Creating audit_logs table...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "audit_logs" (
+        "id" TEXT PRIMARY KEY,
+        "user_id" TEXT,
+        "action" TEXT NOT NULL,
+        "entity_type" TEXT,
+        "entity_id" TEXT,
+        "old_values" TEXT,
+        "new_values" TEXT,
+        "changes" TEXT,
+        "ip_address" TEXT,
+        "user_agent" TEXT,
+        "created_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create notifications table
+    console.log('🔄 Creating notifications table...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "notifications" (
+        "id" TEXT PRIMARY KEY,
+        "user_id" TEXT NOT NULL,
+        "title" TEXT NOT NULL,
+        "message" TEXT NOT NULL,
+        "type" TEXT DEFAULT 'info',
+        "read" BOOLEAN DEFAULT false,
+        "created_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create ai_tasks table
+    console.log('🔄 Creating ai_tasks table...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "ai_tasks" (
+        "id" TEXT PRIMARY KEY,
+        "partner_id" TEXT NOT NULL,
+        "account_id" TEXT,
+        "task_type" TEXT NOT NULL,
+        "status" TEXT DEFAULT 'pending',
+        "priority" TEXT DEFAULT 'medium',
+        "input_data" TEXT,
+        "output_data" TEXT,
+        "error_message" TEXT,
+        "started_at" TIMESTAMP,
+        "completed_at" TIMESTAMP,
+        "estimated_cost" DECIMAL(10,4),
+        "actual_cost" DECIMAL(10,4),
+        "created_at" TIMESTAMP DEFAULT NOW(),
+        "updated_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create trending_products table
+    console.log('🔄 Creating trending_products table...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "trending_products" (
+        "id" TEXT PRIMARY KEY,
+        "marketplace" TEXT NOT NULL,
+        "category" TEXT NOT NULL,
+        "product_name" TEXT NOT NULL,
+        "price" DECIMAL(12,2),
+        "sales_count" INTEGER,
+        "rating" DECIMAL(3,2),
+        "trend_score" INTEGER NOT NULL,
+        "image_url" TEXT,
+        "product_url" TEXT,
+        "analyzed_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create pricing_tiers table
+    console.log('🔄 Creating pricing_tiers table...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "pricing_tiers" (
+        "id" TEXT PRIMARY KEY,
+        "tier" TEXT NOT NULL UNIQUE,
+        "name_uz" TEXT NOT NULL,
+        "fixed_cost" TEXT NOT NULL,
+        "commission_min" TEXT NOT NULL,
+        "commission_max" TEXT NOT NULL,
+        "min_revenue" TEXT NOT NULL,
+        "max_revenue" TEXT,
+        "features" TEXT NOT NULL,
+        "is_active" BOOLEAN DEFAULT true,
+        "created_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create subscriptions table
+    console.log('🔄 Creating subscriptions table...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "subscriptions" (
+        "id" TEXT PRIMARY KEY,
+        "partner_id" TEXT NOT NULL,
+        "tier_id" TEXT NOT NULL,
+        "status" TEXT DEFAULT 'active' NOT NULL,
+        "start_date" TIMESTAMP NOT NULL,
+        "end_date" TIMESTAMP,
+        "auto_renew" BOOLEAN DEFAULT true,
+        "created_at" TIMESTAMP DEFAULT NOW(),
+        "updated_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
     
     console.log('✅ All tables created successfully');
     
