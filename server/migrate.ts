@@ -610,6 +610,61 @@ export async function runMigrations() {
         "updated_at" TIMESTAMP DEFAULT NOW()
       );
     `);
+
+    // Create analytics table
+    console.log('🔄 Creating analytics table...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "analytics" (
+        "id" TEXT PRIMARY KEY,
+        "partner_id" TEXT NOT NULL,
+        "marketplace" TEXT,
+        "date" DATE NOT NULL,
+        "revenue" DECIMAL(14,2) DEFAULT 0,
+        "orders" INTEGER DEFAULT 0,
+        "views" INTEGER DEFAULT 0,
+        "conversions" INTEGER DEFAULT 0,
+        "created_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create chat_messages table for AI Chat
+    console.log('🔄 Creating chat_messages table...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "chat_messages" (
+        "id" TEXT PRIMARY KEY,
+        "partner_id" TEXT NOT NULL,
+        "role" TEXT NOT NULL,
+        "content" TEXT NOT NULL,
+        "metadata" TEXT,
+        "created_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create ai_product_cards table (correct name)
+    console.log('🔄 Creating ai_product_cards table...');
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "ai_product_cards" (
+        "id" TEXT PRIMARY KEY,
+        "partner_id" TEXT NOT NULL,
+        "product_id" TEXT,
+        "account_id" TEXT,
+        "base_product_name" TEXT,
+        "marketplace" TEXT NOT NULL,
+        "title" TEXT NOT NULL,
+        "description" TEXT,
+        "bullet_points" TEXT,
+        "seo_keywords" TEXT,
+        "image_prompts" TEXT,
+        "generated_images" TEXT,
+        "status" TEXT DEFAULT 'draft',
+        "quality_score" INTEGER,
+        "ai_model" TEXT,
+        "generation_cost" DECIMAL(10,4),
+        "created_at" TIMESTAMP DEFAULT NOW(),
+        "updated_at" TIMESTAMP DEFAULT NOW(),
+        "published_at" TIMESTAMP
+      );
+    `);
     
     console.log('✅ All tables created successfully');
     
