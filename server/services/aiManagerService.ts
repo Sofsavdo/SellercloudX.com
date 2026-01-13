@@ -539,54 +539,6 @@ export async function autoUploadToMarketplace(
   }
 }
 
-    let integration: any;
-    let marketplaceProductId: string;
-
-    switch (marketplaceType) {
-      case 'uzum':
-        integration = new UzumIntegration({
-          apiKey: credentials.apiKey,
-          sellerId: credentials.sellerId,
-          apiUrl: credentials.apiUrl,
-        });
-        marketplaceProductId = await uploadToUzumReal(product, integration);
-        break;
-      case 'wildberries':
-        integration = new WildberriesIntegration({
-          apiKey: credentials.apiKey,
-          sellerId: credentials.sellerId,
-          apiUrl: credentials.apiUrl,
-        });
-        marketplaceProductId = await uploadToWildberriesReal(product, integration);
-        break;
-      case 'yandex':
-        marketplaceProductId = await uploadToYandexReal(product, credentials);
-        break;
-      case 'ozon':
-        marketplaceProductId = await uploadToOzonReal(product, credentials);
-        break;
-      default:
-        throw new Error('Noma\'lum marketplace');
-    }
-
-    // Update product status
-    await db
-      .update('ai_generated_products')
-      .set({
-        status: 'published',
-        uploaded_to_marketplace: true,
-        marketplace_product_id: marketplaceProductId,
-        published_at: new Date(),
-      })
-      .where({ id: productId });
-
-    return { success: true, marketplaceProductId };
-  } catch (error: any) {
-    console.error('❌ Marketplace upload error:', error.message);
-    throw error;
-  }
-}
-
 // ================================================================
 // HELPER FUNCTIONS
 // ================================================================
