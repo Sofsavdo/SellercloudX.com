@@ -442,82 +442,68 @@ Optimal narxni taklif qiling va JSON formatda javob bering:
 // ================================================================
 // 3. AI MONITORING & ISSUE DETECTION
 // ================================================================
-export async function monitorPartnerProducts(partnerId: number) {
+export async function monitorPartnerProducts(partnerId: number | string) {
   console.log('🤖 AI: Monitoring partner products...', partnerId);
 
   try {
-    // Get all partner's products across all marketplaces (using raw SQL for SQLite)
-    const { sqlite } = await import('../db');
+    // Use storage to get products (works with both SQLite and PostgreSQL)
+    const { storage } = await import('../storage');
+    
     let products: any[] = [];
-    if (sqlite) {
-      const stmt = sqlite.prepare(
-        `SELECT * FROM marketplace_products 
-         WHERE partner_id = ? AND (is_active = 1 OR status = 'active')
-         LIMIT 100`
-      );
-      products = stmt.all(partnerId.toString()) as any[];
-    } else {
-      // Fallback: use Drizzle ORM if SQLite not available
-      const { marketplaceProducts } = await import('@shared/schema');
-      const { eq, and } = await import('drizzle-orm');
-      products = await db
-        .select()
-        .from(marketplaceProducts)
-        .where(and(
-          eq(marketplaceProducts.partnerId, partnerId.toString()),
-          eq(marketplaceProducts.status, 'active')
-        ));
+    try {
+      products = await storage.getProductsByPartnerId(partnerId.toString());
+    } catch (e) {
+      console.log('No products found for partner:', partnerId);
+      return { issues: [], summary: 'No products to monitor' };
     }
 
     const issues: any[] = [];
 
     for (const product of products) {
       // Check 1: Low stock
-      if (product.stock_quantity < 10) {
+      const stockQty = product.stockQuantity || product.stock_quantity || 0;
+      if (stockQty < 10) {
         issues.push({
           type: 'low_stock',
-          severity: product.stock_quantity === 0 ? 'critical' : 'high',
-          title: 'Low Stock',
-          description: `Product: ${product.title}. Stock: ${product.stock_quantity}`,
-          suggestedAction: 'Restock inventory or remove product from marketplace',
+          severity: stockQty === 0 ? 'critical' : 'high',
+          title: 'Kam qoldi',
+          description: `Mahsulot: ${product.name}. Stok: ${stockQty}`,
+          suggestedAction: 'Ombordagi tovarni to\'ldiring',
         });
       }
 
-      // Check 2: Poor SEO
-      if (product.ai_analyzed) {
-        const suggestions = product.ai_suggestions as any;
-        if (suggestions?.seoScore < 60) {
+      // Check 2: Price analysis
+      const price = parseFloat(product.price) || 0;
+      const costPrice = parseFloat(product.costPrice || product.cost_price) || 0;
+      if (costPrice > 0 && price > 0) {
+        const margin = ((price - costPrice) / price) * 100;
+        if (margin < 10) {
           issues.push({
-            type: 'seo_issue',
+            type: 'low_margin',
             severity: 'medium',
-            title: 'SEO yomon',
-            description: `Mahsulot: ${product.title}. SEO score: ${suggestions.seoScore}/100`,
-            suggestedAction: 'Mahsulot tavsifini va kalit so\'zlarni optimizatsiya qiling',
+            title: 'Past foyda',
+            description: `Mahsulot: ${product.name}. Foyda: ${margin.toFixed(1)}%`,
+            suggestedAction: 'Narxni oshiring yoki tannarxni kamaytiring',
           });
         }
       }
+    }
 
-      // Check 3: Price too high
-      const avgMarketPrice = await getAverageMarketPrice(product.title, product.marketplace_type);
-      if (avgMarketPrice && product.price > avgMarketPrice * 1.2) {
-        issues.push({
-          type: 'price_too_high',
-          severity: 'high',
-          title: 'Narx juda yuqori',
-          description: `Mahsulot: ${product.title}. Sizning narx: ${product.price}, O'rtacha: ${avgMarketPrice}`,
-          suggestedAction: `Narxni ${avgMarketPrice} atrofiga tushiring`,
-        });
-      }
-
-      // Check 4: Sales drop
-      const recentSales = await getRecentSales(product.id, 7); // oxirgi 7 kun
-      const previousSales = await getRecentSales(product.id, 14, 7); // oldingi 7 kun
-      if (previousSales > 0 && recentSales < previousSales * 0.5) {
-        issues.push({
-          type: 'sales_drop',
-          severity: 'high',
-          title: 'Savdo pasaydi',
-          description: `Mahsulot: ${product.title}. Savdo 50% kamaydi`,
+    return {
+      issues,
+      summary: `${products.length} ta mahsulot tekshirildi, ${issues.length} ta muammo topildi`,
+      productsChecked: products.length,
+      issuesFound: issues.length,
+    };
+  } catch (error: any) {
+    console.error('❌ AI: Monitoring error:', error.message);
+    return { 
+      issues: [], 
+      summary: 'Monitoring error', 
+      error: error.message 
+    };
+  }
+}
           suggestedAction: 'Narxni ko\'rib chiqing, reklama qo\'shing yoki mahsulotni yangilang',
         });
       }
