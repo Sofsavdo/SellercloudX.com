@@ -49,7 +49,7 @@ async def generate_product_card(
         
         prompt = f"""MAHSULOT: {name}
 KATEGORIYA: {category}
-TAVSIF: {description or 'yo\'q'}
+TAVSIF: {description if description else "yo'q"}
 NARX: {price} so'm
 MARKETPLACE: {marketplace}
 QOIDALAR: {rules.get(marketplace, rules['uzum'])}
@@ -58,7 +58,7 @@ Quyidagi JSON formatda professional mahsulot kartochkasi yarat:
 
 {{
   "title": "SEO-optimizatsiya qilingan sarlavha",
-  "description": "To'liq SEO tavsif (300-500 so'z)",
+  "description": "Toliq SEO tavsif (300-500 soz)",
   "shortDescription": "Qisqa tavsif (150 belgi)",
   "keywords": ["kalit1", "kalit2", "...10 tagacha"],
   "bulletPoints": ["Xususiyat 1", "Xususiyat 2", "...5 tagacha"],
