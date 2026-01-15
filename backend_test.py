@@ -24,7 +24,7 @@ class Colors:
     BLUE = '\033[94m'
     END = '\033[0m'
 
-class APITester:
+class NaNBugTester:
     def __init__(self):
         self.session = requests.Session()
         self.admin_session = requests.Session()
@@ -32,6 +32,7 @@ class APITester:
         self.results = {
             "passed": [],
             "failed": [],
+            "nan_issues": [],
             "warnings": []
         }
         self.partner_id = None
@@ -48,12 +49,33 @@ class APITester:
         else:
             print(f"{Colors.BLUE}ℹ️  {message}{Colors.END}")
     
-    def test_endpoint(self, name: str, method: str, endpoint: str, 
-                     session: Optional[requests.Session] = None,
-                     data: Optional[Dict] = None,
-                     expected_status: int = 200,
-                     json_data: Optional[Dict] = None) -> bool:
-        """Test a single endpoint"""
+    def check_for_nan_values(self, data: Any, path: str = "root") -> list:
+        """Recursively check for NaN values in response data"""
+        nan_issues = []
+        
+        if isinstance(data, dict):
+            for key, value in data.items():
+                current_path = f"{path}.{key}"
+                nan_issues.extend(self.check_for_nan_values(value, current_path))
+        elif isinstance(data, list):
+            for i, item in enumerate(data):
+                current_path = f"{path}[{i}]"
+                nan_issues.extend(self.check_for_nan_values(item, current_path))
+        elif isinstance(data, (int, float)):
+            if math.isnan(data) if isinstance(data, float) else False:
+                nan_issues.append(f"NaN found at {path}")
+        elif isinstance(data, str):
+            if data.lower() in ['nan', 'null', 'undefined']:
+                nan_issues.append(f"String NaN/null found at {path}: '{data}'")
+        
+        return nan_issues
+    
+    def test_endpoint_for_nan(self, name: str, method: str, endpoint: str, 
+                             session: Optional[requests.Session] = None,
+                             data: Optional[Dict] = None,
+                             expected_status: int = 200,
+                             json_data: Optional[Dict] = None) -> bool:
+        """Test endpoint and check for NaN values"""
         url = f"{BASE_URL}{endpoint}"
         sess = session or self.session
         
@@ -67,8 +89,6 @@ class APITester:
                     response = sess.post(url, data=data, timeout=10)
             elif method == "PUT":
                 response = sess.put(url, json=json_data, timeout=10)
-            elif method == "DELETE":
-                response = sess.delete(url, timeout=10)
             else:
                 self.log(f"{name}: Unsupported method {method}", "error")
                 return False
@@ -76,24 +96,38 @@ class APITester:
             # Check status code
             if response.status_code == expected_status:
                 self.log(f"{name}: {method} {endpoint} - Status {response.status_code}", "success")
-                self.results["passed"].append(name)
                 
-                # Try to parse JSON response
+                # Parse JSON and check for NaN values
                 try:
                     json_response = response.json()
-                    if isinstance(json_response, dict):
+                    nan_issues = self.check_for_nan_values(json_response, name)
+                    
+                    if nan_issues:
+                        self.log(f"{name}: Found NaN issues: {nan_issues}", "error")
+                        self.results["nan_issues"].extend(nan_issues)
+                        self.results["failed"].append(f"{name} (NaN values found)")
+                        return False
+                    else:
+                        self.log(f"{name}: No NaN values detected ✓", "success")
+                        self.results["passed"].append(name)
+                        
                         # Store important IDs for later tests
-                        if "partner" in json_response and "id" in json_response["partner"]:
-                            self.partner_id = json_response["partner"]["id"]
-                        if "id" in json_response and "product" in name.lower():
-                            self.product_id = json_response["id"]
-                        # Store blog post ID for admin blog tests
-                        if "id" in json_response and "blog" in name.lower() and "creation" in name.lower():
-                            self.last_created_post_id = json_response["id"]
-                except:
-                    pass
-                
-                return True
+                        if isinstance(json_response, dict):
+                            if "partner" in json_response and "id" in json_response["partner"]:
+                                self.partner_id = json_response["partner"]["id"]
+                            if "id" in json_response and "product" in name.lower():
+                                self.product_id = json_response["id"]
+                        
+                        return True
+                        
+                except json.JSONDecodeError:
+                    self.log(f"{name}: Non-JSON response", "warning")
+                    self.results["passed"].append(name)
+                    return True
+                except Exception as e:
+                    self.log(f"{name}: Error parsing response: {str(e)}", "error")
+                    self.results["failed"].append(f"{name} (Parse error)")
+                    return False
             else:
                 self.log(f"{name}: Expected {expected_status}, got {response.status_code}", "error")
                 self.log(f"Response: {response.text[:200]}", "error")
