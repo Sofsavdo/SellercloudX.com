@@ -443,25 +443,38 @@ Optimal narxni taklif qiling va JSON formatda javob bering:
 // 3. AI MONITORING & ISSUE DETECTION
 // ================================================================
 export async function monitorPartnerProducts(partnerId: number | string) {
-  console.log('🤖 AI: Monitoring partner products...', partnerId);
+  const partnerIdStr = String(partnerId);
+  console.log('🤖 AI: Monitoring partner products...', partnerIdStr);
 
   try {
     // Use storage to get products (works with both SQLite and PostgreSQL)
     const { storage } = await import('../storage');
     
-    let products: any[] = [];
+    let partnerProducts: any[] = [];
     try {
-      products = await storage.getProductsByPartnerId(partnerId.toString());
+      partnerProducts = await storage.getProductsByPartnerId(partnerIdStr);
     } catch (e) {
-      console.log('No products found for partner:', partnerId);
-      return { issues: [], summary: 'No products to monitor' };
+      console.log('No products found for partner:', partnerIdStr);
+      return { issues: [], summary: 'No products to monitor', productsChecked: 0, issuesFound: 0 };
+    }
+
+    // Validate products array
+    if (!Array.isArray(partnerProducts) || partnerProducts.length === 0) {
+      console.log('Empty products array for partner:', partnerIdStr);
+      return { issues: [], summary: 'No products to monitor', productsChecked: 0, issuesFound: 0 };
     }
 
     const issues: any[] = [];
 
-    for (const product of products) {
-      // Check 1: Low stock
-      const stockQty = product.stockQuantity || product.stock_quantity || 0;
+    for (const product of partnerProducts) {
+      // Skip invalid products
+      if (!product || !product.name) {
+        console.log('Skipping invalid product:', product);
+        continue;
+      }
+
+      // Check 1: Low stock - with safe number parsing
+      const stockQty = safeParseNumber(product.stockQuantity || product.stock_quantity, 0);
       if (stockQty < 10) {
         issues.push({
           type: 'low_stock',
@@ -469,40 +482,83 @@ export async function monitorPartnerProducts(partnerId: number | string) {
           title: 'Kam qoldi',
           description: `Mahsulot: ${product.name}. Stok: ${stockQty}`,
           suggestedAction: 'Ombordagi tovarni to\'ldiring',
+          productId: product.id,
+          productName: product.name,
         });
       }
 
-      // Check 2: Price analysis
-      const price = parseFloat(product.price) || 0;
-      const costPrice = parseFloat(product.costPrice || product.cost_price) || 0;
-      if (costPrice > 0 && price > 0) {
+      // Check 2: Price analysis - with safe number parsing and validation
+      const price = safeParseNumber(product.price, 0);
+      const costPrice = safeParseNumber(product.costPrice || product.cost_price, 0);
+      
+      if (costPrice > 0 && price > 0 && price > costPrice) {
         const margin = ((price - costPrice) / price) * 100;
-        if (margin < 10) {
+        // Validate margin is a valid number
+        if (isFinite(margin) && !isNaN(margin) && margin < 10) {
           issues.push({
             type: 'low_margin',
             severity: 'medium',
             title: 'Past foyda',
             description: `Mahsulot: ${product.name}. Foyda: ${margin.toFixed(1)}%`,
             suggestedAction: 'Narxni oshiring yoki tannarxni kamaytiring',
+            productId: product.id,
+            productName: product.name,
+            margin: margin.toFixed(1),
           });
         }
       }
+
+      // Check 3: Missing critical data
+      if (!product.description || product.description.length < 50) {
+        issues.push({
+          type: 'missing_description',
+          severity: 'low',
+          title: 'Tavsif kam',
+          description: `Mahsulot: ${product.name}. Tavsif juda qisqa yoki yo'q.`,
+          suggestedAction: 'Mahsulot tavsifini to\'ldiring',
+          productId: product.id,
+          productName: product.name,
+        });
+      }
     }
 
-    return {
+    const result = {
       issues,
-      summary: `${products.length} ta mahsulot tekshirildi, ${issues.length} ta muammo topildi`,
-      productsChecked: products.length,
+      summary: `${partnerProducts.length} ta mahsulot tekshirildi, ${issues.length} ta muammo topildi`,
+      productsChecked: partnerProducts.length,
       issuesFound: issues.length,
+      timestamp: new Date().toISOString(),
     };
+
+    console.log(`✅ AI Monitoring complete: ${result.summary}`);
+    return result;
   } catch (error: any) {
     console.error('❌ AI: Monitoring error:', error.message);
     return { 
       issues: [], 
       summary: 'Monitoring error', 
-      error: error.message 
+      error: error.message,
+      productsChecked: 0,
+      issuesFound: 0,
     };
   }
+}
+
+/**
+ * Safe number parsing utility to prevent NaN issues
+ */
+function safeParseNumber(value: any, defaultValue: number = 0): number {
+  if (value === null || value === undefined || value === '') {
+    return defaultValue;
+  }
+  
+  const parsed = typeof value === 'number' ? value : parseFloat(String(value));
+  
+  if (isNaN(parsed) || !isFinite(parsed)) {
+    return defaultValue;
+  }
+  
+  return parsed;
 }
 
 // ================================================================
