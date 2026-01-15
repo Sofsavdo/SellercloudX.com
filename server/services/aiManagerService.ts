@@ -34,12 +34,20 @@ export interface ProductInput {
   targetMarketplace: 'uzum' | 'wildberries' | 'yandex' | 'ozon';
 }
 
-export async function generateProductCard(input: ProductInput, partnerId: number) {
+export async function generateProductCard(input: ProductInput, partnerId: number | string) {
+  // Validate partnerId to prevent NaN
+  const partnerIdStr = String(partnerId);
+  
+  if (partnerIdStr === 'NaN' || partnerIdStr === 'null' || partnerIdStr === 'undefined' || !partnerIdStr.trim()) {
+    console.warn('⚠️ generateProductCard called with invalid partnerId:', partnerId);
+    return { success: false, error: 'Invalid partner ID' };
+  }
+
   console.log('🤖 AI: Generating product card...', input.name);
   
   // Task qo'shish
   const taskId = await createAITask({
-    partnerId,
+    partnerId: partnerIdStr,
     taskType: 'product_creation',
     marketplaceType: input.targetMarketplace,
     inputData: input,
