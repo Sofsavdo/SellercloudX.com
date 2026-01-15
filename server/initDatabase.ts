@@ -325,6 +325,22 @@ export async function initializeDatabaseTables() {
       );
     `);
     
+    // AI Cost Records table (for tracking AI usage costs)
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS ai_cost_records (
+        id TEXT PRIMARY KEY,
+        partner_id TEXT NOT NULL REFERENCES partners(id),
+        operation TEXT NOT NULL,
+        model TEXT NOT NULL,
+        tokens_used INTEGER,
+        images_generated INTEGER,
+        cost REAL NOT NULL DEFAULT 0,
+        tier TEXT NOT NULL DEFAULT 'free_starter',
+        metadata TEXT,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch())
+      );
+    `);
+    
     // Profit breakdown table
     sqlite.exec(`
       CREATE TABLE IF NOT EXISTS profit_breakdown (
