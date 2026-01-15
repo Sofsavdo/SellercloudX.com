@@ -972,7 +972,6 @@ async function getSalesHistory(productId: number | string) {
 
     const last7DaysRevenue = last7DaysData ? safeParseFloat(last7DaysData.revenue, 0) / 7 : (last7DaysSales * 100000);
     const last30DaysRevenue = last30DaysData ? safeParseFloat(last30DaysData.revenue, 0) / 30 : (last30DaysSales * 100000);
-    const last30DaysRevenue = last30DaysData ? parseFloat(last30DaysData.revenue.toString()) / 30 : (last30DaysSales * 100000);
 
     return {
       last7Days: {
