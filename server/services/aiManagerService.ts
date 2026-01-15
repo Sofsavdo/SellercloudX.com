@@ -99,58 +99,56 @@ MUHIM:
     const startTime = Date.now();
     let result: any;
     let tokensUsed = 0;
-    let aiModel = 'gpt-4-turbo-preview';
+    let aiModel = 'gpt-4o';
 
     try {
-      // Try Gemini Flash first (cheaper, faster, 1M token context)
-      if (geminiService.isEnabled()) {
-        const geminiResponse = await geminiService.generateText({
+      // Use Real AI Service with Emergent LLM Key
+      if (realAIService.isEnabled()) {
+        const response = await realAIService.generateText({
           prompt,
-          model: 'flash',
-          systemInstruction: 'Siz professional marketplace SEO mutaxassisisiz. JSON formatda javob bering.',
-          structuredOutput: true,
-          context: cachedRules || undefined,
-        });
-
-        result = JSON.parse(geminiResponse.text);
-        tokensUsed = geminiResponse.tokens.total;
-        aiModel = geminiResponse.model;
-      } else {
-        // Fallback to GPT-4
-        const response = await openai.chat.completions.create({
-          model: 'gpt-4-turbo-preview',
-          messages: [
-            {
-              role: 'system',
-              content: 'Siz professional marketplace SEO mutaxassisisiz. JSON formatda javob bering.',
-            },
-            {
-              role: 'user',
-              content: prompt,
-            },
-          ],
-          response_format: { type: 'json_object' },
+          systemMessage: 'Siz professional marketplace SEO mutaxassisisiz. JSON formatda javob bering.',
+          jsonMode: true,
           temperature: 0.7,
-          max_tokens: 2000,
         });
 
-        result = JSON.parse(response.choices[0].message.content || '{}');
-        tokensUsed = response.usage?.total_tokens || 0;
+        result = JSON.parse(response);
+        tokensUsed = Math.ceil(response.length / 4);
+        aiModel = 'gpt-4o';
+      } else {
+        // Fallback - use default values
+        console.warn('⚠️ AI Service not available, using defaults');
+        result = {
+          title: input.name,
+          description: input.description || 'Mahsulot tavsifi',
+          shortDescription: input.name.substring(0, 150),
+          keywords: input.name.split(' '),
+          bulletPoints: ['Sifatli mahsulot', 'Tez yetkazib berish'],
+          suggestedPrice: input.price || 100000,
+          priceRationale: 'Standart narx',
+          seoScore: 50,
+          seoIssues: ['AI xizmati mavjud emas'],
+          seoSuggestions: ['AI xizmatini yoqing'],
+          categoryPath: [input.category || 'Umumiy'],
+          tags: input.name.toLowerCase().split(' '),
+        };
       }
     } catch (error: any) {
       console.error('AI generation error:', error);
-      // Fallback to AI Cost Optimizer
-      const optimizedResponse = await aiCostOptimizer.processRequest({
-        task: 'product_card_creation',
-        prompt,
-        complexity: 'medium',
-        language: 'uz',
-        maxTokens: 2000,
-      });
-
-      result = JSON.parse(optimizedResponse.content || '{}');
-      tokensUsed = optimizedResponse.tokens;
-      aiModel = optimizedResponse.model;
+      // Fallback to basic card
+      result = {
+        title: input.name,
+        description: input.description || 'Mahsulot tavsifi',
+        shortDescription: input.name.substring(0, 150),
+        keywords: input.name.split(' '),
+        bulletPoints: ['Sifatli mahsulot'],
+        suggestedPrice: input.price || 100000,
+        priceRationale: 'Standart narx',
+        seoScore: 40,
+        seoIssues: ['AI xatolik: ' + error.message],
+        seoSuggestions: [],
+        categoryPath: ['Umumiy'],
+        tags: [],
+      };
     }
 
     const executionTime = Math.floor((Date.now() - startTime) / 1000);
