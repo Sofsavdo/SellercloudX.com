@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend API Testing for SellerCloudX Platform
-Tests all backend endpoints systematically including new features
+SellerCloudX NaN Bug Fix Verification Tests
+Tests specifically for NaN values in AI monitoring and database columns
+Focus on features mentioned in review request
 """
 
 import requests
 import json
 import sys
+import math
 from typing import Dict, Any, Optional
 
 # Configuration - Using the external URL from frontend/.env
 BASE_URL = "https://marketai-audit.preview.emergentagent.com"
-# Admin credentials from review request
-ADMIN_CREDENTIALS = {"username": "Medik", "password": "Medik9298"}
-# Use the correct partner credentials from review request
-PARTNER_CREDENTIALS = {"email": "partner@sellercloudx.com", "password": "partner123"}
+# Test credentials from review request
+TEST_CREDENTIALS = {"username": "testpartner", "password": "Test123!"}
+ADMIN_CREDENTIALS = {"username": "admin", "password": "admin123"}
 
 class Colors:
     GREEN = '\033[92m'
