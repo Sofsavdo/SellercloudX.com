@@ -405,7 +405,8 @@ class NaNBugTester:
         return 0 if nan_issues_count == 0 else 1
 
 if __name__ == "__main__":
-    tester = APITester()
-    # Run tests as specified in review request
-    exit_code = tester.run_review_request_tests()
+    import time
+    tester = NaNBugTester()
+    # Run NaN bug fix verification tests
+    exit_code = tester.run_nan_bug_tests()
     sys.exit(exit_code)
