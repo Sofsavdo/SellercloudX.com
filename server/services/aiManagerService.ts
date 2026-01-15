@@ -913,9 +913,22 @@ async function getCompetitorPrices(productName: string, marketplace: string) {
   }
 }
 
-async function getSalesHistory(productId: number) {
+async function getSalesHistory(productId: number | string) {
   // Real database queries for sales history
-  console.log('📊 Fetching real sales history for product:', productId);
+  const productIdStr = String(productId);
+  
+  // Validate productId
+  if (productIdStr === 'NaN' || productIdStr === 'null' || !productIdStr.trim()) {
+    console.warn('⚠️ getSalesHistory called with invalid productId');
+    return {
+      last7Days: { sales: 0, revenue: 0 },
+      last30Days: { sales: 0, revenue: 0 },
+      trend: 'stable',
+      averageRating: 4.5,
+    };
+  }
+
+  console.log('📊 Fetching real sales history for product:', productIdStr);
 
   try {
     // Get analytics data for the last 30 days
@@ -943,11 +956,22 @@ async function getSalesHistory(productId: number) {
       .from(analytics)
       .where(sql`${analytics.date} >= ${thirtyDaysAgo}`);
 
-    // Calculate sales per day averages
-    const last7DaysSales = last7DaysData ? Math.round(last7DaysData.orders / 7) : Math.floor(Math.random() * 10) + 5;
-    const last30DaysSales = last30DaysData ? Math.round(last30DaysData.orders / 30) : Math.floor(Math.random() * 15) + 10;
+    // Calculate sales per day averages with safe number parsing
+    const safeParseInt = (val: any, defaultVal: number) => {
+      const parsed = parseInt(String(val));
+      return isNaN(parsed) ? defaultVal : parsed;
+    };
+    
+    const safeParseFloat = (val: any, defaultVal: number) => {
+      const parsed = parseFloat(String(val));
+      return isNaN(parsed) ? defaultVal : parsed;
+    };
 
-    const last7DaysRevenue = last7DaysData ? parseFloat(last7DaysData.revenue.toString()) / 7 : (last7DaysSales * 100000);
+    const last7DaysSales = last7DaysData ? Math.round(safeParseInt(last7DaysData.orders, 0) / 7) : Math.floor(Math.random() * 10) + 5;
+    const last30DaysSales = last30DaysData ? Math.round(safeParseInt(last30DaysData.orders, 0) / 30) : Math.floor(Math.random() * 15) + 10;
+
+    const last7DaysRevenue = last7DaysData ? safeParseFloat(last7DaysData.revenue, 0) / 7 : (last7DaysSales * 100000);
+    const last30DaysRevenue = last30DaysData ? safeParseFloat(last30DaysData.revenue, 0) / 30 : (last30DaysSales * 100000);
     const last30DaysRevenue = last30DaysData ? parseFloat(last30DaysData.revenue.toString()) / 30 : (last30DaysSales * 100000);
 
     return {
