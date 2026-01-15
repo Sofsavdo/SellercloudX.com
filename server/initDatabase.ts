@@ -111,6 +111,8 @@ export async function initializeDatabaseTables() {
         monthly_fee INTEGER,
         profit_share_percent INTEGER,
         ai_enabled INTEGER DEFAULT 0,
+        ai_cards_used INTEGER DEFAULT 0,
+        promo_code TEXT UNIQUE,
         warehouse_space_kg INTEGER,
         anydesk_id TEXT,
         anydesk_password TEXT,
