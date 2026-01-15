@@ -385,9 +385,22 @@ JSON formatda javob bering:
         .where(eq(partners.aiEnabled, true))
         .where(eq(partners.approved, true));
 
+      // Validate we have partners to monitor
+      if (!activePartners || activePartners.length === 0) {
+        console.log('ℹ️ No active partners with AI enabled to monitor');
+        return;
+      }
+
       for (const partner of activePartners) {
+        // CRITICAL: Validate partner ID is a valid string (UUID), not NaN
+        if (!partner || !partner.id || typeof partner.id !== 'string' || partner.id.trim() === '') {
+          console.warn('⚠️ Skipping partner with invalid ID:', partner?.id);
+          continue;
+        }
+
         try {
-          await monitorPartnerProducts(parseInt(partner.id));
+          // Pass partner.id as STRING (UUID), NOT parseInt which causes NaN!
+          await monitorPartnerProducts(partner.id);
         } catch (error) {
           console.error(`Error monitoring partner ${partner.id}:`, error);
         }
