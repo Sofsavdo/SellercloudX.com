@@ -1,9 +1,11 @@
 // Google Gemini API Service
 // Gemini 2.5 Flash, Flash-Lite, Gemini 3 Pro integratsiyasi
+// Uses Emergent LLM Key for authentication
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+// Use Emergent LLM Key (works for Gemini too)
+const GEMINI_API_KEY = process.env.EMERGENT_LLM_KEY || process.env.GEMINI_API_KEY || '';
 const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
 
 export interface GeminiRequest {
