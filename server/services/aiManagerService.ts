@@ -671,16 +671,105 @@ function getMarketplaceRules(marketplace: string) {
 }
 
 async function createAITask(data: any) {
-  const [task] = await db.insert('ai_tasks').values(data).returning();
-  return task.id;
+  try {
+    // Validate partnerId
+    const partnerId = String(data.partnerId || '');
+    if (partnerId === 'NaN' || partnerId === 'null' || !partnerId.trim()) {
+      console.warn('⚠️ createAITask called with invalid partnerId');
+      return 'invalid-task-' + Date.now();
+    }
+
+    const { sqlite } = await import('../db');
+    const { nanoid } = await import('nanoid');
+    const taskId = nanoid();
+    
+    if (sqlite) {
+      const stmt = sqlite.prepare(`
+        INSERT INTO ai_tasks (id, partner_id, task_type, marketplace_type, status, input_data, created_at)
+        VALUES (?, ?, ?, ?, 'pending', ?, unixepoch())
+      `);
+      stmt.run(
+        taskId,
+        partnerId,
+        data.taskType || 'unknown',
+        data.marketplaceType || 'general',
+        JSON.stringify(data.inputData || {})
+      );
+    }
+    
+    return taskId;
+  } catch (error) {
+    console.error('Error creating AI task:', error);
+    return 'error-task-' + Date.now();
+  }
 }
 
-async function updateAITask(taskId: number, data: any) {
-  await db.update('ai_tasks').set(data).where({ id: taskId });
+async function updateAITask(taskId: string | number, data: any) {
+  try {
+    const { sqlite } = await import('../db');
+    if (sqlite) {
+      const updates: string[] = [];
+      const values: any[] = [];
+      
+      if (data.status) {
+        updates.push('status = ?');
+        values.push(data.status);
+      }
+      if (data.outputData) {
+        updates.push('output_data = ?');
+        values.push(JSON.stringify(data.outputData));
+      }
+      if (data.errorMessage) {
+        updates.push('error_message = ?');
+        values.push(data.errorMessage);
+      }
+      
+      if (updates.length > 0) {
+        values.push(String(taskId));
+        const stmt = sqlite.prepare(`UPDATE ai_tasks SET ${updates.join(', ')}, updated_at = unixepoch() WHERE id = ?`);
+        stmt.run(...values);
+      }
+    }
+  } catch (error) {
+    console.error('Error updating AI task:', error);
+  }
 }
 
 async function logAIAction(data: any) {
-  await db.insert('ai_actions_log').values(data);
+  try {
+    // Validate partnerId
+    const partnerId = String(data.partnerId || '');
+    if (partnerId === 'NaN' || partnerId === 'null' || !partnerId.trim()) {
+      console.warn('⚠️ logAIAction called with invalid partnerId');
+      return;
+    }
+
+    const { sqlite } = await import('../db');
+    if (sqlite) {
+      const stmt = sqlite.prepare(`
+        INSERT INTO ai_actions_log (
+          partner_id, marketplace_type, action_type, action_description,
+          before_state, after_state, impact_level, estimated_impact,
+          ai_reasoning, confidence_level, was_successful, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, unixepoch())
+      `);
+      stmt.run(
+        partnerId,
+        data.marketplaceType || 'general',
+        data.actionType || 'unknown',
+        data.actionDescription || '',
+        JSON.stringify(data.beforeState || {}),
+        JSON.stringify(data.afterState || {}),
+        data.impactLevel || 'low',
+        data.estimatedImpact || '',
+        data.aiReasoning || '',
+        data.confidenceLevel || 0,
+        data.wasSuccessful ? 1 : 0
+      );
+    }
+  } catch (error) {
+    console.error('Error logging AI action:', error);
+  }
 }
 
 function calculateOpenAICost(tokens: number, model: string): number {
