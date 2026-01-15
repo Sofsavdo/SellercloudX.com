@@ -443,7 +443,21 @@ Optimal narxni taklif qiling va JSON formatda javob bering:
 // 3. AI MONITORING & ISSUE DETECTION
 // ================================================================
 export async function monitorPartnerProducts(partnerId: number | string) {
+  // CRITICAL: Validate partnerId to prevent NaN issues
+  if (partnerId === null || partnerId === undefined) {
+    console.warn('⚠️ monitorPartnerProducts called with null/undefined partnerId');
+    return { issues: [], summary: 'Invalid partner ID (null)', productsChecked: 0, issuesFound: 0 };
+  }
+
+  // Convert to string and validate
   const partnerIdStr = String(partnerId);
+  
+  // Check for NaN or invalid string
+  if (partnerIdStr === 'NaN' || partnerIdStr === 'null' || partnerIdStr === 'undefined' || partnerIdStr.trim() === '') {
+    console.warn('⚠️ monitorPartnerProducts called with invalid partnerId:', partnerId);
+    return { issues: [], summary: 'Invalid partner ID', productsChecked: 0, issuesFound: 0 };
+  }
+
   console.log('🤖 AI: Monitoring partner products...', partnerIdStr);
 
   try {
