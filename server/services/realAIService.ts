@@ -1,8 +1,10 @@
 // @ts-nocheck
 // REAL AI SERVICE - Working AI Integration
-// Uses OpenAI SDK with proper API key
+// Supports: OpenAI API Key, Google Gemini API Key
+// Demo mode when no API key is available
 
 import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
@@ -10,18 +12,24 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
-// Get API key - try Emergent key first, then OpenAI key
-const API_KEY = process.env.OPENAI_API_KEY || process.env.EMERGENT_LLM_KEY || '';
+// API Keys
+const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
+const GEMINI_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || '';
 
-// Initialize OpenAI client
-const openai = API_KEY ? new OpenAI({
-  apiKey: API_KEY,
-}) : null;
+// Initialize clients
+const openai = OPENAI_KEY ? new OpenAI({ apiKey: OPENAI_KEY }) : null;
+const genAI = GEMINI_KEY ? new GoogleGenerativeAI(GEMINI_KEY) : null;
 
-if (API_KEY) {
-  console.log('✅ Real AI Service initialized');
+// Determine which AI provider to use
+const AI_PROVIDER = openai ? 'openai' : (genAI ? 'gemini' : 'demo');
+
+if (AI_PROVIDER === 'openai') {
+  console.log('✅ Real AI Service initialized with OpenAI');
+} else if (AI_PROVIDER === 'gemini') {
+  console.log('✅ Real AI Service initialized with Gemini');
 } else {
-  console.warn('⚠️ No AI API key found (OPENAI_API_KEY or EMERGENT_LLM_KEY)');
+  console.log('⚠️ AI Service running in DEMO mode (no API key found)');
+  console.log('   Set OPENAI_API_KEY or GEMINI_API_KEY for real AI');
 }
 
 // ========================================
@@ -37,56 +45,122 @@ export interface TextGenerationOptions {
 }
 
 export async function generateText(options: TextGenerationOptions): Promise<string> {
-  if (!openai) {
-    console.error('❌ AI Service not initialized');
-    // Return mock response for demo
-    return JSON.stringify({
-      title: "Demo mahsulot sarlavhasi",
-      description: "Bu demo tavsif. AI xizmati hozirda mavjud emas.",
-      shortDescription: "Demo qisqa tavsif",
-      keywords: ["demo", "test"],
-      bulletPoints: ["Demo xususiyat 1", "Demo xususiyat 2"],
-      seoScore: 50,
-      suggestedPrice: 100000,
-      categoryPath: ["Demo"]
-    });
+  const { prompt, systemMessage, maxTokens = 2000, temperature = 0.7, jsonMode = false } = options;
+
+  // Try OpenAI first
+  if (openai) {
+    try {
+      const messages: any[] = [];
+      if (systemMessage) {
+        messages.push({ role: 'system', content: systemMessage });
+      }
+      messages.push({ role: 'user', content: prompt });
+
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages,
+        max_tokens: maxTokens,
+        temperature,
+        response_format: jsonMode ? { type: 'json_object' } : undefined,
+      });
+
+      return response.choices[0]?.message?.content || '';
+    } catch (error: any) {
+      console.error('OpenAI Error:', error.message);
+      // Fall through to Gemini or demo
+    }
   }
 
-  try {
-    const messages: any[] = [];
-    
-    if (options.systemMessage) {
-      messages.push({ role: 'system', content: options.systemMessage });
+  // Try Gemini
+  if (genAI) {
+    try {
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-1.5-flash',
+        systemInstruction: systemMessage,
+      });
+
+      const result = await model.generateContent(prompt);
+      return result.response.text();
+    } catch (error: any) {
+      console.error('Gemini Error:', error.message);
+      // Fall through to demo
     }
-    messages.push({ role: 'user', content: options.prompt });
+  }
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages,
-      max_tokens: options.maxTokens || 2000,
-      temperature: options.temperature || 0.7,
-      response_format: options.jsonMode ? { type: 'json_object' } : undefined,
-    });
+  // Demo mode - return intelligent mock data
+  console.log('🎭 Using demo mode for text generation');
+  return generateDemoResponse(prompt, jsonMode);
+}
 
-    return response.choices[0]?.message?.content || '';
-  } catch (error: any) {
-    console.error('❌ AI Text Generation Error:', error.message);
-    
-    // Return mock response on error
-    if (options.jsonMode) {
+// ========================================
+// DEMO RESPONSE GENERATOR
+// ========================================
+
+function generateDemoResponse(prompt: string, jsonMode: boolean): string {
+  // Extract product name from prompt
+  const nameMatch = prompt.match(/MAHSULOT:\s*([^\n]+)/i);
+  const productName = nameMatch ? nameMatch[1].trim() : 'Demo Mahsulot';
+  
+  const priceMatch = prompt.match(/NARX:\s*(\d+)/);
+  const price = priceMatch ? parseInt(priceMatch[1]) : 100000;
+
+  if (jsonMode || prompt.includes('JSON')) {
+    // Product card response
+    if (prompt.toLowerCase().includes('kartochka') || prompt.toLowerCase().includes('card')) {
       return JSON.stringify({
-        title: "Xatolik - demo javob",
-        description: "AI xizmati vaqtinchalik ishlamayapti: " + error.message,
-        shortDescription: "Demo",
-        keywords: ["error"],
-        bulletPoints: ["AI xizmati mavjud emas"],
-        seoScore: 30,
-        suggestedPrice: 100000,
-        categoryPath: ["Umumiy"]
+        title: `${productName} - Sifatli mahsulot`,
+        description: `${productName} - yuqori sifatli mahsulot. O'zbekiston bo'ylab tez yetkazib berish. Rasmiy kafolat. Bu demo tavsif - haqiqiy AI uchun OPENAI_API_KEY yoki GEMINI_API_KEY qo'shing.`,
+        shortDescription: `${productName} - eng yaxshi narxda`,
+        keywords: productName.toLowerCase().split(' ').filter(w => w.length > 2),
+        bulletPoints: [
+          'Yuqori sifat',
+          'Tez yetkazib berish',
+          'Rasmiy kafolat',
+          'Qulay narx',
+          '24/7 qo\'llab-quvvatlash'
+        ],
+        seoScore: 65,
+        suggestedPrice: price,
+        categoryPath: ['Umumiy', 'Mahsulotlar'],
+        _demo: true,
+        _message: 'Bu demo javob. Haqiqiy AI uchun API key qo\'shing.'
       });
     }
-    throw error;
+
+    // Price optimization response
+    if (prompt.toLowerCase().includes('narx') || prompt.toLowerCase().includes('price')) {
+      const costMatch = prompt.match(/TANNARX:\s*(\d+)/);
+      const costPrice = costMatch ? parseInt(costMatch[1]) : price * 0.7;
+      
+      return JSON.stringify({
+        recommendedPrice: Math.round(price * 1.05),
+        minPrice: Math.round(costPrice * 1.15),
+        maxPrice: Math.round(price * 1.2),
+        reasoning: 'Demo tahlil: Hozirgi narx maqbul. Haqiqiy AI tahlili uchun API key qo\'shing.',
+        competitorAnalysis: 'Raqobatchilar tahlili demo rejimda mavjud emas.',
+        confidence: 50,
+        _demo: true
+      });
+    }
+
+    // Product scan response
+    if (prompt.toLowerCase().includes('rasm') || prompt.toLowerCase().includes('scan')) {
+      return JSON.stringify({
+        name: 'Demo mahsulot',
+        category: 'electronics',
+        description: 'Bu demo tahlil. Haqiqiy rasm tahlili uchun API key qo\'shing.',
+        brand: 'Unknown',
+        estimatedPrice: 500000,
+        specifications: ['Demo xususiyat 1', 'Demo xususiyat 2'],
+        keywords: ['demo', 'test', 'mahsulot'],
+        confidence: 30,
+        _demo: true
+      });
+    }
   }
+
+  // Default text response
+  return `Demo javob: ${productName} haqida ma'lumot. Haqiqiy AI javoblari uchun OPENAI_API_KEY yoki GEMINI_API_KEY environment variable qo'shing.`;
 }
 
 // ========================================
@@ -100,61 +174,62 @@ export interface ImageAnalysisOptions {
 }
 
 export async function analyzeImage(options: ImageAnalysisOptions): Promise<string> {
-  if (!openai) {
-    // Return mock response for demo
-    return JSON.stringify({
-      name: "Demo mahsulot",
-      category: "electronics",
-      description: "Bu demo tahlil. AI xizmati mavjud emas.",
-      brand: "Unknown",
-      estimatedPrice: 100000,
-      specifications: ["Demo spec 1", "Demo spec 2"],
-      keywords: ["demo", "product"],
-      confidence: 30
-    });
-  }
+  const { imageBuffer, prompt, jsonMode = true } = options;
 
-  try {
-    const base64Image = options.imageBuffer.toString('base64');
-    const mimeType = 'image/jpeg';
+  // Try OpenAI Vision
+  if (openai) {
+    try {
+      const base64Image = imageBuffer.toString('base64');
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: options.prompt },
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:${mimeType};base64,${base64Image}`,
-                detail: 'high'
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: prompt },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:image/jpeg;base64,${base64Image}`,
+                  detail: 'high'
+                }
               }
-            }
-          ]
-        }
-      ],
-      max_tokens: 2000,
-      response_format: options.jsonMode ? { type: 'json_object' } : undefined,
-    });
+            ]
+          }
+        ],
+        max_tokens: 2000,
+        response_format: jsonMode ? { type: 'json_object' } : undefined,
+      });
 
-    return response.choices[0]?.message?.content || '';
-  } catch (error: any) {
-    console.error('❌ AI Image Analysis Error:', error.message);
-    
-    // Return mock response on error
-    return JSON.stringify({
-      name: "Rasm tahlil qilinmadi",
-      category: "unknown",
-      description: "AI xatolik: " + error.message,
-      brand: "Unknown",
-      estimatedPrice: 100000,
-      specifications: [],
-      keywords: [],
-      confidence: 0
-    });
+      return response.choices[0]?.message?.content || '';
+    } catch (error: any) {
+      console.error('OpenAI Vision Error:', error.message);
+    }
   }
+
+  // Try Gemini Vision
+  if (genAI) {
+    try {
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      
+      const imagePart = {
+        inlineData: {
+          data: imageBuffer.toString('base64'),
+          mimeType: 'image/jpeg'
+        }
+      };
+
+      const result = await model.generateContent([prompt, imagePart]);
+      return result.response.text();
+    } catch (error: any) {
+      console.error('Gemini Vision Error:', error.message);
+    }
+  }
+
+  // Demo mode
+  console.log('🎭 Using demo mode for image analysis');
+  return generateDemoResponse(prompt, true);
 }
 
 // ========================================
@@ -166,7 +241,6 @@ export interface ProductCardInput {
   category?: string;
   description?: string;
   price?: number;
-  imageUrl?: string;
   marketplace: 'uzum' | 'wildberries' | 'yandex' | 'ozon';
 }
 
@@ -179,29 +253,30 @@ export interface ProductCardOutput {
   seoScore: number;
   suggestedPrice: number;
   categoryPath: string[];
+  _demo?: boolean;
 }
 
 export async function generateProductCard(input: ProductCardInput): Promise<ProductCardOutput> {
   const marketplaceRules: Record<string, string> = {
-    uzum: 'Uzum Market: O\'zbek tilida, 80 belgigacha sarlavha, emoji yo\'q',
-    wildberries: 'Wildberries: Rus tilida, SEO kalit so\'zlar muhim, 60 belgigacha sarlavha',
-    yandex: 'Yandex Market: Rus tilida, texnik xususiyatlar muhim',
-    ozon: 'Ozon: Rus tilida, batafsil tavsif, rich content',
+    uzum: "Uzum Market: O'zbek tilida, 80 belgigacha sarlavha",
+    wildberries: 'Wildberries: Rus tilida, SEO kalit so\'zlar muhim',
+    yandex: 'Yandex Market: Rus tilida, texnik xususiyatlar',
+    ozon: 'Ozon: Rus tilida, batafsil tavsif',
   };
 
   const prompt = `Sen professional marketplace SEO mutaxassisisan.
 
 MAHSULOT: ${input.name}
 KATEGORIYA: ${input.category || 'umumiy'}
-TAVSIF: ${input.description || 'yo\'q'}
-NARX: ${input.price || 'belgilanmagan'} so'm
+TAVSIF: ${input.description || "yo'q"}
+NARX: ${input.price || 100000} so'm
 MARKETPLACE: ${input.marketplace}
 QOIDALAR: ${marketplaceRules[input.marketplace]}
 
 Quyidagi JSON formatda professional mahsulot kartochkasi yarat:
 
 {
-  "title": "SEO-optimizatsiya qilingan sarlavha (marketplace qoidalariga mos)",
+  "title": "SEO-optimizatsiya qilingan sarlavha",
   "description": "To'liq SEO tavsif (300-500 so'z)",
   "shortDescription": "Qisqa tavsif (150 belgi)",
   "keywords": ["kalit1", "kalit2", "...10 tagacha"],
@@ -209,9 +284,7 @@ Quyidagi JSON formatda professional mahsulot kartochkasi yarat:
   "seoScore": 85,
   "suggestedPrice": ${input.price || 100000},
   "categoryPath": ["Kategoriya", "Subkategoriya"]
-}
-
-Faqat JSON qaytar, boshqa hech narsa yozma.`;
+}`;
 
   const response = await generateText({
     prompt,
@@ -228,22 +301,23 @@ Faqat JSON qaytar, boshqa hech narsa yozma.`;
       return JSON.parse(jsonMatch[0]);
     }
     
-    // Return default card
+    // Return default
     return {
       title: input.name,
       description: input.description || 'Mahsulot tavsifi',
       shortDescription: input.name.substring(0, 150),
       keywords: input.name.toLowerCase().split(' '),
-      bulletPoints: ['Sifatli mahsulot', 'Tez yetkazib berish'],
+      bulletPoints: ['Sifatli mahsulot'],
       seoScore: 50,
       suggestedPrice: input.price || 100000,
       categoryPath: [input.category || 'Umumiy'],
+      _demo: true,
     };
   }
 }
 
 // ========================================
-// PRODUCT SCANNER (Image to Product)
+// PRODUCT SCANNER
 // ========================================
 
 export interface ScanResult {
@@ -255,6 +329,7 @@ export interface ScanResult {
   specifications: string[];
   keywords: string[];
   confidence: number;
+  _demo?: boolean;
 }
 
 export async function scanProduct(imageBuffer: Buffer): Promise<ScanResult> {
@@ -264,18 +339,12 @@ export async function scanProduct(imageBuffer: Buffer): Promise<ScanResult> {
   "name": "Mahsulot nomi (O'zbek tilida)",
   "category": "Kategoriya (electronics, clothing, home, beauty, food, other)",
   "description": "Batafsil tavsif (100-200 so'z)",
-  "brand": "Brend nomi (agar aniq bo'lsa)",
+  "brand": "Brend nomi",
   "estimatedPrice": 100000,
-  "specifications": ["Xususiyat 1", "Xususiyat 2", "Xususiyat 3"],
-  "keywords": ["kalit1", "kalit2", "kalit3"],
+  "specifications": ["Xususiyat 1", "Xususiyat 2"],
+  "keywords": ["kalit1", "kalit2"],
   "confidence": 85
-}
-
-MUHIM:
-- Mahsulotni sinchiklab tahlil qiling
-- O'zbekiston bozori uchun narx taxmin qiling (so'mda)
-- Agar aniqlay olmasangiz, confidence past bo'lsin
-- Faqat JSON qaytar`;
+}`;
 
   const response = await analyzeImage({
     imageBuffer,
@@ -291,16 +360,16 @@ MUHIM:
       return JSON.parse(jsonMatch[0]);
     }
     
-    // Return default result
     return {
       name: "Noma'lum mahsulot",
-      category: "other",
-      description: "Mahsulotni aniqlash imkoni bo'lmadi",
-      brand: "Unknown",
+      category: 'other',
+      description: 'Mahsulotni aniqlash imkoni bo\'lmadi',
+      brand: 'Unknown',
       estimatedPrice: 100000,
       specifications: [],
       keywords: [],
-      confidence: 0
+      confidence: 0,
+      _demo: true,
     };
   }
 }
@@ -324,6 +393,7 @@ export interface PriceOptimizationResult {
   reasoning: string;
   competitorAnalysis: string;
   confidence: number;
+  _demo?: boolean;
 }
 
 export async function optimizePrice(input: PriceOptimizationInput): Promise<PriceOptimizationResult> {
@@ -342,8 +412,8 @@ Quyidagi JSON formatda optimal narx tavsiyasi ber:
 
 {
   "recommendedPrice": ${input.currentPrice},
-  "minPrice": ${Math.round(input.costPrice * 1.1)},
-  "maxPrice": ${Math.round(input.currentPrice * 1.3)},
+  "minPrice": ${Math.round(input.costPrice * 1.15)},
+  "maxPrice": ${Math.round(input.currentPrice * 1.2)},
   "reasoning": "Narx strategiyasi tushuntirilishi",
   "competitorAnalysis": "Raqobatchilar tahlili",
   "confidence": 80
@@ -358,14 +428,14 @@ Quyidagi JSON formatda optimal narx tavsiyasi ber:
   try {
     return JSON.parse(response);
   } catch {
-    // Return calculated default
     return {
       recommendedPrice: input.currentPrice,
       minPrice: Math.round(input.costPrice * 1.15),
       maxPrice: Math.round(input.currentPrice * 1.2),
-      reasoning: "Standart foyda marjasi asosida",
-      competitorAnalysis: "Tahlil mavjud emas",
-      confidence: 50
+      reasoning: 'Demo tahlil',
+      competitorAnalysis: 'Mavjud emas',
+      confidence: 50,
+      _demo: true,
     };
   }
 }
@@ -375,15 +445,20 @@ Quyidagi JSON formatda optimal narx tavsiyasi ber:
 // ========================================
 
 export function isEnabled(): boolean {
-  return !!openai;
+  return AI_PROVIDER !== 'demo';
 }
 
-export function getStatus(): { enabled: boolean; provider: string; model: string } {
+export function getStatus(): { enabled: boolean; provider: string; model: string; demo: boolean } {
   return {
-    enabled: !!openai,
-    provider: openai ? 'OpenAI' : 'Demo Mode',
-    model: 'gpt-4o',
+    enabled: AI_PROVIDER !== 'demo',
+    provider: AI_PROVIDER === 'openai' ? 'OpenAI' : (AI_PROVIDER === 'gemini' ? 'Google Gemini' : 'Demo Mode'),
+    model: AI_PROVIDER === 'openai' ? 'gpt-4o' : (AI_PROVIDER === 'gemini' ? 'gemini-1.5-flash' : 'demo'),
+    demo: AI_PROVIDER === 'demo',
   };
+}
+
+export function getProvider(): string {
+  return AI_PROVIDER;
 }
 
 // ========================================
@@ -398,6 +473,7 @@ export const realAIService = {
   optimizePrice,
   isEnabled,
   getStatus,
+  getProvider,
 };
 
 export default realAIService;
