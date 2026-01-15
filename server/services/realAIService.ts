@@ -5,6 +5,10 @@
 import OpenAI from 'openai';
 import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 // Initialize OpenAI with Emergent LLM Key
 const EMERGENT_KEY = process.env.EMERGENT_LLM_KEY || '';
@@ -13,7 +17,11 @@ const openai = EMERGENT_KEY ? new OpenAI({
   apiKey: EMERGENT_KEY,
 }) : null;
 
-console.log(EMERGENT_KEY ? '✅ Real AI Service initialized with Emergent LLM Key' : '⚠️ No AI key found');
+if (EMERGENT_KEY) {
+  console.log('✅ Real AI Service initialized with Emergent LLM Key');
+} else {
+  console.warn('⚠️ EMERGENT_LLM_KEY not found in environment');
+}
 
 // ========================================
 // TEXT GENERATION
