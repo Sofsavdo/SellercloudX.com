@@ -329,17 +329,31 @@ MUHIM:
 // 2. AI PRICE OPTIMIZER
 // ================================================================
 export async function optimizePrice(
-  partnerId: number,
-  productId: number,
+  partnerId: number | string,
+  productId: number | string,
   marketplaceType: string
 ) {
-  console.log('🤖 AI: Optimizing price...');
+  // Validate inputs to prevent NaN
+  const partnerIdStr = String(partnerId);
+  const productIdStr = String(productId);
+  
+  if (partnerIdStr === 'NaN' || partnerIdStr === 'null' || partnerIdStr === 'undefined' || !partnerIdStr.trim()) {
+    console.warn('⚠️ optimizePrice called with invalid partnerId:', partnerId);
+    return { success: false, error: 'Invalid partner ID' };
+  }
+  
+  if (productIdStr === 'NaN' || productIdStr === 'null' || productIdStr === 'undefined' || !productIdStr.trim()) {
+    console.warn('⚠️ optimizePrice called with invalid productId:', productId);
+    return { success: false, error: 'Invalid product ID' };
+  }
+
+  console.log('🤖 AI: Optimizing price for product:', productIdStr);
 
   const taskId = await createAITask({
-    partnerId,
+    partnerId: partnerIdStr,
     taskType: 'price_optimization',
-    marketplaceType,
-    inputData: { productId },
+    marketplaceType: marketplaceType || 'general',
+    inputData: { productId: productIdStr },
   });
 
   try {
@@ -348,7 +362,7 @@ export async function optimizePrice(
     let product: any = null;
     if (sqlite) {
       const stmt = sqlite.prepare('SELECT * FROM marketplace_products WHERE id = ? LIMIT 1');
-      product = stmt.get(productId.toString());
+      product = stmt.get(productIdStr);
     } else {
       // Fallback: use Drizzle ORM if SQLite not available
       const { marketplaceProducts } = await import('@shared/schema');
@@ -356,7 +370,7 @@ export async function optimizePrice(
       const [p] = await db
         .select()
         .from(marketplaceProducts)
-        .where(eq(marketplaceProducts.id, productId.toString()))
+        .where(eq(marketplaceProducts.id, productIdStr))
         .limit(1);
       product = p;
     }
@@ -366,10 +380,10 @@ export async function optimizePrice(
     }
 
     // Get competitor data (mock - real implementation would scrape)
-    const competitorPrices = await getCompetitorPrices(product.title, marketplaceType);
+    const competitorPrices = await getCompetitorPrices(product.title || 'Unknown', marketplaceType);
 
     // Get sales history
-    const salesHistory = await getSalesHistory(productId);
+    const salesHistory = await getSalesHistory(productIdStr);
 
     // AI analysis
     const prompt = `
