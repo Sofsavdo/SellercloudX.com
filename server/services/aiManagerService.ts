@@ -2,25 +2,17 @@
 // server/services/aiManagerService.ts
 // AI AUTONOMOUS MANAGER - Core Service
 
-import OpenAI from 'openai';
 import { db } from '../db';
 import { calculateOptimalPrice } from './priceCalculationService';
 import { sql } from 'drizzle-orm';
 import { analytics } from '../../shared/schema';
 import { wsManager } from '../websocket';
-import { imageAIService } from './imageAIService';
-import { geminiService } from './geminiService';
+import { realAIService } from './realAIService';
 import { contextCacheService } from './contextCacheService';
-import { googleSearchService } from './googleSearchService';
-import { aiCostOptimizer } from './aiCostOptimizer';
-import { videoGenerationService } from './videoGenerationService';
 
 // ================================================================
 // CONFIGURATION
 // ================================================================
-const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
-
-const openai = new OpenAI({ apiKey: OPENAI_KEY });
 
 // ================================================================
 // 1. AI PRODUCT CARD GENERATOR
