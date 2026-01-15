@@ -7,6 +7,7 @@ import { eq, and } from 'drizzle-orm';
 import { generateProductCard, optimizePrice, monitorPartnerProducts, autoUploadToMarketplace } from './aiManagerService';
 import { wsManager } from '../websocket';
 import { geminiService } from './geminiService';
+import emergentAI from './emergentAI';
 
 // ================================================================
 // AUTONOMOUS AI MANAGER - Background Worker
