@@ -214,9 +214,9 @@ router.get('/status', asyncHandler(async (req: Request, res: Response) => {
   res.json({
     success: true,
     ai: status,
-    message: status.enabled 
-      ? `AI xizmati ishlayapti (${status.provider})` 
-      : 'AI xizmati o\'chirilgan'
+    message: status.demo 
+      ? 'AI demo rejimda ishlayapti. Haqiqiy AI uchun OPENAI_API_KEY yoki GEMINI_API_KEY qo\'shing.'
+      : `AI xizmati ishlayapti (${status.provider})`
   });
 }));
 
