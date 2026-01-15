@@ -218,10 +218,10 @@ class AutonomousAIManager {
                     name: product.name,
                     category: product.category || 'general',
                     description: product.description || '',
-                    price: parseFloat(product.price.toString()),
+                    price: parseFloat(product.price?.toString() || '0') || 0,
                     images: [],
                     targetMarketplace: integration.marketplace as any
-                  }, parseInt(partner.id));
+                  }, partner.id); // Pass as STRING, not parseInt!
                   
                   console.log(`✅ Card created for ${product.name}`);
                 } catch (error) {
