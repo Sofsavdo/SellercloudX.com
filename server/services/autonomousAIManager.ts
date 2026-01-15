@@ -360,11 +360,18 @@ JSON formatda javob bering:
       }
 
       for (const product of productsToOptimize) {
+        // Validate product data before processing
+        if (!product || !product.partner_id || !product.id) {
+          console.warn('⚠️ Skipping product with invalid data');
+          continue;
+        }
+
         try {
+          // Pass IDs as strings (UUIDs), NOT parseInt!
           await optimizePrice(
-            parseInt(product.partner_id),
-            parseInt(product.id),
-            product.marketplace_type
+            product.partner_id,
+            product.id,
+            product.marketplace_type || 'general'
           );
         } catch (error) {
           console.error(`Error optimizing price for product ${product.id}:`, error);
