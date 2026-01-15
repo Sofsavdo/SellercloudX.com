@@ -10,7 +10,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Configuration - Using the external URL from frontend/.env
-BASE_URL = "https://aiseller-1.preview.emergentagent.com"
+BASE_URL = "https://marketai-audit.preview.emergentagent.com"
 # Admin credentials from review request
 ADMIN_CREDENTIALS = {"username": "Medik", "password": "Medik9298"}
 # Use the correct partner credentials from review request
