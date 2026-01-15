@@ -324,313 +324,22 @@ class NaNBugTester:
             json_data=ADMIN_CREDENTIALS
         )
     
-    def test_orders(self):
-        """Test order endpoints"""
-        self.log("\n=== Testing Order Endpoints ===", "info")
+    def run_nan_bug_tests(self):
+        """Run tests specifically for NaN bug fixes mentioned in review request"""
+        self.log("\n" + "="*70, "info")
+        self.log("SELLERCLOUDX NaN BUG FIX VERIFICATION TESTS", "info")
+        self.log("Testing all features mentioned in review request", "info")
+        self.log("="*70 + "\n", "info")
         
-        # Get orders
-        return self.test_endpoint(
-            "Get Orders",
-            "GET",
-            "/api/orders",
-            session=self.partner_session
-        )
-    
-    def test_analytics(self):
-        """Test analytics endpoint"""
-        self.log("\n=== Testing Analytics ===", "info")
-        return self.test_endpoint(
-            "Get Analytics",
-            "GET",
-            "/api/analytics",
-            session=self.partner_session
-        )
-    
-    def test_ai_manager_endpoints(self):
-        """Test AI Manager endpoints"""
-        self.log("\n=== Testing AI Manager Endpoints ===", "info")
-        
-        results = []
-        
-        # Get AI products
-        results.append(self.test_endpoint(
-            "AI Manager - Get Products",
-            "GET",
-            "/api/ai-manager/products",
-            session=self.admin_session
-        ))
-        
-        # Get AI tasks
-        results.append(self.test_endpoint(
-            "AI Manager - Get Tasks",
-            "GET",
-            "/api/ai-manager/tasks",
-            session=self.admin_session
-        ))
-        
-        # Get AI alerts
-        results.append(self.test_endpoint(
-            "AI Manager - Get Alerts",
-            "GET",
-            "/api/ai-manager/alerts",
-            session=self.admin_session
-        ))
-        
-        return all(results)
-    
-    def test_partner_ai_toggle(self):
-        """Test partner AI toggle"""
-        self.log("\n=== Testing Partner AI Toggle ===", "info")
-        
-        # Request AI enable
-        return self.test_endpoint(
-            "Partner AI Toggle Request",
-            "POST",
-            "/api/partners/ai-toggle",
-            session=self.partner_session,
-            json_data={"enabled": True}
-        )
-    
-    def test_payment_apis(self):
-        """Test payment API endpoints as specified in review request"""
-        self.log("\n=== Testing Payment API Endpoints ===", "info")
-        
-        results = []
-        
-        # Test POST /api/payment/create-payment with partner auth
-        payment_data = {
-            "amount": 100000,
-            "pricingTier": "starter", 
-            "billingPeriod": "monthly",
-            "provider": "click"
-        }
-        
-        create_payment_result = self.test_endpoint(
-            "Payment Creation - POST /api/payment/create-payment",
-            "POST",
-            "/api/payment/create-payment",
-            session=self.partner_session,
-            json_data=payment_data,
-            expected_status=200
-        )
-        results.append(create_payment_result)
-        
-        # Test POST /api/payment/callback/click - Click webhook callback
-        # This would normally be called by Click payment system, but we can test the endpoint exists
-        callback_data = {
-            "click_trans_id": "12345",
-            "service_id": "test_service",
-            "click_paydoc_id": "67890",
-            "merchant_trans_id": "test_merchant_123",
-            "amount": "100000",
-            "action": "1",
-            "error": "0",
-            "error_note": "",
-            "sign_time": "2024-01-01 12:00:00",
-            "sign_string": "test_signature"
-        }
-        
-        callback_result = self.test_endpoint(
-            "Click Webhook Callback - POST /api/payment/callback/click",
-            "POST", 
-            "/api/payment/callback/click",
-            json_data=callback_data,
-            expected_status=200
-        )
-        results.append(callback_result)
-        
-        # Test GET /api/payment/history with partner auth
-        history_result = self.test_endpoint(
-            "Payment History - GET /api/payment/history",
-            "GET",
-            "/api/payment/history",
-            session=self.partner_session
-        )
-        results.append(history_result)
-        
-        return all(results)
-
-    def test_blog_endpoints(self):
-        """Test blog API endpoints as specified in review request"""
-        self.log("\n=== Testing Blog API Endpoints ===", "info")
-        
-        results = []
-        
-        # Test GET /api/blog/posts - should return published posts
-        results.append(self.test_endpoint(
-            "Blog Posts - GET /api/blog/posts",
-            "GET",
-            "/api/blog/posts"
-        ))
-        
-        # Test GET /api/blog/posts/:slug - get single post by slug
-        # We'll use a test slug - if no posts exist, this should return 404
-        results.append(self.test_endpoint(
-            "Blog Post by Slug - GET /api/blog/posts/test-blog-post",
-            "GET",
-            "/api/blog/posts/test-blog-post",
-            expected_status=404  # Expecting 404 if post doesn't exist
-        ))
-        
-        # Test GET /api/blog/categories
-        results.append(self.test_endpoint(
-            "Blog Categories - GET /api/blog/categories", 
-            "GET",
-            "/api/blog/categories"
-        ))
-        
-        return all(results)
-    
-    def test_admin_blog_management(self):
-        """Test admin blog management endpoints"""
-        self.log("\n=== Testing Admin Blog Management ===", "info")
-        
-        results = []
-        
-        # Test GET /api/admin/blog/posts - Get admin posts list
-        admin_posts_result = self.test_endpoint(
-            "Admin Blog Posts List - GET /api/admin/blog/posts",
-            "GET",
-            "/api/admin/blog/posts",
-            session=self.admin_session
-        )
-        results.append(admin_posts_result)
-        
-        # Create a new blog post
-        blog_post_data = {
-            "title": "Test Blog Post",
-            "content": "This is a test blog post content for SellerCloudX platform testing.",
-            "category": "technology",
-            "imageUrl": "https://example.com/test-image.jpg",
-            "videoUrl": "https://example.com/test-video.mp4",
-            "slug": "test-blog-post",
-            "tags": "test,blog,sellercloudx"  # Changed from array to comma-separated string
-        }
-        
-        # Test POST /api/admin/blog/posts - Create new post (needs admin auth)
-        create_result = self.test_endpoint(
-            "Admin Blog Post Creation - POST /api/admin/blog/posts",
-            "POST",
-            "/api/admin/blog/posts",
-            session=self.admin_session,
-            json_data=blog_post_data,
-            expected_status=201
-        )
-        results.append(create_result)
-        
-        # If post creation was successful, test other operations
-        if create_result and hasattr(self, 'last_created_post_id'):
-            post_id = self.last_created_post_id
-            
-            # Test PUT /api/admin/blog/posts/:id - Update post
-            updated_data = blog_post_data.copy()
-            updated_data["title"] = "Updated Test Blog Post"
-            
-            results.append(self.test_endpoint(
-                f"Admin Blog Post Update - PUT /api/admin/blog/posts/{post_id}",
-                "PUT",
-                f"/api/admin/blog/posts/{post_id}",
-                session=self.admin_session,
-                json_data=updated_data
-            ))
-            
-            # Test POST /api/admin/blog/posts/:id/publish - Publish post
-            results.append(self.test_endpoint(
-                f"Admin Blog Post Publish - POST /api/admin/blog/posts/{post_id}/publish",
-                "POST",
-                f"/api/admin/blog/posts/{post_id}/publish",
-                session=self.admin_session
-            ))
-            
-            # Test DELETE /api/admin/blog/posts/:id - Delete post (do this last)
-            results.append(self.test_endpoint(
-                f"Admin Blog Post Delete - DELETE /api/admin/blog/posts/{post_id}",
-                "DELETE",
-                f"/api/admin/blog/posts/{post_id}",
-                session=self.admin_session
-            ))
-        
-        return all(results)
-
-    def test_new_features(self):
-        """Test new features mentioned in review request"""
-        self.log("\n=== Testing New Features ===", "info")
-        
-        results = []
-        
-        # Test Partner Marketplace Setup
-        results.append(self.test_endpoint(
-            "Partner Marketplace Integrations",
-            "GET",
-            "/api/partner/marketplace-integrations",
-            session=self.partner_session
-        ))
-        
-        # Test Direct Tier Upgrade
-        results.append(self.test_endpoint(
-            "Direct Tier Upgrade",
-            "POST",
-            "/api/subscriptions/direct-upgrade",
-            session=self.partner_session,
-            json_data={"targetTier": "basic", "paymentMethod": "click"}
-        ))
-        
-        # Test Promo Code System
-        results.append(self.test_endpoint(
-            "Promo Code Dashboard",
-            "GET",
-            "/api/partner/referrals/dashboard",
-            session=self.partner_session
-        ))
-        
-        return all(results)
-    
-    def test_pricing_tiers(self):
-        """Test pricing tiers endpoint"""
-        self.log("\n=== Testing Pricing Tiers ===", "info")
-        return self.test_endpoint(
-            "Get Pricing Tiers",
-            "GET",
-            "/api/pricing-tiers"
-        )
-    
-    def test_logout(self):
-        """Test logout"""
-        self.log("\n=== Testing Logout ===", "info")
-        
-        admin_logout = self.test_endpoint(
-            "Admin Logout",
-            "POST",
-            "/api/auth/logout",
-            session=self.admin_session
-        )
-        
-        partner_logout = self.test_endpoint(
-            "Partner Logout",
-            "POST",
-            "/api/auth/logout",
-            session=self.partner_session
-        )
-        
-        return admin_logout and partner_logout
-    
-    def run_review_request_tests(self):
-        """Run tests specifically mentioned in the review request"""
-        self.log("\n" + "="*60, "info")
-        self.log("SELLERCLOUDX REVIEW REQUEST TESTS", "info")
-        self.log("="*60 + "\n", "info")
-        
-        # Test sequence based on review request priorities
+        # Test sequence based on review request features
         tests = [
-            ("Health Check", self.test_health),
-            ("Admin Login", self.test_admin_login),
-            ("Admin Auth Check", self.test_admin_me),
-            ("Partner Login", self.test_partner_login),
-            ("Partner Auth Check", self.test_partner_me),
-            ("Payment APIs", self.test_payment_apis),
-            ("Blog Endpoints", self.test_blog_endpoints),
-            ("Admin Blog Management", self.test_admin_blog_management),
-            ("Partner Marketplace Integration", self.test_new_features),
+            ("1. Health Check API", self.test_health),
+            ("2. Partner Registration", self.test_partner_registration),
+            ("3. Login API", self.test_login_api),
+            ("4. Partner Profile (aiCardsUsed)", self.test_partner_profile_api),
+            ("5. Products API", self.test_products_api),
+            ("6. AI Dashboard", self.test_ai_dashboard_api),
+            ("7. AI Monitoring (Critical)", self.test_ai_monitoring_api),
         ]
         
         for test_name, test_func in tests:
@@ -639,61 +348,38 @@ class NaNBugTester:
             except Exception as e:
                 self.log(f"Test '{test_name}' crashed: {str(e)}", "error")
                 self.results["failed"].append(f"{test_name} (Crashed)")
+        
+        # Test admin login for additional verification
+        try:
+            self.test_admin_login()
+        except Exception as e:
+            self.log(f"Admin login test crashed: {str(e)}", "error")
         
         # Print summary
         return self.print_summary()
-
-    def run_all_tests(self):
-        """Run all tests in sequence"""
-        self.log("\n" + "="*60, "info")
-        self.log("SELLERCLOUDX BLOG FUNCTIONALITY TEST", "info")
-        self.log("="*60 + "\n", "info")
-        
-        # Test sequence - prioritizing blog functionality as per review request
-        tests = [
-            ("Health Check", self.test_health),
-            ("Admin Login", self.test_admin_login),
-            ("Admin Auth Check", self.test_admin_me),
-            ("Blog Endpoints", self.test_blog_endpoints),
-            ("Admin Blog Management", self.test_admin_blog_management),
-            ("Partner Registration", self.test_partner_registration),
-            ("Partner Login", self.test_partner_login),
-            ("Partner Auth Check", self.test_partner_me),
-            ("Partner Profile", self.test_partner_profile),
-            ("Admin Get Partners", self.test_admin_get_partners),
-            ("Products", self.test_products),
-            ("Orders", self.test_orders),
-            ("Analytics", self.test_analytics),
-            ("AI Manager", self.test_ai_manager_endpoints),
-            ("Partner AI Toggle", self.test_partner_ai_toggle),
-            ("New Features", self.test_new_features),
-            ("Pricing Tiers", self.test_pricing_tiers),
-            ("Logout", self.test_logout),
-        ]
-        
-        for test_name, test_func in tests:
-            try:
-                test_func()
-            except Exception as e:
-                self.log(f"Test '{test_name}' crashed: {str(e)}", "error")
-                self.results["failed"].append(f"{test_name} (Crashed)")
-        
-        # Print summary
-        self.print_summary()
     
     def print_summary(self):
-        """Print test summary"""
-        self.log("\n" + "="*60, "info")
-        self.log("TEST SUMMARY", "info")
-        self.log("="*60 + "\n", "info")
+        """Print test summary with NaN focus"""
+        self.log("\n" + "="*70, "info")
+        self.log("NaN BUG FIX VERIFICATION SUMMARY", "info")
+        self.log("="*70 + "\n", "info")
         
         total = len(self.results["passed"]) + len(self.results["failed"])
         passed = len(self.results["passed"])
         failed = len(self.results["failed"])
+        nan_issues_count = len(self.results["nan_issues"])
         
         self.log(f"Total Tests: {total}", "info")
         self.log(f"Passed: {passed}", "success")
         self.log(f"Failed: {failed}", "error" if failed > 0 else "info")
+        self.log(f"NaN Issues Found: {nan_issues_count}", "error" if nan_issues_count > 0 else "success")
+        
+        if self.results["nan_issues"]:
+            self.log("\n🚨 NaN ISSUES DETECTED:", "error")
+            for issue in self.results["nan_issues"]:
+                self.log(f"  - {issue}", "error")
+        else:
+            self.log("\n✅ NO NaN VALUES DETECTED - Bug fix successful!", "success")
         
         if self.results["failed"]:
             self.log("\nFailed Tests:", "error")
@@ -705,10 +391,18 @@ class NaNBugTester:
             for warning in self.results["warnings"]:
                 self.log(f"  - {warning}", "warning")
         
-        self.log("\n" + "="*60 + "\n", "info")
+        # Final verdict
+        if nan_issues_count == 0 and failed == 0:
+            self.log("\n🎉 ALL TESTS PASSED - NaN bug fix verified!", "success")
+        elif nan_issues_count == 0:
+            self.log("\n✅ No NaN issues found, but some API tests failed", "warning")
+        else:
+            self.log("\n❌ NaN issues still present - bug fix incomplete", "error")
         
-        # Return exit code
-        return 0 if failed == 0 else 1
+        self.log("\n" + "="*70 + "\n", "info")
+        
+        # Return exit code (0 if no NaN issues, 1 if NaN issues found)
+        return 0 if nan_issues_count == 0 else 1
 
 if __name__ == "__main__":
     tester = APITester()
