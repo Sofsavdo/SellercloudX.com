@@ -144,34 +144,13 @@ class NaNBugTester:
             return False
     
     def test_health(self):
-        """Test health check endpoint"""
-        self.log("\n=== Testing Health Check ===", "info")
-        return self.test_endpoint("Health Check", "GET", "/api/health")
-    
-    def test_admin_login(self):
-        """Test admin login"""
-        self.log("\n=== Testing Admin Authentication ===", "info")
-        result = self.test_endpoint(
-            "Admin Login",
-            "POST",
-            "/api/auth/login",
-            session=self.admin_session,
-            json_data=ADMIN_CREDENTIALS
-        )
-        return result
-    
-    def test_admin_me(self):
-        """Test admin /me endpoint"""
-        return self.test_endpoint(
-            "Admin Auth Check",
-            "GET",
-            "/api/auth/me",
-            session=self.admin_session
-        )
+        """Test health check endpoint - Feature 1"""
+        self.log("\n=== 1. Testing Health Check API ===", "info")
+        return self.test_endpoint_for_nan("Health Check", "GET", "/api/health")
     
     def test_partner_registration(self):
-        """Test partner registration"""
-        self.log("\n=== Testing Partner Registration ===", "info")
+        """Test partner registration - Feature 2"""
+        self.log("\n=== 2. Testing Partner Registration ===", "info")
         
         # Generate unique username
         import time
@@ -180,17 +159,16 @@ class NaNBugTester:
         partner_data = {
             "username": f"testpartner{timestamp}",
             "email": f"test{timestamp}@example.com",
-            "password": "TestPassword123!",
+            "password": "Test123!",
             "firstName": "Test",
             "lastName": "Partner",
             "phone": "+998901234567",
             "businessName": "Test Business LLC",
             "businessCategory": "electronics",
-            "monthlyRevenue": "50000-100000",
-            "notes": "Test registration"
+            "monthlyRevenue": "50000-100000"
         }
         
-        result = self.test_endpoint(
+        result = self.test_endpoint_for_nan(
             "Partner Registration",
             "POST",
             "/api/partners/register",
@@ -199,111 +177,95 @@ class NaNBugTester:
         )
         
         if result:
-            # Try to login with new partner
-            PARTNER_CREDENTIALS["username"] = partner_data["username"]
-            PARTNER_CREDENTIALS["password"] = partner_data["password"]
+            # Update test credentials for login
+            global TEST_CREDENTIALS
+            TEST_CREDENTIALS["username"] = partner_data["username"]
+            TEST_CREDENTIALS["password"] = partner_data["password"]
         
         return result
     
-    def test_partner_login(self):
-        """Test partner login with different credential formats"""
-        self.log("\n=== Testing Partner Authentication ===", "info")
+    def test_login_api(self):
+        """Test login API - Feature 3"""
+        self.log("\n=== 3. Testing Login API ===", "info")
         
-        # Try different credential formats
-        credential_formats = [
-            {"email": "partner@sellercloudx.com", "password": "partner123"},
-            {"username": "partner@sellercloudx.com", "password": "partner123"},
-            {"email": "partner", "password": "partner123"},
-            {"username": "partner", "password": "partner123"}
-        ]
-        
-        for i, creds in enumerate(credential_formats):
-            self.log(f"Trying credential format {i+1}: {creds}", "info")
-            
-            # Test without adding to results for the first attempts
-            url = f"{BASE_URL}/api/auth/login"
-            try:
-                response = self.partner_session.post(url, json=creds, timeout=10)
-                if response.status_code == 200:
-                    self.log(f"Partner Login Successful with format {i+1}", "success")
-                    # Update global credentials if successful
-                    global PARTNER_CREDENTIALS
-                    PARTNER_CREDENTIALS = creds
-                    self.results["passed"].append("Partner Login")
-                    return True
-                else:
-                    self.log(f"Format {i+1} failed: {response.status_code}", "warning")
-            except Exception as e:
-                self.log(f"Format {i+1} error: {str(e)}", "warning")
-        
-        # If all login attempts fail, try to register a new partner
-        self.log("All login attempts failed, trying to register new partner", "warning")
-        if self.test_partner_registration():
-            # Try login with newly registered partner
-            return self.test_endpoint(
-                "Partner Login with New Account",
-                "POST",
-                "/api/auth/login",
-                session=self.partner_session,
-                json_data=PARTNER_CREDENTIALS
-            )
-        
-        self.results["failed"].append("Partner Login (All formats failed)")
-        return False
-    
-    def test_partner_me(self):
-        """Test partner /me endpoint"""
-        return self.test_endpoint(
-            "Partner Auth Check",
-            "GET",
-            "/api/auth/me",
-            session=self.partner_session
+        # Try with test credentials first
+        result = self.test_endpoint_for_nan(
+            "Partner Login",
+            "POST",
+            "/api/auth/login",
+            session=self.partner_session,
+            json_data=TEST_CREDENTIALS
         )
+        
+        if not result:
+            # If test credentials fail, try to register and login
+            self.log("Test credentials failed, trying registration", "warning")
+            if self.test_partner_registration():
+                result = self.test_endpoint_for_nan(
+                    "Partner Login (after registration)",
+                    "POST",
+                    "/api/auth/login",
+                    session=self.partner_session,
+                    json_data=TEST_CREDENTIALS
+                )
+        
+        return result
     
-    def test_partner_profile(self):
-        """Test partner profile endpoint"""
-        self.log("\n=== Testing Partner Profile ===", "info")
-        return self.test_endpoint(
-            "Get Partner Profile",
+    def test_partner_profile_api(self):
+        """Test partner profile API - Feature 4 (check aiCardsUsed for NaN)"""
+        self.log("\n=== 4. Testing Partner Profile API (aiCardsUsed field) ===", "info")
+        
+        result = self.test_endpoint_for_nan(
+            "Partner Profile (/api/partners/me)",
             "GET",
             "/api/partners/me",
             session=self.partner_session
         )
-    
-    def test_admin_get_partners(self):
-        """Test admin get all partners"""
-        self.log("\n=== Testing Admin Partner Management ===", "info")
-        return self.test_endpoint(
-            "Admin Get All Partners",
-            "GET",
-            "/api/admin/partners",
-            session=self.admin_session
-        )
-    
-    def test_products(self):
-        """Test product endpoints"""
-        self.log("\n=== Testing Product Endpoints ===", "info")
         
-        # Get products
-        get_result = self.test_endpoint(
+        # Additional check specifically for aiCardsUsed field
+        if result:
+            try:
+                url = f"{BASE_URL}/api/partners/me"
+                response = self.partner_session.get(url, timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    ai_cards_used = data.get('aiCardsUsed', 0)
+                    
+                    if isinstance(ai_cards_used, (int, float)) and not math.isnan(ai_cards_used if isinstance(ai_cards_used, float) else 0):
+                        self.log(f"aiCardsUsed field is valid: {ai_cards_used}", "success")
+                    else:
+                        self.log(f"aiCardsUsed field has NaN issue: {ai_cards_used}", "error")
+                        self.results["nan_issues"].append("aiCardsUsed field contains NaN")
+                        return False
+            except Exception as e:
+                self.log(f"Error checking aiCardsUsed field: {str(e)}", "warning")
+        
+        return result
+    
+    def test_products_api(self):
+        """Test products API - Feature 5"""
+        self.log("\n=== 5. Testing Products API ===", "info")
+        
+        # Test GET /api/products
+        get_result = self.test_endpoint_for_nan(
             "Get Products",
             "GET",
             "/api/products",
             session=self.partner_session
         )
         
-        # Create product
+        # Test POST /api/products
         product_data = {
-            "name": "Test Product",
+            "name": "Test Product for NaN Check",
             "category": "electronics",
-            "price": "99.99",
-            "description": "Test product description",
-            "costPrice": "50.00",
-            "sku": "TEST-001",
-            "weight": "1.5"  # Already a string, this should work
+            "price": 99.99,
+            "description": "Test product to check for NaN values",
+            "costPrice": 50.00,
+            "sku": f"TEST-{int(time.time())}",
+            "weight": "1.5"
         }
         
-        create_result = self.test_endpoint(
+        create_result = self.test_endpoint_for_nan(
             "Create Product",
             "POST",
             "/api/products",
@@ -313,6 +275,54 @@ class NaNBugTester:
         )
         
         return get_result and create_result
+    
+    def test_ai_dashboard_api(self):
+        """Test AI dashboard API - Feature 6 (check for NaN values)"""
+        self.log("\n=== 6. Testing AI Dashboard API ===", "info")
+        
+        return self.test_endpoint_for_nan(
+            "AI Dashboard (/api/ai/dashboard)",
+            "GET",
+            "/api/ai/dashboard",
+            session=self.partner_session
+        )
+    
+    def test_ai_monitoring_api(self):
+        """Test AI monitoring API - Feature 7 (critical NaN fix)"""
+        self.log("\n=== 7. Testing AI Monitoring API (Critical NaN Fix) ===", "info")
+        
+        # First get partner ID if we don't have it
+        if not self.partner_id:
+            try:
+                url = f"{BASE_URL}/api/partners/me"
+                response = self.partner_session.get(url, timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    self.partner_id = data.get('id')
+            except:
+                pass
+        
+        if self.partner_id:
+            return self.test_endpoint_for_nan(
+                f"AI Monitoring (/api/ai-manager/monitor/partner/{self.partner_id})",
+                "POST",
+                f"/api/ai-manager/monitor/partner/{self.partner_id}",
+                session=self.partner_session
+            )
+        else:
+            self.log("Cannot test AI monitoring - no partner ID available", "warning")
+            return False
+    
+    def test_admin_login(self):
+        """Test admin login"""
+        self.log("\n=== Testing Admin Login ===", "info")
+        return self.test_endpoint_for_nan(
+            "Admin Login",
+            "POST",
+            "/api/auth/login",
+            session=self.admin_session,
+            json_data=ADMIN_CREDENTIALS
+        )
     
     def test_orders(self):
         """Test order endpoints"""
