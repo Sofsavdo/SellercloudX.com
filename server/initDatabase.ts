@@ -460,6 +460,27 @@ export async function initializeDatabaseTables() {
       );
     `);
     
+    // Add missing columns to existing tables
+    console.log('📝 Adding missing columns to existing tables...');
+    
+    // Add ai_cards_used and promo_code to partners if missing
+    try {
+      const partnersInfo = sqlite.prepare("PRAGMA table_info(partners)").all() as any[];
+      const hasAiCardsUsed = partnersInfo.some((col: any) => col.name === 'ai_cards_used');
+      const hasPromoCode = partnersInfo.some((col: any) => col.name === 'promo_code');
+      
+      if (!hasAiCardsUsed) {
+        console.log('📝 Adding ai_cards_used column to partners table...');
+        sqlite.exec('ALTER TABLE partners ADD COLUMN ai_cards_used INTEGER DEFAULT 0');
+      }
+      if (!hasPromoCode) {
+        console.log('📝 Adding promo_code column to partners table...');
+        sqlite.exec('ALTER TABLE partners ADD COLUMN promo_code TEXT');
+      }
+    } catch (e) {
+      console.warn('⚠️  Could not add columns to partners:', e);
+    }
+    
     console.log('✅ All database tables created successfully');
     
     // Final check: ensure all required columns exist
