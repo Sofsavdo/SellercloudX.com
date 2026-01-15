@@ -281,15 +281,13 @@ class AutonomousAIManager {
 
   // Fix individual product card
   private async fixProductCard(product: any) {
-    // Use AI to analyze error and create fixed version
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
+    // Use AI to analyze error and create fixed version using Emergent AI
     const prompt = `
 Marketplace mahsulot kartochkasi bloklangan yoki xatoga ega.
 
 XATO: ${product.error_message || 'Noma\'lum'}
-MAHSULOT: ${product.raw_product_name}
-MARKETPLACE: ${product.marketplace_type}
+MAHSULOT: ${product.raw_product_name || 'Noma\'lum'}
+MARKETPLACE: ${product.marketplace_type || 'general'}
 
 Quyidagilarni tahlil qiling va tuzatilgan versiyani yarating:
 1. Xatoning sababini aniqlang
@@ -308,17 +306,11 @@ JSON formatda javob bering:
 `;
 
     try {
-      const response = await openai.chat.completions.create({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: prompt }],
-        response_format: { type: 'json_object' }
-      });
-
-      const fixData = JSON.parse(response.choices[0].message.content || '{}');
+      const fixData = await emergentAI.generateJSON(prompt, 'ProductCardFix');
       
       // Update product with fixed data (using raw SQL for SQLite)
       const { sqlite } = await import('../db');
-      if (sqlite) {
+      if (sqlite && fixData && fixData.fixedTitle) {
         const stmt = sqlite.prepare(
           `UPDATE ai_generated_products 
            SET generated_title = ?, 
@@ -330,7 +322,13 @@ JSON formatda javob bering:
                updated_at = unixepoch()
            WHERE id = ?`
         );
-        stmt.run(fixData.fixedTitle, fixData.fixedDescription, fixData.fixedTitle, fixData.fixedDescription, product.id);
+        stmt.run(
+          fixData.fixedTitle || '', 
+          fixData.fixedDescription || '', 
+          fixData.fixedTitle || '', 
+          fixData.fixedDescription || '', 
+          product.id
+        );
       }
 
       return fixData;
