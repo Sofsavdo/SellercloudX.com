@@ -47,7 +47,25 @@ export interface TextGenerationOptions {
 export async function generateText(options: TextGenerationOptions): Promise<string> {
   const { prompt, systemMessage, maxTokens = 2000, temperature = 0.7, jsonMode = false } = options;
 
-  // Try OpenAI first
+  // Try Gemini first (free tier)
+  if (genAI) {
+    try {
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-1.5-flash',
+        systemInstruction: systemMessage,
+      });
+
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+      console.log('✅ Gemini generated response');
+      return text;
+    } catch (error: any) {
+      console.error('Gemini Error:', error.message);
+      // Fall through to OpenAI or demo
+    }
+  }
+
+  // Try OpenAI as fallback
   if (openai) {
     try {
       const messages: any[] = [];
@@ -64,25 +82,10 @@ export async function generateText(options: TextGenerationOptions): Promise<stri
         response_format: jsonMode ? { type: 'json_object' } : undefined,
       });
 
+      console.log('✅ OpenAI generated response');
       return response.choices[0]?.message?.content || '';
     } catch (error: any) {
       console.error('OpenAI Error:', error.message);
-      // Fall through to Gemini or demo
-    }
-  }
-
-  // Try Gemini
-  if (genAI) {
-    try {
-      const model = genAI.getGenerativeModel({ 
-        model: 'gemini-1.5-flash',
-        systemInstruction: systemMessage,
-      });
-
-      const result = await model.generateContent(prompt);
-      return result.response.text();
-    } catch (error: any) {
-      console.error('Gemini Error:', error.message);
       // Fall through to demo
     }
   }
