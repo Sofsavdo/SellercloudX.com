@@ -4,42 +4,37 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Environment files with secrets
+.env
+.env.local
+.env.production
+
 # Runtime data
 pids
 *.pid
 *.seed
 *.pid.lock
 
-# Coverage directory
+# Coverage
 coverage/
 
 # Logs
 logs
 *.log
 
-# OS generated files
+# OS files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
-# IDE files
+# IDE
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
 
-# Temporary files
+# Temp
 tmp/
 temp/
-*.tmp
-*.temp
 
-# Database files (local SQLite)
+# Database (local)
 data/*.db
 data/*.db-shm
 data/*.db-wal
@@ -50,24 +45,4 @@ uploads/*
 
 # Cache
 .cache/
-.parcel-cache/
-
-# Runtime
-.replit
-
-# Backend cache
 backend/__pycache__/
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
-.env
-*.env
