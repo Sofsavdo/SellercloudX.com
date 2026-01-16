@@ -68,85 +68,85 @@ export async function getPartnerDashboard(req: Request, res: Response) {
 
     const { todayStart, weekStart, monthStart } = getDateRanges();
 
-    // Get AI tasks stats
+    // Initialize stats with defaults
     let todayTasks = 0, todayCompleted = 0;
     let weekTasks = 0, weekCompleted = 0;
     let monthTasks = 0, monthCompleted = 0;
+    let todayProducts = 0, weekProducts = 0, monthProducts = 0;
+    let todayRevenue = 0, weekRevenue = 0, monthRevenue = 0;
+    let todayOrders = 0, weekOrders = 0, monthOrders = 0;
+    let marketplaceAccounts: any[] = [];
+    let recentActivity: any[] = [];
     
+    // Get AI tasks stats - with error handling for date issues
     try {
-      // Today's AI tasks
-      const [todayStats] = await db
-        .select({
-          total: count(),
-          completed: sql<number>`COUNT(CASE WHEN status = 'completed' THEN 1 END)`,
-        })
+      const allTasks = await db
+        .select()
         .from(aiTasks)
-        .where(and(
-          eq(aiTasks.partnerId, partner.id),
-          gte(aiTasks.createdAt, todayStart)
-        ));
+        .where(eq(aiTasks.partnerId, partner.id));
       
-      todayTasks = todayStats?.total || 0;
-      todayCompleted = todayStats?.completed || 0;
-
-      // Week's AI tasks
-      const [weekStats] = await db
-        .select({
-          total: count(),
-          completed: sql<number>`COUNT(CASE WHEN status = 'completed' THEN 1 END)`,
+      // Process tasks manually to avoid date conversion issues
+      for (const task of allTasks) {
+        const taskDate = parseDbDate(task.createdAt);
+        if (!taskDate) continue;
+        
+        monthTasks++;
+        if (task.status === 'completed') monthCompleted++;
+        
+        if (taskDate >= weekStart) {
+          weekTasks++;
+          if (task.status === 'completed') weekCompleted++;
+        }
+        
+        if (taskDate >= todayStart) {
+          todayTasks++;
+          if (task.status === 'completed') todayCompleted++;
+        }
+      }
+      
+      // Get recent activity
+      recentActivity = allTasks
+        .sort((a: any, b: any) => {
+          const dateA = parseDbDate(a.createdAt)?.getTime() || 0;
+          const dateB = parseDbDate(b.createdAt)?.getTime() || 0;
+          return dateB - dateA;
         })
-        .from(aiTasks)
-        .where(and(
-          eq(aiTasks.partnerId, partner.id),
-          gte(aiTasks.createdAt, weekStart)
-        ));
-      
-      weekTasks = weekStats?.total || 0;
-      weekCompleted = weekStats?.completed || 0;
-
-      // Month's AI tasks
-      const [monthStats] = await db
-        .select({
-          total: count(),
-          completed: sql<number>`COUNT(CASE WHEN status = 'completed' THEN 1 END)`,
-        })
-        .from(aiTasks)
-        .where(and(
-          eq(aiTasks.partnerId, partner.id),
-          gte(aiTasks.createdAt, monthStart)
-        ));
-      
-      monthTasks = monthStats?.total || 0;
-      monthCompleted = monthStats?.completed || 0;
+        .slice(0, 10)
+        .map((t: any) => ({
+          id: t.id,
+          type: t.taskType,
+          status: t.status,
+          createdAt: parseDbDate(t.createdAt),
+          completedAt: parseDbDate(t.completedAt),
+        }));
     } catch (e) {
-      console.log('AI tasks stats error (table may not exist):', e);
+      console.log('AI tasks stats error:', e);
     }
 
     // Get products count
-    let todayProducts = 0, weekProducts = 0, monthProducts = 0;
     try {
       const partnerProducts = await storage.getProductsByPartnerId(partner.id);
       monthProducts = partnerProducts.length;
       
-      // Count products by date (if createdAt exists)
-      todayProducts = partnerProducts.filter((p: any) => 
-        p.createdAt && new Date(p.createdAt) >= todayStart
-      ).length;
-      weekProducts = partnerProducts.filter((p: any) => 
-        p.createdAt && new Date(p.createdAt) >= weekStart
-      ).length;
+      for (const p of partnerProducts) {
+        const productDate = parseDbDate(p.createdAt);
+        if (!productDate) continue;
+        
+        if (productDate >= todayStart) todayProducts++;
+        if (productDate >= weekStart) weekProducts++;
+      }
     } catch (e) {
       console.log('Products stats error:', e);
     }
 
     // Get orders/revenue stats
-    let todayRevenue = 0, weekRevenue = 0, monthRevenue = 0;
-    let todayOrders = 0, weekOrders = 0, monthOrders = 0;
     try {
       const partnerOrders = await storage.getOrdersByPartnerId(partner.id);
       
       for (const order of partnerOrders) {
-        const orderDate = new Date(order.createdAt);
+        const orderDate = parseDbDate(order.createdAt);
+        if (!orderDate) continue;
+        
         const amount = parseFloat(order.totalAmount?.toString() || '0');
         
         if (orderDate >= todayStart) {
@@ -167,7 +167,6 @@ export async function getPartnerDashboard(req: Request, res: Response) {
     }
 
     // Get marketplace accounts
-    let marketplaceAccounts: any[] = [];
     try {
       const integrations = await db
         .select()
@@ -177,31 +176,10 @@ export async function getPartnerDashboard(req: Request, res: Response) {
       marketplaceAccounts = integrations.map((i: any) => ({
         marketplace: i.marketplace,
         active: i.active,
-        lastSync: i.lastSyncAt,
+        lastSync: parseDbDate(i.lastSyncAt),
       }));
     } catch (e) {
       console.log('Marketplace integrations error:', e);
-    }
-
-    // Get recent AI activity
-    let recentActivity: any[] = [];
-    try {
-      const recentTasks = await db
-        .select()
-        .from(aiTasks)
-        .where(eq(aiTasks.partnerId, partner.id))
-        .orderBy(desc(aiTasks.createdAt))
-        .limit(10);
-      
-      recentActivity = recentTasks.map((t: any) => ({
-        id: t.id,
-        type: t.taskType,
-        status: t.status,
-        createdAt: t.createdAt,
-        completedAt: t.completedAt,
-      }));
-    } catch (e) {
-      console.log('Recent activity error:', e);
     }
 
     // Return dashboard stats
@@ -210,7 +188,7 @@ export async function getPartnerDashboard(req: Request, res: Response) {
       today: {
         tasks: todayTasks,
         completed: todayCompleted,
-        reviews: 0, // Will implement later
+        reviews: 0,
         products: todayProducts,
         revenue: todayRevenue,
         orders: todayOrders,
