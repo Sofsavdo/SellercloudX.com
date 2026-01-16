@@ -12,24 +12,24 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
-// API Keys
-const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
+// API Keys - Gemini first (free tier), then OpenAI
 const GEMINI_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || '';
+const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
 
-// Initialize clients
-const openai = OPENAI_KEY ? new OpenAI({ apiKey: OPENAI_KEY }) : null;
+// Initialize clients - prefer Gemini (free tier available)
 const genAI = GEMINI_KEY ? new GoogleGenerativeAI(GEMINI_KEY) : null;
+const openai = OPENAI_KEY ? new OpenAI({ apiKey: OPENAI_KEY }) : null;
 
-// Determine which AI provider to use
-const AI_PROVIDER = openai ? 'openai' : (genAI ? 'gemini' : 'demo');
+// Determine which AI provider to use - Gemini first
+const AI_PROVIDER = genAI ? 'gemini' : (openai ? 'openai' : 'demo');
 
-if (AI_PROVIDER === 'openai') {
+if (AI_PROVIDER === 'gemini') {
+  console.log('✅ Real AI Service initialized with Google Gemini');
+} else if (AI_PROVIDER === 'openai') {
   console.log('✅ Real AI Service initialized with OpenAI');
-} else if (AI_PROVIDER === 'gemini') {
-  console.log('✅ Real AI Service initialized with Gemini');
 } else {
   console.log('⚠️ AI Service running in DEMO mode (no API key found)');
-  console.log('   Set OPENAI_API_KEY or GEMINI_API_KEY for real AI');
+  console.log('   Set GEMINI_API_KEY or OPENAI_API_KEY for real AI');
 }
 
 // ========================================
