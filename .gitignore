@@ -57,3 +57,7 @@ uploads/*
 
 # Backend cache
 backend/__pycache__/
+-e 
+# Environment files
+*.env
+*.env.*
