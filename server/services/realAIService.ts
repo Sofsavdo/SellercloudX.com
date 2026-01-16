@@ -179,7 +179,27 @@ export interface ImageAnalysisOptions {
 export async function analyzeImage(options: ImageAnalysisOptions): Promise<string> {
   const { imageBuffer, prompt, jsonMode = true } = options;
 
-  // Try OpenAI Vision
+  // Try Gemini Vision first (free tier)
+  if (genAI) {
+    try {
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      
+      const imagePart = {
+        inlineData: {
+          data: imageBuffer.toString('base64'),
+          mimeType: 'image/jpeg'
+        }
+      };
+
+      const result = await model.generateContent([prompt, imagePart]);
+      console.log('✅ Gemini Vision analyzed image');
+      return result.response.text();
+    } catch (error: any) {
+      console.error('Gemini Vision Error:', error.message);
+    }
+  }
+
+  // Try OpenAI Vision as fallback
   if (openai) {
     try {
       const base64Image = imageBuffer.toString('base64');
@@ -205,28 +225,10 @@ export async function analyzeImage(options: ImageAnalysisOptions): Promise<strin
         response_format: jsonMode ? { type: 'json_object' } : undefined,
       });
 
+      console.log('✅ OpenAI Vision analyzed image');
       return response.choices[0]?.message?.content || '';
     } catch (error: any) {
       console.error('OpenAI Vision Error:', error.message);
-    }
-  }
-
-  // Try Gemini Vision
-  if (genAI) {
-    try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-      
-      const imagePart = {
-        inlineData: {
-          data: imageBuffer.toString('base64'),
-          mimeType: 'image/jpeg'
-        }
-      };
-
-      const result = await model.generateContent([prompt, imagePart]);
-      return result.response.text();
-    } catch (error: any) {
-      console.error('Gemini Vision Error:', error.message);
     }
   }
 
