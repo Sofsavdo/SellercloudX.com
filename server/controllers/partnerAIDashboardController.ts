@@ -3,10 +3,39 @@
 
 import { Request, Response } from 'express';
 import { storage } from '../storage';
-import { db } from '../db';
+import { db, dbType } from '../db';
 import { aiTasks, products, orders, analytics, marketplaceIntegrations, aiProductCards } from '@shared/schema';
 import { eq, and, gte, sql, desc, count } from 'drizzle-orm';
 import { geminiService } from '../services/geminiService';
+
+// Helper function to convert dates for PostgreSQL compatibility
+function toTimestamp(date: Date): number | Date {
+  // PostgreSQL uses TIMESTAMP, SQLite uses INTEGER (unix timestamp)
+  return dbType === 'postgres' ? date : Math.floor(date.getTime() / 1000);
+}
+
+// Helper function to parse dates from database
+function parseDbDate(value: any): Date | null {
+  if (!value) return null;
+  
+  // If it's already a Date object
+  if (value instanceof Date) return value;
+  
+  // If it's a number (unix timestamp)
+  if (typeof value === 'number') {
+    // Check if it's in seconds or milliseconds
+    const timestamp = value > 1e12 ? value : value * 1000;
+    return new Date(timestamp);
+  }
+  
+  // If it's a string
+  if (typeof value === 'string') {
+    const parsed = new Date(value);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+  
+  return null;
+}
 
 // Helper function to get date ranges
 function getDateRanges() {
