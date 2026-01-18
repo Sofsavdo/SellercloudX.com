@@ -195,12 +195,22 @@ class SellerCloudXTester:
         """Test AI Status - GET /api/ai/status"""
         self.log("\n=== 5. Testing AI Status API ===", "info")
         
-        return self.test_endpoint(
-            "AI Status",
+        # Test both possible endpoints
+        result1 = self.test_endpoint(
+            "AI Status (FastAPI Backend)",
             "GET",
             "/api/ai/status",
             session=self.session
         )
+        
+        result2 = self.test_endpoint(
+            "AI Status (Express Server)",
+            "GET",
+            "/api/ai/scanner/status",
+            session=self.session
+        )
+        
+        return result1 or result2
     
     def validate_trend_response_structure(self, endpoint: str):
         """Validate trend response has required fields"""
