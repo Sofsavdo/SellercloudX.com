@@ -43,8 +43,10 @@ import {
   Package, Settings, Crown, BarChart3, DollarSign, Target, Zap,
   Clock, AlertTriangle, Brain, MessageCircle, Gift,
   LayoutDashboard, Sparkles, ShoppingCart, Wallet, ArrowRight,
-  TrendingUp, CheckCircle, Building, XCircle, Globe
+  TrendingUp, CheckCircle, Building, XCircle, Globe, Scan
 } from 'lucide-react';
+import AIScannerV2 from './AIScannerV2';
+import TrendHunterDashboard from './TrendHunterDashboard';
 
 interface Product { id: string; name: string; category: string; price: string; costPrice: string; sku: string; isActive: boolean; createdAt: string; }
 interface Analytics { id: string; date: string; revenue: string; orders: number; profit: string; }
