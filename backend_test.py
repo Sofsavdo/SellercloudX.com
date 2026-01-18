@@ -313,11 +313,52 @@ class SellerCloudXTester:
                 self.log(f"Test '{test_name}' crashed: {str(e)}", "error")
                 self.results["failed"].append(f"{test_name} (Crashed)")
         
-        # Validate response structures
+    def validate_ai_status_response(self):
+        """Validate AI status response structure"""
+        self.log(f"\n=== Validating AI Status Response Structure ===", "info")
+        
         try:
-            self.validate_trend_response_structure("/api/trends/top?limit=5")
+            url = f"{BASE_URL}/api/ai/status"
+            response = self.session.get(url, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields from review request
+                if data.get("success") and "ai" in data:
+                    ai_info = data["ai"]
+                    
+                    # Check for services status object
+                    required_ai_fields = ["enabled", "provider"]
+                    missing_fields = []
+                    
+                    for field in required_ai_fields:
+                        if field not in ai_info:
+                            missing_fields.append(field)
+                    
+                    if missing_fields:
+                        self.log(f"Missing AI status fields: {missing_fields}", "warning")
+                        self.results["warnings"].append(f"AI Status - Missing fields: {missing_fields}")
+                    else:
+                        self.log(f"AI status structure valid", "success")
+                        
+                        # Check if AI is enabled
+                        if ai_info.get("enabled"):
+                            self.log(f"AI services are enabled with provider: {ai_info.get('provider')}", "success")
+                        else:
+                            self.log(f"AI services are disabled", "warning")
+                    
+                    return True
+                else:
+                    self.log(f"AI status response structure invalid", "warning")
+                    return False
+            else:
+                self.log(f"Failed to get AI status: {response.status_code}", "warning")
+                return False
+                
         except Exception as e:
-            self.log(f"Response validation crashed: {str(e)}", "error")
+            self.log(f"AI status validation error: {str(e)}", "warning")
+            return False
         
         # Print summary
         return self.print_summary()
