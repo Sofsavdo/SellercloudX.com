@@ -12,7 +12,7 @@ import math
 from typing import Dict, Any, Optional
 
 # Configuration - Using the external URL from frontend/.env
-BASE_URL = "https://marketai-audit.preview.emergentagent.com"
+BASE_URL = "https://trendopti.preview.emergentagent.com"
 # Test credentials from review request
 TEST_CREDENTIALS = {"username": "testpartner", "password": "Test123!"}
 ADMIN_CREDENTIALS = {"username": "admin", "password": "admin123"}
