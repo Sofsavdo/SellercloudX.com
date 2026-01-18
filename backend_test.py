@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
 """
-SellerCloudX NaN Bug Fix Verification Tests
-Tests specifically for NaN values in AI monitoring and database columns
+SellerCloudX AI Services Testing
+Tests for Trend Hunter API, AI Scanner API, and AI Status endpoints
 Focus on features mentioned in review request
 """
 
 import requests
 import json
 import sys
-import math
+import base64
 from typing import Dict, Any, Optional
 
 # Configuration - Using the external URL from frontend/.env
 BASE_URL = "https://trendopti.preview.emergentagent.com"
 # Test credentials from review request
-TEST_CREDENTIALS = {"username": "testpartner", "password": "Test123!"}
 ADMIN_CREDENTIALS = {"username": "admin", "password": "admin123"}
 
 class Colors:
