@@ -313,6 +313,16 @@ class SellerCloudXTester:
                 self.log(f"Test '{test_name}' crashed: {str(e)}", "error")
                 self.results["failed"].append(f"{test_name} (Crashed)")
         
+        # Validate response structures
+        try:
+            self.validate_trend_response_structure("/api/trends/top?limit=5")
+            self.validate_ai_status_response()
+        except Exception as e:
+            self.log(f"Response validation crashed: {str(e)}", "error")
+        
+        # Print summary
+        return self.print_summary()
+    
     def validate_ai_status_response(self):
         """Validate AI status response structure"""
         self.log(f"\n=== Validating AI Status Response Structure ===", "info")
