@@ -832,6 +832,7 @@ __export(db_exports, {
   checkDatabaseHealth: () => checkDatabaseHealth,
   db: () => db,
   dbType: () => dbType,
+  getDbType: () => getDbType,
   initializeDatabase: () => initializeDatabase,
   sqlite: () => sqliteInstance
 });
@@ -884,6 +885,9 @@ async function initializeDatabase() {
     throw error;
   }
 }
+function getDbType() {
+  return dbType;
+}
 var __filename, __dirname, DATABASE_URL, NODE_ENV, db, dbType, sqliteInstance;
 var init_db = __esm({
   "server/db.ts"() {
@@ -933,6 +937,7 @@ var init_db = __esm({
     }
     __name(checkDatabaseHealth, "checkDatabaseHealth");
     __name(initializeDatabase, "initializeDatabase");
+    __name(getDbType, "getDbType");
   }
 });
 
@@ -1934,9 +1939,9 @@ async function getStockAlertsByPartnerId(partnerId, includeResolved = false) {
       return [];
     }
     const productIds = partnerProducts.map((p) => p.id);
-    const { and: and24, inArray } = await import("drizzle-orm");
+    const { and: and25, inArray } = await import("drizzle-orm");
     if (!includeResolved) {
-      return await db.select().from(stockAlerts).where(and24(
+      return await db.select().from(stockAlerts).where(and25(
         inArray(stockAlerts.productId, productIds),
         eq(stockAlerts.resolved, false)
       )).orderBy(desc(stockAlerts.createdAt));
@@ -2725,6 +2730,19 @@ var init_SAAS_PRICING_CONFIG = __esm({
 });
 
 // server/services/realAIService.ts
+var realAIService_exports = {};
+__export(realAIService_exports, {
+  analyzeImage: () => analyzeImage,
+  default: () => realAIService_default,
+  generateProductCard: () => generateProductCard,
+  generateText: () => generateText,
+  getProvider: () => getProvider,
+  getStatus: () => getStatus,
+  isEnabled: () => isEnabled,
+  optimizePrice: () => optimizePrice,
+  realAIService: () => realAIService,
+  scanProduct: () => scanProduct
+});
 import OpenAI from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from "dotenv";
@@ -3018,7 +3036,7 @@ function getStatus() {
 function getProvider() {
   return AI_PROVIDER;
 }
-var GEMINI_KEY, OPENAI_KEY, genAI, openai2, AI_PROVIDER, realAIService;
+var GEMINI_KEY, OPENAI_KEY, genAI, openai2, AI_PROVIDER, realAIService, realAIService_default;
 var init_realAIService = __esm({
   "server/services/realAIService.ts"() {
     dotenv.config();
@@ -3054,6 +3072,7 @@ var init_realAIService = __esm({
       getStatus,
       getProvider
     };
+    realAIService_default = realAIService;
   }
 });
 
@@ -3791,8 +3810,8 @@ async function optimizePrice2(partnerId, productId, marketplaceType) {
       product = stmt.get(productIdStr);
     } else {
       const { marketplaceProducts } = await Promise.resolve().then(() => (init_schema(), schema_exports));
-      const { eq: eq33 } = await import("drizzle-orm");
-      const [p] = await db.select().from(marketplaceProducts).where(eq33(marketplaceProducts.id, productIdStr)).limit(1);
+      const { eq: eq34 } = await import("drizzle-orm");
+      const [p] = await db.select().from(marketplaceProducts).where(eq34(marketplaceProducts.id, productIdStr)).limit(1);
       product = p;
     }
     if (!product) {
@@ -4127,8 +4146,8 @@ async function getCompetitorPrices(productName, marketplace) {
         searchUrl = `https://uzum.uz/search?query=${encodeURIComponent(productName)}`;
         await page.goto(searchUrl, { waitUntil: "networkidle2" });
         competitors = await page.evaluate(() => {
-          const products3 = Array.from(document.querySelectorAll(".product-card")).slice(0, 5);
-          return products3.map((product) => {
+          const products4 = Array.from(document.querySelectorAll(".product-card")).slice(0, 5);
+          return products4.map((product) => {
             const title = product.querySelector(".product-title")?.textContent?.trim() || "";
             const price = product.querySelector(".product-price")?.textContent?.trim() || "";
             const rating = product.querySelector(".rating")?.textContent?.trim() || "4.0";
@@ -4145,8 +4164,8 @@ async function getCompetitorPrices(productName, marketplace) {
         searchUrl = `https://www.wildberries.ru/catalog/0/search.aspx?search=${encodeURIComponent(productName)}`;
         await page.goto(searchUrl, { waitUntil: "networkidle2" });
         competitors = await page.evaluate(() => {
-          const products3 = Array.from(document.querySelectorAll(".product-card")).slice(0, 5);
-          return products3.map((product) => {
+          const products4 = Array.from(document.querySelectorAll(".product-card")).slice(0, 5);
+          return products4.map((product) => {
             const title = product.querySelector(".goods-name")?.textContent?.trim() || "";
             const price = product.querySelector(".price-current")?.textContent?.trim() || "";
             const rating = product.querySelector(".rating")?.textContent?.trim() || "4.0";
@@ -4163,8 +4182,8 @@ async function getCompetitorPrices(productName, marketplace) {
         searchUrl = `https://market.yandex.ru/search?text=${encodeURIComponent(productName)}`;
         await page.goto(searchUrl, { waitUntil: "networkidle2" });
         competitors = await page.evaluate(() => {
-          const products3 = Array.from(document.querySelectorAll(".product")).slice(0, 5);
-          return products3.map((product) => {
+          const products4 = Array.from(document.querySelectorAll(".product")).slice(0, 5);
+          return products4.map((product) => {
             const title = product.querySelector(".title")?.textContent?.trim() || "";
             const price = product.querySelector(".price")?.textContent?.trim() || "";
             const rating = product.querySelector(".rating")?.textContent?.trim() || "4.0";
@@ -4181,8 +4200,8 @@ async function getCompetitorPrices(productName, marketplace) {
         searchUrl = `https://www.ozon.ru/search/?text=${encodeURIComponent(productName)}`;
         await page.goto(searchUrl, { waitUntil: "networkidle2" });
         competitors = await page.evaluate(() => {
-          const products3 = Array.from(document.querySelectorAll(".tile")).slice(0, 5);
-          return products3.map((product) => {
+          const products4 = Array.from(document.querySelectorAll(".tile")).slice(0, 5);
+          return products4.map((product) => {
             const title = product.querySelector(".tile-title")?.textContent?.trim() || "";
             const price = product.querySelector(".price-number")?.textContent?.trim() || "";
             const rating = product.querySelector(".rating")?.textContent?.trim() || "4.0";
@@ -4374,14 +4393,14 @@ __export(referralFirstPurchaseService_exports, {
   checkAndProcessFirstPurchase: () => checkAndProcessFirstPurchase,
   processFirstPurchase: () => processFirstPurchase
 });
-import { eq as eq13, and as and11, sql as sql7 } from "drizzle-orm";
+import { eq as eq13, and as and11, sql as sql8 } from "drizzle-orm";
 import { nanoid as nanoid12 } from "nanoid";
 async function processFirstPurchase(data) {
   try {
     console.log("[REFERRAL FIRST PURCHASE] Processing:", data);
     const referral = await db.select().from(referrals).where(and11(
       eq13(referrals.referredPartnerId, data.referredPartnerId),
-      sql7`${referrals.status} IN ('registered', 'invited')`
+      sql8`${referrals.status} IN ('registered', 'invited')`
       // Faqat yangi referral'lar
     )).limit(1);
     if (referral.length === 0) {
@@ -4692,7 +4711,7 @@ __export(productRecognition_exports, {
   ProductRecognitionService: () => ProductRecognitionService,
   productRecognitionService: () => productRecognitionService
 });
-import axios7 from "axios";
+import axios9 from "axios";
 import sharp from "sharp";
 var ProductRecognitionService, productRecognitionService;
 var init_productRecognition = __esm({
@@ -4733,7 +4752,7 @@ var init_productRecognition = __esm({
             return this.getMockRecognition();
           }
           const optimizedImage = await this.optimizeImage(base64Image);
-          const response = await axios7.post(
+          const response = await axios9.post(
             `${this.visionEndpoint}?key=${this.apiKey}`,
             {
               requests: [
@@ -4811,9 +4830,9 @@ var init_productRecognition = __esm({
           "O'yinchoq": ["toy", "game", "doll", "puzzle"]
         };
         for (const label of labels) {
-          const desc10 = label.description.toLowerCase();
+          const desc11 = label.description.toLowerCase();
           for (const [category, keywords] of Object.entries(categoryKeywords)) {
-            if (keywords.some((keyword) => desc10.includes(keyword))) {
+            if (keywords.some((keyword) => desc11.includes(keyword))) {
               return category;
             }
           }
@@ -4829,9 +4848,9 @@ var init_productRecognition = __esm({
         }
         const knownBrands = ["Nike", "Adidas", "Samsung", "Apple", "Sony", "LG", "Xiaomi"];
         for (const text2 of texts) {
-          const desc10 = text2.description;
+          const desc11 = text2.description;
           for (const brand of knownBrands) {
-            if (desc10.includes(brand)) {
+            if (desc11.includes(brand)) {
               return brand;
             }
           }
@@ -5146,7 +5165,7 @@ var asyncHandler = /* @__PURE__ */ __name((fn) => (req, res, next) => {
 init_db();
 init_schema();
 init_schema();
-import { eq as eq29, and as and23, desc as desc8 } from "drizzle-orm";
+import { eq as eq30, and as and24, desc as desc9 } from "drizzle-orm";
 import { ZodError } from "zod";
 import swaggerUi from "swagger-ui-express";
 import swaggerJSDoc from "swagger-jsdoc";
@@ -5340,14 +5359,14 @@ __name(calculateReorderPoint, "calculateReorderPoint");
 async function checkInventoryLevels(partnerId) {
   console.log(`\u{1F50D} Checking inventory levels for partner ${partnerId}`);
   try {
-    const products3 = await db.all(
+    const products4 = await db.all(
       `SELECT id, name, stock_quantity, low_stock_threshold 
        FROM products 
        WHERE partner_id = ? AND is_active = 1`,
       [partnerId]
     );
     const alerts = [];
-    for (const product of products3) {
+    for (const product of products4) {
       const currentStock = product.stock_quantity || 0;
       const threshold = product.low_stock_threshold || 10;
       const reorderData = await calculateReorderPoint(product.id);
@@ -7357,8 +7376,8 @@ async function getAIGeneratedProducts(req, res) {
       params.push(marketplace);
     }
     sqlQuery += " ORDER BY p.created_at DESC LIMIT 100";
-    const products3 = await db.all(sqlQuery, params);
-    res.json(products3);
+    const products4 = await db.all(sqlQuery, params);
+    res.json(products4);
   } catch (error) {
     console.error("Get AI Products Error:", error);
     res.status(500).json({ error: error.message });
@@ -8084,17 +8103,17 @@ router9.delete("/:id", asyncHandler(async (req, res) => {
   const { id } = req.params;
   res.json({ success: true, message: "Mahsulot o'chirildi" });
 }));
-function getTopCategories(products3) {
+function getTopCategories(products4) {
   const categoryCounts = {};
-  products3.forEach((p) => {
+  products4.forEach((p) => {
     categoryCounts[p.category] = (categoryCounts[p.category] || 0) + 1;
   });
   return Object.entries(categoryCounts).sort(([, a], [, b]) => b - a).slice(0, 5).map(([category, count2]) => ({ category, count: count2 }));
 }
 __name(getTopCategories, "getTopCategories");
-function getTopMarkets(products3) {
+function getTopMarkets(products4) {
   const marketCounts = {};
-  products3.forEach((p) => {
+  products4.forEach((p) => {
     marketCounts[p.sourceMarket] = (marketCounts[p.sourceMarket] || 0) + 1;
   });
   return Object.entries(marketCounts).sort(([, a], [, b]) => b - a).slice(0, 5).map(([market, count2]) => ({ market, count: count2 }));
@@ -8111,18 +8130,44 @@ init_db();
 init_schema();
 init_geminiService();
 import { eq as eq5, desc as desc2, count } from "drizzle-orm";
-function parseDbDate(value) {
+
+// shared/db-utils.ts
+import { sql as sql4 } from "drizzle-orm";
+function timestampToDate(value) {
   if (!value) return null;
-  if (value instanceof Date) return value;
+  if (value instanceof Date) {
+    return value;
+  }
   if (typeof value === "number") {
-    const timestamp = value > 1e12 ? value : value * 1e3;
-    return new Date(timestamp);
+    return new Date(value * 1e3);
   }
   if (typeof value === "string") {
-    const parsed = new Date(value);
-    return isNaN(parsed.getTime()) ? null : parsed;
+    return new Date(value);
   }
   return null;
+}
+__name(timestampToDate, "timestampToDate");
+function formatDateForDB(date, dbType3 = "sqlite") {
+  if (!date) return null;
+  if (dbType3 === "postgres") {
+    return date.toISOString();
+  }
+  return Math.floor(date.getTime() / 1e3);
+}
+__name(formatDateForDB, "formatDateForDB");
+function getDatabaseType() {
+  const DATABASE_URL2 = process.env.DATABASE_URL;
+  if (DATABASE_URL2 && (DATABASE_URL2.startsWith("postgres://") || DATABASE_URL2.startsWith("postgresql://"))) {
+    return "postgres";
+  }
+  return "sqlite";
+}
+__name(getDatabaseType, "getDatabaseType");
+
+// server/controllers/partnerAIDashboardController.ts
+var dbType2 = getDbType();
+function parseDbDate(value) {
+  return timestampToDate(value);
 }
 __name(parseDbDate, "parseDbDate");
 function getDateRanges() {
@@ -9258,18 +9303,18 @@ MUHIM:
   };
 }
 __name(createProductCard, "createProductCard");
-async function batchCreateProductCards(products3, partnerId, generateImages = false) {
-  console.log(`\u{1F680} Batch creating ${products3.length} product cards...`);
+async function batchCreateProductCards(products4, partnerId, generateImages = false) {
+  console.log(`\u{1F680} Batch creating ${products4.length} product cards...`);
   const batchSize = parseInt(process.env.BATCH_SIZE || "10");
   const results = [];
-  for (let i = 0; i < products3.length; i += batchSize) {
-    const batch = products3.slice(i, i + batchSize);
+  for (let i = 0; i < products4.length; i += batchSize) {
+    const batch = products4.slice(i, i + batchSize);
     const batchResults = await Promise.all(
       batch.map((p) => createProductCard(p, partnerId, generateImages))
     );
     results.push(...batchResults);
-    console.log(`  \u2705 Processed ${Math.min(i + batchSize, products3.length)}/${products3.length}`);
-    if (i + batchSize < products3.length) {
+    console.log(`  \u2705 Processed ${Math.min(i + batchSize, products4.length)}/${products4.length}`);
+    if (i + batchSize < products4.length) {
       await new Promise((resolve) => setTimeout(resolve, 1e3));
     }
   }
@@ -9451,11 +9496,11 @@ router11.post("/batch-create-cards", async (req, res) => {
     if (!partnerId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    const { products: products3, generateImages } = req.body;
-    if (!Array.isArray(products3) || products3.length === 0) {
+    const { products: products4, generateImages } = req.body;
+    if (!Array.isArray(products4) || products4.length === 0) {
       return res.status(400).json({ error: "Products array required" });
     }
-    const estimatedCost = products3.length * (generateImages ? 0.09 : 0.05);
+    const estimatedCost = products4.length * (generateImages ? 0.09 : 0.05);
     const budgetCheck = await costTracker_default.checkBudget(partnerId, estimatedCost);
     if (!budgetCheck.allowed) {
       return res.status(429).json({
@@ -9464,7 +9509,7 @@ router11.post("/batch-create-cards", async (req, res) => {
       });
     }
     const results = await productCardAI_default.batchCreateProductCards(
-      products3,
+      products4,
       partnerId,
       generateImages
     );
@@ -9475,7 +9520,7 @@ router11.post("/batch-create-cards", async (req, res) => {
       model: "mixed",
       cost: totalCost,
       tier: (await storage.getPartnerById(partnerId))?.pricingTier || "starter_pro",
-      metadata: { count: products3.length, generateImages }
+      metadata: { count: products4.length, generateImages }
     });
     res.json({
       success: true,
@@ -9698,16 +9743,16 @@ router12.post("/batch-create-cards", async (req, res) => {
     if (!partnerId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    const { products: products3, generateImages } = req.body;
-    if (!Array.isArray(products3) || products3.length === 0) {
+    const { products: products4, generateImages } = req.body;
+    if (!Array.isArray(products4) || products4.length === 0) {
       return res.status(400).json({ error: "Products array required" });
     }
-    const estimatedCost = products3.length * (generateImages ? 0.09 : 0.05);
+    const estimatedCost = products4.length * (generateImages ? 0.09 : 0.05);
     const budgetCheck = await costTracker_default.checkBudget(partnerId, estimatedCost);
     if (!budgetCheck.allowed) {
       return res.status(429).json({ error: "Budget limit exceeded", message: budgetCheck.message });
     }
-    const results = await productCardAI_default.batchCreateProductCards(products3, partnerId, generateImages);
+    const results = await productCardAI_default.batchCreateProductCards(products4, partnerId, generateImages);
     const totalCost = results.reduce((sum, r) => sum + r.cost, 0);
     await costTracker_default.logCost({
       partnerId,
@@ -9715,7 +9760,7 @@ router12.post("/batch-create-cards", async (req, res) => {
       model: "mixed",
       cost: totalCost,
       tier: (await storage.getPartnerById(partnerId))?.pricingTier || "starter_pro",
-      metadata: { count: products3.length, generateImages }
+      metadata: { count: products4.length, generateImages }
     });
     res.json({ success: true, results, totalCost, processed: results.length });
   } catch (error) {
@@ -9823,7 +9868,7 @@ var enhancedAI_default = router12;
 import express3 from "express";
 init_db();
 init_schema();
-import { eq as eq7, and as and6, sql as sql6 } from "drizzle-orm";
+import { eq as eq7, and as and6, sql as sql7 } from "drizzle-orm";
 import { nanoid as nanoid9 } from "nanoid";
 var logInfo = /* @__PURE__ */ __name((message, data) => {
   console.log(`[REFERRAL] ${message}`, data ? JSON.stringify(data, null, 2) : "");
@@ -9937,9 +9982,9 @@ router13.get("/stats", asyncHandler(async (req, res) => {
       (r) => r.status === "active" || r.status === "paid_1month"
     );
     const earnings = await db.select({
-      total: sql6`COALESCE(SUM(amount), 0)`,
-      paid: sql6`COALESCE(SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END), 0)`,
-      pending: sql6`COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0)`
+      total: sql7`COALESCE(SUM(amount), 0)`,
+      paid: sql7`COALESCE(SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END), 0)`,
+      pending: sql7`COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0)`
     }).from(referralEarnings).where(eq7(referralEarnings.referrerPartnerId, partner.id)).catch((err) => {
       logError("Failed to fetch earnings", err);
       return [{ total: 0, paid: 0, pending: 0 }];
@@ -9955,7 +10000,7 @@ router13.get("/stats", asyncHandler(async (req, res) => {
     const promoCode = partnerPromoCode[0]?.promoCode || null;
     const referredPartners = await db.select({ pricingTier: partners.pricingTier }).from(referrals).leftJoin(partners, eq7(referrals.referredPartnerId, partners.id)).where(and6(
       eq7(referrals.referrerPartnerId, partner.id),
-      sql6`${referrals.referredPartnerId} != ${referrals.referrerPartnerId}`
+      sql7`${referrals.referredPartnerId} != ${referrals.referrerPartnerId}`
       // Exclude self-reference
     ));
     const avgCommission = referredPartners.length > 0 ? referredPartners.reduce((sum, p) => sum + calculateReferralCommission(p.pricingTier || "free_starter"), 0) / referredPartners.length : 0;
@@ -10054,7 +10099,7 @@ router13.get("/list", asyncHandler(async (req, res) => {
       bonusPaid: referrals.bonusPaid,
       createdAt: referrals.createdAt,
       activatedAt: referrals.activatedAt
-    }).from(referrals).leftJoin(partners, eq7(referrals.referredPartnerId, partners.id)).where(eq7(referrals.referrerPartnerId, partner.id)).orderBy(sql6`${referrals.createdAt} DESC`);
+    }).from(referrals).leftJoin(partners, eq7(referrals.referredPartnerId, partners.id)).where(eq7(referrals.referrerPartnerId, partner.id)).orderBy(sql7`${referrals.createdAt} DESC`);
     res.json({ referrals: referralList });
   } catch (error) {
     console.error("Referral list error:", error);
@@ -10076,7 +10121,7 @@ router13.post("/withdraw", asyncHandler(async (req, res) => {
   }
   try {
     const earnings = await db.select({
-      available: sql6`COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0)`
+      available: sql7`COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0)`
     }).from(referralEarnings).where(eq7(referralEarnings.referrerPartnerId, partner.id));
     const available = earnings[0]?.available || 0;
     if (amount > available) {
@@ -10115,7 +10160,7 @@ router13.get("/withdrawals", asyncHandler(async (req, res) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
   try {
-    const withdrawalHistory = await db.select().from(withdrawals).where(eq7(withdrawals.partnerId, partner.id)).orderBy(sql6`${withdrawals.createdAt} DESC`);
+    const withdrawalHistory = await db.select().from(withdrawals).where(eq7(withdrawals.partnerId, partner.id)).orderBy(sql7`${withdrawals.createdAt} DESC`);
     res.json({ withdrawals: withdrawalHistory });
   } catch (error) {
     console.error("Withdrawal history error:", error);
@@ -10127,9 +10172,9 @@ router13.get("/leaderboard", asyncHandler(async (req, res) => {
     const leaderboard = await db.select({
       partnerId: referrals.referrerPartnerId,
       businessName: partners.businessName,
-      referralCount: sql6`COUNT(*)`,
-      totalEarnings: sql6`COALESCE(SUM(${referrals.bonusEarned}), 0)`
-    }).from(referrals).leftJoin(partners, eq7(referrals.referrerPartnerId, partners.id)).where(eq7(referrals.status, "active")).groupBy(referrals.referrerPartnerId, partners.businessName).orderBy(sql6`COUNT(*) DESC`).limit(10);
+      referralCount: sql7`COUNT(*)`,
+      totalEarnings: sql7`COALESCE(SUM(${referrals.bonusEarned}), 0)`
+    }).from(referrals).leftJoin(partners, eq7(referrals.referrerPartnerId, partners.id)).where(eq7(referrals.status, "active")).groupBy(referrals.referrerPartnerId, partners.businessName).orderBy(sql7`COUNT(*) DESC`).limit(10);
     const formattedLeaderboard = leaderboard.map((entry, index) => ({
       rank: index + 1,
       name: entry.businessName || "Anonymous",
@@ -11018,9 +11063,9 @@ var InventoryForecasting = class {
   // Forecast all products for a partner
   async forecastAllProducts(partnerId) {
     try {
-      const products3 = await storage.getProductsByPartnerId(partnerId);
+      const products4 = await storage.getProductsByPartnerId(partnerId);
       const forecasts = [];
-      for (const product of products3) {
+      for (const product of products4) {
         const forecast = await this.forecastProduct(product.id);
         if (forecast) {
           forecasts.push(forecast);
@@ -11099,21 +11144,21 @@ var AdvancedReporting = class {
   }
   // Generate Inventory Report
   async generateInventoryReport(partnerId) {
-    const products3 = await storage.getProductsByPartnerId(partnerId);
-    const totalProducts = products3.length;
-    const totalStockValue = products3.reduce((sum, p) => {
+    const products4 = await storage.getProductsByPartnerId(partnerId);
+    const totalProducts = products4.length;
+    const totalStockValue = products4.reduce((sum, p) => {
       const stock = p.stockQuantity || 0;
       const price = Number(p.costPrice || p.price || 0);
       return sum + stock * price;
     }, 0);
-    const lowStockProducts = products3.filter(
+    const lowStockProducts = products4.filter(
       (p) => (p.stockQuantity || 0) <= (p.lowStockThreshold || 10)
     ).length;
-    const outOfStockProducts = products3.filter(
+    const outOfStockProducts = products4.filter(
       (p) => (p.stockQuantity || 0) === 0
     ).length;
     const byCategory = {};
-    products3.forEach((p) => {
+    products4.forEach((p) => {
       const category = p.category || "Uncategorized";
       if (!byCategory[category]) {
         byCategory[category] = {
@@ -11157,12 +11202,12 @@ var AdvancedReporting = class {
   async generatePerformanceReport(partnerId, config2) {
     const { dateRange } = config2;
     const orders3 = await storage.getOrdersByDateRange(dateRange.start, dateRange.end, { partnerId });
-    const products3 = await storage.getProductsByPartnerId(partnerId);
+    const products4 = await storage.getProductsByPartnerId(partnerId);
     const productSales = {};
     orders3.forEach((order) => {
       order.items?.forEach((item) => {
         if (!productSales[item.productId]) {
-          const product = products3.find((p) => p.id === item.productId);
+          const product = products4.find((p) => p.id === item.productId);
           productSales[item.productId] = {
             product: product || { name: "Unknown" },
             quantity: 0,
@@ -12234,8 +12279,8 @@ Description: ${description}`,
   /**
    * Batch analyze products
    */
-  async batchAnalyzeProducts(products3) {
-    const tasks = products3.map((p, i) => ({
+  async batchAnalyzeProducts(products4) {
+    const tasks = products4.map((p, i) => ({
       id: `batch_analyze_${Date.now()}_${i}`,
       partnerId: "system",
       taskType: "product-analysis",
@@ -12249,8 +12294,8 @@ Description: ${description}`,
   /**
    * Batch generate SEO
    */
-  async batchGenerateSEO(products3) {
-    const tasks = products3.map((p, i) => ({
+  async batchGenerateSEO(products4) {
+    const tasks = products4.map((p, i) => ({
       id: `batch_seo_${Date.now()}_${i}`,
       partnerId: "system",
       taskType: "seo-content",
@@ -12926,11 +12971,11 @@ router18.post("/validate-listing", async (req, res) => {
 });
 router18.post("/batch-analyze", async (req, res) => {
   try {
-    const { products: products3 } = req.body;
-    if (!products3 || !Array.isArray(products3)) {
+    const { products: products4 } = req.body;
+    if (!products4 || !Array.isArray(products4)) {
       return res.status(400).json({ error: "Products array required" });
     }
-    const results = await aiOrchestrator.batchAnalyzeProducts(products3);
+    const results = await aiOrchestrator.batchAnalyzeProducts(products4);
     res.json({
       success: true,
       results,
@@ -12943,11 +12988,11 @@ router18.post("/batch-analyze", async (req, res) => {
 });
 router18.post("/batch-generate-seo", async (req, res) => {
   try {
-    const { products: products3 } = req.body;
-    if (!products3 || !Array.isArray(products3)) {
+    const { products: products4 } = req.body;
+    if (!products4 || !Array.isArray(products4)) {
       return res.status(400).json({ error: "Products array required" });
     }
-    const results = await aiOrchestrator.batchGenerateSEO(products3);
+    const results = await aiOrchestrator.batchGenerateSEO(products4);
     res.json({
       success: true,
       results,
@@ -13319,18 +13364,18 @@ var AutonomousProductManager = class {
   /**
    * Batch generate product cards for multiple products
    */
-  async batchGenerateProductCards(partnerId, products3, targetMarketplaces) {
+  async batchGenerateProductCards(partnerId, products4, targetMarketplaces) {
     const results = [];
     const batchSize = 5;
-    for (let i = 0; i < products3.length; i += batchSize) {
-      const batch = products3.slice(i, i + batchSize);
+    for (let i = 0; i < products4.length; i += batchSize) {
+      const batch = products4.slice(i, i + batchSize);
       const batchResults = await Promise.all(
         batch.map(
           (product) => this.generateProductCardSet(partnerId, product, targetMarketplaces)
         )
       );
       results.push(...batchResults);
-      if (i + batchSize < products3.length) {
+      if (i + batchSize < products4.length) {
         await new Promise((resolve) => setTimeout(resolve, 2e3));
       }
     }
@@ -13478,10 +13523,10 @@ var AutonomousProductManager = class {
    */
   async manualSync(partnerId, marketplaces) {
     logger.info(`\u{1F504} Manual sync triggered for partner ${partnerId}`);
-    const products3 = await this.syncProductsFromMarketplaces(partnerId, marketplaces);
+    const products4 = await this.syncProductsFromMarketplaces(partnerId, marketplaces);
     return {
       success: true,
-      syncedProducts: products3.length,
+      syncedProducts: products4.length,
       marketplaces
     };
   }
@@ -13490,8 +13535,8 @@ var AutonomousProductManager = class {
    */
   async manualGenerateCards(partnerId, productIds, targetMarketplaces) {
     logger.info(`\u{1F3A8} Manual card generation for ${productIds.length} products`);
-    const products3 = await db.select().from(products3).where(eq11(products3.partnerId, partnerId));
-    const selectedProducts = products3.filter((p) => productIds.includes(p.id));
+    const products4 = await db.select().from(products4).where(eq11(products4.partnerId, partnerId));
+    const selectedProducts = products4.filter((p) => productIds.includes(p.id));
     return await this.batchGenerateProductCards(partnerId, selectedProducts, targetMarketplaces);
   }
   // ==================== STATUS & MONITORING ====================
@@ -14092,16 +14137,16 @@ async function triggerAIForFulfillment(fulfillmentRequestId, adminId) {
         productsProcessed: 0
       };
     }
-    const products3 = await db.all(
+    const products4 = await db.all(
       `SELECT * FROM fulfillment_request_items WHERE fulfillment_request_id = ?`,
       [fulfillmentRequestId]
     );
-    if (products3.length === 0) {
+    if (products4.length === 0) {
       throw new Error("No products in fulfillment request");
     }
-    console.log(`\u{1F4E6} Processing ${products3.length} products for ${marketplaceAccounts.length} AI accounts`);
+    console.log(`\u{1F4E6} Processing ${products4.length} products for ${marketplaceAccounts.length} AI accounts`);
     const results = [];
-    for (const product of products3) {
+    for (const product of products4) {
       for (const account of marketplaceAccounts) {
         const marketplaceType = account.marketplace;
         try {
@@ -17342,7 +17387,7 @@ var CompetitorIntelligenceService = class {
       const page = await browser.newPage();
       const searchUrl = `https://uzum.uz/uz/search?q=${encodeURIComponent(productName)}`;
       await page.goto(searchUrl, { waitUntil: "networkidle2" });
-      const products3 = await page.evaluate(() => {
+      const products4 = await page.evaluate(() => {
         const items = [];
         const productCards = document.querySelectorAll('[data-test-id="product-card"]');
         productCards.forEach((card, index) => {
@@ -17370,7 +17415,7 @@ var CompetitorIntelligenceService = class {
         return items;
       });
       await browser.close();
-      return products3;
+      return products4;
     } catch (error) {
       console.error("Uzum scraping error:", error);
       return [];
@@ -17384,7 +17429,7 @@ var CompetitorIntelligenceService = class {
       const searchUrl = `https://www.wildberries.ru/catalog/0/search.aspx?search=${encodeURIComponent(productName)}`;
       const response = await axios3.get(searchUrl);
       const $ = cheerio.load(response.data);
-      const products3 = [];
+      const products4 = [];
       $(".product-card").each((index, element) => {
         if (index < 10) {
           const name = $(element).find(".product-card__name").text().trim();
@@ -17395,7 +17440,7 @@ var CompetitorIntelligenceService = class {
           const reviewsText = $(element).find(".product-card__count").text().trim();
           const reviews = parseInt(reviewsText.replace(/\D/g, ""));
           const url = "https://www.wildberries.ru" + $(element).find("a").attr("href");
-          products3.push({
+          products4.push({
             marketplace: "wildberries",
             productName: name,
             price,
@@ -17407,7 +17452,7 @@ var CompetitorIntelligenceService = class {
           });
         }
       });
-      return products3;
+      return products4;
     } catch (error) {
       console.error("Wildberries scraping error:", error);
       return [];
@@ -17942,7 +17987,7 @@ import { Router as Router22 } from "express";
 // server/services/advancedAnalytics.ts
 init_db();
 init_schema();
-import { eq as eq21, and as and18, gte as gte5, lte as lte4, sql as sql11 } from "drizzle-orm";
+import { eq as eq21, and as and18, gte as gte5, lte as lte4, sql as sql12 } from "drizzle-orm";
 import OpenAI5 from "openai";
 var openai6 = new OpenAI5({
   apiKey: process.env.OPENAI_API_KEY || ""
@@ -17973,7 +18018,7 @@ var AdvancedAnalyticsService = class {
    */
   async getOverview(partnerId, dateRange) {
     const revenueResult = await db.select({
-      total: sql11`COALESCE(SUM(${orders.totalAmount}), 0)`
+      total: sql12`COALESCE(SUM(${orders.totalAmount}), 0)`
     }).from(orders).where(
       and18(
         eq21(orders.partnerId, partnerId),
@@ -17983,7 +18028,7 @@ var AdvancedAnalyticsService = class {
     );
     const totalRevenue = revenueResult[0]?.total || 0;
     const ordersResult = await db.select({
-      count: sql11`COUNT(*)`
+      count: sql12`COUNT(*)`
     }).from(orders).where(
       and18(
         eq21(orders.partnerId, partnerId),
@@ -17997,7 +18042,7 @@ var AdvancedAnalyticsService = class {
     const previousStart = new Date(dateRange.start.getTime() - periodLength);
     const previousEnd = dateRange.start;
     const previousRevenueResult = await db.select({
-      total: sql11`COALESCE(SUM(${orders.totalAmount}), 0)`
+      total: sql12`COALESCE(SUM(${orders.totalAmount}), 0)`
     }).from(orders).where(
       and18(
         eq21(orders.partnerId, partnerId),
@@ -18114,8 +18159,8 @@ var AdvancedAnalyticsService = class {
       const nextDate = new Date(date);
       nextDate.setDate(nextDate.getDate() + 1);
       const dayOrders = await db.select({
-        count: sql11`COUNT(*)`,
-        total: sql11`COALESCE(SUM(${orders.totalAmount}), 0)`
+        count: sql12`COUNT(*)`,
+        total: sql12`COALESCE(SUM(${orders.totalAmount}), 0)`
       }).from(orders).where(
         and18(
           eq21(orders.partnerId, partnerId),
@@ -18178,7 +18223,7 @@ Format: Numbered list, each recommendation in one concise sentence.
     const lowStockProducts = await db.select().from(products).where(
       and18(
         eq21(products.partnerId, partnerId),
-        sql11`${products.stockQuantity} <= ${products.lowStockThreshold}`
+        sql12`${products.stockQuantity} <= ${products.lowStockThreshold}`
       )
     );
     if (lowStockProducts.length > 0) {
@@ -18190,7 +18235,7 @@ Format: Numbered list, each recommendation in one concise sentence.
         priority: "high"
       });
     }
-    const pendingOrders = await db.select({ count: sql11`COUNT(*)` }).from(orders).where(
+    const pendingOrders = await db.select({ count: sql12`COUNT(*)` }).from(orders).where(
       and18(
         eq21(orders.partnerId, partnerId),
         eq21(orders.status, "pending")
@@ -18215,15 +18260,15 @@ Format: Numbered list, each recommendation in one concise sentence.
     const topProducts = await db.select({
       productId: orders.id,
       productName: products.name,
-      totalSales: sql11`COUNT(*)`,
-      totalRevenue: sql11`SUM(${orders.totalAmount})`
+      totalSales: sql12`COUNT(*)`,
+      totalRevenue: sql12`SUM(${orders.totalAmount})`
     }).from(orders).leftJoin(products, eq21(orders.partnerId, products.partnerId)).where(
       and18(
         eq21(orders.partnerId, partnerId),
         gte5(orders.createdAt, dateRange.start),
         lte4(orders.createdAt, dateRange.end)
       )
-    ).groupBy(orders.id, products.name).orderBy(sql11`COUNT(*) DESC`).limit(10);
+    ).groupBy(orders.id, products.name).orderBy(sql12`COUNT(*) DESC`).limit(10);
     return topProducts.map((p) => ({
       type: "product",
       name: p.productName,
@@ -18239,7 +18284,7 @@ Format: Numbered list, each recommendation in one concise sentence.
     const customerOrders = await db.select().from(orders).where(
       and18(
         eq21(orders.partnerId, partnerId),
-        sql11`${orders.customerEmail} = (SELECT email FROM customers WHERE id = ${customerId})`
+        sql12`${orders.customerEmail} = (SELECT email FROM customers WHERE id = ${customerId})`
       )
     ).orderBy(orders.createdAt);
     if (customerOrders.length === 0) {
@@ -18279,7 +18324,7 @@ Format: Numbered list, each recommendation in one concise sentence.
     const thirtyDaysAgo = /* @__PURE__ */ new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const inactiveCustomers = await db.select({
-      count: sql11`COUNT(DISTINCT ${orders.customerEmail})`
+      count: sql12`COUNT(DISTINCT ${orders.customerEmail})`
     }).from(orders).where(
       and18(
         eq21(orders.partnerId, partnerId),
@@ -18288,7 +18333,7 @@ Format: Numbered list, each recommendation in one concise sentence.
     );
     const atRiskCustomers = inactiveCustomers[0]?.count || 0;
     const totalCustomers = await db.select({
-      count: sql11`COUNT(DISTINCT ${orders.customerEmail})`
+      count: sql12`COUNT(DISTINCT ${orders.customerEmail})`
     }).from(orders).where(eq21(orders.partnerId, partnerId));
     const total = totalCustomers[0]?.count || 1;
     const churnRate = atRiskCustomers / total * 100;
@@ -18312,15 +18357,15 @@ Format: Numbered list, each recommendation in one concise sentence.
     const oneYearAgo = /* @__PURE__ */ new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
     const monthlyData = await db.select({
-      month: sql11`strftime('%Y-%m', ${orders.createdAt})`,
-      revenue: sql11`SUM(${orders.totalAmount})`,
-      orders: sql11`COUNT(*)`
+      month: sql12`strftime('%Y-%m', ${orders.createdAt})`,
+      revenue: sql12`SUM(${orders.totalAmount})`,
+      orders: sql12`COUNT(*)`
     }).from(orders).where(
       and18(
         eq21(orders.partnerId, partnerId),
         gte5(orders.createdAt, oneYearAgo)
       )
-    ).groupBy(sql11`strftime('%Y-%m', ${orders.createdAt})`).orderBy(sql11`strftime('%Y-%m', ${orders.createdAt})`);
+    ).groupBy(sql12`strftime('%Y-%m', ${orders.createdAt})`).orderBy(sql12`strftime('%Y-%m', ${orders.createdAt})`);
     if (monthlyData.length < 6) {
       return {
         peakMonths: [],
@@ -18357,7 +18402,7 @@ var advancedAnalytics = new AdvancedAnalyticsService();
 // server/services/affiliateProgram.ts
 init_db();
 init_schema();
-import { eq as eq22, and as and19, sql as sql12 } from "drizzle-orm";
+import { eq as eq22, and as and19, sql as sql13 } from "drizzle-orm";
 import crypto6 from "crypto";
 var AffiliateProgramService = class {
   static {
@@ -18429,7 +18474,7 @@ var AffiliateProgramService = class {
    */
   async registerReferral(params) {
     try {
-      const referrer = await db.select().from(partners).where(sql12`${partners.id} = (SELECT partner_id FROM affiliate_codes WHERE code = ${params.referrerCode})`).limit(1);
+      const referrer = await db.select().from(partners).where(sql13`${partners.id} = (SELECT partner_id FROM affiliate_codes WHERE code = ${params.referrerCode})`).limit(1);
       if (!referrer || referrer.length === 0) {
         return { success: false, error: "Invalid referral code" };
       }
@@ -18500,7 +18545,7 @@ var AffiliateProgramService = class {
         createdAt: /* @__PURE__ */ new Date()
       });
       await db.update(referrals).set({
-        bonusEarned: sql12`${referrals.bonusEarned} + ${commission}`
+        bonusEarned: sql13`${referrals.bonusEarned} + ${commission}`
       }).where(eq22(referrals.id, params.referralId));
       return { success: true, bonusId };
     } catch (error) {
@@ -18512,9 +18557,9 @@ var AffiliateProgramService = class {
    * Get affiliate stats
    */
   async getAffiliateStats(partnerId) {
-    const totalReferralsResult = await db.select({ count: sql12`COUNT(*)` }).from(referrals).where(eq22(referrals.referrerPartnerId, partnerId));
+    const totalReferralsResult = await db.select({ count: sql13`COUNT(*)` }).from(referrals).where(eq22(referrals.referrerPartnerId, partnerId));
     const totalReferrals = totalReferralsResult[0]?.count || 0;
-    const activeReferralsResult = await db.select({ count: sql12`COUNT(*)` }).from(referrals).where(
+    const activeReferralsResult = await db.select({ count: sql13`COUNT(*)` }).from(referrals).where(
       and19(
         eq22(referrals.referrerPartnerId, partnerId),
         eq22(referrals.status, "active")
@@ -18522,15 +18567,15 @@ var AffiliateProgramService = class {
     );
     const activeReferrals = activeReferralsResult[0]?.count || 0;
     const earningsResult = await db.select({
-      total: sql12`COALESCE(SUM(${referralBonuses.amount}), 0)`,
-      pending: sql12`COALESCE(SUM(CASE WHEN ${referralBonuses.status} = 'pending' THEN ${referralBonuses.amount} ELSE 0 END), 0)`
+      total: sql13`COALESCE(SUM(${referralBonuses.amount}), 0)`,
+      pending: sql13`COALESCE(SUM(CASE WHEN ${referralBonuses.status} = 'pending' THEN ${referralBonuses.amount} ELSE 0 END), 0)`
     }).from(referralBonuses).where(eq22(referralBonuses.referrerPartnerId, partnerId));
     const totalEarnings = earningsResult[0]?.total || 0;
     const pendingEarnings = earningsResult[0]?.pending || 0;
-    const registeredResult = await db.select({ count: sql12`COUNT(*)` }).from(referrals).where(
+    const registeredResult = await db.select({ count: sql13`COUNT(*)` }).from(referrals).where(
       and19(
         eq22(referrals.referrerPartnerId, partnerId),
-        sql12`${referrals.status} IN ('registered', 'active')`
+        sql13`${referrals.status} IN ('registered', 'active')`
       )
     );
     const registered = registeredResult[0]?.count || 0;
@@ -18574,9 +18619,9 @@ var AffiliateProgramService = class {
     const leaderboard = await db.select({
       partnerId: referralBonuses.referrerPartnerId,
       partnerName: partners.businessName,
-      totalEarnings: sql12`SUM(${referralBonuses.amount})`,
-      totalReferrals: sql12`COUNT(DISTINCT ${referrals.id})`
-    }).from(referralBonuses).leftJoin(partners, eq22(referralBonuses.referrerPartnerId, partners.id)).leftJoin(referrals, eq22(referralBonuses.referrerPartnerId, referrals.referrerPartnerId)).groupBy(referralBonuses.referrerPartnerId, partners.businessName).orderBy(sql12`SUM(${referralBonuses.amount}) DESC`).limit(limit);
+      totalEarnings: sql13`SUM(${referralBonuses.amount})`,
+      totalReferrals: sql13`COUNT(DISTINCT ${referrals.id})`
+    }).from(referralBonuses).leftJoin(partners, eq22(referralBonuses.referrerPartnerId, partners.id)).leftJoin(referrals, eq22(referralBonuses.referrerPartnerId, referrals.referrerPartnerId)).groupBy(referralBonuses.referrerPartnerId, partners.businessName).orderBy(sql13`SUM(${referralBonuses.amount}) DESC`).limit(limit);
     return leaderboard.map((entry, index) => ({
       rank: index + 1,
       partnerId: entry.partnerId,
@@ -20178,11 +20223,11 @@ router35.get("/partner/:partnerId/products", asyncHandler(async (req, res) => {
     return res.status(403).json({ error: "Admin access required" });
   }
   try {
-    const products3 = await db.all(
+    const products4 = await db.all(
       `SELECT * FROM products WHERE partner_id = ? ORDER BY created_at DESC`,
       [partnerId]
     );
-    res.json({ products: products3 });
+    res.json({ products: products4 });
   } catch (error) {
     console.error("Get products error:", error);
     res.status(500).json({ error: error.message });
@@ -20215,7 +20260,7 @@ var adminRemoteAccess_default = router35;
 import express12 from "express";
 init_db();
 init_schema();
-import { eq as eq25, sql as sql13 } from "drizzle-orm";
+import { eq as eq25, sql as sql14 } from "drizzle-orm";
 var router36 = express12.Router();
 router36.get("/stats", asyncHandler(async (req, res) => {
   const user = req.user;
@@ -20223,15 +20268,15 @@ router36.get("/stats", asyncHandler(async (req, res) => {
     return res.status(403).json({ error: "Admin access required" });
   }
   try {
-    const [totalReferrals] = await db.select({ count: sql13`COUNT(*)` }).from(referrals);
-    const [activeReferrals] = await db.select({ count: sql13`COUNT(*)` }).from(referrals).where(eq25(referrals.status, "active"));
-    const [totalEarnings] = await db.select({ total: sql13`COALESCE(SUM(amount), 0)` }).from(referralEarnings);
+    const [totalReferrals] = await db.select({ count: sql14`COUNT(*)` }).from(referrals);
+    const [activeReferrals] = await db.select({ count: sql14`COUNT(*)` }).from(referrals).where(eq25(referrals.status, "active"));
+    const [totalEarnings] = await db.select({ total: sql14`COALESCE(SUM(amount), 0)` }).from(referralEarnings);
     const topReferrers = await db.select({
       partnerId: referrals.referrerPartnerId,
       businessName: partners.businessName,
-      referralCount: sql13`COUNT(*)`,
-      totalEarnings: sql13`COALESCE(SUM(${referralEarnings.amount}), 0)`
-    }).from(referrals).leftJoin(partners, eq25(referrals.referrerPartnerId, partners.id)).leftJoin(referralEarnings, eq25(referrals.referrerPartnerId, referralEarnings.referrerPartnerId)).groupBy(referrals.referrerPartnerId, partners.businessName).orderBy(sql13`COUNT(*) DESC`).limit(10);
+      referralCount: sql14`COUNT(*)`,
+      totalEarnings: sql14`COALESCE(SUM(${referralEarnings.amount}), 0)`
+    }).from(referrals).leftJoin(partners, eq25(referrals.referrerPartnerId, partners.id)).leftJoin(referralEarnings, eq25(referrals.referrerPartnerId, referralEarnings.referrerPartnerId)).groupBy(referrals.referrerPartnerId, partners.businessName).orderBy(sql14`COUNT(*) DESC`).limit(10);
     res.json({
       totalReferrals: totalReferrals.count,
       activeReferrals: activeReferrals.count,
@@ -22698,7 +22743,7 @@ var adminAIManagementRoutes_default = router44;
 import express21 from "express";
 init_db();
 init_schema();
-import { eq as eq28, and as and22, sql as sql14, gte as gte7, lte as lte6 } from "drizzle-orm";
+import { eq as eq28, and as and22, sql as sql15, gte as gte7, lte as lte6 } from "drizzle-orm";
 import { nanoid as nanoid17 } from "nanoid";
 var router45 = express21.Router();
 router45.post("/create", asyncHandler(async (req, res) => {
@@ -22750,7 +22795,7 @@ router45.get("/all", asyncHandler(async (req, res) => {
   if (!user || user.role !== "admin") {
     return res.status(403).json({ message: "Admin only" });
   }
-  const campaigns = await db.select().from(referralCampaigns).orderBy(sql14`${referralCampaigns.createdAt} DESC`);
+  const campaigns = await db.select().from(referralCampaigns).orderBy(sql15`${referralCampaigns.createdAt} DESC`);
   res.json({ campaigns });
 }));
 router45.get("/active", asyncHandler(async (req, res) => {
@@ -22759,7 +22804,7 @@ router45.get("/active", asyncHandler(async (req, res) => {
     eq28(referralCampaigns.status, "active"),
     gte7(referralCampaigns.endDate, now),
     lte6(referralCampaigns.startDate, now)
-  )).orderBy(sql14`${referralCampaigns.endDate} ASC`);
+  )).orderBy(sql15`${referralCampaigns.endDate} ASC`);
   const campaignsWithTimer = campaigns.map((campaign) => {
     const endDate = new Date(campaign.endDate);
     const startDate = new Date(campaign.startDate);
@@ -22815,7 +22860,7 @@ router45.post("/join/:campaignId", asyncHandler(async (req, res) => {
     joinedAt: /* @__PURE__ */ new Date()
   });
   await db.update(referralCampaigns).set({
-    participants: sql14`${referralCampaigns.participants} + 1`
+    participants: sql15`${referralCampaigns.participants} + 1`
   }).where(eq28(referralCampaigns.id, campaignId));
   res.json({
     success: true,
@@ -22842,13 +22887,13 @@ router45.get("/my-stats/:campaignId", asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "Konkurs topilmadi" });
   }
   const campaignData = campaign[0];
-  const validReferrals = await db.select({ count: sql14`COUNT(*)` }).from(referralFirstPurchases).where(and22(
+  const validReferrals = await db.select({ count: sql15`COUNT(*)` }).from(referralFirstPurchases).where(and22(
     eq28(referralFirstPurchases.referrerPartnerId, partner.id),
     eq28(referralFirstPurchases.status, "paid"),
     gte7(referralFirstPurchases.paidAt, campaignData.startDate),
     lte6(referralFirstPurchases.paidAt, campaignData.endDate),
-    sql14`${referralFirstPurchases.tierId} >= ${campaignData.minTier}`,
-    sql14`${referralFirstPurchases.subscriptionMonths} >= ${campaignData.minSubscriptionMonths}`
+    sql15`${referralFirstPurchases.tierId} >= ${campaignData.minTier}`,
+    sql15`${referralFirstPurchases.subscriptionMonths} >= ${campaignData.minSubscriptionMonths}`
   ));
   const referralsCount = Number(validReferrals[0]?.count) || 0;
   const progress = referralsCount / campaignData.targetReferrals * 100;
@@ -22882,13 +22927,13 @@ router45.post("/update-results/:campaignId", asyncHandler(async (req, res) => {
     const participants = await db.select().from(referralCampaignParticipants).where(eq28(referralCampaignParticipants.campaignId, campaignId));
     let winnersCount = 0;
     for (const participant of participants) {
-      const validReferrals = await db.select({ count: sql14`COUNT(*)` }).from(referralFirstPurchases).where(and22(
+      const validReferrals = await db.select({ count: sql15`COUNT(*)` }).from(referralFirstPurchases).where(and22(
         eq28(referralFirstPurchases.referrerPartnerId, participant.referrerPartnerId),
         eq28(referralFirstPurchases.status, "paid"),
         gte7(referralFirstPurchases.paidAt, campaignData.startDate),
         lte6(referralFirstPurchases.paidAt, campaignData.endDate),
-        sql14`${referralFirstPurchases.tierId} >= ${campaignData.minTier}`,
-        sql14`${referralFirstPurchases.subscriptionMonths} >= ${campaignData.minSubscriptionMonths}`
+        sql15`${referralFirstPurchases.tierId} >= ${campaignData.minTier}`,
+        sql15`${referralFirstPurchases.subscriptionMonths} >= ${campaignData.minSubscriptionMonths}`
       ));
       const referralsCount = Number(validReferrals[0]?.count) || 0;
       const isWinner = referralsCount >= campaignData.targetReferrals;
@@ -23697,6 +23742,1420 @@ router46.get("/video/providers", asyncHandler(async (req, res) => {
 }));
 var smmRoutes_default = router46;
 
+// server/routes/aiRoutes.ts
+import { Router as Router25 } from "express";
+
+// server/services/aiManagerV2Service.ts
+init_db();
+init_storage();
+init_schema();
+import { eq as eq29, and as and23 } from "drizzle-orm";
+import { v4 as uuidv4 } from "uuid";
+
+// server/services/imageSearchService.ts
+import axios7 from "axios";
+var GOOGLE_VISION_API_KEY = process.env.GOOGLE_VISION_API_KEY || "";
+var SERPAPI_KEY = process.env.SERPAPI_KEY || "";
+var GoogleVisionService = class {
+  static {
+    __name(this, "GoogleVisionService");
+  }
+  apiKey;
+  endpoint = "https://vision.googleapis.com/v1/images:annotate";
+  constructor(apiKey) {
+    this.apiKey = apiKey;
+  }
+  async analyzeImage(imageUrl) {
+    try {
+      const response = await axios7.post(
+        `${this.endpoint}?key=${this.apiKey}`,
+        {
+          requests: [
+            {
+              image: {
+                source: {
+                  imageUri: imageUrl
+                }
+              },
+              features: [
+                { type: "LABEL_DETECTION", maxResults: 10 },
+                { type: "LOGO_DETECTION", maxResults: 5 },
+                { type: "WEB_DETECTION", maxResults: 10 },
+                { type: "IMAGE_PROPERTIES", maxResults: 10 },
+                { type: "OBJECT_LOCALIZATION", maxResults: 10 }
+              ]
+            }
+          ]
+        }
+      );
+      const result = response.data.responses[0];
+      const labels = result.labelAnnotations?.map((l) => l.description) || [];
+      const brand = result.logoAnnotations?.[0]?.description || "Unknown";
+      const webEntities = result.webDetection?.webEntities || [];
+      const productName = webEntities.find((e) => e.score > 0.7)?.description || labels[0] || "Unknown Product";
+      const colors2 = result.imagePropertiesAnnotation?.dominantColors?.colors?.slice(0, 3).map((c) => {
+        const rgb = c.color;
+        return `rgb(${rgb.red || 0}, ${rgb.green || 0}, ${rgb.blue || 0})`;
+      }) || [];
+      const category = this.categorizeFromLabels(labels);
+      const description = `${productName} - ${labels.slice(0, 5).join(", ")}`;
+      const confidence = Math.round(
+        result.labelAnnotations?.slice(0, 3).reduce((sum, l) => sum + (l.score || 0), 0) / 3 * 100
+      );
+      return {
+        productName,
+        brand,
+        category,
+        description,
+        confidence,
+        labels,
+        colors: colors2,
+        rawData: result
+      };
+    } catch (error) {
+      console.error("Google Vision API error:", error.response?.data || error.message);
+      return {
+        productName: "Unknown Product",
+        brand: "Unknown",
+        category: "other",
+        description: "Could not analyze image",
+        confidence: 0,
+        labels: [],
+        colors: []
+      };
+    }
+  }
+  categorizeFromLabels(labels) {
+    const categoryMap = {
+      electronics: ["phone", "laptop", "computer", "tablet", "camera", "headphone", "speaker"],
+      clothing: ["shirt", "pants", "dress", "shoes", "jacket", "clothing", "fashion"],
+      home: ["furniture", "lamp", "table", "chair", "bed", "kitchen"],
+      beauty: ["cosmetic", "makeup", "perfume", "skincare", "beauty"],
+      food: ["food", "drink", "beverage", "snack", "meal"],
+      sports: ["sport", "fitness", "gym", "exercise", "athletic"],
+      toys: ["toy", "game", "puzzle", "doll"]
+    };
+    const labelsLower = labels.map((l) => l.toLowerCase());
+    for (const [category, keywords] of Object.entries(categoryMap)) {
+      if (keywords.some((keyword) => labelsLower.some((label) => label.includes(keyword)))) {
+        return category;
+      }
+    }
+    return "other";
+  }
+};
+var SerpAPIService = class {
+  static {
+    __name(this, "SerpAPIService");
+  }
+  apiKey;
+  endpoint = "https://serpapi.com/search";
+  constructor(apiKey) {
+    this.apiKey = apiKey;
+  }
+  async reverseImageSearch(imageUrl) {
+    try {
+      const response = await axios7.get(this.endpoint, {
+        params: {
+          engine: "google_reverse_image",
+          image_url: imageUrl,
+          api_key: this.apiKey,
+          location: "Russia",
+          hl: "ru"
+        }
+      });
+      const data = response.data;
+      const competitors = [];
+      const shoppingResults = data.shopping_results || [];
+      for (const item of shoppingResults) {
+        const priceMatch = item.extracted_price || item.price;
+        if (priceMatch) {
+          competitors.push({
+            seller: item.source || item.merchant || "Unknown",
+            price: parseFloat(priceMatch),
+            currency: "RUB",
+            link: item.link || "",
+            source: this.extractMarketplace(item.link || ""),
+            availability: item.delivery || item.availability || "available"
+          });
+        }
+      }
+      const inlineResults = data.inline_shopping_results || [];
+      for (const item of inlineResults) {
+        const priceMatch = item.extracted_price || item.price;
+        if (priceMatch) {
+          competitors.push({
+            seller: item.source || "Unknown",
+            price: parseFloat(priceMatch),
+            currency: "RUB",
+            link: item.link || "",
+            source: this.extractMarketplace(item.link || ""),
+            availability: "available"
+          });
+        }
+      }
+      return competitors;
+    } catch (error) {
+      console.error("SerpAPI error:", error.response?.data || error.message);
+      return [];
+    }
+  }
+  extractMarketplace(url) {
+    if (!url) return "other";
+    const urlLower = url.toLowerCase();
+    if (urlLower.includes("wildberries")) return "wildberries";
+    if (urlLower.includes("ozon")) return "ozon";
+    if (urlLower.includes("uzum")) return "uzum";
+    if (urlLower.includes("yandex")) return "yandex";
+    if (urlLower.includes("aliexpress")) return "aliexpress";
+    if (urlLower.includes("amazon")) return "amazon";
+    return "other";
+  }
+};
+var ImageSearchService = class {
+  static {
+    __name(this, "ImageSearchService");
+  }
+  visionService = null;
+  serpService = null;
+  constructor() {
+    if (GOOGLE_VISION_API_KEY) {
+      this.visionService = new GoogleVisionService(GOOGLE_VISION_API_KEY);
+    }
+    if (SERPAPI_KEY) {
+      this.serpService = new SerpAPIService(SERPAPI_KEY);
+    }
+  }
+  async searchByImage(imageUrl) {
+    let productInfo = {
+      productName: "Unknown Product",
+      brand: "Unknown",
+      category: "other",
+      description: "Image analysis not available",
+      confidence: 0,
+      labels: [],
+      colors: []
+    };
+    if (this.visionService) {
+      productInfo = await this.visionService.analyzeImage(imageUrl);
+    } else {
+      console.warn("\u26A0\uFE0F Google Vision API key not configured");
+    }
+    let competitors = [];
+    if (this.serpService) {
+      competitors = await this.serpService.reverseImageSearch(imageUrl);
+    } else {
+      console.warn("\u26A0\uFE0F SerpAPI key not configured");
+    }
+    const prices = competitors.map((c) => c.price).filter((p) => p > 0);
+    const avgPrice = prices.length > 0 ? Math.round(prices.reduce((sum, p) => sum + p, 0) / prices.length) : 0;
+    const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+    const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+    return {
+      productInfo,
+      competitors,
+      avgPrice,
+      minPrice,
+      maxPrice,
+      totalResults: competitors.length
+    };
+  }
+  isEnabled() {
+    return !!(this.visionService && this.serpService);
+  }
+  getStatus() {
+    return {
+      visionEnabled: !!this.visionService,
+      serpEnabled: !!this.serpService,
+      fullyEnabled: this.isEnabled()
+    };
+  }
+};
+var imageSearchService = new ImageSearchService();
+
+// server/services/marketplaceService.ts
+import axios8 from "axios";
+var BaseMarketplaceService = class {
+  static {
+    __name(this, "BaseMarketplaceService");
+  }
+  axiosInstance;
+  marketplace;
+  constructor(marketplace, baseURL) {
+    this.marketplace = marketplace;
+    this.axiosInstance = axios8.create({
+      baseURL,
+      timeout: 3e4,
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+  }
+};
+var WildberriesService = class extends BaseMarketplaceService {
+  static {
+    __name(this, "WildberriesService");
+  }
+  apiKey;
+  constructor(apiKey) {
+    super("wildberries", "https://suppliers-api.wildberries.ru");
+    this.apiKey = apiKey;
+    this.axiosInstance.defaults.headers.common["HeaderApiKey"] = apiKey;
+  }
+  async createProduct(product) {
+    try {
+      const payload = {
+        cards: [{
+          nmID: 0,
+          // Will be assigned by Wildberries
+          vendorCode: product.offerId,
+          brand: product.brand,
+          title: product.title.substring(0, 60),
+          // Max 60 chars
+          description: product.description,
+          characteristics: this.formatCharacteristics(product.characteristics),
+          sizes: [{
+            techSize: "onesize",
+            price: product.price
+          }]
+        }]
+      };
+      const response = await this.axiosInstance.post("/content/v2/cards/upload", payload);
+      return {
+        success: true,
+        marketplace: "wildberries",
+        productId: response.data?.data?.nmID || product.offerId,
+        status: "pending_moderation",
+        details: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        marketplace: "wildberries",
+        error: error.response?.data?.message || error.message,
+        details: error.response?.data
+      };
+    }
+  }
+  async updatePrice(productId, price) {
+    try {
+      await this.axiosInstance.post("/public/api/v1/prices", {
+        prices: [{
+          nmId: productId,
+          price
+        }]
+      });
+      return true;
+    } catch (error) {
+      console.error("Wildberries price update error:", error);
+      return false;
+    }
+  }
+  async getProductStatus(productId) {
+    try {
+      const response = await this.axiosInstance.get(`/content/v1/cards/list`, {
+        params: { nmID: productId }
+      });
+      return response.data;
+    } catch (error) {
+      return null;
+    }
+  }
+  formatCharacteristics(characteristics) {
+    if (!characteristics) return [];
+    return Object.entries(characteristics).map(([key, value]) => ({
+      attributeId: parseInt(key) || 0,
+      value: String(value)
+    }));
+  }
+};
+var OzonService = class extends BaseMarketplaceService {
+  static {
+    __name(this, "OzonService");
+  }
+  clientId;
+  apiKey;
+  constructor(clientId, apiKey) {
+    super("ozon", "https://api-seller.ozon.ru");
+    this.clientId = clientId;
+    this.apiKey = apiKey;
+    this.axiosInstance.defaults.headers.common["Client-ID"] = clientId;
+    this.axiosInstance.defaults.headers.common["Api-Key"] = apiKey;
+  }
+  async createProduct(product) {
+    try {
+      const payload = {
+        items: [{
+          offer_id: product.offerId,
+          name: product.title,
+          description: product.description,
+          vendor: product.brand,
+          category_id: parseInt(String(product.category)) || 0,
+          pictures: product.images,
+          price: String(product.price),
+          currency_code: "RUB",
+          attributes: this.formatAttributes(product.characteristics)
+        }]
+      };
+      const response = await this.axiosInstance.post("/v2/product/import", payload);
+      const taskId = response.data?.result?.task_id;
+      return {
+        success: true,
+        marketplace: "ozon",
+        productId: taskId || product.offerId,
+        status: "pending_moderation",
+        details: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        marketplace: "ozon",
+        error: error.response?.data?.message || error.message,
+        details: error.response?.data
+      };
+    }
+  }
+  async updatePrice(productId, price) {
+    try {
+      await this.axiosInstance.post("/v1/product/import/prices", {
+        prices: [{
+          offer_id: productId,
+          price: String(price),
+          currency_code: "RUB"
+        }]
+      });
+      return true;
+    } catch (error) {
+      console.error("Ozon price update error:", error);
+      return false;
+    }
+  }
+  async getProductStatus(productId) {
+    try {
+      const response = await this.axiosInstance.post("/v2/product/info/list", {
+        offer_id: [productId]
+      });
+      return response.data;
+    } catch (error) {
+      return null;
+    }
+  }
+  formatAttributes(characteristics) {
+    if (!characteristics) return [];
+    return Object.entries(characteristics).map(([key, value]) => ({
+      attribute_id: parseInt(key) || 0,
+      value: String(value)
+    }));
+  }
+};
+var UzumService = class extends BaseMarketplaceService {
+  static {
+    __name(this, "UzumService");
+  }
+  apiKey;
+  constructor(apiKey) {
+    super("uzum", "https://api-seller.uzum.uz");
+    this.apiKey = apiKey;
+    this.axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${apiKey}`;
+  }
+  async createProduct(product) {
+    try {
+      const payload = {
+        offer_id: product.offerId,
+        name: product.title,
+        description: product.description,
+        brand: product.brand,
+        category_id: product.category,
+        images: product.images,
+        price: product.price,
+        attributes: product.characteristics || {}
+      };
+      const response = await this.axiosInstance.post("/api/seller/products", payload);
+      return {
+        success: true,
+        marketplace: "uzum",
+        productId: response.data?.id || product.offerId,
+        status: "pending",
+        details: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        marketplace: "uzum",
+        error: error.response?.data?.message || error.message,
+        details: error.response?.data
+      };
+    }
+  }
+  async updatePrice(productId, price) {
+    try {
+      await this.axiosInstance.patch(`/api/seller/products/${productId}/price`, {
+        price
+      });
+      return true;
+    } catch (error) {
+      console.error("Uzum price update error:", error);
+      return false;
+    }
+  }
+  async getProductStatus(productId) {
+    try {
+      const response = await this.axiosInstance.get(`/api/seller/products/${productId}`);
+      return response.data;
+    } catch (error) {
+      return null;
+    }
+  }
+};
+var YandexMarketService2 = class extends BaseMarketplaceService {
+  static {
+    __name(this, "YandexMarketService");
+  }
+  campaignId;
+  oauthToken;
+  constructor(campaignId, oauthToken) {
+    super("yandex", "https://api.partner.market.yandex.ru");
+    this.campaignId = campaignId;
+    this.oauthToken = oauthToken;
+    this.axiosInstance.defaults.headers.common["Authorization"] = `OAuth ${oauthToken}`;
+  }
+  async createProduct(product) {
+    try {
+      const payload = {
+        offer: {
+          shopSku: product.offerId,
+          name: product.title,
+          description: product.description,
+          vendor: product.brand,
+          price: {
+            value: product.price,
+            currencyId: "RUB"
+          },
+          pictures: product.images
+        }
+      };
+      const response = await this.axiosInstance.post(
+        `/campaigns/${this.campaignId}/offers`,
+        payload
+      );
+      return {
+        success: true,
+        marketplace: "yandex",
+        productId: product.offerId,
+        status: "active",
+        details: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        marketplace: "yandex",
+        error: error.response?.data?.message || error.message,
+        details: error.response?.data
+      };
+    }
+  }
+  async updatePrice(productId, price) {
+    try {
+      await this.axiosInstance.post(`/campaigns/${this.campaignId}/offer-prices`, {
+        offerIds: [productId],
+        prices: [{
+          value: price,
+          currencyId: "RUB"
+        }]
+      });
+      return true;
+    } catch (error) {
+      console.error("Yandex price update error:", error);
+      return false;
+    }
+  }
+  async getProductStatus(productId) {
+    try {
+      const response = await this.axiosInstance.get(`/campaigns/${this.campaignId}/offers/${productId}`);
+      return response.data;
+    } catch (error) {
+      return null;
+    }
+  }
+};
+var MarketplaceServiceFactory = class {
+  static {
+    __name(this, "MarketplaceServiceFactory");
+  }
+  static create(credentials) {
+    switch (credentials.marketplace) {
+      case "wildberries":
+        if (!credentials.apiKey) return null;
+        return new WildberriesService(credentials.apiKey);
+      case "ozon":
+        if (!credentials.clientId || !credentials.apiKey) return null;
+        return new OzonService(credentials.clientId, credentials.apiKey);
+      case "uzum":
+        if (!credentials.apiKey) return null;
+        return new UzumService(credentials.apiKey);
+      case "yandex":
+        if (!credentials.sellerId || !credentials.accessToken) return null;
+        return new YandexMarketService2(credentials.sellerId, credentials.accessToken);
+      default:
+        return null;
+    }
+  }
+};
+
+// server/services/aiManagerV2Service.ts
+init_realAIService();
+async function createTask(partnerId, taskType, inputData) {
+  const taskId = uuidv4();
+  const dbType3 = getDbType();
+  try {
+    await db.insert(aiTasks).values({
+      id: taskId,
+      partnerId,
+      taskType,
+      status: "pending",
+      priority: "medium",
+      inputData: JSON.stringify(inputData),
+      createdAt: formatDateForDB(/* @__PURE__ */ new Date(), dbType3)
+    });
+    return taskId;
+  } catch (error) {
+    console.error("Failed to create AI task:", error);
+    throw error;
+  }
+}
+__name(createTask, "createTask");
+async function updateTaskStatus(taskId, status, outputData, errorMessage) {
+  const dbType3 = getDbType();
+  try {
+    await db.update(aiTasks).set({
+      status,
+      outputData: outputData ? JSON.stringify(outputData) : void 0,
+      errorMessage,
+      completedAt: status === "completed" || status === "failed" ? formatDateForDB(/* @__PURE__ */ new Date(), dbType3) : void 0,
+      updatedAt: formatDateForDB(/* @__PURE__ */ new Date(), dbType3)
+    }).where(eq29(aiTasks.id, taskId));
+  } catch (error) {
+    console.error("Failed to update task status:", error);
+  }
+}
+__name(updateTaskStatus, "updateTaskStatus");
+async function recordAICost(partnerId, operation, model, cost, metadata) {
+  const dbType3 = getDbType();
+  try {
+    const partner = await storage.getPartnerById(partnerId);
+    const tier = partner?.pricingTier || "free_starter";
+    await db.insert(aiCostRecords).values({
+      id: uuidv4(),
+      partnerId,
+      operation,
+      model,
+      cost,
+      tier,
+      metadata: metadata ? JSON.stringify(metadata) : null,
+      createdAt: formatDateForDB(/* @__PURE__ */ new Date(), dbType3)
+    });
+  } catch (error) {
+    console.error("Failed to record AI cost:", error);
+  }
+}
+__name(recordAICost, "recordAICost");
+function calculateOptimalPrice2(costPrice, competitors, options = {}) {
+  const {
+    taxRate = 15,
+    // 15% soliq
+    commissionRate = 10,
+    // 10% marketplace komissiya
+    logisticsCost = 50,
+    // 50 so'm logistika
+    minProfitPercent = 10
+    // 10% minimal foyda
+  } = options;
+  const taxes = costPrice * (taxRate / 100);
+  const commission = costPrice * (commissionRate / 100);
+  const logistics = logisticsCost;
+  const totalCost = costPrice + taxes + commission + logistics;
+  const minProfit = totalCost * (minProfitPercent / 100);
+  const minPrice = Math.ceil(totalCost + minProfit);
+  const prices = competitors.map((c) => c.price).filter((p) => p > 0);
+  const avgCompetitorPrice = prices.length > 0 ? Math.round(prices.reduce((sum, p) => sum + p, 0) / prices.length) : minPrice * 1.2;
+  const minCompetitorPrice = prices.length > 0 ? Math.min(...prices) : minPrice;
+  const competitivePrice = Math.round(avgCompetitorPrice * 0.97);
+  const recommendedPrice = Math.max(minPrice, competitivePrice);
+  const maxPrice = prices.length > 0 ? Math.max(...prices) : recommendedPrice * 1.3;
+  const profit = recommendedPrice - totalCost;
+  const profitPercent = profit / totalCost * 100;
+  return {
+    minPrice,
+    recommendedPrice,
+    maxPrice,
+    breakdown: {
+      costPrice,
+      taxes,
+      commission,
+      logistics,
+      totalCost,
+      minPrice,
+      recommendedPrice,
+      profit,
+      profitPercent: Math.round(profitPercent),
+      competitorAvg: avgCompetitorPrice,
+      competitorMin: minCompetitorPrice
+    }
+  };
+}
+__name(calculateOptimalPrice2, "calculateOptimalPrice");
+async function scanProductImage(request) {
+  const { imageUrl, partnerId } = request;
+  const taskId = await createTask(partnerId, "image_scan", { imageUrl });
+  try {
+    await updateTaskStatus(taskId, "processing");
+    const searchResult = await imageSearchService.searchByImage(imageUrl);
+    await recordAICost(partnerId, "image_scan", "google-vision", 1e-3, {
+      confidence: searchResult.productInfo.confidence,
+      resultsFound: searchResult.totalResults
+    });
+    const response = {
+      taskId,
+      productInfo: {
+        name: searchResult.productInfo.productName,
+        brand: searchResult.productInfo.brand,
+        category: searchResult.productInfo.category,
+        description: searchResult.productInfo.description,
+        confidence: searchResult.productInfo.confidence,
+        labels: searchResult.productInfo.labels
+      },
+      competitors: searchResult.competitors.map((c) => ({
+        seller: c.seller,
+        price: c.price,
+        currency: c.currency,
+        link: c.link,
+        source: c.source
+      })),
+      priceAnalysis: {
+        avgPrice: searchResult.avgPrice,
+        minPrice: searchResult.minPrice,
+        maxPrice: searchResult.maxPrice,
+        totalResults: searchResult.totalResults
+      },
+      status: searchResult.totalResults > 0 ? "success" : "partial",
+      message: searchResult.totalResults > 0 ? `Topildi: ${searchResult.productInfo.productName}. ${searchResult.totalResults} ta raqobatchi aniqlandi.` : `Mahsulot aniqlandi: ${searchResult.productInfo.productName}, lekin raqobatchilar topilmadi.`
+    };
+    await updateTaskStatus(taskId, "completed", response);
+    return response;
+  } catch (error) {
+    console.error("AI Scanner error:", error);
+    await updateTaskStatus(taskId, "failed", null, error.message);
+    return {
+      taskId,
+      productInfo: {
+        name: "Unknown",
+        brand: "Unknown",
+        category: "other",
+        description: "Mahsulotni aniqlashda xatolik",
+        confidence: 0,
+        labels: []
+      },
+      competitors: [],
+      priceAnalysis: {
+        avgPrice: 0,
+        minPrice: 0,
+        maxPrice: 0,
+        totalResults: 0
+      },
+      status: "failed",
+      message: `Xatolik: ${error.message}`
+    };
+  }
+}
+__name(scanProductImage, "scanProductImage");
+async function createProductOnMarketplace(request) {
+  const { partnerId, marketplace, productData, priceOptimization } = request;
+  const taskId = request.taskId || await createTask(partnerId, "product_creation", productData);
+  try {
+    await updateTaskStatus(taskId, "processing");
+    const integrations = await db.select().from(marketplaceIntegrations).where(
+      and23(
+        eq29(marketplaceIntegrations.partnerId, partnerId),
+        eq29(marketplaceIntegrations.marketplace, marketplace),
+        eq29(marketplaceIntegrations.active, true)
+      )
+    );
+    if (integrations.length === 0) {
+      throw new Error(`${marketplace} marketplace ulanmagan. Iltimos, API kalitlarini kiriting.`);
+    }
+    const integration = integrations[0];
+    let optimizedPrice = productData.costPrice * 1.5;
+    let priceBreakdown = null;
+    if (priceOptimization?.enabled && productData.images.length > 0) {
+      try {
+        const searchResult = await imageSearchService.searchByImage(productData.images[0]);
+        const priceCalc = calculateOptimalPrice2(productData.costPrice, searchResult.competitors, {
+          minProfitPercent: priceOptimization.minProfit || 10
+        });
+        optimizedPrice = priceCalc.recommendedPrice;
+        priceBreakdown = priceCalc.breakdown;
+      } catch (error) {
+        console.warn("Price optimization failed, using default markup:", error);
+      }
+    }
+    let optimizedTitle = productData.name;
+    let optimizedDescription = productData.description;
+    if (realAIService.isEnabled()) {
+      try {
+        const seoPrompt = `Marketplace: ${marketplace}
+Mahsulot: ${productData.name}
+
+SEO-optimizatsiya qilingan sarlavha (max 100 belgi) va tavsif (max 500 belgi) yarating. JSON formatda javob bering:
+{"title": "...", "description": "..."}`;
+        const seoResult = await realAIService.generateText({
+          prompt: seoPrompt,
+          jsonMode: true
+        });
+        const seoData = JSON.parse(seoResult);
+        optimizedTitle = seoData.title || optimizedTitle;
+        optimizedDescription = seoData.description || optimizedDescription;
+        await recordAICost(partnerId, "seo_optimization", "gemini-flash", 5e-4);
+      } catch (error) {
+        console.warn("SEO optimization failed, using original content:", error);
+      }
+    }
+    const credentials = {
+      marketplace,
+      apiKey: integration.apiKey || void 0,
+      apiSecret: integration.apiSecret || void 0,
+      clientId: integration.sellerId || void 0,
+      accessToken: integration.accessToken || void 0,
+      sellerId: integration.sellerId || void 0
+    };
+    const marketplaceService = MarketplaceServiceFactory.create(credentials);
+    if (!marketplaceService) {
+      throw new Error(`${marketplace} service yaratishda xatolik`);
+    }
+    const productCard = {
+      offerId: uuidv4(),
+      // Unique ID
+      title: optimizedTitle,
+      description: optimizedDescription,
+      images: productData.images,
+      price: optimizedPrice,
+      category: productData.category || "general",
+      brand: productData.brand || "Unknown",
+      keywords: []
+    };
+    const creationResult = await marketplaceService.createProduct(productCard);
+    const response = {
+      success: creationResult.success,
+      taskId,
+      marketplace,
+      productId: creationResult.productId,
+      optimizedPrice,
+      priceBreakdown,
+      status: creationResult.status || "unknown",
+      message: creationResult.success ? `Mahsulot ${marketplace} da yaratildi! Product ID: ${creationResult.productId}` : `Xatolik: ${creationResult.error}`,
+      error: creationResult.error
+    };
+    await updateTaskStatus(
+      taskId,
+      creationResult.success ? "completed" : "failed",
+      response,
+      creationResult.error
+    );
+    return response;
+  } catch (error) {
+    console.error("Product creation error:", error);
+    await updateTaskStatus(taskId, "failed", null, error.message);
+    return {
+      success: false,
+      taskId,
+      marketplace,
+      status: "failed",
+      message: `Mahsulot yaratishda xatolik: ${error.message}`,
+      error: error.message
+    };
+  }
+}
+__name(createProductOnMarketplace, "createProductOnMarketplace");
+var aiManager = {
+  scanProductImage,
+  createProductOnMarketplace
+};
+
+// server/routes/aiRoutes.ts
+var router47 = Router25();
+router47.post("/scanner/scan-image", requireAuth2, async (req, res) => {
+  try {
+    const { imageUrl } = req.body;
+    const userId = req.session?.user?.id;
+    if (!imageUrl) {
+      return res.status(400).json({
+        success: false,
+        error: "imageUrl majburiy"
+      });
+    }
+    const { storage: storage4 } = await Promise.resolve().then(() => (init_storage(), storage_exports));
+    const partner = await storage4.getPartnerByUserId(userId);
+    if (!partner) {
+      return res.status(404).json({
+        success: false,
+        error: "Partner topilmadi"
+      });
+    }
+    const result = await aiManager.scanProductImage({
+      imageUrl,
+      partnerId: partner.id
+    });
+    return res.status(200).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error("Image scan error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+router47.post("/manager/create-product", requireAuth2, async (req, res) => {
+  try {
+    const {
+      marketplace,
+      productData,
+      priceOptimization,
+      taskId
+    } = req.body;
+    const userId = req.session?.user?.id;
+    if (!marketplace || !productData) {
+      return res.status(400).json({
+        success: false,
+        error: "marketplace va productData majburiy"
+      });
+    }
+    if (!productData.name || !productData.description || !productData.images || !productData.costPrice) {
+      return res.status(400).json({
+        success: false,
+        error: "name, description, images, costPrice majburiy"
+      });
+    }
+    const { storage: storage4 } = await Promise.resolve().then(() => (init_storage(), storage_exports));
+    const partner = await storage4.getPartnerByUserId(userId);
+    if (!partner) {
+      return res.status(404).json({
+        success: false,
+        error: "Partner topilmadi"
+      });
+    }
+    const result = await aiManager.createProductOnMarketplace({
+      partnerId: partner.id,
+      marketplace,
+      productData,
+      priceOptimization,
+      taskId
+    });
+    return res.status(result.success ? 200 : 400).json({
+      success: result.success,
+      data: result
+    });
+  } catch (error) {
+    console.error("Product creation error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+router47.get("/status", async (req, res) => {
+  try {
+    const imageSearchStatus = imageSearchService.getStatus();
+    const aiServiceStatus = (await Promise.resolve().then(() => (init_realAIService(), realAIService_exports))).realAIService.getStatus();
+    return res.status(200).json({
+      success: true,
+      services: {
+        imageSearch: imageSearchStatus,
+        aiGeneration: aiServiceStatus
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+var aiRoutes_default = router47;
+
+// server/routes/trendHunterRoutes.ts
+import { Router as Router26 } from "express";
+
+// server/services/trendHunterService.ts
+init_db();
+init_schema();
+import { desc as desc8 } from "drizzle-orm";
+var AliExpressService = class {
+  static {
+    __name(this, "AliExpressService");
+  }
+  apiKey;
+  endpoint = "https://api.aliexpress.com/v1";
+  constructor(apiKey = "") {
+    this.apiKey = apiKey;
+  }
+  async getTrendingProducts(category, limit = 50) {
+    try {
+      return this.getMockTrendingProducts(category, limit);
+    } catch (error) {
+      console.error("AliExpress API error:", error);
+      return [];
+    }
+  }
+  getMockTrendingProducts(category, limit = 50) {
+    const mockProducts = [
+      {
+        productName: "Wireless Earbuds TWS Bluetooth 5.3",
+        category: "electronics",
+        imageUrl: "https://example.com/earbuds.jpg",
+        sourceMarket: "china",
+        sourcePrice: 3.5,
+        // $3.5
+        sourceCurrency: "USD",
+        salesVolume: 15e3,
+        salesGrowth: 45,
+        competitorCount: 120,
+        avgRating: 4.6,
+        reviewCount: 8500,
+        sourceUrl: "https://aliexpress.com/item/...",
+        aliexpressUrl: "https://aliexpress.com/item/..."
+      },
+      {
+        productName: "Smart Watch Y68 Fitness Tracker",
+        category: "electronics",
+        imageUrl: "https://example.com/smartwatch.jpg",
+        sourceMarket: "china",
+        sourcePrice: 8.2,
+        sourceCurrency: "USD",
+        salesVolume: 12e3,
+        salesGrowth: 60,
+        competitorCount: 85,
+        avgRating: 4.4,
+        reviewCount: 5200,
+        sourceUrl: "https://aliexpress.com/item/...",
+        aliexpressUrl: "https://aliexpress.com/item/..."
+      },
+      {
+        productName: "LED Strip Lights RGB 5m WiFi Control",
+        category: "home",
+        imageUrl: "https://example.com/ledstrip.jpg",
+        sourceMarket: "china",
+        sourcePrice: 5.8,
+        sourceCurrency: "USD",
+        salesVolume: 9500,
+        salesGrowth: 38,
+        competitorCount: 150,
+        avgRating: 4.5,
+        reviewCount: 6800,
+        sourceUrl: "https://aliexpress.com/item/...",
+        aliexpressUrl: "https://aliexpress.com/item/..."
+      },
+      {
+        productName: "Phone Holder Car Mount Magnetic",
+        category: "accessories",
+        imageUrl: "https://example.com/phone-holder.jpg",
+        sourceMarket: "china",
+        sourcePrice: 2.1,
+        sourceCurrency: "USD",
+        salesVolume: 18e3,
+        salesGrowth: 52,
+        competitorCount: 200,
+        avgRating: 4.7,
+        reviewCount: 12e3,
+        sourceUrl: "https://aliexpress.com/item/...",
+        aliexpressUrl: "https://aliexpress.com/item/..."
+      },
+      {
+        productName: "Mini Projector 4K WiFi Portable",
+        category: "electronics",
+        imageUrl: "https://example.com/projector.jpg",
+        sourceMarket: "china",
+        sourcePrice: 45,
+        sourceCurrency: "USD",
+        salesVolume: 3500,
+        salesGrowth: 75,
+        competitorCount: 45,
+        avgRating: 4.3,
+        reviewCount: 1850,
+        sourceUrl: "https://aliexpress.com/item/...",
+        aliexpressUrl: "https://aliexpress.com/item/..."
+      }
+    ];
+    return mockProducts.slice(0, limit);
+  }
+};
+var AmazonTrendsService = class {
+  static {
+    __name(this, "AmazonTrendsService");
+  }
+  async getBestSellers(category) {
+    const mockProducts = [
+      {
+        productName: "Apple AirPods Pro 2nd Generation",
+        category: "electronics",
+        imageUrl: "https://example.com/airpods.jpg",
+        sourceMarket: "usa",
+        sourcePrice: 189.99,
+        sourceCurrency: "USD",
+        salesVolume: 25e3,
+        salesGrowth: 25,
+        competitorCount: 15,
+        avgRating: 4.8,
+        reviewCount: 45e3,
+        sourceUrl: "https://amazon.com/...",
+        amazonUrl: "https://amazon.com/..."
+      },
+      {
+        productName: "Anker PowerBank 20000mAh",
+        category: "electronics",
+        imageUrl: "https://example.com/powerbank.jpg",
+        sourceMarket: "usa",
+        sourcePrice: 39.99,
+        sourceCurrency: "USD",
+        salesVolume: 18e3,
+        salesGrowth: 30,
+        competitorCount: 50,
+        avgRating: 4.7,
+        reviewCount: 28e3,
+        sourceUrl: "https://amazon.com/...",
+        amazonUrl: "https://amazon.com/..."
+      }
+    ];
+    return mockProducts;
+  }
+};
+var LocalMarketplaceAnalyzer = class {
+  static {
+    __name(this, "LocalMarketplaceAnalyzer");
+  }
+  async checkLocalCompetition(productName, category) {
+    const randomCompetitors = Math.floor(Math.random() * 50);
+    const avgPrice = Math.random() * 1e5 + 5e4;
+    return {
+      competitorCount: randomCompetitors,
+      avgPrice,
+      demand: randomCompetitors < 10 ? "high" : randomCompetitors < 30 ? "medium" : "low"
+    };
+  }
+};
+var ProfitCalculator = class {
+  static {
+    __name(this, "ProfitCalculator");
+  }
+  USD_TO_UZS = 12600;
+  // Kurs: 1 USD = 12600 UZS
+  SHIPPING_PER_KG = 8;
+  // $8 per kg from China
+  CUSTOMS_RATE = 0.15;
+  // 15% bojxona
+  LOCAL_LOGISTICS = 1e4;
+  // 10k so'm local yetkazib berish
+  calculateProfitOpportunity(product, localCompetition) {
+    const productCostUSD = product.sourcePrice;
+    const estimatedWeight = this.estimateProductWeight(product.category);
+    const shippingCost = estimatedWeight * this.SHIPPING_PER_KG;
+    const totalImportCostUSD = productCostUSD + shippingCost;
+    const importCostUZS = totalImportCostUSD * this.USD_TO_UZS;
+    const customsDuty = importCostUZS * this.CUSTOMS_RATE;
+    const totalCost = importCostUZS + customsDuty + this.LOCAL_LOGISTICS;
+    const { competitorCount, avgPrice, demand } = localCompetition;
+    let recommendedPrice;
+    if (competitorCount === 0) {
+      recommendedPrice = totalCost * 2.5;
+    } else if (competitorCount < 10) {
+      recommendedPrice = Math.min(avgPrice * 0.95, totalCost * 2.2);
+    } else {
+      recommendedPrice = Math.min(avgPrice * 0.9, totalCost * 1.8);
+    }
+    if (recommendedPrice < totalCost * 1.3) {
+      recommendedPrice = totalCost * 1.3;
+    }
+    const profit = recommendedPrice - totalCost;
+    const profitMargin = profit / totalCost * 100;
+    const roi = profit / totalCost * 100;
+    const monthlySalesEstimate = this.estimateMonthlySales(
+      product.salesVolume,
+      competitorCount,
+      demand
+    );
+    const monthlyProfitEstimate = profit * monthlySalesEstimate;
+    const breakEvenUnits = Math.ceil(totalCost / profit);
+    const opportunityScore = this.calculateOpportunityScore(
+      profitMargin,
+      competitorCount,
+      product.salesGrowth,
+      demand,
+      product.avgRating
+    );
+    const strengths = [];
+    const risks = [];
+    if (profitMargin > 80) strengths.push(`Yuqori foyda marjasi: ${profitMargin.toFixed(0)}%`);
+    if (competitorCount < 10) strengths.push(`Kam raqobat: ${competitorCount} ta raqobatchi`);
+    if (product.salesGrowth > 50) strengths.push(`Tez o'sish: ${product.salesGrowth}% o'sish`);
+    if (demand === "high") strengths.push("Yuqori talab");
+    if (competitorCount > 30) risks.push(`Ko'p raqobat: ${competitorCount} ta`);
+    if (profitMargin < 40) risks.push("Past foyda marjasi");
+    if (product.avgRating < 4) risks.push("Past reyting");
+    const recommendation = this.generateRecommendation(
+      opportunityScore,
+      profitMargin,
+      competitorCount,
+      demand
+    );
+    return {
+      product,
+      importCost: importCostUZS,
+      customsDuty,
+      localLogistics: this.LOCAL_LOGISTICS,
+      totalCost,
+      localCompetitors: competitorCount,
+      localAvgPrice: avgPrice,
+      localDemand: demand,
+      recommendedPrice,
+      profitMargin,
+      monthlyProfitEstimate,
+      roi,
+      breakEvenUnits,
+      opportunityScore,
+      strengths,
+      risks,
+      recommendation
+    };
+  }
+  estimateProductWeight(category) {
+    const weights = {
+      electronics: 0.5,
+      clothing: 0.3,
+      home: 1,
+      accessories: 0.2,
+      toys: 0.4,
+      beauty: 0.3,
+      sports: 0.8
+    };
+    return weights[category] || 0.5;
+  }
+  estimateMonthlySales(sourceSales, localCompetitors, demand) {
+    const baseConversion = 0.02;
+    const competitionFactor = Math.max(0.2, 1 - localCompetitors / 100);
+    const demandFactor = demand === "high" ? 1.5 : demand === "medium" ? 1 : 0.6;
+    return Math.round(sourceSales * baseConversion * competitionFactor * demandFactor);
+  }
+  calculateOpportunityScore(profitMargin, competitors, growthRate, demand, rating) {
+    const profitScore = Math.min(100, profitMargin);
+    const competitionScore = Math.max(0, 100 - competitors * 2);
+    const growthScore = Math.min(100, growthRate * 1.2);
+    const demandScore = demand === "high" ? 100 : demand === "medium" ? 60 : 30;
+    const qualityScore = rating / 5 * 100;
+    const totalScore = profitScore * 0.3 + competitionScore * 0.25 + growthScore * 0.2 + demandScore * 0.15 + qualityScore * 0.1;
+    return Math.round(totalScore);
+  }
+  generateRecommendation(score, profitMargin, competitors, demand) {
+    if (score >= 80) {
+      return `\u2B50 EXCELLENT: Juda yaxshi imkoniyat! Yuqori foyda va kam raqobat. Darhol boshlang!`;
+    } else if (score >= 65) {
+      return `\u2705 GOOD: Yaxshi imkoniyat. ${profitMargin.toFixed(0)}% foyda va ${competitors} ta raqobatchi. Tavsiya etiladi.`;
+    } else if (score >= 50) {
+      return `\u26A0\uFE0F MODERATE: O'rtacha imkoniyat. Raqobat yuqori yoki foyda past. Ehtiyotkorlik bilan boshlang.`;
+    } else {
+      return `\u274C LOW: Past imkoniyat. Raqobat juda yuqori yoki foyda kam. Boshqa mahsulot tanlang.`;
+    }
+  }
+};
+var TrendHunterService2 = class {
+  static {
+    __name(this, "TrendHunterService");
+  }
+  aliexpressService;
+  amazonService;
+  localAnalyzer;
+  profitCalculator;
+  constructor() {
+    this.aliexpressService = new AliExpressService();
+    this.amazonService = new AmazonTrendsService();
+    this.localAnalyzer = new LocalMarketplaceAnalyzer();
+    this.profitCalculator = new ProfitCalculator();
+  }
+  /**
+   * Main function: Find profitable trending products
+   */
+  async findProfitableOpportunities(options = {}) {
+    const {
+      category,
+      minProfitMargin = 30,
+      maxCompetitors = 50,
+      limit = 20
+    } = options;
+    try {
+      const chinaTrends = await this.aliexpressService.getTrendingProducts(category, 30);
+      const usaTrends = await this.amazonService.getBestSellers(category);
+      const allTrends = [...chinaTrends, ...usaTrends];
+      const opportunities = [];
+      for (const product of allTrends) {
+        const localCompetition = await this.localAnalyzer.checkLocalCompetition(
+          product.productName,
+          product.category
+        );
+        const opportunity = this.profitCalculator.calculateProfitOpportunity(
+          product,
+          localCompetition
+        );
+        if (opportunity.profitMargin >= minProfitMargin && opportunity.localCompetitors <= maxCompetitors) {
+          opportunities.push(opportunity);
+        }
+      }
+      opportunities.sort((a, b) => b.opportunityScore - a.opportunityScore);
+      await this.saveTrendingProducts(opportunities.slice(0, limit));
+      return opportunities.slice(0, limit);
+    } catch (error) {
+      console.error("Trend Hunter error:", error);
+      throw error;
+    }
+  }
+  /**
+   * Get trending products by category
+   */
+  async getTrendsByCategory(category) {
+    return this.findProfitableOpportunities({ category, limit: 10 });
+  }
+  /**
+   * Get top opportunities (highest profit potential)
+   */
+  async getTopOpportunities(limit = 10) {
+    return this.findProfitableOpportunities({ limit });
+  }
+  /**
+   * Save trending products to database
+   */
+  async saveTrendingProducts(opportunities) {
+    const dbType3 = getDatabaseType();
+    for (const opp of opportunities) {
+      try {
+        await db.insert(trendingProducts).values({
+          id: `trend_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          marketplace: opp.product.sourceMarket,
+          category: opp.product.category,
+          productName: opp.product.productName,
+          price: opp.recommendedPrice,
+          salesCount: opp.product.salesVolume,
+          rating: opp.product.avgRating,
+          trendScore: opp.opportunityScore,
+          imageUrl: opp.product.imageUrl,
+          productUrl: opp.product.sourceUrl,
+          analyzedAt: formatDateForDB(/* @__PURE__ */ new Date(), dbType3)
+        });
+      } catch (error) {
+        console.warn("Failed to save trending product:", error);
+      }
+    }
+  }
+  /**
+   * Get saved trending products from database
+   */
+  async getSavedTrends(limit = 50) {
+    try {
+      const trends = await db.select().from(trendingProducts).orderBy(desc8(trendingProducts.trendScore), desc8(trendingProducts.analyzedAt)).limit(limit);
+      return trends;
+    } catch (error) {
+      console.error("Error fetching saved trends:", error);
+      return [];
+    }
+  }
+};
+var trendHunterService = new TrendHunterService2();
+
+// server/routes/trendHunterRoutes.ts
+var router48 = Router26();
+router48.get("/opportunities", requireAuth2, async (req, res) => {
+  try {
+    const {
+      category,
+      minProfitMargin,
+      maxCompetitors,
+      limit
+    } = req.query;
+    const opportunities = await trendHunterService.findProfitableOpportunities({
+      category,
+      minProfitMargin: minProfitMargin ? parseInt(minProfitMargin) : 30,
+      maxCompetitors: maxCompetitors ? parseInt(maxCompetitors) : 50,
+      limit: limit ? parseInt(limit) : 20
+    });
+    return res.status(200).json({
+      success: true,
+      count: opportunities.length,
+      data: opportunities
+    });
+  } catch (error) {
+    console.error("Trend opportunities error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+router48.get("/category/:category", requireAuth2, async (req, res) => {
+  try {
+    const { category } = req.params;
+    const trends = await trendHunterService.getTrendsByCategory(category);
+    return res.status(200).json({
+      success: true,
+      category,
+      count: trends.length,
+      data: trends
+    });
+  } catch (error) {
+    console.error("Category trends error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+router48.get("/top", requireAuth2, async (req, res) => {
+  try {
+    const { limit } = req.query;
+    const topOpportunities = await trendHunterService.getTopOpportunities(
+      limit ? parseInt(limit) : 10
+    );
+    return res.status(200).json({
+      success: true,
+      count: topOpportunities.length,
+      data: topOpportunities
+    });
+  } catch (error) {
+    console.error("Top opportunities error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+router48.get("/saved", requireAuth2, async (req, res) => {
+  try {
+    const { limit } = req.query;
+    const savedTrends = await trendHunterService.getSavedTrends(
+      limit ? parseInt(limit) : 50
+    );
+    return res.status(200).json({
+      success: true,
+      count: savedTrends.length,
+      data: savedTrends
+    });
+  } catch (error) {
+    console.error("Saved trends error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+var trendHunterRoutes_default = router48;
+
 // server/routes.ts
 function requireAuth3(req, res, next) {
   if (!req.session?.user) {
@@ -24001,7 +25460,7 @@ function registerRoutes(app2) {
       console.log("[REGISTRATION] Partner created:", partner.id);
       if (referralCode) {
         try {
-          const referrerPartner = await db.select().from(partners).where(eq29(partners.promoCode, referralCode)).limit(1);
+          const referrerPartner = await db.select().from(partners).where(eq30(partners.promoCode, referralCode)).limit(1);
           if (referrerPartner.length > 0) {
             const referrerId = referrerPartner[0].id;
             await db.insert(referrals).values({
@@ -24098,8 +25557,8 @@ function registerRoutes(app2) {
         code: "PARTNER_NOT_FOUND"
       });
     }
-    const products3 = await storage.getProductsByPartnerId(partner.id);
-    res.json(products3);
+    const products4 = await storage.getProductsByPartnerId(partner.id);
+    res.json(products4);
   }));
   app2.post("/api/products/simple", requirePartnerWithData, upload4.single("image"), asyncHandler(async (req, res) => {
     const user = req.user;
@@ -24126,9 +25585,9 @@ function registerRoutes(app2) {
         weight: "0.5"
       });
       const { generateProductCard: generateProductCard4 } = await Promise.resolve().then(() => (init_aiManagerService(), aiManagerService_exports));
-      const integrations = await db.select().from(marketplaceIntegrations).where(and23(
-        eq29(marketplaceIntegrations.partnerId, partner.id),
-        eq29(marketplaceIntegrations.active, true)
+      const integrations = await db.select().from(marketplaceIntegrations).where(and24(
+        eq30(marketplaceIntegrations.partnerId, partner.id),
+        eq30(marketplaceIntegrations.active, true)
       ));
       for (const integration of integrations) {
         try {
@@ -24372,16 +25831,16 @@ function registerRoutes(app2) {
         requiredTier: "professional_plus"
       });
     }
-    const products3 = await storage.getTrendingProducts({
+    const products4 = await storage.getTrendingProducts({
       category: category !== "all" ? category : void 0,
       sourceMarket: market !== "all" ? market : void 0,
       minTrendScore: parseInt(minScore) || 70
     });
-    res.json(products3);
+    res.json(products4);
   }));
   app2.get("/api/admin/trending-products", requireAdmin2, asyncHandler(async (req, res) => {
-    const products3 = await storage.getTrendingProducts();
-    res.json(products3);
+    const products4 = await storage.getTrendingProducts();
+    res.json(products4);
   }));
   app2.get("/api/admin/partners", requireAdmin2, asyncHandler(async (req, res) => {
     const partners6 = await storage.getAllPartners();
@@ -24564,7 +26023,7 @@ function registerRoutes(app2) {
       }
       await db.update(partners).set({
         aiEnabled: true
-      }).where(eq29(partners.id, partner.id));
+      }).where(eq30(partners.id, partner.id));
       await storage.createAuditLog({
         userId: req.session.user.id,
         action: "AI_ENABLED",
@@ -24581,7 +26040,7 @@ function registerRoutes(app2) {
     } else {
       await db.update(partners).set({
         aiEnabled: false
-      }).where(eq29(partners.id, partner.id));
+      }).where(eq30(partners.id, partner.id));
       await storage.createAuditLog({
         userId: req.session.user.id,
         action: "AI_DISABLED",
@@ -24601,7 +26060,7 @@ function registerRoutes(app2) {
     const FREE_AI_LIMIT = 10;
     await db.update(partners).set({
       aiCardsUsed
-    }).where(eq29(partners.id, partner.id));
+    }).where(eq30(partners.id, partner.id));
     const requiresUpgrade = (currentTier === "free" || currentTier === "free_starter") && aiCardsUsed >= FREE_AI_LIMIT;
     res.json({
       success: true,
@@ -24614,7 +26073,7 @@ function registerRoutes(app2) {
     const { partnerId } = req.params;
     await db.update(partners).set({
       aiEnabled: true
-    }).where(eq29(partners.id, partnerId));
+    }).where(eq30(partners.id, partnerId));
     await storage.createAuditLog({
       userId: req.session.user.id,
       action: "AI_APPROVED",
@@ -24628,7 +26087,7 @@ function registerRoutes(app2) {
     if (!partner) {
       return res.status(404).json({ message: "Hamkor topilmadi" });
     }
-    const integrations = await db.select().from(marketplaceIntegrations).where(eq29(marketplaceIntegrations.partnerId, partner.id));
+    const integrations = await db.select().from(marketplaceIntegrations).where(eq30(marketplaceIntegrations.partnerId, partner.id));
     res.json(integrations);
   }));
   app2.post("/api/partner/marketplace-integrations", requirePartnerWithData, asyncHandler(async (req, res) => {
@@ -24640,16 +26099,16 @@ function registerRoutes(app2) {
     if (!marketplace || !apiKey) {
       return res.status(400).json({ message: "Marketplace va API key talab qilinadi" });
     }
-    const existing = await db.select().from(marketplaceIntegrations).where(and23(
-      eq29(marketplaceIntegrations.partnerId, partner.id),
-      eq29(marketplaceIntegrations.marketplace, marketplace)
+    const existing = await db.select().from(marketplaceIntegrations).where(and24(
+      eq30(marketplaceIntegrations.partnerId, partner.id),
+      eq30(marketplaceIntegrations.marketplace, marketplace)
     ));
     if (existing.length > 0) {
       await db.update(marketplaceIntegrations).set({
         apiKey,
         apiSecret: apiSecret || null,
         active: true
-      }).where(eq29(marketplaceIntegrations.id, existing[0].id));
+      }).where(eq30(marketplaceIntegrations.id, existing[0].id));
     } else {
       await db.insert(marketplaceIntegrations).values({
         id: nanoid18(),
@@ -24674,9 +26133,9 @@ function registerRoutes(app2) {
       return res.status(404).json({ message: "Hamkor topilmadi" });
     }
     const { marketplace } = req.params;
-    const integration = await db.select().from(marketplaceIntegrations).where(and23(
-      eq29(marketplaceIntegrations.partnerId, partner.id),
-      eq29(marketplaceIntegrations.marketplace, marketplace)
+    const integration = await db.select().from(marketplaceIntegrations).where(and24(
+      eq30(marketplaceIntegrations.partnerId, partner.id),
+      eq30(marketplaceIntegrations.marketplace, marketplace)
     ));
     if (integration.length === 0) {
       return res.status(404).json({ success: false, message: "Integratsiya topilmadi" });
@@ -24689,9 +26148,9 @@ function registerRoutes(app2) {
       return res.status(404).json({ message: "Hamkor topilmadi" });
     }
     const { marketplace } = req.params;
-    await db.delete(marketplaceIntegrations).where(and23(
-      eq29(marketplaceIntegrations.partnerId, partner.id),
-      eq29(marketplaceIntegrations.marketplace, marketplace)
+    await db.delete(marketplaceIntegrations).where(and24(
+      eq30(marketplaceIntegrations.partnerId, partner.id),
+      eq30(marketplaceIntegrations.marketplace, marketplace)
     ));
     res.json({ success: true, message: "Integratsiya o'chirildi" });
   }));
@@ -24715,7 +26174,7 @@ function registerRoutes(app2) {
       pricingTier: targetTier,
       aiEnabled,
       monthlyFee: TIER_PRICES[targetTier] || 0
-    }).where(eq29(partners.id, partner.id));
+    }).where(eq30(partners.id, partner.id));
     await storage.createAuditLog({
       userId: req.session.user.id,
       action: "TIER_UPGRADED",
@@ -24738,9 +26197,9 @@ function registerRoutes(app2) {
     let promoCode = partner.promoCode;
     if (!promoCode) {
       promoCode = `SC${nanoid18(6).toUpperCase()}`;
-      await db.update(partners).set({ promoCode }).where(eq29(partners.id, partner.id));
+      await db.update(partners).set({ promoCode }).where(eq30(partners.id, partner.id));
     }
-    const partnerReferrals = await db.select().from(referrals).where(eq29(referrals.referrerPartnerId, partner.id));
+    const partnerReferrals = await db.select().from(referrals).where(eq30(referrals.referrerPartnerId, partner.id));
     const totalReferrals = partnerReferrals.length;
     const activeReferrals = partnerReferrals.filter((r) => r.status === "active").length;
     const totalEarnings = partnerReferrals.reduce((sum, r) => sum + (r.bonusEarned || 0), 0);
@@ -24764,7 +26223,7 @@ function registerRoutes(app2) {
       return res.status(404).json({ message: "Hamkor topilmadi" });
     }
     const promoCode = `SC${nanoid18(6).toUpperCase()}`;
-    await db.update(partners).set({ promoCode }).where(eq29(partners.id, partner.id));
+    await db.update(partners).set({ promoCode }).where(eq30(partners.id, partner.id));
     res.json({ success: true, promoCode });
   }));
   app2.use("/api/inventory", requirePartnerWithData, inventoryRoutes_default);
@@ -24775,8 +26234,10 @@ function registerRoutes(app2) {
   app2.use("/api/broadcast", requireAuth3, broadcastRoutes_default);
   app2.use("/api/ai-manager", requireAuth3, aiManagerRoutes_default);
   app2.use("/api/ai/scanner", requireAuth3, aiScannerRoutes_default);
+  app2.use("/api/ai", requireAuth3, aiRoutes_default);
   app2.use("/api/ai-dashboard", requireAuth3, aiDashboard_default);
   app2.use("/api/trending", requireAuth3, trendingRoutes_default);
+  app2.use("/api/trends", requireAuth3, trendHunterRoutes_default);
   app2.use("/api/referrals", requireAuth3, requirePartnerWithData, referralRoutes_default);
   app2.use("/api/admin/remote", requireAdmin2, adminRemoteAccess_default);
   app2.use("/api/admin/referrals", requireAdmin2, adminReferralManagement_default);
@@ -25088,7 +26549,7 @@ function registerRoutes(app2) {
     if (!partner) {
       return res.status(404).json({ message: "Partner not found" });
     }
-    const connections = await db.select().from(marketplaceIntegrations).where(eq29(marketplaceIntegrations.partnerId, partner.id));
+    const connections = await db.select().from(marketplaceIntegrations).where(eq30(marketplaceIntegrations.partnerId, partner.id));
     res.json(connections);
   }));
   app2.post("/api/marketplace/connect", requirePartnerWithData, asyncHandler(async (req, res) => {
@@ -25100,9 +26561,9 @@ function registerRoutes(app2) {
     if (!marketplace || !credentials) {
       return res.status(400).json({ message: "Marketplace va credentials talab qilinadi" });
     }
-    const existing = await db.select().from(marketplaceIntegrations).where(and23(
-      eq29(marketplaceIntegrations.partnerId, partner.id),
-      eq29(marketplaceIntegrations.marketplace, marketplace)
+    const existing = await db.select().from(marketplaceIntegrations).where(and24(
+      eq30(marketplaceIntegrations.partnerId, partner.id),
+      eq30(marketplaceIntegrations.marketplace, marketplace)
     )).limit(1);
     if (existing.length > 0) {
       const [updated] = await db.update(marketplaceIntegrations).set({
@@ -25111,7 +26572,7 @@ function registerRoutes(app2) {
         sellerId: credentials.sellerId,
         active: true,
         lastSyncAt: /* @__PURE__ */ new Date()
-      }).where(eq29(marketplaceIntegrations.id, existing[0].id)).returning();
+      }).where(eq30(marketplaceIntegrations.id, existing[0].id)).returning();
       return res.json(updated);
     }
     const [connection] = await db.insert(marketplaceIntegrations).values({
@@ -25155,15 +26616,15 @@ function registerRoutes(app2) {
     const { category, status = "published", limit } = req.query;
     let query = db.select().from(blogPosts);
     if (status === "published") {
-      query = query.where(eq29(blogPosts.status, "published"));
+      query = query.where(eq30(blogPosts.status, "published"));
     }
     if (category && category !== "all") {
-      query = query.where(and23(
-        eq29(blogPosts.status, status),
-        eq29(blogPosts.category, category)
+      query = query.where(and24(
+        eq30(blogPosts.status, status),
+        eq30(blogPosts.category, category)
       ));
     }
-    const posts = await query.orderBy(desc8(blogPosts.createdAt));
+    const posts = await query.orderBy(desc9(blogPosts.createdAt));
     if (limit) {
       return res.json(posts.slice(0, parseInt(limit)));
     }
@@ -25171,7 +26632,7 @@ function registerRoutes(app2) {
   }));
   app2.get("/api/blog/posts/:slug", asyncHandler(async (req, res) => {
     const { slug } = req.params;
-    const post = await db.select().from(blogPosts).where(eq29(blogPosts.slug, slug)).limit(1);
+    const post = await db.select().from(blogPosts).where(eq30(blogPosts.slug, slug)).limit(1);
     if (post.length === 0) {
       return res.status(404).json({ message: "Maqola topilmadi" });
     }
@@ -25179,7 +26640,7 @@ function registerRoutes(app2) {
   }));
   app2.post("/api/blog/posts/:id/view", asyncHandler(async (req, res) => {
     const { id } = req.params;
-    await db.update(blogPosts).set({ viewCount: db.raw("view_count + 1") }).where(eq29(blogPosts.id, id));
+    await db.update(blogPosts).set({ viewCount: db.raw("view_count + 1") }).where(eq30(blogPosts.id, id));
     res.json({ success: true });
   }));
   app2.get("/api/blog/categories", asyncHandler(async (req, res) => {
@@ -25190,12 +26651,12 @@ function registerRoutes(app2) {
     const { category, status } = req.query;
     let query = db.select().from(blogPosts);
     if (status && status !== "all") {
-      query = query.where(eq29(blogPosts.status, status));
+      query = query.where(eq30(blogPosts.status, status));
     }
     if (category && category !== "all") {
-      query = query.where(eq29(blogPosts.category, category));
+      query = query.where(eq30(blogPosts.category, category));
     }
-    const posts = await query.orderBy(desc8(blogPosts.createdAt));
+    const posts = await query.orderBy(desc9(blogPosts.createdAt));
     res.json(posts);
   }));
   app2.post("/api/admin/blog/posts", requireAdmin2, asyncHandler(async (req, res) => {
@@ -25217,7 +26678,7 @@ function registerRoutes(app2) {
       return res.status(400).json({ message: "Sarlavha va matn kiritilishi shart" });
     }
     const postSlug = slug || title.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
-    const existing = await db.select().from(blogPosts).where(eq29(blogPosts.slug, postSlug));
+    const existing = await db.select().from(blogPosts).where(eq30(blogPosts.slug, postSlug));
     if (existing.length > 0) {
       return res.status(400).json({ message: "Bu slug allaqachon mavjud" });
     }
@@ -25281,7 +26742,7 @@ function registerRoutes(app2) {
       metaKeywords,
       publishedAt: status === "published" ? /* @__PURE__ */ new Date() : null,
       updatedAt: /* @__PURE__ */ new Date()
-    }).where(eq29(blogPosts.id, id)).returning();
+    }).where(eq30(blogPosts.id, id)).returning();
     if (!post) {
       return res.status(404).json({ message: "Maqola topilmadi" });
     }
@@ -25296,7 +26757,7 @@ function registerRoutes(app2) {
   }));
   app2.delete("/api/admin/blog/posts/:id", requireAdmin2, asyncHandler(async (req, res) => {
     const { id } = req.params;
-    await db.delete(blogPosts).where(eq29(blogPosts.id, id));
+    await db.delete(blogPosts).where(eq30(blogPosts.id, id));
     await storage.createAuditLog({
       userId: req.session.user.id,
       action: "BLOG_POST_DELETED",
@@ -25310,7 +26771,7 @@ function registerRoutes(app2) {
     const [post] = await db.update(blogPosts).set({
       status: "published",
       publishedAt: /* @__PURE__ */ new Date()
-    }).where(eq29(blogPosts.id, id)).returning();
+    }).where(eq30(blogPosts.id, id)).returning();
     if (!post) {
       return res.status(404).json({ message: "Maqola topilmadi" });
     }
@@ -25520,13 +26981,13 @@ init_websocket();
 // server/initAdmin.ts
 init_db();
 init_schema();
-import { eq as eq30 } from "drizzle-orm";
+import { eq as eq31 } from "drizzle-orm";
 import bcrypt4 from "bcryptjs";
 import { nanoid as nanoid20 } from "nanoid";
 async function initializeAdmin() {
   try {
     console.log("\u{1F50D} Checking for admin user...");
-    const existingAdmin = await db.select().from(users).where(eq30(users.username, "Medik")).limit(1);
+    const existingAdmin = await db.select().from(users).where(eq31(users.username, "Medik")).limit(1);
     if (existingAdmin.length > 0) {
       console.log("\u2705 Admin user already exists");
       return;
@@ -25559,16 +27020,16 @@ __name(initializeAdmin, "initializeAdmin");
 // server/initPartner.ts
 init_db();
 init_schema();
-import { eq as eq31 } from "drizzle-orm";
+import { eq as eq32 } from "drizzle-orm";
 import bcrypt5 from "bcryptjs";
 import { nanoid as nanoid21 } from "nanoid";
 async function initializePartner() {
   try {
     console.log("\u{1F50D} Checking for partner user...");
-    const existingPartner = await db.select().from(users).where(eq31(users.username, "partner")).limit(1);
+    const existingPartner = await db.select().from(users).where(eq32(users.username, "partner")).limit(1);
     if (existingPartner.length > 0) {
       console.log("\u2705 Partner user already exists");
-      const existingPartnerRecord = await db.select().from(partners).where(eq31(partners.userId, existingPartner[0].id)).limit(1);
+      const existingPartnerRecord = await db.select().from(partners).where(eq32(partners.userId, existingPartner[0].id)).limit(1);
       if (existingPartnerRecord.length === 0) {
         console.log("\u26A0\uFE0F  Partner record missing, creating...");
         const partnerId2 = nanoid21();
@@ -26523,7 +27984,7 @@ __name(initializeDatabaseTables, "initializeDatabaseTables");
 // server/services/aiTaskQueue.ts
 init_db();
 init_schema();
-import { eq as eq32, desc as desc9 } from "drizzle-orm";
+import { eq as eq33, desc as desc10 } from "drizzle-orm";
 import { nanoid as nanoid22 } from "nanoid";
 function scheduleRecurringTasks() {
   setInterval(async () => {
