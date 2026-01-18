@@ -22,6 +22,8 @@ import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import NotFound from "./pages/not-found";
 import PartnerRegistrationNew from "./pages/PartnerRegistrationNew";
+import TrendHunterDashboard from "./pages/TrendHunterDashboard";
+import AIScannerV2 from "./pages/AIScannerV2";
 
 function Router() {
   return (
@@ -40,6 +42,8 @@ function Router() {
       <Route path="/investor-pitch" component={InvestorPitch} />
       <Route path="/blog" component={BlogPage} />
       <Route path="/blog/:slug" component={BlogPostPage} />
+      <Route path="/trend-hunter" component={TrendHunterDashboard} />
+      <Route path="/ai-scanner" component={AIScannerV2} />
       <Route component={NotFound} />
     </Switch>
   );
