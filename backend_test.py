@@ -171,13 +171,25 @@ class SellerCloudXTester:
             "imageUrl": "https://example.com/product.jpg"
         }
         
-        return self.test_endpoint(
-            "AI Scanner - Scan Image",
+        # First try the endpoint mentioned in review request
+        result1 = self.test_endpoint(
+            "AI Scanner - Scan Image (Review Request Endpoint)",
             "POST",
             "/api/ai/scanner/scan-image",
             session=self.session,
             json_data=image_data
         )
+        
+        # Also test the FastAPI backend endpoint
+        result2 = self.test_endpoint(
+            "AI Scanner - Scan Image (FastAPI Backend)",
+            "POST",
+            "/api/ai/scan-image",
+            session=self.session,
+            json_data=image_data
+        )
+        
+        return result1 or result2
     
     def test_ai_status(self):
         """Test AI Status - GET /api/ai/status"""
