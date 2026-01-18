@@ -128,4 +128,10 @@ export async function initializeDatabase(): Promise<void> {
   }
 }
 
+// Export database utilities
 export { db, dbType, sqliteInstance as sqlite };
+
+// Helper function to get dbType for other modules
+export function getDbType(): 'postgres' | 'sqlite' {
+  return dbType;
+}
