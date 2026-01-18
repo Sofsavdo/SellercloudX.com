@@ -266,9 +266,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Partner authentication issue - partner user may not exist"
+    - "AI Scanner API proxy issue - FastAPI blocking /api/ai/scanner/* routes"
+    - "AI Scanner endpoint mismatch - review request vs actual implementation"
   stuck_tasks:
-    - "Partner Dashboard Tariff Change Component - authentication failure"
+    - "AI Scanner API - POST /api/ai/scanner/scan-image - FastAPI proxy configuration issue"
   test_all: false
   test_priority: "high_first"
 
@@ -279,3 +280,5 @@ agent_communication:
     message: "✅ COMPREHENSIVE BACKEND TESTING COMPLETE - All payment APIs, blog APIs, admin CRUD, and partner features tested successfully. Payment system (Click integration), partner authentication (username='partner'), marketplace integration, and promo code system all working correctly. 19/19 tests passed."
   - agent: "testing"
     message: "🔍 FRONTEND UI TESTING COMPLETED - SellerCloudX platform tested according to requirements. Landing page testimonials section working perfectly with 3 cards showing avatars, 5-star ratings, names, roles, and companies. Admin panel accessible and functional. Partner authentication issue detected - partner user may not exist in database or credentials incorrect."
+  - agent: "testing"
+    message: "🔍 SELLERCLOUDX AI SERVICES TESTING COMPLETED - Tested Trend Hunter API, AI Scanner API, and AI Status as requested. RESULTS: ✅ Trend Hunter APIs working perfectly (top opportunities, electronics category, saved trends) with correct data structure including profitMargin, monthlyProfitEstimate, opportunityScore, competitors info, and UZS pricing. ✅ AI Status API working with Emergent LLM provider enabled. ❌ AI Scanner API has proxy configuration issue - FastAPI backend blocks /api/ai/scanner/* routes but the Express server endpoints work when accessed directly. The actual endpoint is /api/ai/scanner/recognize (not /scan-image) and expects file upload, not JSON with imageUrl as mentioned in review request."
