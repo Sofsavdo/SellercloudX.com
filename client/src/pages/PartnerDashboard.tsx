@@ -308,6 +308,32 @@ export default function PartnerDashboard() {
             </div>
           )}
 
+          {/* AI Scanner */}
+          {selectedTab === 'ai-scanner' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader 
+                title="AI Scanner" 
+                subtitle="Mahsulot rasmini skanerlang va raqobatchilarni aniqlang" 
+                icon={Scan} 
+                badge={{ text: 'NEW', icon: Sparkles }} 
+              />
+              <AIScannerV2 />
+            </div>
+          )}
+
+          {/* Trend Hunter */}
+          {selectedTab === 'trend-hunter' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader 
+                title="Trend Hunter" 
+                subtitle="Xitoy va Amerika bozoridan trending mahsulotlar" 
+                icon={TrendingUp} 
+                badge={{ text: 'NEW', icon: Sparkles }} 
+              />
+              <TrendHunterDashboard />
+            </div>
+          )}
+
           {/* Analytics - Fintech Charts */}
           {selectedTab === 'analytics' && (
             <div className="space-y-6 mt-6">
