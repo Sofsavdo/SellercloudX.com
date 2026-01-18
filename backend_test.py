@@ -229,9 +229,10 @@ class SellerCloudXTester:
                         trend = trends[0]
                         
                         # Check required fields from review request
+                        # Note: competitors count is in product.competitorCount, not root level
                         required_fields = [
                             "profitMargin", "monthlyProfitEstimate", 
-                            "opportunityScore", "competitors"
+                            "opportunityScore"
                         ]
                         
                         missing_fields = []
@@ -239,18 +240,39 @@ class SellerCloudXTester:
                             if field not in trend:
                                 missing_fields.append(field)
                         
+                        # Check if competitors info exists (either as competitors or in product.competitorCount)
+                        has_competitors = "competitors" in trend or (
+                            "product" in trend and "competitorCount" in trend["product"]
+                        )
+                        
                         if missing_fields:
                             self.log(f"Missing required fields in trend data: {missing_fields}", "warning")
                             self.results["warnings"].append(f"{endpoint} - Missing fields: {missing_fields}")
                         else:
                             self.log(f"All required trend fields present", "success")
+                        
+                        if not has_competitors:
+                            self.log(f"Missing competitors information", "warning")
+                            self.results["warnings"].append(f"{endpoint} - Missing competitors info")
+                        else:
+                            self.log(f"Competitors information available", "success")
                             
-                            # Validate score is 0-100
-                            score = trend.get("opportunityScore", 0)
-                            if isinstance(score, (int, float)) and 0 <= score <= 100:
-                                self.log(f"Opportunity score valid: {score}", "success")
-                            else:
-                                self.log(f"Opportunity score invalid: {score} (should be 0-100)", "warning")
+                        # Validate score is 0-100
+                        score = trend.get("opportunityScore", 0)
+                        if isinstance(score, (int, float)) and 0 <= score <= 100:
+                            self.log(f"Opportunity score valid: {score}", "success")
+                        else:
+                            self.log(f"Opportunity score invalid: {score} (should be 0-100)", "warning")
+                        
+                        # Check if prices are in UZS format (should be large numbers for UZS)
+                        price_fields = ["recommendedPrice", "totalCost", "localAvgPrice"]
+                        for field in price_fields:
+                            if field in trend:
+                                price = trend[field]
+                                if isinstance(price, (int, float)) and price > 1000:  # UZS prices should be large
+                                    self.log(f"Price field {field} appears to be in UZS format: {price:,.0f}", "success")
+                                else:
+                                    self.log(f"Price field {field} might not be in UZS format: {price}", "warning")
                         
                         return True
                     else:
