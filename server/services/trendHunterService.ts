@@ -530,6 +530,8 @@ export class TrendHunterService {
     
     for (const opp of opportunities) {
       try {
+        const now = new Date();
+        
         await db.insert(trendingProducts).values({
           id: `trend_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           marketplace: opp.product.sourceMarket,
@@ -541,7 +543,7 @@ export class TrendHunterService {
           trendScore: opp.opportunityScore,
           imageUrl: opp.product.imageUrl,
           productUrl: opp.product.sourceUrl,
-          analyzedAt: formatDateForDB(new Date(), dbType),
+          analyzedAt: dbType === 'postgres' ? now.toISOString() : Math.floor(now.getTime() / 1000),
         });
       } catch (error) {
         // Ignore duplicate errors
