@@ -72,6 +72,7 @@ import marketplaceAIManagerRoutes from "./routes/marketplaceAIManagerRoutes";
 import adminAIManagementRoutes from "./routes/adminAIManagementRoutes";
 import referralCampaignRoutes from "./routes/referralCampaignRoutes";
 import smmRoutes from "./routes/smmRoutes";
+import aiRoutesV2 from "./routes/aiRoutes";
 import { checkAndProcessFirstPurchase } from "./services/referralFirstPurchaseService";
 
 // Enhanced authentication middleware with better error handling
@@ -1464,6 +1465,9 @@ export function registerRoutes(app: express.Application): Server {
 
   // AI Scanner routes
   app.use("/api/ai/scanner", requireAuth, aiScannerRoutes);
+  
+  // AI V2 routes (New real AI Scanner & Manager)
+  app.use("/api/ai", requireAuth, aiRoutesV2);
 
   // AI Dashboard routes (Partner view-only)
   app.use("/api/ai-dashboard", requireAuth, aiDashboardRoutes);
