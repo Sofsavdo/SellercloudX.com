@@ -122,6 +122,66 @@ backend:
         agent: "testing"
         comment: "✅ PASSED - GET /api/partner/referrals/dashboard working with partner auth"
 
+  - task: "Trend Hunter API - GET /api/trends/top"
+    implemented: true
+    working: true
+    file: "server/routes/trendHunterRoutes.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - GET /api/trends/top?limit=5 returns profitable opportunities with correct structure. All required fields present: profitMargin, monthlyProfitEstimate, opportunityScore. Competitors info available in product.competitorCount. Prices in UZS format. Opportunity scores valid (0-100 range)."
+
+  - task: "Trend Hunter API - GET /api/trends/opportunities"
+    implemented: true
+    working: true
+    file: "server/routes/trendHunterRoutes.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - GET /api/trends/opportunities?category=electronics&limit=10 returns category-specific trends with success=true response."
+
+  - task: "Trend Hunter API - GET /api/trends/saved"
+    implemented: true
+    working: true
+    file: "server/routes/trendHunterRoutes.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - GET /api/trends/saved returns previously analyzed trends with success=true response."
+
+  - task: "AI Scanner API - POST /api/ai/scanner/scan-image"
+    implemented: true
+    working: false
+    file: "server/routes/aiScannerRoutes.ts"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ FAILED - FastAPI backend blocks /api/ai/scanner/* routes (returns 404). The routes exist in Express server and work when accessed directly (confirmed via curl to localhost:3000), but FastAPI proxy has condition 'if path.startswith(\"api/ai/\")' that prevents forwarding. Review request asks for /api/ai/scanner/scan-image but actual endpoint is /api/ai/scanner/recognize and expects file upload, not JSON with imageUrl."
+
+  - task: "AI Status API - GET /api/ai/status"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - GET /api/ai/status returns correct structure with success=true, ai.enabled=true, ai.provider='Emergent LLM', ai.model='gpt-4o'. AI services are enabled and working."
+
 frontend:
   - task: "Blog List Page - /blog"
     implemented: true
