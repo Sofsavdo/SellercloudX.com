@@ -369,9 +369,6 @@ class SellerCloudXTester:
         except Exception as e:
             self.log(f"AI status validation error: {str(e)}", "warning")
             return False
-        
-        # Print summary
-        return self.print_summary()
     
     def print_summary(self):
         """Print test summary"""
