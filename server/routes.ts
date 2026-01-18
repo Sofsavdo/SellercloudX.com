@@ -73,6 +73,7 @@ import adminAIManagementRoutes from "./routes/adminAIManagementRoutes";
 import referralCampaignRoutes from "./routes/referralCampaignRoutes";
 import smmRoutes from "./routes/smmRoutes";
 import aiRoutesV2 from "./routes/aiRoutes";
+import trendHunterRoutesV2 from "./routes/trendHunterRoutes";
 import { checkAndProcessFirstPurchase } from "./services/referralFirstPurchaseService";
 
 // Enhanced authentication middleware with better error handling
@@ -1472,8 +1473,11 @@ export function registerRoutes(app: express.Application): Server {
   // AI Dashboard routes (Partner view-only)
   app.use("/api/ai-dashboard", requireAuth, aiDashboardRoutes);
 
-  // Trending Products Analytics routes
+  // Trending Products Analytics routes (Old)
   app.use("/api/trending", requireAuth, trendingRoutes);
+  
+  // Trend Hunter V2 routes (New - Real Profit Opportunity Detection)
+  app.use("/api/trends", requireAuth, trendHunterRoutesV2);
 
   // Referral System Routes
   app.use("/api/referrals", requireAuth, requirePartnerWithData, referralRoutes);
