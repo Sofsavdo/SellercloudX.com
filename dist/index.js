@@ -25036,6 +25036,7 @@ var TrendHunterService2 = class {
     const dbType3 = getDatabaseType();
     for (const opp of opportunities) {
       try {
+        const now = /* @__PURE__ */ new Date();
         await db.insert(trendingProducts).values({
           id: `trend_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           marketplace: opp.product.sourceMarket,
@@ -25047,7 +25048,7 @@ var TrendHunterService2 = class {
           trendScore: opp.opportunityScore,
           imageUrl: opp.product.imageUrl,
           productUrl: opp.product.sourceUrl,
-          analyzedAt: formatDateForDB(/* @__PURE__ */ new Date(), dbType3)
+          analyzedAt: dbType3 === "postgres" ? now.toISOString() : Math.floor(now.getTime() / 1e3)
         });
       } catch (error) {
         console.warn("Failed to save trending product:", error);
