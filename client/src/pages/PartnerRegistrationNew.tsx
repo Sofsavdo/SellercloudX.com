@@ -32,7 +32,7 @@ export default function PartnerRegistrationNew() {
     referralCode: ''
   });
 
-  // INN validatsiya
+  // INN validatsiya (kuchaytirilgan)
   const validateINN = (inn: string) => {
     const cleanINN = inn.replace(/\D/g, '');
     if (!cleanINN) {
@@ -45,6 +45,23 @@ export default function PartnerRegistrationNew() {
     }
     if (cleanINN.startsWith('0')) {
       setInnError('Noto\'g\'ri INN formati');
+      return;
+    }
+    // Barcha raqamlar bir xil bo'lmasligi kerak
+    const allSame = cleanINN.split('').every((d: string) => d === cleanINN[0]);
+    if (allSame) {
+      setInnError('Noto\'g\'ri INN: barcha raqamlar bir xil bo\'lmasligi kerak');
+      return;
+    }
+    // Ketma-ket raqamlar bo'lmasligi kerak
+    if (cleanINN === '123456789' || cleanINN === '987654321') {
+      setInnError('Noto\'g\'ri INN: ketma-ket raqamlar qabul qilinmaydi');
+      return;
+    }
+    // Viloyat kodi tekshirish (birinchi 2 raqam 10-99 orasida)
+    const regionCode = parseInt(cleanINN.substring(0, 2));
+    if (regionCode < 10 || regionCode > 99) {
+      setInnError('Noto\'g\'ri INN: viloyat kodi noto\'g\'ri');
       return;
     }
     setInnError('');
