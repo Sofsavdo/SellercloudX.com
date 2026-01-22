@@ -389,59 +389,62 @@ export function registerRoutes(app: express.Application): Server {
         });
       }
       
-      // Email mavjudligini tekshirish
-      const existingPartner = await storage.getPartnerByEmail(email);
-      if (existingPartner) {
-        return res.status(400).json({
-          success: false,
-          message: "Bu email allaqachon ro'yxatdan o'tgan",
-          code: "EMAIL_EXISTS"
-        });
-      }
-      
       // Username yaratish (email dan)
       const username = email.split('@')[0] + '_' + Date.now().toString(36);
       
-      // Yangi hamkor yaratish
-      const partner = await storage.createPartner({
+      // Email mavjudligini tekshirish (user orqali)
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Bu username allaqachon mavjud",
+          code: "USERNAME_EXISTS"
+        });
+      }
+      
+      // 1. Avval USER yaratish
+      const user = await storage.createUser({
         username,
-        email,
         password,
-        firstName: name?.split(' ')[0] || 'Hamkor',
-        lastName: name?.split(' ')[1] || '',
-        phone: phone || '+998900000000',
+        role: 'partner'
+      });
+      
+      // 2. Keyin PARTNER yaratish
+      const partner = await storage.createPartner({
+        userId: user.id,
         businessName: name || 'My Business',
-        role: 'partner',
-        tier: 'free',
-        isActive: true
+        businessCategory: 'general',
+        phone: phone || '+998900000000',
+        pricingTier: 'free_starter'
       });
       
       // Session yaratish
       req.session.user = {
-        id: partner.id,
-        email: partner.email,
-        name: `${partner.firstName} ${partner.lastName}`.trim(),
+        id: user.id,
+        username: user.username,
         role: 'partner',
-        tier: partner.tier || 'free'
+        partnerId: partner.id,
+        tier: partner.pricingTier || 'free'
       };
       
       await storage.createAuditLog({
-        userId: partner.id,
+        userId: user.id,
         action: 'PARTNER_REGISTERED',
         entityType: 'partner',
         entityId: partner.id,
-        payload: { email, name }
+        payload: { email, name, username }
       });
       
       res.status(201).json({
         success: true,
         message: "Muvaffaqiyatli ro'yxatdan o'tildi!",
         user: {
-          id: partner.id,
-          email: partner.email,
-          name: `${partner.firstName} ${partner.lastName}`.trim(),
+          id: user.id,
+          username: user.username,
+          email: email,
           role: 'partner',
-          tier: partner.tier || 'free'
+          partnerId: partner.id,
+          tier: partner.pricingTier || 'free'
         }
       });
       
