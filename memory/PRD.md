@@ -79,8 +79,8 @@ Output:
 - **Emergent LLM:** sk-emergent-c0d5c506030Fa49400
 
 ## URLs
-- **Preview:** https://yandex-scanner.preview.emergentagent.com
-- **Quick Create:** https://yandex-scanner.preview.emergentagent.com/yandex-quick
+- **Preview:** https://cloudsellerx.preview.emergentagent.com
+- **Quick Create:** https://cloudsellerx.preview.emergentagent.com/yandex-quick
 - **GitHub:** https://github.com/Sofsavdo/SellercloudX.com
 
 ## Prioritized Backlog

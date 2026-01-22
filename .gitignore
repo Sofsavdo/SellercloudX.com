@@ -43,3 +43,7 @@ Thumbs.db
 
 # Uploads
 uploads/
+-e 
+# Environment files
+*.env
+*.env.*
