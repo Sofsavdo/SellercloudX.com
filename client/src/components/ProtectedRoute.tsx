@@ -12,36 +12,41 @@ import { Loader2, Lock, Crown } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 
-// Tarif darajalari
-type TierLevel = 'free' | 'start' | 'business' | 'enterprise' | 'admin';
+// Tarif darajalari - HAQIQIY TARIFLAR
+type TierLevel = 'free_starter' | 'basic' | 'starter_pro' | 'professional' | 'admin';
 
 // Funksiya uchun kerakli minimal tarif
 const FEATURE_TIERS: Record<string, TierLevel> = {
   // Bepul funksiyalar
-  'partner-dashboard': 'free',
-  'blog': 'free',
+  'partner-dashboard': 'free_starter',
+  'blog': 'free_starter',
+  'partner-credentials': 'free_starter',
   
-  // Start tarif
-  'ai-scanner': 'start',
-  'product-scanner': 'start',
-  'uzum-scanner': 'start',
+  // Free Starter - cheklangan
+  'ai-scanner': 'free_starter', // 10 ta limit bilan
+  'product-scanner': 'free_starter',
+  'uzum-scanner': 'free_starter',
   
-  // Business tarif
-  'uzum-market': 'business',
-  'yandex-market': 'business',
-  'yandex-scanner': 'business',
-  'yandex-quick': 'business',
-  'yandex-tez': 'business',
-  'create-product': 'business',
-  'ai-product-creator': 'business',
-  'infographic': 'business',
-  'infographic-generator': 'business',
+  // Basic tarif
+  'ai-dashboard': 'basic',
+  'partner-ai-dashboard': 'basic',
   
-  // Enterprise tarif
-  'ai-manager': 'enterprise',
-  'trend-hunter': 'enterprise',
-  'enhanced-ai-dashboard': 'enterprise',
-  'remote-access': 'enterprise',
+  // Starter Pro tarif
+  'uzum-market': 'starter_pro',
+  'yandex-market': 'starter_pro',
+  'yandex-scanner': 'starter_pro',
+  'yandex-quick': 'starter_pro',
+  'yandex-tez': 'starter_pro',
+  'create-product': 'starter_pro',
+  'ai-product-creator': 'starter_pro',
+  'infographic': 'starter_pro',
+  'infographic-generator': 'starter_pro',
+  
+  // Professional tarif
+  'ai-manager': 'professional',
+  'trend-hunter': 'professional',
+  'enhanced-ai-dashboard': 'professional',
+  'remote-access': 'professional',
   
   // Admin
   'admin-panel': 'admin',
@@ -49,20 +54,29 @@ const FEATURE_TIERS: Record<string, TierLevel> = {
 
 // Tarif darajasi qiymatlari (taqqoslash uchun)
 const TIER_VALUES: Record<TierLevel, number> = {
-  'free': 0,
-  'start': 1,
-  'business': 2,
-  'enterprise': 3,
+  'free_starter': 0,
+  'basic': 1,
+  'starter_pro': 2,
+  'professional': 3,
   'admin': 99,
 };
 
 // Tarif nomlari
 const TIER_NAMES: Record<TierLevel, string> = {
-  'free': 'Bepul',
-  'start': 'Start',
-  'business': 'Business',
-  'enterprise': 'Enterprise',
+  'free_starter': 'Free Starter',
+  'basic': 'Basic',
+  'starter_pro': 'Starter Pro',
+  'professional': 'Professional',
   'admin': 'Admin',
+};
+
+// Tarif narxlari
+const TIER_PRICES: Record<TierLevel, string> = {
+  'free_starter': 'Bepul',
+  'basic': '828,000 so\'m/oy',
+  'starter_pro': '4,188,000 so\'m/oy',
+  'professional': '10,788,000 so\'m/oy',
+  'admin': '-',
 };
 
 interface ProtectedRouteProps {
