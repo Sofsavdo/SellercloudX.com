@@ -107,6 +107,7 @@ function AuthStack() {
       }}
     >
       <Stack.Screen name={SCREENS.LOGIN} component={LoginScreen} />
+      <Stack.Screen name={SCREENS.REGISTER} component={RegisterScreen} />
     </Stack.Navigator>
   );
 }
@@ -139,6 +140,15 @@ function MainStack() {
         component={UploadProductScreen}
         options={{
           title: 'Mahsulot yuklash',
+          headerBackTitle: 'Orqaga',
+        }}
+      />
+      
+      <Stack.Screen
+        name={SCREENS.PRICING}
+        component={PricingScreen}
+        options={{
+          title: 'Tariflar',
           headerBackTitle: 'Orqaga',
         }}
       />
