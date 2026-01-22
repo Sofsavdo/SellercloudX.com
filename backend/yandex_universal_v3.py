@@ -352,7 +352,7 @@ JSON format:
                         api_key=self.emergent_key,
                         session_id=f"img-{uuid.uuid4().hex[:8]}",
                         system_message="Generate high quality e-commerce product images."
-                    ).with_model("gemini", "gemini-2.5-flash-preview-05-20").with_params(modalities=["image", "text"])
+                    ).with_model("gemini", "gemini-3-pro-image-preview").with_params(modalities=["image", "text"])
                     
                     full_prompt = f"{base_prompt}, {angle}, pure white background, studio lighting, high detail, 1000x1000px, e-commerce style, professional commercial photography"
                     
