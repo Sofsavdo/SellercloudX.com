@@ -109,6 +109,37 @@ Output:
 
 ## January 22, 2025 Updates
 
+### ✅ Mobile App Created (React Native + Expo)
+**Location:** `/app/mobile/`
+
+**Asosiy xususiyatlar:**
+- 📸 AI Scanner - Kamera orqali mahsulot aniqlash
+- 📴 Offline Queue - Internetsiz ishlash, keyin avtomatik yuklash
+- 🌐 Ikki til - O'zbek (asosiy) va Rus
+- 🔔 Push notifications - sotuvlar haqida xabar
+- 📱 iOS + Android (Expo)
+
+**Ekranlar:**
+1. `LoginScreen.tsx` - Kirish
+2. `HomeScreen.tsx` - Dashboard
+3. `ScannerScreen.tsx` - AI Kamera (ASOSIY)
+4. `ProductsScreen.tsx` - Mahsulotlar ro'yxati
+5. `UploadProductScreen.tsx` - Marketplace ga yuklash
+6. `SettingsScreen.tsx` - Sozlamalar
+
+**Servislar:**
+- `api.ts` - Backend API calls
+- `offlineQueue.ts` - Offline navbat (NetInfo bilan)
+- `authStore.ts` - Zustand auth state
+- `productsStore.ts` - Products state
+
+**Ishga tushirish:**
+```bash
+cd /app/mobile
+yarn install
+yarn start
+```
+
 ### ✅ INN/STIR Verification System
 - **Backend validation:** 9 ta raqam, viloyat kodi tekshirish
 - **Soxta INN filterlash:** "123456789", "111111111" kabi raqamlar rad qilinadi
