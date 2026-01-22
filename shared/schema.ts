@@ -53,6 +53,17 @@ export const partners = sqliteTable('partners', {
   anydeskId: text('anydesk_id'),
   anydeskPassword: text('anydesk_password'),
   notes: text('notes'),
+  // Click Payment Fields
+  pendingPaymentId: text('pending_payment_id'), // Kutilayotgan to'lov ID
+  pendingPaymentTier: text('pending_payment_tier'), // Kutilayotgan tarif
+  pendingPaymentAmount: integer('pending_payment_amount'), // Kutilayotgan summa (UZS)
+  pendingPaymentBillingPeriod: text('pending_payment_billing_period'), // monthly/annual
+  pendingPaymentCreatedAt: integer('pending_payment_created_at', { mode: 'timestamp' }),
+  lastPaymentId: text('last_payment_id'), // Oxirgi to'lov ID
+  lastPaymentAmount: integer('last_payment_amount'), // Oxirgi to'lov summasi
+  lastPaymentDate: integer('last_payment_date', { mode: 'timestamp' }),
+  lastPaymentStatus: text('last_payment_status'), // completed, failed, cancelled
+  clickTransactionId: text('click_transaction_id'), // Click transaction ID
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }),
   lastActivityAt: integer('last_activity_at', { mode: 'timestamp' }),
