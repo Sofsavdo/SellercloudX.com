@@ -291,6 +291,62 @@ export default function PartnerRegistrationNew() {
                   />
                 </div>
 
+                {/* Biznes turi */}
+                <div>
+                  <Label className="flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Biznes Turi *
+                  </Label>
+                  <Select
+                    value={formData.businessType}
+                    onValueChange={(value) => setFormData({...formData, businessType: value})}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Tanlang" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yatt">YATT (Yakka tartibdagi tadbirkor)</SelectItem>
+                      <SelectItem value="ooo">OOO/MChJ (Mas'uliyati cheklangan jamiyat)</SelectItem>
+                      <SelectItem value="individual">Jismoniy shaxs</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* INN (STIR) */}
+                <div>
+                  <Label className="flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    INN (STIR) *
+                  </Label>
+                  <Input
+                    value={formData.inn}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 9);
+                      setFormData({...formData, inn: value});
+                      validateINN(value);
+                    }}
+                    required
+                    placeholder="123456789"
+                    className={`mt-1 ${innError ? 'border-red-500' : ''}`}
+                    maxLength={9}
+                  />
+                  {innError && (
+                    <p className="text-sm text-red-500 mt-1">{innError}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    9 ta raqam. Bitta INN = Bitta akkaunt
+                  </p>
+                </div>
+
+                {/* INN haqida ogohlantirish */}
+                <Alert className="bg-amber-50 border-amber-200">
+                  <AlertCircle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-amber-800 text-sm">
+                    <strong>Muhim:</strong> Har bir biznes (YATT/OOO) uchun faqat bitta akkaunt yaratish mumkin. 
+                    INN bo'yicha dublikat akkauntlar bloklash bilan ogohlantirish oladi.
+                  </AlertDescription>
+                </Alert>
+
                 {promoCode && (
                   <div>
                     <Label className="flex items-center gap-2">
@@ -322,7 +378,7 @@ export default function PartnerRegistrationNew() {
             {/* Submit */}
             <Button
               type="submit"
-              disabled={!formData.agreeToTerms || registrationMutation.isPending}
+              disabled={!formData.agreeToTerms || !formData.inn || innError !== '' || registrationMutation.isPending}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 h-12 text-lg"
             >
               {registrationMutation.isPending ? (
