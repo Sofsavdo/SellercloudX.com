@@ -28,22 +28,33 @@ export const partners = sqliteTable('partners', {
   businessName: text('business_name').notNull(),
   businessAddress: text('business_address'),
   businessCategory: text('business_category'),
-  inn: text('inn').unique(),
+  businessType: text('business_type').default('yatt'), // yatt, ooo, individual
+  inn: text('inn').unique(), // STIR - 9 raqam, UNIKAL
   phone: text('phone').notNull(),
   website: text('website'),
   monthlyRevenue: text('monthly_revenue'),
   approved: integer('approved', { mode: 'boolean' }).default(false),
+  isActive: integer('is_active', { mode: 'boolean' }).default(false),
   pricingTier: text('pricing_tier').default('free_starter'), // Updated to SaaS model
+  billingPeriod: text('billing_period').default('monthly'), // monthly, yearly
   monthlyFee: integer('monthly_fee'),
   profitSharePercent: integer('profit_share_percent'),
   aiEnabled: integer('ai_enabled', { mode: 'boolean' }).default(false),
   aiCardsUsed: integer('ai_cards_used').default(0), // Track AI cards used for free tier
+  aiCardsThisMonth: integer('ai_cards_this_month').default(0), // Bu oydagi limit
+  productsCount: integer('products_count').default(0), // Jami mahsulotlar
   promoCode: text('promo_code').unique(), // Unique promo code for referrals
+  referredBy: text('referred_by'), // Kimning referali
+  walletBalance: integer('wallet_balance').default(0), // Hamjam hisobi
+  marketplaceIntegrations: text('marketplace_integrations'), // JSON - {yandex: {...}, uzum: {...}}
+  paymentVerified: integer('payment_verified', { mode: 'boolean' }).default(false),
+  activatedAt: integer('activated_at', { mode: 'timestamp' }),
   warehouseSpaceKg: integer('warehouse_space_kg'),
   anydeskId: text('anydesk_id'),
   anydeskPassword: text('anydesk_password'),
   notes: text('notes'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }),
   lastActivityAt: integer('last_activity_at', { mode: 'timestamp' }),
 });
 
