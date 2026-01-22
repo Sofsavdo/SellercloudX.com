@@ -14,6 +14,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ScannerScreen from '../screens/ScannerScreen';
 import ProductsScreen from '../screens/ProductsScreen';
+import StatsScreen from '../screens/StatsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import UploadProductScreen from '../screens/UploadProductScreen';
 import PricingScreen from '../screens/PricingScreen';
@@ -80,6 +81,17 @@ function MainTabs() {
           tabBarLabel: t('product.products'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="cube" size={size} color={color} />
+          ),
+        }}
+      />
+      
+      <Tab.Screen
+        name={SCREENS.STATS}
+        component={StatsScreen}
+        options={{
+          tabBarLabel: t('stats.title'),
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="stats-chart" size={size} color={color} />
           ),
         }}
       />
