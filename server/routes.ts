@@ -371,6 +371,76 @@ export function registerRoutes(app: express.Application): Server {
     }
   }));
 
+  // Partner Registration - /api/auth/register alias
+  app.post("/api/auth/register", asyncHandler(async (req: Request, res: Response) => {
+    try {
+      console.log('📝 Registration attempt:', { email: req.body.email });
+      
+      const { email, password, name, phone } = partnerRegistrationSchema.parse(req.body);
+      
+      // Email mavjudligini tekshirish
+      const existingPartner = await storage.getPartnerByEmail(email);
+      if (existingPartner) {
+        return res.status(400).json({
+          success: false,
+          message: "Bu email allaqachon ro'yxatdan o'tgan",
+          code: "EMAIL_EXISTS"
+        });
+      }
+      
+      // Yangi hamkor yaratish
+      const partner = await storage.createPartner({
+        email,
+        password,
+        name,
+        phone,
+        role: 'partner',
+        tier: 'free',
+        isActive: true
+      });
+      
+      // Session yaratish
+      req.session.user = {
+        id: partner.id,
+        email: partner.email,
+        name: partner.name,
+        role: 'partner',
+        tier: partner.tier || 'free'
+      };
+      
+      await storage.createAuditLog({
+        userId: partner.id,
+        action: 'PARTNER_REGISTERED',
+        entityType: 'partner',
+        entityId: partner.id,
+        payload: { email, name }
+      });
+      
+      res.status(201).json({
+        success: true,
+        message: "Muvaffaqiyatli ro'yxatdan o'tildi!",
+        user: {
+          id: partner.id,
+          email: partner.email,
+          name: partner.name,
+          role: 'partner',
+          tier: partner.tier || 'free'
+        }
+      });
+      
+    } catch (error: any) {
+      console.error('❌ Registration error:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          success: false,
+          message: "Ma'lumotlar noto'g'ri",
+          errors: error.errors
+        });
+      }
+      throw error;
+    }
+  }));
+
   app.post("/api/auth/logout", asyncHandler(async (req: Request, res: Response) => {
     const userId = req.session?.user?.id;
     
