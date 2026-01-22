@@ -79,6 +79,11 @@ import uzumMarketRoutes from "./routes/uzumMarketRoutes";
 import pythonBackendProxy from "./routes/pythonBackendProxy";
 import { checkAndProcessFirstPurchase } from "./services/referralFirstPurchaseService";
 
+// Yangi tizimlar
+import { tierLimitMiddleware, featureAccessMiddleware, checkTierLimit, TIER_LIMITS } from "./middleware/tierLimits";
+import { activateNewPartner, activateAfterPayment, ACTIVATION_RULES } from "./services/autoActivation";
+import { processReferralBonusOnPayment, getReferrerStats, REFERRAL_CONFIG } from "./services/referralBonus";
+
 // Enhanced authentication middleware with better error handling
 function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.session?.user) {
