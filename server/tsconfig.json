@@ -1,0 +1,48 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "checkJs": false,
+    "strict": false,
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false,
+    "noImplicitAny": false,
+    "noImplicitThis": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": false,
+    "outDir": "../dist/server",
+    "rootDir": "..",
+    "declaration": false,
+    "sourceMap": false,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "downlevelIteration": true,
+    "isolatedModules": false,
+    "noEmit": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "noErrorTruncation": false,
+    "paths": {
+      "@shared/*": ["../shared/*"]
+    },
+    "typeRoots": ["../node_modules/@types", "../types"]
+  },
+  "include": [
+    "**/*.ts",
+    "../shared/**/*.ts",
+    "../types/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "../client",
+    "**/__tests__/**"
+  ]
+}

@@ -1,0 +1,99 @@
+import { Switch, Route } from "wouter";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./lib/queryClient";
+import { Toaster } from "./components/ui/toaster";
+import { TooltipProvider } from "./components/ui/tooltip";
+import { AuthProvider } from "./hooks/useAuth";
+import { LanguageProvider } from "./context/LanguageContext";
+import { GlobalErrorBoundary } from "./components/GlobalErrorBoundary";
+
+// Pages
+import LandingNew from "./pages/LandingNew";
+import AuthPage from "./pages/AuthPage";
+import AdminLogin from "./pages/AdminLogin";
+import PartnerDashboard from "./pages/PartnerDashboard";
+import PartnerAIDashboard from "./pages/PartnerAIDashboard";
+import EnhancedAIDashboard from "./pages/EnhancedAIDashboard";
+import RemoteAccessDashboard from "./pages/RemoteAccessDashboard";
+import OnboardingWizard from "./pages/OnboardingWizard";
+import AdminPanel from "./pages/AdminPanel";
+import InvestorPitch from "./pages/InvestorPitch";
+import BlogPage from "./pages/BlogPage";
+import BlogPostPage from "./pages/BlogPostPage";
+import NotFound from "./pages/not-found";
+import PartnerRegistrationNew from "./pages/PartnerRegistrationNew";
+import TrendHunterDashboard from "./pages/TrendHunterDashboard";
+import AIScannerV2 from "./pages/AIScannerV2";
+import CameraAIScanner from "./pages/CameraAIScanner";
+import UzumMarketDashboard from "./pages/UzumMarketDashboard";
+import AIProductScanner from "./pages/AIProductScanner";
+import PartnerCredentialsPage from "./pages/PartnerCredentialsPage";
+import AIManagerPage from "./pages/AIManagerPage";
+import UnifiedAIScanner from "./pages/UnifiedAIScanner";
+import YandexMarketScanner from "./pages/YandexMarketScanner";
+import YandexQuickCreate from "./pages/YandexQuickCreate";
+import InfographicGenerator from "./pages/InfographicGenerator";
+import AIProductCreator from "./pages/AIProductCreator";
+
+function Router() {
+  return (
+    <Switch>
+      <Route path="/" component={LandingNew} />
+      <Route path="/login" component={AuthPage} />
+      <Route path="/partner-registration" component={PartnerRegistrationNew} />
+      <Route path="/admin-login" component={AdminLogin} />
+      <Route path="/onboarding" component={OnboardingWizard} />
+      <Route path="/partner-dashboard" component={PartnerDashboard} />
+      <Route path="/ai-dashboard" component={PartnerAIDashboard} />
+      <Route path="/partner-ai-dashboard" component={PartnerAIDashboard} />
+      <Route path="/enhanced-ai-dashboard" component={EnhancedAIDashboard} />
+      <Route path="/remote-access" component={RemoteAccessDashboard} />
+      <Route path="/admin-panel" component={AdminPanel} />
+      <Route path="/investor-pitch" component={InvestorPitch} />
+      <Route path="/blog" component={BlogPage} />
+      <Route path="/blog/:slug" component={BlogPostPage} />
+      <Route path="/trend-hunter" component={TrendHunterDashboard} />
+      {/* TO'LIQ INTEGRATSIYA - Asosiy oqim */}
+      <Route path="/create-product" component={AIProductCreator} />
+      <Route path="/ai-product-creator" component={AIProductCreator} />
+      {/* Uzum Market - AI Scanner */}
+      <Route path="/product-scanner" component={UnifiedAIScanner} />
+      <Route path="/ai-scanner" component={UnifiedAIScanner} />
+      <Route path="/uzum-scanner" component={UnifiedAIScanner} />
+      {/* Yandex Market - TEZ YARATISH (YANGI!) */}
+      <Route path="/yandex-quick" component={YandexQuickCreate} />
+      <Route path="/yandex-tez" component={YandexQuickCreate} />
+      {/* Yandex Market - AI Scanner (eski) */}
+      <Route path="/yandex-market" component={YandexMarketScanner} />
+      <Route path="/yandex-scanner" component={YandexMarketScanner} />
+      {/* AI Infographic Generator */}
+      <Route path="/infographic" component={InfographicGenerator} />
+      <Route path="/infographic-generator" component={InfographicGenerator} />
+      {/* Other pages */}
+      <Route path="/camera-scanner" component={CameraAIScanner} />
+      <Route path="/uzum-market" component={UzumMarketDashboard} />
+      <Route path="/ai-manager" component={AIManagerPage} />
+      <Route path="/partner-credentials" component={PartnerCredentialsPage} />
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function App() {
+  return (
+    <GlobalErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </QueryClientProvider>
+    </GlobalErrorBoundary>
+  );
+}
+
+export default App;

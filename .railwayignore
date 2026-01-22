@@ -1,0 +1,9 @@
+node_modules
+.git
+.env.local
+.env.development
+dist
+*.log
+data/*.db
+data/*.db-wal
+data/*.db-shm

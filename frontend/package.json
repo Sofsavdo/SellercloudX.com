@@ -1,0 +1,8 @@
+{
+  "name": "sellercloudx-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "cd /app && yarn dev",
+    "build": "cd /app && yarn build"
+  }
+}

@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.pycache/
+
+# Environment
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+
+# Secrets - MUHIM!
+google-vision-credentials.json
+*.credentials.json
+*-credentials.json
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+*.db
+*.sqlite
+
+# Uploads
+uploads/
