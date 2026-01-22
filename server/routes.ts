@@ -276,6 +276,9 @@ export function registerRoutes(app: express.Application): Server {
   app.use('/api/uzum-auto', pythonBackendProxy);
   app.use('/api/python', pythonBackendProxy);
 
+  // Click Payment Routes - webhook lar autentifikatsiyasiz
+  app.use('/api/click', clickPaymentRoutes);
+
   // Authentication routes
   app.post("/api/auth/login", asyncHandler(async (req: Request, res: Response) => {
     try {
