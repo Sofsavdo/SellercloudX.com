@@ -6,6 +6,7 @@ import { TooltipProvider } from "./components/ui/tooltip";
 import { AuthProvider } from "./hooks/useAuth";
 import { LanguageProvider } from "./context/LanguageContext";
 import { GlobalErrorBoundary } from "./components/GlobalErrorBoundary";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 // Pages
 import LandingNew from "./pages/LandingNew";
@@ -38,42 +39,94 @@ import AIProductCreator from "./pages/AIProductCreator";
 function Router() {
   return (
     <Switch>
+      {/* Ochiq sahifalar */}
       <Route path="/" component={LandingNew} />
       <Route path="/login" component={AuthPage} />
       <Route path="/partner-registration" component={PartnerRegistrationNew} />
       <Route path="/admin-login" component={AdminLogin} />
-      <Route path="/onboarding" component={OnboardingWizard} />
-      <Route path="/partner-dashboard" component={PartnerDashboard} />
-      <Route path="/ai-dashboard" component={PartnerAIDashboard} />
-      <Route path="/partner-ai-dashboard" component={PartnerAIDashboard} />
-      <Route path="/enhanced-ai-dashboard" component={EnhancedAIDashboard} />
-      <Route path="/remote-access" component={RemoteAccessDashboard} />
-      <Route path="/admin-panel" component={AdminPanel} />
-      <Route path="/investor-pitch" component={InvestorPitch} />
       <Route path="/blog" component={BlogPage} />
       <Route path="/blog/:slug" component={BlogPostPage} />
-      <Route path="/trend-hunter" component={TrendHunterDashboard} />
-      {/* TO'LIQ INTEGRATSIYA - Asosiy oqim */}
-      <Route path="/create-product" component={AIProductCreator} />
-      <Route path="/ai-product-creator" component={AIProductCreator} />
-      {/* Uzum Market - AI Scanner */}
-      <Route path="/product-scanner" component={UnifiedAIScanner} />
-      <Route path="/ai-scanner" component={UnifiedAIScanner} />
-      <Route path="/uzum-scanner" component={UnifiedAIScanner} />
-      {/* Yandex Market - TEZ YARATISH (YANGI!) */}
-      <Route path="/yandex-quick" component={YandexQuickCreate} />
-      <Route path="/yandex-tez" component={YandexQuickCreate} />
-      {/* Yandex Market - AI Scanner (eski) */}
-      <Route path="/yandex-market" component={YandexMarketScanner} />
-      <Route path="/yandex-scanner" component={YandexMarketScanner} />
-      {/* AI Infographic Generator */}
-      <Route path="/infographic" component={InfographicGenerator} />
-      <Route path="/infographic-generator" component={InfographicGenerator} />
-      {/* Other pages */}
-      <Route path="/camera-scanner" component={CameraAIScanner} />
-      <Route path="/uzum-market" component={UzumMarketDashboard} />
-      <Route path="/ai-manager" component={AIManagerPage} />
-      <Route path="/partner-credentials" component={PartnerCredentialsPage} />
+      <Route path="/investor-pitch" component={InvestorPitch} />
+      
+      {/* Himoyalangan sahifalar - Bepul */}
+      <Route path="/partner-dashboard">
+        <ProtectedRoute><PartnerDashboard /></ProtectedRoute>
+      </Route>
+      <Route path="/onboarding">
+        <ProtectedRoute><OnboardingWizard /></ProtectedRoute>
+      </Route>
+      <Route path="/partner-credentials">
+        <ProtectedRoute><PartnerCredentialsPage /></ProtectedRoute>
+      </Route>
+      
+      {/* Himoyalangan - Start tarif */}
+      <Route path="/ai-scanner">
+        <ProtectedRoute requiredTier="start"><UnifiedAIScanner /></ProtectedRoute>
+      </Route>
+      <Route path="/product-scanner">
+        <ProtectedRoute requiredTier="start"><UnifiedAIScanner /></ProtectedRoute>
+      </Route>
+      <Route path="/uzum-scanner">
+        <ProtectedRoute requiredTier="start"><UnifiedAIScanner /></ProtectedRoute>
+      </Route>
+      <Route path="/camera-scanner">
+        <ProtectedRoute requiredTier="start"><CameraAIScanner /></ProtectedRoute>
+      </Route>
+      <Route path="/ai-dashboard">
+        <ProtectedRoute requiredTier="start"><PartnerAIDashboard /></ProtectedRoute>
+      </Route>
+      <Route path="/partner-ai-dashboard">
+        <ProtectedRoute requiredTier="start"><PartnerAIDashboard /></ProtectedRoute>
+      </Route>
+      
+      {/* Himoyalangan - Business tarif */}
+      <Route path="/uzum-market">
+        <ProtectedRoute requiredTier="business"><UzumMarketDashboard /></ProtectedRoute>
+      </Route>
+      <Route path="/yandex-market">
+        <ProtectedRoute requiredTier="business"><YandexMarketScanner /></ProtectedRoute>
+      </Route>
+      <Route path="/yandex-scanner">
+        <ProtectedRoute requiredTier="business"><YandexMarketScanner /></ProtectedRoute>
+      </Route>
+      <Route path="/yandex-quick">
+        <ProtectedRoute requiredTier="business"><YandexQuickCreate /></ProtectedRoute>
+      </Route>
+      <Route path="/yandex-tez">
+        <ProtectedRoute requiredTier="business"><YandexQuickCreate /></ProtectedRoute>
+      </Route>
+      <Route path="/create-product">
+        <ProtectedRoute requiredTier="business"><AIProductCreator /></ProtectedRoute>
+      </Route>
+      <Route path="/ai-product-creator">
+        <ProtectedRoute requiredTier="business"><AIProductCreator /></ProtectedRoute>
+      </Route>
+      <Route path="/infographic">
+        <ProtectedRoute requiredTier="business"><InfographicGenerator /></ProtectedRoute>
+      </Route>
+      <Route path="/infographic-generator">
+        <ProtectedRoute requiredTier="business"><InfographicGenerator /></ProtectedRoute>
+      </Route>
+      
+      {/* Himoyalangan - Enterprise tarif */}
+      <Route path="/ai-manager">
+        <ProtectedRoute requiredTier="enterprise"><AIManagerPage /></ProtectedRoute>
+      </Route>
+      <Route path="/trend-hunter">
+        <ProtectedRoute requiredTier="enterprise"><TrendHunterDashboard /></ProtectedRoute>
+      </Route>
+      <Route path="/enhanced-ai-dashboard">
+        <ProtectedRoute requiredTier="enterprise"><EnhancedAIDashboard /></ProtectedRoute>
+      </Route>
+      <Route path="/remote-access">
+        <ProtectedRoute requiredTier="enterprise"><RemoteAccessDashboard /></ProtectedRoute>
+      </Route>
+      
+      {/* Admin panel - faqat adminlar uchun */}
+      <Route path="/admin-panel">
+        <ProtectedRoute requiredTier="admin"><AdminPanel /></ProtectedRoute>
+      </Route>
+      
       <Route component={NotFound} />
     </Switch>
   );
