@@ -76,6 +76,7 @@ import aiRoutesV2 from "./routes/aiRoutes";
 import aiScannerRoutesV2 from "./routes/aiScannerRoutes";
 import trendHunterRoutesV2 from "./routes/trendHunterRoutes";
 import uzumMarketRoutes from "./routes/uzumMarketRoutes";
+import pythonBackendProxy from "./routes/pythonBackendProxy";
 import { checkAndProcessFirstPurchase } from "./services/referralFirstPurchaseService";
 
 // Enhanced authentication middleware with better error handling
