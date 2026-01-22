@@ -140,27 +140,32 @@ export function ProtectedRoute({ children, requiredTier }: ProtectedRouteProps) 
           <CardContent className="space-y-4">
             <div className="bg-muted p-4 rounded-lg">
               <h4 className="font-medium mb-2">{TIER_NAMES[featureTier]} tarifida:</h4>
+              <p className="text-sm text-muted-foreground mb-2">{TIER_PRICES[featureTier]}</p>
               <ul className="text-sm text-muted-foreground space-y-1">
-                {featureTier === 'start' && (
+                {featureTier === 'basic' && (
                   <>
-                    <li>✓ AI Scanner - mahsulot aniqlash</li>
-                    <li>✓ 100 ta mahsulot/oy</li>
+                    <li>✓ 69 ta mahsulot</li>
+                    <li>✓ 69 ta AI kartochka</li>
+                    <li>✓ Foyda tahlili</li>
+                    <li>✓ Telegram bildirishnomalar</li>
                   </>
                 )}
-                {featureTier === 'business' && (
+                {featureTier === 'starter_pro' && (
                   <>
-                    <li>✓ Uzum & Yandex Market integratsiya</li>
-                    <li>✓ AI infografika yaratish</li>
-                    <li>✓ Avtomatik mahsulot yaratish</li>
-                    <li>✓ 1000 ta mahsulot/oy</li>
+                    <li>✓ 400 ta mahsulot</li>
+                    <li>✓ Cheksiz AI kartochka</li>
+                    <li>✓ Uzum & Yandex Market</li>
+                    <li>✓ SEO optimallashtirish</li>
+                    <li>✓ Narx monitoring</li>
                   </>
                 )}
-                {featureTier === 'enterprise' && (
+                {featureTier === 'professional' && (
                   <>
-                    <li>✓ AI Manager - to'liq avtomatlashtirish</li>
-                    <li>✓ Trend Hunter</li>
                     <li>✓ Cheksiz mahsulotlar</li>
-                    <li>✓ Priority support</li>
+                    <li>✓ Barcha marketplace'lar</li>
+                    <li>✓ AI Manager</li>
+                    <li>✓ Trend Hunter</li>
+                    <li>✓ Shaxsiy menejer</li>
                   </>
                 )}
               </ul>
