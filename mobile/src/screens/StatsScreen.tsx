@@ -1,0 +1,414 @@
+// Stats Screen - Statistika
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Dimensions,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import { COLORS } from '../utils/constants';
+import { formatPrice, formatShortPrice } from '../utils/helpers';
+import { useProductsStore } from '../store/productsStore';
+
+const { width } = Dimensions.get('window');
+
+type Period = 'today' | 'week' | 'month' | 'all';
+
+export default function StatsScreen() {
+  const { t } = useTranslation();
+  const { products } = useProductsStore();
+  const [period, setPeriod] = useState<Period>('month');
+  
+  // Calculate stats (mock data for now)
+  const stats = {
+    revenue: 45680000,
+    profit: 12450000,
+    orders: 156,
+    views: 4520,
+    conversion: 3.4,
+  };
+  
+  // Marketplace breakdown
+  const marketplaceStats = [
+    { id: 'yandex', name: 'Yandex Market', revenue: 32500000, orders: 98, color: '#FFCC00' },
+    { id: 'uzum', name: 'Uzum Market', revenue: 13180000, orders: 58, color: '#7C3AED' },
+  ];
+  
+  // Top products
+  const topProducts = products.slice(0, 5).map((p, i) => ({
+    ...p,
+    sales: Math.floor(Math.random() * 50) + 10,
+    revenue: p.price * (Math.floor(Math.random() * 50) + 10),
+  }));
+  
+  const periods = [
+    { id: 'today', label: t('stats.today') },
+    { id: 'week', label: t('stats.thisWeek') },
+    { id: 'month', label: t('stats.thisMonth') },
+    { id: 'all', label: t('stats.allTime') },
+  ];
+  
+  return (
+    <ScrollView style={styles.container}>
+      {/* Period Selector */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.periodContainer}
+      >
+        {periods.map((p) => (
+          <TouchableOpacity
+            key={p.id}
+            style={[
+              styles.periodButton,
+              period === p.id && styles.periodButtonActive,
+            ]}
+            onPress={() => setPeriod(p.id as Period)}
+          >
+            <Text
+              style={[
+                styles.periodButtonText,
+                period === p.id && styles.periodButtonTextActive,
+              ]}
+            >
+              {p.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+      
+      {/* Main Stats */}
+      <View style={styles.mainStats}>
+        {/* Revenue */}
+        <View style={[styles.mainStatCard, styles.revenueCard]}>
+          <View style={styles.mainStatHeader}>
+            <Ionicons name="cash-outline" size={24} color={COLORS.white} />
+            <Text style={styles.mainStatLabel}>{t('stats.revenue')}</Text>
+          </View>
+          <Text style={styles.mainStatValue}>{formatPrice(stats.revenue)}</Text>
+          <View style={styles.mainStatChange}>
+            <Ionicons name="trending-up" size={16} color={COLORS.white} />
+            <Text style={styles.mainStatChangeText}>+12.5%</Text>
+          </View>
+        </View>
+        
+        {/* Profit */}
+        <View style={[styles.mainStatCard, styles.profitCard]}>
+          <View style={styles.mainStatHeader}>
+            <Ionicons name="wallet-outline" size={24} color={COLORS.white} />
+            <Text style={styles.mainStatLabel}>{t('stats.profit')}</Text>
+          </View>
+          <Text style={styles.mainStatValue}>{formatPrice(stats.profit)}</Text>
+          <View style={styles.mainStatChange}>
+            <Ionicons name="trending-up" size={16} color={COLORS.white} />
+            <Text style={styles.mainStatChangeText}>+8.3%</Text>
+          </View>
+        </View>
+      </View>
+      
+      {/* Secondary Stats */}
+      <View style={styles.secondaryStats}>
+        <View style={styles.secondaryStatCard}>
+          <Ionicons name="cart-outline" size={24} color={COLORS.primary} />
+          <Text style={styles.secondaryStatValue}>{stats.orders}</Text>
+          <Text style={styles.secondaryStatLabel}>{t('stats.orders')}</Text>
+        </View>
+        
+        <View style={styles.secondaryStatCard}>
+          <Ionicons name="eye-outline" size={24} color={COLORS.accent} />
+          <Text style={styles.secondaryStatValue}>{stats.views}</Text>
+          <Text style={styles.secondaryStatLabel}>{t('stats.views')}</Text>
+        </View>
+        
+        <View style={styles.secondaryStatCard}>
+          <Ionicons name="trending-up-outline" size={24} color={COLORS.secondary} />
+          <Text style={styles.secondaryStatValue}>{stats.conversion}%</Text>
+          <Text style={styles.secondaryStatLabel}>Konversiya</Text>
+        </View>
+      </View>
+      
+      {/* Marketplace Breakdown */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{t('stats.byMarketplace')}</Text>
+        
+        {marketplaceStats.map((mp) => (
+          <View key={mp.id} style={styles.marketplaceCard}>
+            <View style={[styles.marketplaceIcon, { backgroundColor: mp.color }]}>
+              <Text style={styles.marketplaceIconText}>
+                {mp.id === 'yandex' ? '🛒' : '🛍️'}
+              </Text>
+            </View>
+            
+            <View style={styles.marketplaceInfo}>
+              <Text style={styles.marketplaceName}>{mp.name}</Text>
+              <Text style={styles.marketplaceOrders}>{mp.orders} buyurtma</Text>
+            </View>
+            
+            <View style={styles.marketplaceRevenue}>
+              <Text style={styles.marketplaceRevenueValue}>
+                {formatShortPrice(mp.revenue)}
+              </Text>
+              <Text style={styles.marketplaceRevenueLabel}>UZS</Text>
+            </View>
+          </View>
+        ))}
+      </View>
+      
+      {/* Top Products */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{t('stats.topProducts')}</Text>
+        
+        {topProducts.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>Ma'lumot yo'q</Text>
+          </View>
+        ) : (
+          topProducts.map((product, index) => (
+            <View key={product.id} style={styles.topProductCard}>
+              <View style={styles.topProductRank}>
+                <Text style={styles.topProductRankText}>#{index + 1}</Text>
+              </View>
+              
+              <View style={styles.topProductInfo}>
+                <Text style={styles.topProductName} numberOfLines={1}>
+                  {product.name}
+                </Text>
+                <Text style={styles.topProductSales}>
+                  {product.sales} ta sotildi
+                </Text>
+              </View>
+              
+              <Text style={styles.topProductRevenue}>
+                {formatShortPrice(product.revenue)} UZS
+              </Text>
+            </View>
+          ))
+        )}
+      </View>
+      
+      <View style={styles.footer} />
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  
+  // Period
+  periodContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+    gap: 8,
+  },
+  periodButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: COLORS.white,
+    marginRight: 8,
+  },
+  periodButtonActive: {
+    backgroundColor: COLORS.primary,
+  },
+  periodButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+  },
+  periodButtonTextActive: {
+    color: COLORS.white,
+  },
+  
+  // Main Stats
+  mainStats: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 12,
+  },
+  mainStatCard: {
+    flex: 1,
+    borderRadius: 16,
+    padding: 16,
+  },
+  revenueCard: {
+    backgroundColor: COLORS.primary,
+  },
+  profitCard: {
+    backgroundColor: COLORS.secondary,
+  },
+  mainStatHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  mainStatLabel: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+    marginLeft: 8,
+  },
+  mainStatValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: COLORS.white,
+    marginBottom: 8,
+  },
+  mainStatChange: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  mainStatChangeText: {
+    fontSize: 12,
+    color: COLORS.white,
+    marginLeft: 4,
+  },
+  
+  // Secondary Stats
+  secondaryStats: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 12,
+  },
+  secondaryStatCard: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  secondaryStatValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginTop: 8,
+  },
+  secondaryStatLabel: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 4,
+  },
+  
+  // Section
+  section: {
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  
+  // Marketplace
+  marketplaceCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+  },
+  marketplaceIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  marketplaceIconText: {
+    fontSize: 20,
+  },
+  marketplaceInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  marketplaceName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.text,
+  },
+  marketplaceOrders: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  marketplaceRevenue: {
+    alignItems: 'flex-end',
+  },
+  marketplaceRevenueValue: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  marketplaceRevenueLabel: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+  },
+  
+  // Top Products
+  topProductCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+  },
+  topProductRank: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: COLORS.surfaceAlt,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  topProductRankText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  topProductInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  topProductName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.text,
+  },
+  topProductSales: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  topProductRevenue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  
+  // Empty
+  emptyState: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 32,
+    alignItems: 'center',
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  
+  footer: {
+    height: 20,
+  },
+});
