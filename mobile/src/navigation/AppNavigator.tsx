@@ -10,11 +10,13 @@ import { useAuthStore } from '../store/authStore';
 
 // Screens
 import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ScannerScreen from '../screens/ScannerScreen';
 import ProductsScreen from '../screens/ProductsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import UploadProductScreen from '../screens/UploadProductScreen';
+import PricingScreen from '../screens/PricingScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
