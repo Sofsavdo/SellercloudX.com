@@ -96,6 +96,70 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'last_activity_at') THEN
     ALTER TABLE "partners" ADD COLUMN "last_activity_at" timestamp;
   END IF;
+  
+  -- ==================== BUSINESS VERIFICATION FIELDS ====================
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'business_type') THEN
+    ALTER TABLE "partners" ADD COLUMN "business_type" varchar(50) DEFAULT 'yatt';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'inn') THEN
+    ALTER TABLE "partners" ADD COLUMN "inn" varchar(20);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'billing_period') THEN
+    ALTER TABLE "partners" ADD COLUMN "billing_period" varchar(20) DEFAULT 'monthly';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'ai_cards_this_month') THEN
+    ALTER TABLE "partners" ADD COLUMN "ai_cards_this_month" integer DEFAULT 0;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'products_count') THEN
+    ALTER TABLE "partners" ADD COLUMN "products_count" integer DEFAULT 0;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'referred_by') THEN
+    ALTER TABLE "partners" ADD COLUMN "referred_by" text;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'wallet_balance') THEN
+    ALTER TABLE "partners" ADD COLUMN "wallet_balance" integer DEFAULT 0;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'marketplace_integrations') THEN
+    ALTER TABLE "partners" ADD COLUMN "marketplace_integrations" text;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'payment_verified') THEN
+    ALTER TABLE "partners" ADD COLUMN "payment_verified" boolean DEFAULT false;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'activated_at') THEN
+    ALTER TABLE "partners" ADD COLUMN "activated_at" timestamp;
+  END IF;
+  
+  -- ==================== CLICK PAYMENT FIELDS ====================
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'pending_payment_id') THEN
+    ALTER TABLE "partners" ADD COLUMN "pending_payment_id" text;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'pending_payment_tier') THEN
+    ALTER TABLE "partners" ADD COLUMN "pending_payment_tier" text;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'pending_payment_amount') THEN
+    ALTER TABLE "partners" ADD COLUMN "pending_payment_amount" integer;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'pending_payment_billing_period') THEN
+    ALTER TABLE "partners" ADD COLUMN "pending_payment_billing_period" text;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'pending_payment_created_at') THEN
+    ALTER TABLE "partners" ADD COLUMN "pending_payment_created_at" timestamp;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'last_payment_id') THEN
+    ALTER TABLE "partners" ADD COLUMN "last_payment_id" text;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'last_payment_amount') THEN
+    ALTER TABLE "partners" ADD COLUMN "last_payment_amount" integer;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'last_payment_date') THEN
+    ALTER TABLE "partners" ADD COLUMN "last_payment_date" timestamp;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'last_payment_status') THEN
+    ALTER TABLE "partners" ADD COLUMN "last_payment_status" text;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'click_transaction_id') THEN
+    ALTER TABLE "partners" ADD COLUMN "click_transaction_id" text;
+  END IF;
 
   -- ==================== PRODUCTS TABLE ====================
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'optimized_title') THEN
