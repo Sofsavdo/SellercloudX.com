@@ -1,4 +1,4 @@
-// Upload Product Screen - Marketplace ga yuklash
+// Upload Product Screen - Marketplace ga yuklash (HAQIQIY API)
 import React, { useState } from 'react';
 import {
   View,
@@ -16,8 +16,9 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { COLORS, MARKETPLACES, SCREENS } from '../utils/constants';
 import { formatPrice, calculateSuggestedPrice, calculateProfitMargin } from '../utils/helpers';
-import { yandexApi } from '../services/api';
+import { scannerApi, partnerApi } from '../services/api';
 import { offlineQueue } from '../services/offlineQueue';
+import { useAuthStore } from '../store/authStore';
 import NetInfo from '@react-native-community/netinfo';
 
 interface RouteParams {
