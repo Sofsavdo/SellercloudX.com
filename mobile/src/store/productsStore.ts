@@ -1,4 +1,4 @@
-// Products Store
+// Products Store (HAQIQIY API)
 import { create } from 'zustand';
 import { productsApi, Product } from '../services/api';
 
@@ -8,6 +8,7 @@ interface ProductsState {
   selectedProduct: Product | null;
   isLoading: boolean;
   error: string | null;
+  lastFetched: Date | null;
   
   // Filters
   searchQuery: string;
@@ -33,18 +34,35 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
   selectedProduct: null,
   isLoading: false,
   error: null,
+  lastFetched: null,
   searchQuery: '',
   statusFilter: 'all',
   
-  // Fetch all products
+  // Fetch all products from API
   fetchProducts: async () => {
+    // Cache - 30 sekundda bir marta so'rov
+    const { lastFetched, isLoading } = get();
+    if (isLoading) return;
+    
+    const now = new Date();
+    if (lastFetched && (now.getTime() - lastFetched.getTime()) < 30000) {
+      return; // Cache'dan foydalanish
+    }
+    
     set({ isLoading: true, error: null });
     
     try {
       const products = await productsApi.getAll();
-      set({ products, isLoading: false });
+      set({ 
+        products, 
+        isLoading: false,
+        lastFetched: new Date(),
+      });
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Mahsulotlarni yuklashda xatolik';
+      console.error('Products fetch error:', error);
+      const message = error.response?.data?.message || 
+                     error.response?.data?.error ||
+                     'Mahsulotlarni yuklashda xatolik';
       set({ error: message, isLoading: false });
     }
   },
@@ -61,7 +79,7 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
     }));
   },
   
-  // Update product
+  // Update product locally and on server
   updateProduct: (id, data) => {
     set((state) => ({
       products: state.products.map((p) =>
@@ -78,8 +96,11 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
         products: state.products.filter((p) => p.id !== id),
       }));
     } catch (error: any) {
-      const message = error.response?.data?.message || 'O\'chirishda xatolik';
+      const message = error.response?.data?.message || 
+                     error.response?.data?.error ||
+                     'O\'chirishda xatolik';
       set({ error: message });
+      throw error;
     }
   },
   
@@ -104,10 +125,12 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
     
     return products.filter((product) => {
       // Search filter
+      const searchLower = searchQuery.toLowerCase();
       const matchesSearch = searchQuery === '' ||
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.sku?.toLowerCase().includes(searchQuery.toLowerCase());
+        product.name?.toLowerCase().includes(searchLower) ||
+        product.brand?.toLowerCase().includes(searchLower) ||
+        product.sku?.toLowerCase().includes(searchLower) ||
+        product.category?.toLowerCase().includes(searchLower);
       
       // Status filter
       const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
