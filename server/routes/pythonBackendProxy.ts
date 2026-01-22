@@ -6,7 +6,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { createProxyMiddleware, Options } from 'http-proxy-middleware';
+import axios from 'axios';
 
 const router = Router();
 
@@ -15,30 +15,36 @@ const PYTHON_BACKEND_URL = process.env.PYTHON_BACKEND_URL || 'http://localhost:8
 
 console.log(`🔗 Python Backend Proxy URL: ${PYTHON_BACKEND_URL}`);
 
-// Proxy configuration
-const proxyOptions: Options = {
-  target: PYTHON_BACKEND_URL,
-  changeOrigin: true,
-  onError: (err, req, res) => {
-    console.error('❌ Python Backend Proxy Error:', err.message);
-    (res as Response).status(502).json({
+// Universal proxy handler
+router.all('*', async (req: Request, res: Response) => {
+  try {
+    const targetUrl = `${PYTHON_BACKEND_URL}${req.originalUrl}`;
+    console.log(`🔄 Proxying: ${req.method} ${req.originalUrl} -> ${targetUrl}`);
+    
+    const response = await axios({
+      method: req.method as any,
+      url: targetUrl,
+      data: req.body,
+      headers: {
+        'Content-Type': req.headers['content-type'] || 'application/json',
+        'Accept': 'application/json'
+      },
+      timeout: 120000, // 2 daqiqa timeout
+      validateStatus: () => true // Barcha status kodlarini qabul qilish
+    });
+    
+    console.log(`✅ Proxy Response: ${response.status} for ${req.originalUrl}`);
+    
+    res.status(response.status).json(response.data);
+    
+  } catch (error: any) {
+    console.error('❌ Python Backend Proxy Error:', error.message);
+    res.status(502).json({
       success: false,
       error: 'Python backend ulanmadi',
-      details: err.message
+      details: error.message
     });
-  },
-  onProxyReq: (proxyReq, req, res) => {
-    console.log(`🔄 Proxying: ${req.method} ${req.originalUrl} -> ${PYTHON_BACKEND_URL}${req.originalUrl}`);
-  },
-  onProxyRes: (proxyRes, req, res) => {
-    console.log(`✅ Proxy Response: ${proxyRes.statusCode} for ${req.originalUrl}`);
   }
-};
-
-// Create proxy middleware
-const pythonProxy = createProxyMiddleware(proxyOptions);
-
-// Catch-all proxy handler
-router.use('/', pythonProxy);
+});
 
 export default router;
