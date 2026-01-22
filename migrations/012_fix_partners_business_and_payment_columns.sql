@@ -2,6 +2,14 @@
 -- Required for Railway PostgreSQL deployment
 -- Date: 2024-12-29
 
+-- ==================== CRITICAL: PARTNER STATUS FIELDS ====================
+ALTER TABLE "partners" ADD COLUMN IF NOT EXISTS "is_active" boolean DEFAULT false;
+ALTER TABLE "partners" ADD COLUMN IF NOT EXISTS "business_address" varchar(500);
+ALTER TABLE "partners" ADD COLUMN IF NOT EXISTS "phone" varchar(50);
+ALTER TABLE "partners" ADD COLUMN IF NOT EXISTS "website" varchar(255);
+ALTER TABLE "partners" ADD COLUMN IF NOT EXISTS "updated_at" timestamp;
+ALTER TABLE "partners" ADD COLUMN IF NOT EXISTS "created_at" timestamp DEFAULT NOW();
+
 -- ==================== BUSINESS VERIFICATION FIELDS ====================
 ALTER TABLE "partners" ADD COLUMN IF NOT EXISTS "business_type" varchar(50) DEFAULT 'yatt';
 ALTER TABLE "partners" ADD COLUMN IF NOT EXISTS "inn" varchar(20);
