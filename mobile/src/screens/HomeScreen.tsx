@@ -21,17 +21,25 @@ import { offlineQueue, QueueItem } from '../services/offlineQueue';
 export default function HomeScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<any>();
-  const { user, partner } = useAuthStore();
+  const { user, partner, refreshPartner } = useAuthStore();
   const { products, fetchProducts, isLoading } = useProductsStore();
   
   const [refreshing, setRefreshing] = useState(false);
   const [queueStats, setQueueStats] = useState({ pending: 0, total: 0 });
   
-  // Load data
+  // Load data on mount
   useEffect(() => {
     fetchProducts();
     loadQueueStats();
   }, []);
+  
+  // Refresh partner data when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      refreshPartner();
+      loadQueueStats();
+    }, [])
+  );
   
   const loadQueueStats = async () => {
     const stats = await offlineQueue.getStats();
@@ -40,16 +48,20 @@ export default function HomeScreen() {
   
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchProducts();
-    await loadQueueStats();
+    await Promise.all([
+      fetchProducts(),
+      refreshPartner(),
+      loadQueueStats(),
+    ]);
     setRefreshing(false);
   };
   
-  // Stats
+  // Stats - haqiqiy ma'lumotlar asosida
   const activeProducts = products.filter(p => p.status === 'active').length;
-  const aiCardsLeft = partner?.aiEnabled
-    ? (100 - (partner.aiCardsUsed || 0))
-    : 0;
+  const tierLimits = TIERS[partner?.pricingTier as keyof typeof TIERS] || TIERS.free_starter;
+  const aiCardsLimit = tierLimits.aiCards;
+  const aiCardsUsed = partner?.aiCardsThisMonth || partner?.aiCardsUsed || 0;
+  const aiCardsLeft = aiCardsLimit === -1 ? '♾️' : Math.max(0, aiCardsLimit - aiCardsUsed);
   
   return (
     <ScrollView
