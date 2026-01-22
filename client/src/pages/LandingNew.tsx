@@ -696,15 +696,45 @@ export default function LandingNew() {
 
                 {/* Price */}
                 <div className="mb-1">
-                  <span className={cn(
-                    'text-5xl font-black',
-                    plan.popular ? 'text-gradient-primary' : ''
-                  )}>
-                    ${billingPeriod === 'yearly' ? Math.round(plan.priceNum * 0.8) : plan.priceNum}
-                  </span>
+                  {billingPeriod === 'yearly' && plan.priceNum > 0 ? (
+                    <>
+                      <span className="text-2xl line-through text-muted-foreground mr-2">
+                        ${plan.priceNum}
+                      </span>
+                      <span className={cn(
+                        'text-5xl font-black',
+                        plan.popular ? 'text-gradient-primary' : ''
+                      )}>
+                        ${Math.round(plan.priceNum * 0.8)}
+                      </span>
+                    </>
+                  ) : (
+                    <span className={cn(
+                      'text-5xl font-black',
+                      plan.popular ? 'text-gradient-primary' : ''
+                    )}>
+                      ${plan.priceNum}
+                    </span>
+                  )}
                   <span className="text-muted-foreground">{plan.period}</span>
                 </div>
-                <p className="text-sm text-muted-foreground mb-2">{plan.priceSom}</p>
+                
+                {/* So'm narxi */}
+                {billingPeriod === 'yearly' && plan.priceNum > 0 ? (
+                  <div className="mb-2">
+                    <p className="text-sm text-muted-foreground line-through">
+                      {plan.priceSom} × 12 = {(parseInt(plan.priceSom.replace(/[^\d]/g, '')) * 12 / 1000000).toFixed(1)}M so'm
+                    </p>
+                    <p className="text-sm font-semibold text-primary">
+                      {(parseInt(plan.priceSom.replace(/[^\d]/g, '')) * 12 * 0.8 / 1000000).toFixed(1)}M so'm/yil
+                    </p>
+                    <Badge className="bg-success/10 text-success mt-1">
+                      💰 {(parseInt(plan.priceSom.replace(/[^\d]/g, '')) * 12 * 0.2 / 1000000).toFixed(1)}M so'm tejaysiz!
+                    </Badge>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground mb-2">{plan.priceSom}</p>
+                )}
 
                 {/* Commission Badge */}
                 <Badge className={cn('mb-4', plan.commissionColor)}>{plan.commission}</Badge>
@@ -720,13 +750,25 @@ export default function LandingNew() {
                   )}
                   variant={plan.ctaVariant}
                   onClick={() => {
-                    // Store selected tier in sessionStorage
+                    const yearlyDiscount = billingPeriod === 'yearly' ? 0.8 : 1;
+                    const monthlyPrice = parseInt(plan.priceSom.replace(/[^\d]/g, ''));
+                    const totalPrice = billingPeriod === 'yearly' 
+                      ? monthlyPrice * 12 * yearlyDiscount 
+                      : monthlyPrice;
+                    const savings = billingPeriod === 'yearly' 
+                      ? monthlyPrice * 12 * 0.2 
+                      : 0;
+                    
                     sessionStorage.setItem('selectedTier', JSON.stringify({
                       id: plan.name.toLowerCase().replace(/\s+/g, '_'),
                       name: plan.name,
                       price: plan.priceNum,
                       priceSom: plan.priceSom,
                       commission: plan.commission,
+                      billingPeriod: billingPeriod,
+                      totalPrice: totalPrice,
+                      savings: savings,
+                      discountPercent: billingPeriod === 'yearly' ? 20 : 0
                     }));
                     setLocation('/partner-registration');
                   }}
