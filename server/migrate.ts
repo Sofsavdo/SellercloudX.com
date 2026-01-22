@@ -160,6 +160,26 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'click_transaction_id') THEN
     ALTER TABLE "partners" ADD COLUMN "click_transaction_id" text;
   END IF;
+  
+  -- ==================== CRITICAL: PARTNER STATUS FIELDS ====================
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'is_active') THEN
+    ALTER TABLE "partners" ADD COLUMN "is_active" boolean DEFAULT false;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'business_address') THEN
+    ALTER TABLE "partners" ADD COLUMN "business_address" varchar(500);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'phone') THEN
+    ALTER TABLE "partners" ADD COLUMN "phone" varchar(50);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'website') THEN
+    ALTER TABLE "partners" ADD COLUMN "website" varchar(255);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'updated_at') THEN
+    ALTER TABLE "partners" ADD COLUMN "updated_at" timestamp;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'created_at') THEN
+    ALTER TABLE "partners" ADD COLUMN "created_at" timestamp DEFAULT NOW();
+  END IF;
 
   -- ==================== PRODUCTS TABLE ====================
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'optimized_title') THEN

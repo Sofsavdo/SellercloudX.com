@@ -1,179 +1,92 @@
-# SellerCloudX - AI-Powered E-Commerce Automation Platform
+# SellerCloudX - Product Requirements Document
 
 ## Original Problem Statement
-Create a fully automated product creation system for Yandex Market. Partners only need to:
-1. Take a photo of the product
-2. Enter cost price
+To'liq avtomatlashtirilgan e-commerce tizimi yaratish - Yandex Market uchun. Hamkorlar rasm va narx yuklaydi, AI mahsulotni aniqlaydi, kontent yaratadi (rus/o'zbek), infografika generatsiya qiladi va 100/100 sifatli product card joylashtiradi.
 
-AI handles everything else to create a 100/100 quality score product card.
+## User Personas
+- **Hamkorlar (Partners):** Kichik/o'rta biznes egalari, mahsulot sotuvchilar
+- **Admin:** Platforma boshqaruvchisi
 
-## What's Been Implemented (January 22, 2025)
+## Core Requirements
 
-### ✅ COMPLETED - Full Automation Pipeline
+### 1. Partner Lifecycle Automation
+- ✅ INN (STIR) orqali unikal biznes identifikatsiyasi
+- ✅ Tier-based subscription model (free_starter, basic, starter_pro, professional)
+- ✅ Annual subscription 20% chegirma
+- 🔄 Click/Payme to'lov integratsiyasi (backend ready, UI in progress)
 
-1. **AI Scanner (Gemini 2.5 Flash)**
-   - Identifies product from image
-   - Extracts: brand, model, category, features, materials, dimensions, country
-   - 98% confidence on test images
+### 2. AI Product Card Creation
+- ✅ Gemini AI orqali mahsulot tahlili
+- ✅ Rus/O'zbek tilida kontent generatsiya
+- ✅ Yandex Market API integratsiyasi
+- 🔜 100/100 sifat ball maqsadi
 
-2. **AI Card Generator (Bilingual)**
-   - Russian name and description (SEO optimized)
-   - Uzbek name and description (O'zbek tilida)
-   - 10 SEO tags
-   - Key specifications
+### 3. Mobile Application
+- ✅ React Native/Expo scaffolding (`/app/mobile`)
+- ✅ Navigation, state management (Zustand)
+- ✅ Backend API ulangan
+- 🔄 Android APK build (pending)
+- 🔜 Push notifications
+- 🔜 Offline queue
 
-3. **Nano Banana Infographics (Gemini 3 Pro Image)**
-   - 6 professional product photos
-   - Different angles: front, side, detail, lifestyle, packaging
-   - Auto-uploaded to ImgBB
-
-4. **Yandex Market Integration**
-   - Smart SKU generation (BRND-MODEL-XXXXX)
-   - Universal category mapping
-   - IKPU code auto-generation
-   - Weight/dimensions auto-calculated
-
-### ✅ GitHub Merged
-- Repository: https://github.com/Sofsavdo/SellercloudX.com
-- SellerCloudX1 + Emergent = 831 files merged
-
-### ✅ Backend Architecture
+## Architecture
 ```
-/app/backend/
-├── server.py                    # Main FastAPI server
-├── yandex_universal_v3.py       # Universal product creator
-├── yandex_perfect_v2.py         # Legacy (backup)
-├── infographic_service.py       # Image generation
-└── ikpu_service.py              # IKPU codes
-
-/app/server/
-├── routes.ts                    # Node.js routes + Python proxy
-├── routes/pythonBackendProxy.ts # Yandex/Uzum API proxy
-└── storage.ts                   # Database operations
+/app
+├── backend/         # Python/FastAPI - AI, Yandex/Uzum
+├── client/          # React/Vite - Web Frontend
+├── mobile/          # React Native/Expo - Mobile App
+├── server/          # Node.js/Express - Main API
+└── shared/          # Shared schemas (Drizzle)
 ```
 
-### ✅ API Endpoints
-- `POST /api/yandex/auto-create` - Full automatic creation
-- `GET /api/yandex/campaigns` - Store list
-- `POST /api/auth/register` - Partner registration
-- `POST /api/auth/login` - Partner login
+## Database
+- **Development:** SQLite
+- **Production:** PostgreSQL (Railway)
 
-## Test Results (January 22, 2025)
+## What's Implemented
 
-### Full Pipeline Test:
-```
-Input: Chanel N°5 perfume image + 200,000 UZS cost
-Output:
-- SKU: CHAN-N5-07E71
-- Brand: Chanel
-- Category: Парфюмерия
-- Images: 6 (all uploaded to ImgBB)
-- Selling Price: 2,500,000 UZS
-- Profit Margin: 1150%
-```
+### 2024-12-28
+- INN verification system
+- Click payment backend setup
+- Mobile app scaffolding
 
-## Credentials
-- **Yandex API:** ACMA:rHqOiebT6JY1JlkEN0rdYdZn2SkO6iC2V6HvLE22:1806b892
-- **Business ID:** 197529861
-- **ImgBB:** 0cc4c8e28bea6a6e1e81a55baf015e86
-- **Emergent LLM:** sk-emergent-c0d5c506030Fa49400
-
-## URLs
-- **Preview:** https://ecomm-automation-2.preview.emergentagent.com
-- **Quick Create:** https://ecomm-automation-2.preview.emergentagent.com/yandex-quick
-- **GitHub:** https://github.com/Sofsavdo/SellercloudX.com
+### 2024-12-29
+- PostgreSQL migration fix for `business_type`, `inn`, Click payment columns
+- `/app/server/migrate.ts` - auto-migration for PostgreSQL
+- `/app/migrations/012_fix_partners_business_and_payment_columns.sql`
 
 ## Prioritized Backlog
 
-### P0 - Critical (COMPLETED ✅)
-- [x] INN/STIR tekshiruv tizimi - dublikat akkauntlarni oldini olish
-- [x] Click payment integratsiyasi - webhook handler'lar tayyor
-- [ ] Verify 100/100 quality score in Yandex cabinet
-- [ ] Test with user's own products
+### P0 - Critical
+- [x] Fix Railway deployment (PostgreSQL migration)
 
-### P1 - High Priority  
-- [ ] Click payment UI - to'lov tugmasi va redirect
-- [ ] Video generation (Sora 2)
-- [ ] Partner API key management UI
-- [ ] Batch product creation
+### P1 - High Priority
+- [ ] Build Android APK for mobile app
+- [ ] Complete Click payment UI integration
 
 ### P2 - Medium Priority
-- [ ] Railway production deployment tekshirish
+- [ ] Push notifications (mobile)
+- [ ] End-to-end partner onboarding test
+- [ ] Yandex 100/100 quality score
+
+### P3 - Low Priority
+- [ ] Offline queue for mobile uploads
+- [ ] Biometric login (Face ID/Touch ID)
+- [ ] Barcode scanner
 - [ ] Uzum Market automation
-- [ ] Analytics dashboard
+- [ ] Real-time admin-partner chat
 
-### P3 - Future
-- [ ] Real-time chat
-- [ ] AI Trend Hunter
-- [ ] Partner dashboards
-
-## January 22, 2025 Updates
-
-### ✅ Mobile App Created (React Native + Expo)
-**Location:** `/app/mobile/`
-
-**Asosiy xususiyatlar:**
-- 📸 AI Scanner - Kamera orqali mahsulot aniqlash
-- 📴 Offline Queue - Internetsiz ishlash, keyin avtomatik yuklash
-- 🌐 Ikki til - O'zbek (asosiy) va Rus
-- 🔔 Push notifications - sotuvlar haqida xabar
-- 📱 iOS + Android (Expo)
-
-**Ekranlar:**
-1. `LoginScreen.tsx` - Kirish
-2. `RegisterScreen.tsx` - Ro'yxatdan o'tish (INN bilan)
-3. `HomeScreen.tsx` - Dashboard
-4. `ScannerScreen.tsx` - AI Kamera (ASOSIY)
-5. `ProductsScreen.tsx` - Mahsulotlar ro'yxati
-6. `UploadProductScreen.tsx` - Marketplace ga yuklash
-7. `StatsScreen.tsx` - Statistika
-8. `SettingsScreen.tsx` - Sozlamalar
-9. `PricingScreen.tsx` - Tarif tanlash va Click to'lov
-
-**Servislar:**
-- `api.ts` - Backend API calls
-- `offlineQueue.ts` - Offline navbat (NetInfo bilan)
-- `authStore.ts` - Zustand auth state
-- `productsStore.ts` - Products state
-
-**Ishga tushirish:**
-```bash
-cd /app/mobile
-yarn install
-yarn start
-```
-
-### ✅ INN/STIR Verification System
-- **Backend validation:** 9 ta raqam, viloyat kodi tekshirish
-- **Soxta INN filterlash:** "123456789", "111111111" kabi raqamlar rad qilinadi
-- **Dublikat oldini olish:** Bir INN = Bitta akkaunt
-- **Frontend UI:** Xato xabarlari qizil rangda ko'rsatiladi
-
-### ✅ Click Payment Integration
-- **Service:** `/app/server/services/payment/clickPayment.ts`
-- **Routes:** `/app/server/routes/clickPaymentRoutes.ts`
-- **API Endpoints:**
-  - `GET /api/click/tiers` - Tarif narxlari
-  - `POST /api/click/create-payment` - To'lov yaratish
-  - `POST /api/click/webhook/prepare` - Click prepare
-  - `POST /api/click/webhook/complete` - Click complete
-- **Tarif narxlari (UZS):**
-  - Free Starter: 0
-  - Starter Pro: 828,000/oy
-  - Professional Plus: 4,188,000/oy
-  - Enterprise Elite: 10,788,000/oy
-  - Yillik: 20% chegirma
-
-### ✅ Database Migration
-- `business_type` - YATT/OOO/Individual
-- `inn` - STIR (unique)
-- `pending_payment_*` - Kutilayotgan to'lov
-- `last_payment_*` - Oxirgi to'lov
-- `click_transaction_id` - Click tranzaksiya ID
+## 3rd Party Integrations
+- **Yandex Market Partner API** - Product management
+- **Gemini API** - AI text/image generation (Emergent LLM Key)
+- **ImgBB** - Image hosting
+- **Click/Payme** - Payment gateway (planned)
 
 ## Known Issues
-- Infographic generation can be slow (30-60 seconds per image)
-- Yandex localization field may not work - fallback to description embedding
-- Need user verification of 100-point score
-- Click merchant credentials kerak (production uchun)
+- Railway deployment requires PostgreSQL migration (FIXED)
+- Mobile app needs testing with real backend
 
+## Notes for Next Agent
+- Migration file is ready: `/app/migrations/012_fix_partners_business_and_payment_columns.sql`
+- After GitHub push, Railway auto-deploy should run migrations
+- Mobile APK build is next priority after deployment fix
