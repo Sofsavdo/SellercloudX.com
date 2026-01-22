@@ -39,12 +39,14 @@ export default function UploadProductScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute();
   const { scanResult, imageUri } = route.params as RouteParams;
+  const { partner, updatePartner } = useAuthStore();
   
   // State
   const [costPrice, setCostPrice] = useState('');
   const [sellingPrice, setSellingPrice] = useState('');
   const [selectedMarketplace, setSelectedMarketplace] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
   
   // Computed values
   const costPriceNum = parseInt(costPrice.replace(/\D/g, '')) || 0;
