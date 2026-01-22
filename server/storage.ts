@@ -300,6 +300,16 @@ export async function getPartnerByUserId(userId: string): Promise<Partner | null
   }
 }
 
+export async function getPartnerByEmail(email: string): Promise<Partner | null> {
+  try {
+    const [partner] = await db.select().from(partners).where(eq(partners.email, email));
+    return partner || null;
+  } catch (error: any) {
+    console.error('Error getting partner by email:', error);
+    return null;
+  }
+}
+
 export async function getPartnerById(id: string): Promise<Partner | null> {
   try {
     const [partner] = await db.select().from(partners).where(eq(partners.id, id));
