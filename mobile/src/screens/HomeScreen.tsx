@@ -1,5 +1,5 @@
-// Home Screen - Dashboard
-import React, { useEffect, useState } from 'react';
+// Home Screen - Dashboard (HAQIQIY API)
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@react-navigation/native';
-import { COLORS, SCREENS } from '../utils/constants';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { COLORS, SCREENS, TIERS } from '../utils/constants';
 import { formatPrice, formatShortPrice } from '../utils/helpers';
 import { useAuthStore } from '../store/authStore';
 import { useProductsStore } from '../store/productsStore';
