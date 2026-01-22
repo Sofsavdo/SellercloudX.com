@@ -1,149 +1,119 @@
 <analysis>**original_problem_statement:**
-The user wants a comprehensive audit and optimization of the SellerCloudX project, an AI-powered e-commerce automation platform. The initial primary goal was to fully automate product creation on Uzum Market. However, due to persistent and complex technical challenges with Uzum's platform, the user has pivoted the immediate priority to implementing and perfecting product creation on **Yandex Market** via their official API.
+The user's primary goal is to create a fully automated e-commerce system, SellerCloudX, for Yandex Market. The core feature allows partners to upload an image and cost price, with AI handling product identification, content generation (Russian/Uzbek), infographic creation, and posting a 100/100 quality product card to Yandex.
 
-**PRODUCT REQUIREMENTS:**
--   **AI Product Card Creator:** A unified flow that starts with an image, uses AI to identify the product, generates SEO-optimized content, and automatically creates the product listing on the chosen marketplace.
--   **Yandex Market Integration (NEW P0):** Implement a perfect integration with the Yandex Market Seller API to create product cards directly. The first goal is to create a sample product card for a famous perfume.
--   **Uzum Market Automation (ON HOLD):** Fully automate the multi-step product creation form in the Uzum seller cabinet using browser automation. This task is currently on hold.
--   **Other Features:** AI Price Optimizer, AI Image Scanner, AI Trend Hunter, functional Dashboards, Chat, Registration, and Subscriptions.
+The project scope has significantly expanded to include:
+-   Fixing recurring production deployment issues on the Railway platform.
+-   Automating the entire partner lifecycle, including payment-based activation and tier upgrades, removing manual admin tasks.
+-   Implementing tier-based feature limits (product creation, AI usage).
+-   Adding an annual subscription with a 20% discount.
+-   Preventing free-tier abuse by enforcing a one business, one account rule via a unique business identifier (INN/STIR) during registration.
+-   **New Major Requirement:** Build a fully functional mobile application for iOS and Android, with the AI camera scanner as its central feature.
 
 **User's preferred language**: Uzbek (). The next agent MUST respond in Uzbek.
 
 **what currently exists?**
-The project is a full-stack application (React frontend, FastAPI backend). The majority of the recent work has been focused on building a complex Playwright script () to automate product creation on Uzum Market. This effort involved deep debugging of a web application built with Shadow DOM, successfully identifying and navigating multi-level dynamic category selectors, and finding a valid leaf category. However, the final form submission was still failing with a Validation failed error when the user decided to pivot. No work has been started on the Yandex Market integration.
+The project is a full-stack application with a dual-backend architecture: a Node.js/Express server () for business logic and a Python/FastAPI backend () for AI tasks. The web application features for partner registration (with INN validation), automated tier logic, and backend setup for Click payments are implemented.
+
+A new mobile application has been scaffolded in  using React Native and Expo. It includes the basic file structure, navigation, state management (Zustand), API services, and screens for core features like the AI scanner, login, registration, and product management. The mobile app has been wired to connect to the existing backend APIs, replacing initial mock data.
 
 **Last working item**:
--   **Last item agent was working:** The user explicitly instructed the agent to stop working on Uzum Market and focus on Yandex Market. The agent was preparing to ask the user for the necessary API credentials to begin the Yandex Market integration.
--   **Status:** NOT STARTED
--   **Agent Testing Done:** N/A
--   **Which testing method agent to use?** Backend testing agent. The agent will need to create a test script to call the Yandex Market API endpoints for product creation.
--   **User Testing Done:** N/A
+-   **Last item agent was working:** Debugging a critical production deployment failure on Railway. The user provided logs showing the Node.js server is crashing on startup with a PostgreSQL error: . The agent correctly identified that the production database schema is out of sync with the application code, requiring a database migration.
+-   **Status:** IN PROGRESS
+-   **Agent Testing Done:** N
+-   **Which testing method agent to use?** Backend. The agent needs to create and apply a PostgreSQL migration to add the missing columns to the  table. Verification will be done by asking the user to redeploy and checking the new Railway logs.
+-   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   Issue 1: (P0) Implement Yandex Market Product Creation via API.
--   Issue 2: (P1) Resolve Validation failed on Uzum Product Creation (ON HOLD).
--   Issue 3: (P2) Implement AI Trend Hunter feature.
--   Issue 4: (P2) Implement the real-time chat system.
--   Issue 5: (P2) Implement functional user/partner dashboards with real analytics.
+-   Issue 1: (P0) Fix Production Deployment on Railway by Creating a PostgreSQL Migration.
+-   Issue 2: (P1) Build and Deliver a Testable Android APK for the Mobile App.
+-   Issue 3: (P2) Implement Real Payment Gateway Integration (Payme/Click) in the UI.
+-   Issue 4: (P3) Finalize and Test the End-to-End Automated Partner Onboarding Flow (Web).
+-   Issue 5: (P4) Achieve 100/100 Quality Score for Yandex Product Cards.
 
 **Issues Detail:**
--   **Issue 1: Implement Yandex Market Product Creation via API**
-    -   **Attempted fixes:** None. This is a new task.
+-   **Issue 1: Fix Production Deployment on Railway by Creating a PostgreSQL Migration**
+    -   **Attempted fixes:** The agent previously fixed a deployment error in . The current error is different and database-related.
     -   **Next debug checklist:**
-        1.  Use the  tool to request the necessary credentials from the user: **Yandex OAuth Token**, **Business ID**, and **Campaign ID (Shop ID)**.
-        2.  Once credentials are received, use the  tool to get the latest playbook for the Yandex Market Seller API.
-        3.  Create a new backend endpoint in  (e.g., ).
-        4.  Implement the logic to call the Yandex API to create a product card, following the playbook. The user requested an example using a famous perfume.
-        5.  Test the new endpoint to confirm a product card is created successfully in the user's Yandex Market cabinet.
-    -   **Why fix this issue and what will be achieved with the fix?** This is the user's new highest priority and will deliver a core piece of requested functionality.
-    -   **Status:** NOT STARTED
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** Backend
-    -   **Blocked on other issue:** User credentials for Yandex Market API.
-
--   **Issue 2: Resolve Validation failed on Uzum Product Creation (ON HOLD)**
-    -   **Attempted fixes:** The agent successfully automated login, found an active leaf category, and filled most form fields (name, description, country, brand). The final submission still fails with Validation failed.
-    -   **Next debug checklist:** The issue is likely a missing mandatory Characteristic (like image-per-color) or an issue with how the variant popups are being handled. This is a very complex Shadow DOM problem.
-    -   **Why fix this issue and what will be achieved with the fix?** Completes the automation goal for Uzum.
-    -   **Status:** IN PROGRESS (but ON HOLD)
-    -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** Backend
+        1.  Examine  to identify all columns present in the code but missing from the production PostgreSQL database (the log confirms  is missing, but others added for INN and Click payments may also be missing).
+        2.  Create a new SQL migration file (e.g., ) with the  statements for PostgreSQL.
+        3.  Ensure the application's startup logic in  is configured to run database migrations automatically.
+        4.  Instruct the user to save the changes to GitHub and trigger a new deployment on Railway.
+        5.  Analyze the new deployment logs to confirm the server starts successfully without the database column error.
+    -   **Why fix this issue and what will be achieved with the fix?** This is a critical blocker. The entire production application is down and unusable until this is resolved.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** Y (Deployment issues are frequent).
+    -   **Should Test frontend/backend/both after fix?** Backend (via Railway logs).
     -   **Blocked on other issue:** None.
 
 **In progress Task List**:
--   None. The previous task was paused by the user.
+-   **Task 1: Create a fully functional mobile application.**
+    -   **Where to resume:** The application skeleton is built in  and connected to backend APIs. The next step is to perform a build to create a testable Android APK file.
+    -   **What will be achieved with this?** A deliverable mobile app that the user can install and test on their device, fulfilling a major new requirement.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** Both (Mobile frontend + existing backend).
+    -   **Blocked on something:** Critically blocked by the production deployment failure (Issue 1). The mobile app cannot function without a stable backend.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   (P0) Implement Yandex Market product creation API integration.
-    -   (P1) Implement AI Trend Hunter with real data.
-    -   (P1) Implement functional partner dashboards to display sales statistics and analytics.
+    -   (P0) Implement Push Notifications for the mobile app.
+    -   (P1) Implement an offline-first job queue for the mobile app, so that product uploads can be initiated without an internet connection and synced later.
+    -   (P2) Complete the UI for the Click payment gateway on both web and mobile.
 -   **Future Tasks:**
-    -   (P2) Re-evaluate and complete Uzum Market Automation.
-    -   (P2) Implement the real-time chat system.
-    -   (P2) Implement a full user registration and subscription management system.
-    -   (P3) Refactor and delete the numerous old backend automation files ().
+    -   (P3) Implement Biometric Login (Face ID / Touch ID) for the mobile app.
+    -   (P3) Add a barcode scanning feature to the mobile AI scanner.
+    -   (P4) Complete the Uzum Market automation workflow.
+    -   (P4) Enhance the admin-partner chat with real-time capabilities.
 
 **Completed work in this session**
--   **Uzum Automation (Paused):**
-    -   **Deep Debugging:** Conducted an exhaustive, multi-step debugging process for the complex Uzum Playwright automation.
-    -   **Root Cause Analysis:** Correctly diagnosed that Uzum categories are marked  at the root, but  with , proving that only deep leaf sub-categories are valid for product creation.
-    -   **Active Category Discovery:** Successfully found an active, usable leaf category via the API ().
-    -   **Advanced Automation:** Significantly improved the  script to handle dynamic, multi-level Shadow DOM dropdowns, which was a major blocker.
-    -   **Form Filling:** Automated the filling of most standard fields (name, description, country, brand) after selecting a valid leaf category.
-
-**Earlier issues found/mentioned but not fixed**
--   The core Uzum automation issue (Validation failed) remains unresolved, but the task is now on hold per user instruction.
-
-**Known issue recurrence from previous fork**
--   **Issue recurrence in previous fork:** Uzum Market automation has been a persistent blocker due to the extreme complexity of its Shadow DOM and dynamic form validation.
--   **Recurrence count:** 5+
--   **Status:** IN PROGRESS (ON HOLD)
+-   **Robust INN Verification (Web):** Implemented and fully tested the backend system to prevent duplicate accounts based on a unique business ID (INN). Fixed a critical bug where the INN was not being saved to the database.
+-   **Click Payment Backend Setup:** Laid the groundwork for the Click payment integration by creating the necessary services, routes, and database schema updates (for SQLite).
+-   **Mobile App Scaffolding (React Native/Expo):** Created a new, well-structured mobile application in . This includes navigation, all necessary screens, API services connected to the live backend, and state management.
+-   **Deployment Fix:** Resolved a Railway deployment crash caused by an invalid environment variable () in the  file.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Automation (On Hold):** Playwright, Web Components, Shadow DOM.
--   **API Integration (New Priority):** REST API, OAuth 2.0 (for Yandex Market).
+-   **Dual Backend Architecture:** Node.js for business logic, Python for intensive tasks.
+-   **React Native / Expo:** Framework for cross-platform (iOS/Android) mobile app development.
+-   **PostgreSQL Migration Management:** A critical, unresolved need for keeping the production database schema in sync with the application code.
 
 **key DB schema**
--   No changes.
-
-**changes in tech stack**
--   No changes.
+-   **partners:** The schema has been updated in the code to include  (string, unique),  (text), and several columns for Click payment integration. These changes have not yet been applied to the production PostgreSQL database.
 
 **All files of reference**
--   : To be modified for the new Yandex API endpoint.
--   : May need updates for Yandex-specific fields.
--   : Contains the state of the paused Uzum automation work.
-
-**Areas that need refactoring**:
--   The backend contains multiple old, iterative versions of the Uzum automation script. These should be deleted in the future.
-
-**key api endpoints**
--    (ON HOLD)
--    (TO BE CREATED)
+-   : The configuration file for running services on Railway; was recently fixed.
+-   : Contains the  function that was fixed to correctly save the .
+-   : Defines the Drizzle schema, which is currently out of sync with the production database.
+-   : The root directory for the new mobile application.
+-   : The central service for all mobile app API calls.
 
 **Critical Info for New Agent**
--   **PIVOT:** The user has explicitly switched priorities from Uzum Market to **Yandex Market**. Do not work on Uzum. Your primary task is the Yandex Market integration.
--   **YANDEX IS API-BASED:** Unlike the Uzum task, this does not require browser automation (Playwright). It requires direct integration with the Yandex Market Seller REST API.
--   **GET CREDENTIALS FIRST:** Your immediate first step is to ask the user for their **Yandex OAuth Token**, **Business ID**, and **Campaign ID**. You cannot proceed without them.
--   **USER GOAL:** Create a perfect integration and test it by creating a product card for a famous perfume.
-
-**documents and test reports created in this job**
--   None.
+-   **PRIORITY #1: FIX PRODUCTION.** The application is down on Railway. The logs clearly indicate a PostgreSQL error: . You must create a database migration to add this and other potentially missing columns to the  table and ensure it runs on deployment.
+-   After fixing the deployment, the next priority is to build an **Android APK** of the mobile app in  so the user can test it.
+-   The user wants to push code to . Remind them to use the **Save to GitHub** feature in the UI.
 
 **Last 10 User Messages and any pending HUMAN messages**
--   **User (most recent):** Stop here. We will solve the shortcomings of Uzum market later. For now, bring the Yandex market integration to a perfect state. And create one product card. For example, create a card for a more famous perfume. Yandex market is different from Uzum market, but you said I could create it via API.
--   **Agent:** Understood! We will continue with Uzum Market later. Now we are moving to Yandex Market API integration. (Prepared to ask for credentials).
--   **User:** Fargonayia@gmail.com this is the login, Medik9298@ this is the password, and the Shop ID is 87586 (This was for Uzum, context has now changed).
--   **Agent:** I understand! The login information is the same. As you said, the categories should be active now. (Agent then confirmed categories were still inactive for Uzum).
--   **User:** I gave the new Uzum cabinet information. The API is also new. The API you have was for the old account. And all categories are active. It's working. (User was trying to resolve the Uzum category issue).
--   **Agent:** Excellent! I received a new API key. Now I will test it. (Agent tested the Uzum OpenAPI key, found it worked for stocks but not product creation).
--   **User:** The new test account login is Fargonayia@gmail.com, Password: Medik9298@
--   **Agent:** (Was about to report the Uzum inactive category deadlock and suggest a new strategy before the user pivoted).
+1.  **User (latest):** Provides new Railway deployment logs showing a  error, indicating a database schema issue.
+2.  **Agent:** Confirms the previous supervisord fix and asks the user to redeploy (this led to the new error).
+3.  **User:** Provides the initial Railway deployment logs showing an  error.
+4.  **Agent:** Offers different methods for delivering the mobile app for testing (Expo Go, APK, TestFlight).
+5.  **User:** Asks how and when they will receive the completed mobile application for testing.
+6.  **User:** Stresses that the mobile app must be fully functional and connected to real data, not just a mock-up.
+7.  **User:** Approves the completion of the mobile app's initial structure and asks to proceed.
+8.  **User:** Answers the agent's questions, confirming requirements for the mobile app: iOS & Android, Uzbek as the primary language, and an offline queue for uploads.
+9.  **User:** After the web fixes, issues a major new request: push the current work to GitHub and then create a detailed plan to build a mobile application.
+10. **User:** Approves the agent's plan to implement INN validation and start the Click payment integration.
 
 **Project Health Check:**
--   **Broken:** The previously requested core feature (Uzum automation) is non-functional and now on hold. The new priority feature (Yandex integration) is not yet started.
+-   **Broken:** The production deployment on Railway is **CRITICAL/DOWN**. The Node.js server fails to start due to a PostgreSQL schema mismatch, making the entire platform inaccessible.
+-   **Mocked:** The payment integration is not yet connected to a live payment provider UI. The mobile app is built but remains completely untested by the user.
 
 **3rd Party Integrations**
--   **Playwright:** (For Uzum, ON HOLD)
--   **Yandex Market Seller API:** (New, TO BE IMPLEMENTED)
--   **Uzum Seller Portal:** (ON HOLD)
-
-**Testing status**
--   **Testing agent used after significant changes:** NO
--   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** None.
--   **Known regressions:** None.
-
-**Credentials to test flow:**
--   **Yandex Market:** **NEEDS TO BE OBTAINED FROM USER.** (OAuth Token, Business ID, Campaign ID).
--   **Uzum Market (On Hold):**
-    -   Login: 
-    -   Password: 
-    -   Shop ID: 
+-   **Yandex Market Partner API:** For product management.
+-   **Gemini (via ):** For AI text and image generation. Uses the **Emergent LLM Key**.
+-   **ImgBB API:** For image hosting.
+-   **Click / Payme:** Planned for payment processing, but not yet fully integrated.
 
 **What agent forgot to execute**
--   The previous agent spent a significant amount of time in a loop trying to solve the Uzum Shadow DOM issue. While the debugging was thorough, escalating the technical impossibility or proposing the API-first approach (like Yandex) earlier could have saved time. The agent correctly handled the user's pivot instruction.</analysis>
+-   The agent did not create a PostgreSQL migration script to align the production database schema with the changes made in the application code (). While migrations were run for the local SQLite database, the production PostgreSQL database was neglected, causing the current critical failure.</analysis>
