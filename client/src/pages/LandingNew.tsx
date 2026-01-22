@@ -447,12 +447,6 @@ export default function LandingNew() {
             <div className="p-4 space-y-2">
               <a href="#features" className="block px-4 py-2 text-muted-foreground hover:text-foreground">Imkoniyatlar</a>
               <a href="#pricing" className="block px-4 py-2 text-muted-foreground hover:text-foreground">Narxlar</a>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => { setMobileMenuOpen(false); setLocation('/uzum-market'); }}>
-                🍇 Uzum Market
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => { setMobileMenuOpen(false); setLocation('/ai-scanner'); }}>
-                <Zap className="w-4 h-4 mr-2" /> AI Scanner
-              </Button>
               <Button variant="ghost" className="w-full justify-start" onClick={() => { setMobileMenuOpen(false); setLocation('/blog'); }}>
                 <Newspaper className="w-4 h-4 mr-2" /> Blog
               </Button>
