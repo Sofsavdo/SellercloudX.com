@@ -1526,6 +1526,83 @@ export function registerRoutes(app: express.Application): Server {
     });
   }));
 
+  // ==================== TARIF CHEKLOVLARI API ====================
+  
+  // Hamkor tarif limitlarini olish
+  app.get("/api/partner/tier-limits", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ success: false, error: "Hamkor topilmadi" });
+    }
+    
+    const tier = partner.pricingTier || 'free_starter';
+    const limits = TIER_LIMITS[tier as keyof typeof TIER_LIMITS] || TIER_LIMITS.free_starter;
+    
+    // Hozirgi foydalanish (bu oyda)
+    const aiCardsCheck = await checkTierLimit(partner.id, 'aiCards');
+    const trendHunterCheck = await checkTierLimit(partner.id, 'trendHunter');
+    const productsCheck = await checkTierLimit(partner.id, 'products');
+    
+    res.json({
+      success: true,
+      tier: limits.name,
+      tierId: tier,
+      limits: {
+        products: { limit: limits.products, used: productsCheck.current, remaining: productsCheck.remaining },
+        aiCards: { limit: limits.aiCards, used: aiCardsCheck.current, remaining: aiCardsCheck.remaining },
+        trendHunter: { limit: limits.trendHunter, used: trendHunterCheck.current, remaining: trendHunterCheck.remaining },
+        marketplaces: limits.marketplaces,
+        monthlyRevenue: limits.monthlyRevenue
+      },
+      features: limits.features,
+      excluded: limits.excluded
+    });
+  }));
+
+  // Limit tekshirish (action uchun)
+  app.post("/api/partner/check-limit", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ success: false, error: "Hamkor topilmadi" });
+    }
+    
+    const { action, count = 1 } = req.body;
+    
+    if (!action || !['aiCards', 'trendHunter', 'products', 'marketplaces'].includes(action)) {
+      return res.status(400).json({ success: false, error: "Noto'g'ri action" });
+    }
+    
+    const check = await checkTierLimit(partner.id, action, count);
+    
+    res.json({
+      success: true,
+      allowed: check.allowed,
+      current: check.current,
+      limit: check.limit,
+      remaining: check.remaining,
+      tier: check.tier
+    });
+  }));
+
+  // ==================== REFERAL BONUS API ====================
+  
+  // Referal statistikasi
+  app.get("/api/partner/referral-stats", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ success: false, error: "Hamkor topilmadi" });
+    }
+    
+    const stats = await getReferrerStats(partner.id);
+    
+    res.json({
+      success: true,
+      ...stats,
+      promoCode: partner.promoCode,
+      referralLink: `https://sellercloudx.com/register?ref=${partner.promoCode}`
+    });
+  }));
+
   // ==================== PROMO CODE REFERRAL ====================
   app.get("/api/partner/referrals/dashboard", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
     const partner = await storage.getPartnerByUserId(req.session!.user!.id);
