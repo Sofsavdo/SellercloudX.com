@@ -264,8 +264,10 @@ export function registerRoutes(app: express.Application): Server {
   // Uzum Market Direct API Routes
   app.use('/api/uzum-market', uzumMarketRoutes);
 
-  // Python Backend Proxy (Yandex, Uzum Automation, AI Scanner)
-  app.use('/api', pythonBackendProxy);
+  // Python Backend Proxy - faqat Yandex va Uzum Automation uchun
+  app.use('/api/yandex', pythonBackendProxy);
+  app.use('/api/uzum-auto', pythonBackendProxy);
+  app.use('/api/python', pythonBackendProxy);
 
   // Authentication routes
   app.post("/api/auth/login", asyncHandler(async (req: Request, res: Response) => {
