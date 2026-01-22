@@ -383,8 +383,8 @@ export function registerRoutes(app: express.Application): Server {
     try {
       console.log('📝 Registration attempt:', { email: req.body.email });
       
-      // Sodda validatsiya
-      const { email, password, name, phone } = req.body;
+      // Ma'lumotlarni olish
+      const { email, password, name, phone, selectedTier, billingPeriod, promoCode } = req.body;
       
       if (!email || !password) {
         return res.status(400).json({
@@ -407,6 +407,10 @@ export function registerRoutes(app: express.Application): Server {
         });
       }
       
+      // Tarif aniqlash
+      const tier = selectedTier || 'free_starter';
+      const activationRules = ACTIVATION_RULES[tier as keyof typeof ACTIVATION_RULES] || ACTIVATION_RULES.free_starter;
+      
       // 1. Avval USER yaratish
       const user = await storage.createUser({
         username,
@@ -420,8 +424,39 @@ export function registerRoutes(app: express.Application): Server {
         businessName: name || 'My Business',
         businessCategory: 'general',
         phone: phone || '+998900000000',
-        pricingTier: 'free_starter'
+        pricingTier: tier,
+        // Free uchun darhol aktiv
+        approved: !activationRules.requirePayment,
+        isActive: !activationRules.requirePayment,
+        aiEnabled: !activationRules.requirePayment,
+        billingPeriod: billingPeriod || 'monthly'
       });
+      
+      // 3. Avtomatik aktivatsiya (Free uchun)
+      if (!activationRules.requirePayment) {
+        await activateNewPartner(partner.id, tier);
+        console.log(`✅ Hamkor avtomatik aktivatsiya qilindi: ${partner.id} (${tier})`);
+      }
+      
+      // 4. Promo kod tekshirish (referal)
+      if (promoCode) {
+        try {
+          const referrer = await db.select().from(partners).where(eq(partners.promoCode, promoCode));
+          if (referrer.length > 0) {
+            await db.insert(referrals).values({
+              id: crypto.randomUUID(),
+              referrerId: referrer[0].id,
+              referredId: partner.id,
+              promoCode,
+              status: 'pending',
+              createdAt: new Date()
+            });
+            console.log(`✅ Referal bog'landi: ${referrer[0].id} -> ${partner.id}`);
+          }
+        } catch (refErr) {
+          console.log('Referal bog\'lashda xato:', refErr);
+        }
+      }
       
       // Session yaratish
       req.session.user = {
@@ -429,7 +464,7 @@ export function registerRoutes(app: express.Application): Server {
         username: user.username,
         role: 'partner',
         partnerId: partner.id,
-        tier: partner.pricingTier || 'free'
+        tier: partner.pricingTier || 'free_starter'
       };
       
       await storage.createAuditLog({
@@ -437,12 +472,14 @@ export function registerRoutes(app: express.Application): Server {
         action: 'PARTNER_REGISTERED',
         entityType: 'partner',
         entityId: partner.id,
-        payload: { email, name, username }
+        payload: { email, name, username, tier, billingPeriod }
       });
       
       res.status(201).json({
         success: true,
-        message: "Muvaffaqiyatli ro'yxatdan o'tildi!",
+        message: activationRules.requirePayment 
+          ? "Ro'yxatdan o'tildi! Aktivatsiya uchun to'lov qiling."
+          : "Muvaffaqiyatli ro'yxatdan o'tildi!",
         user: {
           id: user.id,
           username: user.username,
