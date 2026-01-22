@@ -1575,6 +1575,7 @@ export const storage = {
   createPartner,
   getPartnerByUserId,
   getPartnerById,
+  getPartnerByEmail,
   updatePartner,
   getAllPartners,
   approvePartner,
