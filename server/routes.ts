@@ -376,7 +376,16 @@ export function registerRoutes(app: express.Application): Server {
     try {
       console.log('📝 Registration attempt:', { email: req.body.email });
       
-      const { email, password, name, phone } = partnerRegistrationSchema.parse(req.body);
+      // Sodda validatsiya
+      const { email, password, name, phone } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "Email va parol kerak",
+          code: "MISSING_FIELDS"
+        });
+      }
       
       // Email mavjudligini tekshirish
       const existingPartner = await storage.getPartnerByEmail(email);
@@ -388,12 +397,18 @@ export function registerRoutes(app: express.Application): Server {
         });
       }
       
+      // Username yaratish (email dan)
+      const username = email.split('@')[0] + '_' + Date.now().toString(36);
+      
       // Yangi hamkor yaratish
       const partner = await storage.createPartner({
+        username,
         email,
         password,
-        name,
-        phone,
+        firstName: name?.split(' ')[0] || 'Hamkor',
+        lastName: name?.split(' ')[1] || '',
+        phone: phone || '+998900000000',
+        businessName: name || 'My Business',
         role: 'partner',
         tier: 'free',
         isActive: true
@@ -403,7 +418,7 @@ export function registerRoutes(app: express.Application): Server {
       req.session.user = {
         id: partner.id,
         email: partner.email,
-        name: partner.name,
+        name: `${partner.firstName} ${partner.lastName}`.trim(),
         role: 'partner',
         tier: partner.tier || 'free'
       };
@@ -422,7 +437,7 @@ export function registerRoutes(app: express.Application): Server {
         user: {
           id: partner.id,
           email: partner.email,
-          name: partner.name,
+          name: `${partner.firstName} ${partner.lastName}`.trim(),
           role: 'partner',
           tier: partner.tier || 'free'
         }
@@ -430,13 +445,6 @@ export function registerRoutes(app: express.Application): Server {
       
     } catch (error: any) {
       console.error('❌ Registration error:', error);
-      if (error.name === 'ZodError') {
-        return res.status(400).json({
-          success: false,
-          message: "Ma'lumotlar noto'g'ri",
-          errors: error.errors
-        });
-      }
       throw error;
     }
   }));
