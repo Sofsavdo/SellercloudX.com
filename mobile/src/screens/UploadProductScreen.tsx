@@ -309,7 +309,10 @@ export default function UploadProductScreen() {
         disabled={!costPriceNum || !selectedMarketplace || isLoading}
       >
         {isLoading ? (
-          <ActivityIndicator color={COLORS.white} />
+          <View style={styles.uploadingContainer}>
+            <ActivityIndicator color={COLORS.white} />
+            <Text style={styles.uploadingText}>{uploadProgress || t('product.uploading')}</Text>
+          </View>
         ) : (
           <>
             <Ionicons name="cloud-upload" size={24} color={COLORS.white} />
