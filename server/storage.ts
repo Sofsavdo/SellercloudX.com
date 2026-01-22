@@ -176,16 +176,23 @@ export async function createPartner(partnerData: {
   userId: string;
   businessName?: string;
   businessCategory: string;
+  businessType?: string;
+  inn?: string;
   monthlyRevenue?: string;
   pricingTier?: string;
+  billingPeriod?: string;
   phone: string;
   notes?: string;
   referralCode?: string; // New: referral code from registration
+  approved?: boolean;
+  isActive?: boolean;
+  aiEnabled?: boolean;
 }): Promise<Partner> {
   try {
     console.log('📝 Creating partner with data:', {
       userId: partnerData.userId,
       businessName: partnerData.businessName,
+      inn: partnerData.inn,
       phone: partnerData.phone,
       pricingTier: partnerData.pricingTier,
       referralCode: partnerData.referralCode
@@ -199,17 +206,25 @@ export async function createPartner(partnerData: {
     console.log('🎁 Generated promo code for partner:', promoCode);
     
     const tier = partnerData.pricingTier || 'free_starter';
-    const isAutoApproved = tier === 'free_starter' || tier === 'starter_pro';
+    const isAutoApproved = partnerData.approved !== undefined 
+      ? partnerData.approved 
+      : (tier === 'free_starter' || tier === 'starter_pro');
     
     const [partner] = await db.insert(partners).values({
       id: partnerId,
       userId: partnerData.userId,
       businessName: partnerData.businessName || 'Yangi Biznes',
       businessCategory: partnerData.businessCategory as any,
+      businessType: partnerData.businessType || 'yatt',
+      inn: partnerData.inn || null, // INN (STIR) - unikal
       monthlyRevenue: partnerData.monthlyRevenue,
       pricingTier: tier,
+      billingPeriod: partnerData.billingPeriod || 'monthly',
       phone: partnerData.phone,
-      approved: isAutoApproved, // Auto-approve free/starter tiers
+      approved: isAutoApproved,
+      isActive: partnerData.isActive !== undefined ? partnerData.isActive : isAutoApproved,
+      aiEnabled: partnerData.aiEnabled !== undefined ? partnerData.aiEnabled : isAutoApproved,
+      promoCode: promoCode, // Partner's own promo code
       notes: partnerData.notes
       // createdAt uses database default
     }).returning();
