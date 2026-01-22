@@ -83,7 +83,13 @@ export default function UploadProductScreen() {
       return;
     }
     
+    if (!partner?.id) {
+      Alert.alert(t('common.error'), 'Partner ma\'lumotlari topilmadi. Qayta kiring.');
+      return;
+    }
+    
     setIsLoading(true);
+    setUploadProgress('Rasm tayyorlanmoqda...');
     
     try {
       // Check internet connection
@@ -106,27 +112,46 @@ export default function UploadProductScreen() {
         cost_price: costPriceNum,
         selling_price: sellingPriceNum,
         product_info: scanResult,
+        partner_id: partner.id,
       };
       
       if (netInfo.isConnected) {
+        setUploadProgress('Marketplace ga yuklanmoqda...');
+        
         // Online - darhol yuklash
-        if (selectedMarketplace === 'yandex') {
-          const result = await yandexApi.autoCreate(uploadData);
-          
-          if (result.success) {
-            Alert.alert(
-              t('product.uploadSuccess'),
-              `SKU: ${result.sku}\n${result.infographics?.length || 0} ta rasm yaratildi`,
-              [
-                {
-                  text: 'OK',
-                  onPress: () => navigation.navigate(SCREENS.HOME),
-                },
-              ]
-            );
-          } else {
-            throw new Error(result.error || t('product.uploadFailed'));
+        const result = await scannerApi.fullProcess({
+          imageBase64: base64Image,
+          costPrice: costPriceNum,
+          marketplace: selectedMarketplace as 'yandex' | 'uzum',
+          partnerId: partner.id,
+        });
+        
+        if (result.success) {
+          // AI karta ishlatilganini qayd qilish
+          try {
+            await partnerApi.recordAiCardUsage();
+            updatePartner({
+              aiCardsUsed: (partner.aiCardsUsed || 0) + 1,
+              aiCardsThisMonth: (partner.aiCardsThisMonth || 0) + 1,
+            });
+          } catch (e) {
+            console.log('AI card usage qayd qilishda xato:', e);
           }
+          
+          Alert.alert(
+            t('product.uploadSuccess'),
+            `SKU: ${result.sku || 'N/A'}\n` +
+            `${result.infographics?.length || 0} ta rasm yaratildi\n` +
+            `Marketplace: ${selectedMarketplace === 'yandex' ? 'Yandex Market' : 'Uzum Market'}`,
+            [
+              {
+                text: 'OK',
+                onPress: () => navigation.navigate(SCREENS.HOME),
+              },
+            ]
+          );
+        } else {
+          throw new Error(result.error || t('product.uploadFailed'));
         }
       } else {
         // Offline - queue ga qo'shish
@@ -148,9 +173,13 @@ export default function UploadProductScreen() {
       }
     } catch (error: any) {
       console.error('Upload error:', error);
-      Alert.alert(t('common.error'), error.message || t('product.uploadFailed'));
+      Alert.alert(
+        t('common.error'), 
+        error.response?.data?.error || error.message || t('product.uploadFailed')
+      );
     } finally {
       setIsLoading(false);
+      setUploadProgress('');
     }
   };
   
