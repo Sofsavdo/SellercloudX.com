@@ -54,6 +54,7 @@ To'liq avtomatlashtirilgan e-commerce tizimi yaratish - Yandex Market uchun. Ham
 - PostgreSQL migration fix for `business_type`, `inn`, Click payment columns
 - `/app/server/migrate.ts` - auto-migration for PostgreSQL
 - `/app/migrations/012_fix_partners_business_and_payment_columns.sql`
+- Added `is_active`, `business_address`, `phone`, `website`, `created_at`, `updated_at` columns
 
 ## Prioritized Backlog
 
