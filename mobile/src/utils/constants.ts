@@ -1,5 +1,5 @@
 // SellerCloudX Mobile - Asosiy Konstantalar
-export const API_BASE_URL = 'https://ecomm-automation-2.preview.emergentagent.com/api';
+export const API_BASE_URL = 'https://sellercloudx.com/api';
 
 // Ranglar
 export const COLORS = {
