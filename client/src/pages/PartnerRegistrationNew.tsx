@@ -6,15 +6,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { Rocket, Home, Gift, User, Building, Mail, Phone, Lock, Tag, Crown, CheckCircle } from 'lucide-react';
+import { Rocket, Home, Gift, User, Building, Mail, Phone, Lock, Tag, Crown, CheckCircle, AlertCircle, FileText } from 'lucide-react';
 
 export default function PartnerRegistrationNew() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [promoCode, setPromoCode] = useState<string>('');
   const [selectedTier, setSelectedTier] = useState<any>(null);
+  const [innError, setInnError] = useState<string>('');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -23,9 +26,29 @@ export default function PartnerRegistrationNew() {
     username: '',
     password: '',
     businessName: '',
+    businessType: 'yatt', // yatt, ooo, individual
+    inn: '', // STIR - majburiy
     agreeToTerms: false,
     referralCode: ''
   });
+
+  // INN validatsiya
+  const validateINN = (inn: string) => {
+    const cleanINN = inn.replace(/\D/g, '');
+    if (!cleanINN) {
+      setInnError('');
+      return;
+    }
+    if (cleanINN.length !== 9) {
+      setInnError('INN 9 ta raqamdan iborat bo\'lishi kerak');
+      return;
+    }
+    if (cleanINN.startsWith('0')) {
+      setInnError('Noto\'g\'ri INN formati');
+      return;
+    }
+    setInnError('');
+  };
 
   useEffect(() => {
     // Get referral code
