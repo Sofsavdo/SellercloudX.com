@@ -57,8 +57,9 @@ COPY --from=node-builder /app/package*.json ./
 # Copy Python backend
 COPY backend ./backend
 
-# Install Python dependencies
-RUN pip3 install --no-cache-dir -r backend/requirements.txt --break-system-packages
+# Install Python dependencies + emergentintegrations from custom URL
+RUN pip3 install --no-cache-dir -r backend/requirements.txt --break-system-packages && \
+    pip3 install --no-cache-dir emergentintegrations --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/ --break-system-packages
 
 # Copy supervisor config
 COPY railway-supervisor.conf /etc/supervisor/conf.d/supervisord.conf
