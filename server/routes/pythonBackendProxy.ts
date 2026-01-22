@@ -5,7 +5,7 @@
  * Yandex Market va Uzum avtomatlashtirish API'lari uchun
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { createProxyMiddleware, Options } from 'http-proxy-middleware';
 
 const router = Router();
@@ -13,16 +13,12 @@ const router = Router();
 // Python backend URL
 const PYTHON_BACKEND_URL = process.env.PYTHON_BACKEND_URL || 'http://localhost:8001';
 
+console.log(`🔗 Python Backend Proxy URL: ${PYTHON_BACKEND_URL}`);
+
 // Proxy configuration
 const proxyOptions: Options = {
   target: PYTHON_BACKEND_URL,
   changeOrigin: true,
-  pathRewrite: {
-    '^/api/yandex': '/api/yandex',
-    '^/api/uzum-auto': '/api/uzum-auto',
-    '^/api/ai-scanner': '/api/ai-scanner',
-    '^/api/infographic': '/api/infographic'
-  },
   onError: (err, req, res) => {
     console.error('❌ Python Backend Proxy Error:', err.message);
     (res as Response).status(502).json({
@@ -32,26 +28,17 @@ const proxyOptions: Options = {
     });
   },
   onProxyReq: (proxyReq, req, res) => {
-    console.log(`🔄 Proxying: ${req.method} ${req.path} -> ${PYTHON_BACKEND_URL}`);
+    console.log(`🔄 Proxying: ${req.method} ${req.originalUrl} -> ${PYTHON_BACKEND_URL}${req.originalUrl}`);
   },
   onProxyRes: (proxyRes, req, res) => {
-    console.log(`✅ Proxy Response: ${proxyRes.statusCode} for ${req.path}`);
+    console.log(`✅ Proxy Response: ${proxyRes.statusCode} for ${req.originalUrl}`);
   }
 };
 
 // Create proxy middleware
 const pythonProxy = createProxyMiddleware(proxyOptions);
 
-// Yandex Market API routes
-router.use('/yandex', pythonProxy);
-
-// Uzum Automation routes  
-router.use('/uzum-auto', pythonProxy);
-
-// AI Scanner routes
-router.use('/ai-scanner', pythonProxy);
-
-// Infographic generation routes
-router.use('/infographic', pythonProxy);
+// Catch-all proxy handler
+router.use('/', pythonProxy);
 
 export default router;
