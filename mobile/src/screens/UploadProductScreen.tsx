@@ -487,6 +487,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.white,
   },
+  uploadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  uploadingText: {
+    fontSize: 14,
+    color: COLORS.white,
+  },
   
   // Info note
   infoNote: {
