@@ -83,6 +83,7 @@ import { checkAndProcessFirstPurchase } from "./services/referralFirstPurchaseSe
 import { tierLimitMiddleware, featureAccessMiddleware, checkTierLimit, TIER_LIMITS } from "./middleware/tierLimits";
 import { activateNewPartner, activateAfterPayment, ACTIVATION_RULES } from "./services/autoActivation";
 import { processReferralBonusOnPayment, getReferrerStats, REFERRAL_CONFIG } from "./services/referralBonus";
+import { validateINN, checkBusinessExists, normalizePhone } from "./services/businessVerification";
 
 // Enhanced authentication middleware with better error handling
 function requireAuth(req: Request, res: Response, next: NextFunction) {
