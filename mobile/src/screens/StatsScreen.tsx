@@ -1,49 +1,54 @@
-// Stats Screen - Statistika
-import React, { useState } from 'react';
+// Stats Screen - Statistika (HAQIQIY API)
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../utils/constants';
 import { formatPrice, formatShortPrice } from '../utils/helpers';
 import { useProductsStore } from '../store/productsStore';
-
-const { width } = Dimensions.get('window');
+import { analyticsApi, AnalyticsData } from '../services/api';
 
 type Period = 'today' | 'week' | 'month' | 'all';
 
 export default function StatsScreen() {
   const { t } = useTranslation();
-  const { products } = useProductsStore();
-  const [period, setPeriod] = useState<Period>('month');
+  const { products, fetchProducts } = useProductsStore();
   
-  // Calculate stats (mock data for now)
-  const stats = {
-    revenue: 45680000,
-    profit: 12450000,
-    orders: 156,
-    views: 4520,
-    conversion: 3.4,
+  const [period, setPeriod] = useState<Period>('month');
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  
+  // Load analytics
+  useEffect(() => {
+    loadAnalytics();
+  }, [period]);
+  
+  const loadAnalytics = async () => {
+    try {
+      setIsLoading(true);
+      const data = await analyticsApi.getDashboard(period);
+      setAnalytics(data);
+    } catch (error) {
+      console.error('Analytics yuklashda xato:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
-  // Marketplace breakdown
-  const marketplaceStats = [
-    { id: 'yandex', name: 'Yandex Market', revenue: 32500000, orders: 98, color: '#FFCC00' },
-    { id: 'uzum', name: 'Uzum Market', revenue: 13180000, orders: 58, color: '#7C3AED' },
-  ];
-  
-  // Top products
-  const topProducts = products.slice(0, 5).map((p, i) => ({
-    ...p,
-    sales: Math.floor(Math.random() * 50) + 10,
-    revenue: p.price * (Math.floor(Math.random() * 50) + 10),
-  }));
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([loadAnalytics(), fetchProducts()]);
+    setRefreshing(false);
+  };
   
   const periods = [
     { id: 'today', label: t('stats.today') },
@@ -52,8 +57,33 @@ export default function StatsScreen() {
     { id: 'all', label: t('stats.allTime') },
   ];
   
+  if (isLoading && !analytics) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Statistika yuklanmoqda...</Text>
+      </View>
+    );
+  }
+  
+  // Fallback values
+  const stats = analytics || {
+    revenue: 0,
+    profit: 0,
+    orders: 0,
+    views: 0,
+    conversionRate: 0,
+    topProducts: [],
+    marketplaceBreakdown: [],
+  };
+  
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       {/* Period Selector */}
       <ScrollView
         horizontal
@@ -90,10 +120,12 @@ export default function StatsScreen() {
             <Text style={styles.mainStatLabel}>{t('stats.revenue')}</Text>
           </View>
           <Text style={styles.mainStatValue}>{formatPrice(stats.revenue)}</Text>
-          <View style={styles.mainStatChange}>
-            <Ionicons name="trending-up" size={16} color={COLORS.white} />
-            <Text style={styles.mainStatChangeText}>+12.5%</Text>
-          </View>
+          {stats.revenue > 0 && (
+            <View style={styles.mainStatChange}>
+              <Ionicons name="trending-up" size={16} color={COLORS.white} />
+              <Text style={styles.mainStatChangeText}>Faol</Text>
+            </View>
+          )}
         </View>
         
         {/* Profit */}
@@ -103,10 +135,14 @@ export default function StatsScreen() {
             <Text style={styles.mainStatLabel}>{t('stats.profit')}</Text>
           </View>
           <Text style={styles.mainStatValue}>{formatPrice(stats.profit)}</Text>
-          <View style={styles.mainStatChange}>
-            <Ionicons name="trending-up" size={16} color={COLORS.white} />
-            <Text style={styles.mainStatChangeText}>+8.3%</Text>
-          </View>
+          {stats.profit > 0 && (
+            <View style={styles.mainStatChange}>
+              <Ionicons name="trending-up" size={16} color={COLORS.white} />
+              <Text style={styles.mainStatChangeText}>
+                {stats.revenue > 0 ? `${Math.round((stats.profit / stats.revenue) * 100)}%` : '0%'}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
       
@@ -125,49 +161,52 @@ export default function StatsScreen() {
         </View>
         
         <View style={styles.secondaryStatCard}>
-          <Ionicons name="trending-up-outline" size={24} color={COLORS.secondary} />
-          <Text style={styles.secondaryStatValue}>{stats.conversion}%</Text>
-          <Text style={styles.secondaryStatLabel}>Konversiya</Text>
+          <Ionicons name="cube-outline" size={24} color={COLORS.secondary} />
+          <Text style={styles.secondaryStatValue}>{products.length}</Text>
+          <Text style={styles.secondaryStatLabel}>Mahsulotlar</Text>
         </View>
       </View>
       
       {/* Marketplace Breakdown */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('stats.byMarketplace')}</Text>
-        
-        {marketplaceStats.map((mp) => (
-          <View key={mp.id} style={styles.marketplaceCard}>
-            <View style={[styles.marketplaceIcon, { backgroundColor: mp.color }]}>
-              <Text style={styles.marketplaceIconText}>
-                {mp.id === 'yandex' ? '🛒' : '🛍️'}
-              </Text>
+      {stats.marketplaceBreakdown && stats.marketplaceBreakdown.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('stats.byMarketplace')}</Text>
+          
+          {stats.marketplaceBreakdown.map((mp) => (
+            <View key={mp.marketplace} style={styles.marketplaceCard}>
+              <View style={[
+                styles.marketplaceIcon,
+                { backgroundColor: mp.marketplace === 'yandex' ? '#FFCC00' : '#7C3AED' }
+              ]}>
+                <Text style={styles.marketplaceIconText}>
+                  {mp.marketplace === 'yandex' ? '🛒' : '🛍️'}
+                </Text>
+              </View>
+              
+              <View style={styles.marketplaceInfo}>
+                <Text style={styles.marketplaceName}>
+                  {mp.marketplace === 'yandex' ? 'Yandex Market' : 'Uzum Market'}
+                </Text>
+                <Text style={styles.marketplaceOrders}>{mp.orders} buyurtma</Text>
+              </View>
+              
+              <View style={styles.marketplaceRevenue}>
+                <Text style={styles.marketplaceRevenueValue}>
+                  {formatShortPrice(mp.revenue)}
+                </Text>
+                <Text style={styles.marketplaceRevenueLabel}>UZS</Text>
+              </View>
             </View>
-            
-            <View style={styles.marketplaceInfo}>
-              <Text style={styles.marketplaceName}>{mp.name}</Text>
-              <Text style={styles.marketplaceOrders}>{mp.orders} buyurtma</Text>
-            </View>
-            
-            <View style={styles.marketplaceRevenue}>
-              <Text style={styles.marketplaceRevenueValue}>
-                {formatShortPrice(mp.revenue)}
-              </Text>
-              <Text style={styles.marketplaceRevenueLabel}>UZS</Text>
-            </View>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
+      )}
       
       {/* Top Products */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('stats.topProducts')}</Text>
         
-        {topProducts.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>Ma'lumot yo'q</Text>
-          </View>
-        ) : (
-          topProducts.map((product, index) => (
+        {stats.topProducts && stats.topProducts.length > 0 ? (
+          stats.topProducts.map((product, index) => (
             <View key={product.id} style={styles.topProductCard}>
               <View style={styles.topProductRank}>
                 <Text style={styles.topProductRankText}>#{index + 1}</Text>
@@ -187,6 +226,14 @@ export default function StatsScreen() {
               </Text>
             </View>
           ))
+        ) : (
+          <View style={styles.emptyState}>
+            <Ionicons name="analytics-outline" size={48} color={COLORS.textLight} />
+            <Text style={styles.emptyStateText}>Hali sotuvlar yo'q</Text>
+            <Text style={styles.emptyStateSubtext}>
+              Mahsulotlarni marketplace'ga yuklang
+            </Text>
+          </View>
         )}
       </View>
       
@@ -199,6 +246,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
   
   // Period
@@ -256,7 +314,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   mainStatValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: COLORS.white,
     marginBottom: 8,
@@ -295,6 +353,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textSecondary,
     marginTop: 4,
+    textAlign: 'center',
   },
   
   // Section
@@ -404,8 +463,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyStateText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.text,
+    marginTop: 12,
+  },
+  emptyStateSubtext: {
     fontSize: 14,
     color: COLORS.textSecondary,
+    marginTop: 4,
+    textAlign: 'center',
   },
   
   footer: {
