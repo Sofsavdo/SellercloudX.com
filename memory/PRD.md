@@ -121,11 +121,14 @@ Output:
 
 **Ekranlar:**
 1. `LoginScreen.tsx` - Kirish
-2. `HomeScreen.tsx` - Dashboard
-3. `ScannerScreen.tsx` - AI Kamera (ASOSIY)
-4. `ProductsScreen.tsx` - Mahsulotlar ro'yxati
-5. `UploadProductScreen.tsx` - Marketplace ga yuklash
-6. `SettingsScreen.tsx` - Sozlamalar
+2. `RegisterScreen.tsx` - Ro'yxatdan o'tish (INN bilan)
+3. `HomeScreen.tsx` - Dashboard
+4. `ScannerScreen.tsx` - AI Kamera (ASOSIY)
+5. `ProductsScreen.tsx` - Mahsulotlar ro'yxati
+6. `UploadProductScreen.tsx` - Marketplace ga yuklash
+7. `StatsScreen.tsx` - Statistika
+8. `SettingsScreen.tsx` - Sozlamalar
+9. `PricingScreen.tsx` - Tarif tanlash va Click to'lov
 
 **Servislar:**
 - `api.ts` - Backend API calls
