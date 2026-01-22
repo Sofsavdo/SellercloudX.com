@@ -85,16 +85,20 @@ Output:
 
 ## Prioritized Backlog
 
-### P0 - Critical
+### P0 - Critical (COMPLETED ✅)
+- [x] INN/STIR tekshiruv tizimi - dublikat akkauntlarni oldini olish
+- [x] Click payment integratsiyasi - webhook handler'lar tayyor
 - [ ] Verify 100/100 quality score in Yandex cabinet
 - [ ] Test with user's own products
 
-### P1 - High Priority
+### P1 - High Priority  
+- [ ] Click payment UI - to'lov tugmasi va redirect
 - [ ] Video generation (Sora 2)
 - [ ] Partner API key management UI
 - [ ] Batch product creation
 
 ### P2 - Medium Priority
+- [ ] Railway production deployment tekshirish
 - [ ] Uzum Market automation
 - [ ] Analytics dashboard
 
@@ -103,7 +107,39 @@ Output:
 - [ ] AI Trend Hunter
 - [ ] Partner dashboards
 
+## January 22, 2025 Updates
+
+### ✅ INN/STIR Verification System
+- **Backend validation:** 9 ta raqam, viloyat kodi tekshirish
+- **Soxta INN filterlash:** "123456789", "111111111" kabi raqamlar rad qilinadi
+- **Dublikat oldini olish:** Bir INN = Bitta akkaunt
+- **Frontend UI:** Xato xabarlari qizil rangda ko'rsatiladi
+
+### ✅ Click Payment Integration
+- **Service:** `/app/server/services/payment/clickPayment.ts`
+- **Routes:** `/app/server/routes/clickPaymentRoutes.ts`
+- **API Endpoints:**
+  - `GET /api/click/tiers` - Tarif narxlari
+  - `POST /api/click/create-payment` - To'lov yaratish
+  - `POST /api/click/webhook/prepare` - Click prepare
+  - `POST /api/click/webhook/complete` - Click complete
+- **Tarif narxlari (UZS):**
+  - Free Starter: 0
+  - Starter Pro: 828,000/oy
+  - Professional Plus: 4,188,000/oy
+  - Enterprise Elite: 10,788,000/oy
+  - Yillik: 20% chegirma
+
+### ✅ Database Migration
+- `business_type` - YATT/OOO/Individual
+- `inn` - STIR (unique)
+- `pending_payment_*` - Kutilayotgan to'lov
+- `last_payment_*` - Oxirgi to'lov
+- `click_transaction_id` - Click tranzaksiya ID
+
 ## Known Issues
 - Infographic generation can be slow (30-60 seconds per image)
 - Yandex localization field may not work - fallback to description embedding
 - Need user verification of 100-point score
+- Click merchant credentials kerak (production uchun)
+
