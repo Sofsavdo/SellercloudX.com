@@ -395,6 +395,40 @@ export function registerRoutes(app: express.Application): Server {
         });
       }
       
+      // INN (STIR) tekshirish - MAJBURIY
+      const { inn, businessType } = req.body;
+      
+      if (!inn) {
+        return res.status(400).json({
+          success: false,
+          message: "INN (STIR) kiritish majburiy. Bu biznesingizni identifikatsiya qilish va suiiste'molni oldini olish uchun kerak.",
+          code: "INN_REQUIRED"
+        });
+      }
+      
+      // INN formatini tekshirish
+      const innValidation = validateINN(inn);
+      if (!innValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: innValidation.error,
+          code: "INVALID_INN"
+        });
+      }
+      
+      // Biznes mavjudligini tekshirish (INN bo'yicha dublikat oldini olish)
+      const cleanINN = inn.replace(/\D/g, '');
+      const businessCheck = await checkBusinessExists(cleanINN, phone, email);
+      
+      if (businessCheck.exists) {
+        return res.status(400).json({
+          success: false,
+          message: businessCheck.reason,
+          code: "BUSINESS_EXISTS",
+          hint: "Agar bu sizning akkkauntingiz bo'lsa, tizimga kiring yoki parolni tiklang."
+        });
+      }
+      
       // Username yaratish (email dan)
       const username = email.split('@')[0] + '_' + Date.now().toString(36);
       
@@ -408,6 +442,9 @@ export function registerRoutes(app: express.Application): Server {
         });
       }
       
+      // Telefon normalizatsiya
+      const normalizedPhone = normalizePhone(phone || '+998900000000');
+      
       // Tarif aniqlash
       const tier = selectedTier || 'free_starter';
       const activationRules = ACTIVATION_RULES[tier as keyof typeof ACTIVATION_RULES] || ACTIVATION_RULES.free_starter;
@@ -419,12 +456,14 @@ export function registerRoutes(app: express.Application): Server {
         role: 'partner'
       });
       
-      // 2. Keyin PARTNER yaratish
+      // 2. Keyin PARTNER yaratish (INN bilan)
       const partner = await storage.createPartner({
         userId: user.id,
         businessName: name || 'My Business',
         businessCategory: 'general',
-        phone: phone || '+998900000000',
+        businessType: businessType || 'yatt',
+        inn: cleanINN, // STIR - unikal
+        phone: normalizedPhone,
         pricingTier: tier,
         // Free uchun darhol aktiv
         approved: !activationRules.requirePayment,
@@ -436,7 +475,7 @@ export function registerRoutes(app: express.Application): Server {
       // 3. Avtomatik aktivatsiya (Free uchun)
       if (!activationRules.requirePayment) {
         await activateNewPartner(partner.id, tier);
-        console.log(`✅ Hamkor avtomatik aktivatsiya qilindi: ${partner.id} (${tier})`);
+        console.log(`✅ Hamkor avtomatik aktivatsiya qilindi: ${partner.id} (${tier}) INN: ${cleanINN}`);
       }
       
       // 4. Promo kod tekshirish (referal)
