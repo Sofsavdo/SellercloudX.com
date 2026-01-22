@@ -755,8 +755,8 @@ JSON format:
             result["steps_completed"].append("ai_scanner")
             
             # Suggested price (2.5x markup yoki AI tavsiyasi)
-            price_max = scan_result.get("price_max", 0)
-            selling_price = price_max if price_max > cost_price else cost_price * 2.5
+            price_max = scan_result.get("price_max") or 0
+            selling_price = price_max if price_max and price_max > cost_price else cost_price * 2.5
             
             # 2. AI CARD (ikki tilda)
             print("2️⃣ AI Card (RU + UZ)...")
