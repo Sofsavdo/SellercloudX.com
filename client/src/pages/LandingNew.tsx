@@ -383,12 +383,6 @@ export default function LandingNew() {
               <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                 Narxlar
               </a>
-              <Button variant="ghost" onClick={() => setLocation('/uzum-market')} className="gap-2">
-                🍇 Uzum Market
-              </Button>
-              <Button variant="ghost" onClick={() => setLocation('/ai-scanner')} className="gap-2">
-                <Zap className="w-4 h-4" /> AI Scanner
-              </Button>
               <Button variant="ghost" onClick={() => setLocation('/blog')} className="gap-2">
                 <Newspaper className="w-4 h-4" /> Blog
               </Button>
