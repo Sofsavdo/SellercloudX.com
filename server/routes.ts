@@ -280,6 +280,9 @@ export function registerRoutes(app: express.Application): Server {
   // Click Payment Routes - webhook lar autentifikatsiyasiz
   app.use('/api/click', clickPaymentRoutes);
 
+  // Unified Scanner - public endpoint (autentifikatsiyasiz demo uchun)
+  app.use('/api/unified-scanner', unifiedScannerRoutes);
+
   // Authentication routes
   app.post("/api/auth/login", asyncHandler(async (req: Request, res: Response) => {
     try {
