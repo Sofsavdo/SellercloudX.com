@@ -138,33 +138,67 @@ export interface ScanResult {
 export const scannerApi = {
   // AI bilan rasmni tahlil qilish
   analyzeImage: async (imageBase64: string): Promise<ScanResult> => {
-    const response = await api.post('/ai/scan-product', {
-      image_base64: imageBase64,
-    });
-    
-    // Backend response format'ini moslash
-    if (response.data.success && response.data.product_info) {
+    try {
+      // Python backend orqali AI tahlil
+      const response = await api.post('/unified-scanner/analyze', {
+        image_base64: imageBase64,
+        language: 'uz',
+      });
+      
+      // Backend response format'ini moslash
+      if (response.data.success && response.data.product_info) {
+        return {
+          success: true,
+          product: {
+            brand: response.data.product_info.brand || 'Unknown',
+            model: response.data.product_info.model || '',
+            name: response.data.product_info.product_name || response.data.product_info.name,
+            category: response.data.product_info.category || '',
+            categoryRu: response.data.product_info.category_ru || response.data.product_info.category,
+            features: response.data.product_info.features || [],
+            materials: response.data.product_info.materials || [],
+            country: response.data.product_info.country_of_origin,
+            suggestedPrice: response.data.suggested_price || response.data.product_info.suggested_price,
+            confidence: response.data.confidence || 85,
+          },
+        };
+      }
+      
+      // Agar unified-scanner ishlamasa, to'g'ridan-to'g'ri python backendga
+      const pythonResponse = await axios.post(`${API_BASE_URL.replace('/api', '')}/api/gemini/analyze-image`, {
+        image_base64: imageBase64,
+      });
+      
+      if (pythonResponse.data.success) {
+        const info = pythonResponse.data.product_info || pythonResponse.data;
+        return {
+          success: true,
+          product: {
+            brand: info.brand || 'Unknown',
+            model: info.model || '',
+            name: info.product_name || info.name || 'Mahsulot',
+            category: info.category || '',
+            categoryRu: info.category_ru || info.category,
+            features: info.features || [],
+            materials: info.materials || [],
+            country: info.country_of_origin,
+            suggestedPrice: info.suggested_price,
+            confidence: info.confidence || 80,
+          },
+        };
+      }
+      
       return {
-        success: true,
-        product: {
-          brand: response.data.product_info.brand || 'Unknown',
-          model: response.data.product_info.model || '',
-          name: response.data.product_info.product_name,
-          category: response.data.product_info.category || '',
-          categoryRu: response.data.product_info.category_ru || response.data.product_info.category,
-          features: response.data.product_info.features || [],
-          materials: response.data.product_info.materials || [],
-          country: response.data.product_info.country_of_origin,
-          suggestedPrice: response.data.suggested_price,
-          confidence: response.data.confidence || 85,
-        },
+        success: false,
+        error: response.data.error || 'Mahsulot aniqlanmadi',
+      };
+    } catch (error: any) {
+      console.error('Scanner API xatosi:', error);
+      return {
+        success: false,
+        error: error.response?.data?.error || error.message || 'Server bilan bog\'lanishda xato',
       };
     }
-    
-    return {
-      success: false,
-      error: response.data.error || 'Mahsulot aniqlanmadi',
-    };
   },
   
   // Unified scanner - to'liq jarayon
