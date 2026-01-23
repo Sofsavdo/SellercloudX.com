@@ -37,74 +37,55 @@ router.post('/public-analyze', async (req: any, res: any) => {
       });
     }
 
-    console.log('[AI Scanner] Public analyze request received');
+    console.log('[AI Scanner] Public analyze request received, base64 length:', image_base64.length);
 
     // Create data URL from base64
     const imageUrl = `data:image/jpeg;base64,${image_base64}`;
 
     try {
-      // Import AI Manager
-      const { aiManager } = await import('../services/aiManagerV2Service');
-
-      // Scan image
-      const result = await aiManager.scanProductImage({
-        imageUrl,
-        partnerId: 1, // Demo partner
-      });
-
-      console.log('[AI Scanner] Scan result:', JSON.stringify(result).substring(0, 200));
-
-      // Format response for mobile app
-      return res.status(200).json({
-        success: true,
-        product_info: {
-          brand: result.brand || 'Unknown',
-          model: result.model || '',
-          product_name: result.name || result.productName || 'Mahsulot',
-          name: result.name || result.productName,
-          category: result.category || '',
-          category_ru: result.categoryRu || result.category,
-          features: result.features || [],
-          materials: result.materials || [],
-          country_of_origin: result.country || 'Unknown',
-          suggested_price: result.suggestedPrice || result.marketPrice,
-        },
-        suggested_price: result.suggestedPrice || result.marketPrice,
-        confidence: result.confidence || 85,
-      });
-    } catch (aiError: any) {
-      console.error('[AI Scanner] AI Manager error:', aiError);
+      // Use imageSearchService directly
+      const searchResult = await imageSearchService.searchByImage(imageUrl);
       
-      // Fallback: Use Gemini directly
-      try {
-        const { geminiService } = await import('../services/geminiService');
-        
-        const analysisResult = await geminiService.analyzeProductImage(imageUrl, language);
-        
+      console.log('[AI Scanner] Search result:', JSON.stringify(searchResult).substring(0, 300));
+
+      if (searchResult && searchResult.productInfo) {
         return res.status(200).json({
           success: true,
           product_info: {
-            brand: analysisResult.brand || 'Unknown',
-            model: analysisResult.model || '',
-            product_name: analysisResult.name || 'Mahsulot',
-            name: analysisResult.name,
-            category: analysisResult.category || '',
-            category_ru: analysisResult.categoryRu || analysisResult.category,
-            features: analysisResult.features || [],
-            materials: analysisResult.materials || [],
-            country_of_origin: analysisResult.country,
-            suggested_price: analysisResult.suggestedPrice,
+            brand: searchResult.productInfo.brand || 'Unknown',
+            model: searchResult.productInfo.model || '',
+            product_name: searchResult.productInfo.productName || 'Mahsulot',
+            name: searchResult.productInfo.productName,
+            category: searchResult.productInfo.category || '',
+            category_ru: searchResult.productInfo.categoryRu || searchResult.productInfo.category,
+            features: searchResult.productInfo.features || searchResult.productInfo.labels || [],
+            materials: searchResult.productInfo.materials || [],
+            country_of_origin: searchResult.productInfo.country || 'Unknown',
+            suggested_price: searchResult.avgPrice || searchResult.productInfo.suggestedPrice,
+            description: searchResult.productInfo.description,
           },
-          suggested_price: analysisResult.suggestedPrice,
-          confidence: analysisResult.confidence || 80,
-        });
-      } catch (geminiError: any) {
-        console.error('[AI Scanner] Gemini fallback error:', geminiError);
-        return res.status(500).json({
-          success: false,
-          error: 'AI xizmati vaqtincha ishlamayapti. Keyinroq urinib ko\'ring.',
+          suggested_price: searchResult.avgPrice,
+          confidence: searchResult.productInfo.confidence || 80,
+          competitors: searchResult.competitors || [],
+          price_analysis: {
+            avg_price: searchResult.avgPrice,
+            min_price: searchResult.minPrice,
+            max_price: searchResult.maxPrice,
+          },
         });
       }
+
+      return res.status(200).json({
+        success: false,
+        error: 'Mahsulot aniqlanmadi. Boshqa rasm bilan sinab ko\'ring.',
+      });
+    } catch (aiError: any) {
+      console.error('[AI Scanner] imageSearchService error:', aiError);
+      
+      return res.status(500).json({
+        success: false,
+        error: aiError.message || 'AI xizmati vaqtincha ishlamayapti',
+      });
     }
   } catch (error: any) {
     console.error('[AI Scanner] Public analyze error:', error);
