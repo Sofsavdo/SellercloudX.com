@@ -139,8 +139,8 @@ export const scannerApi = {
   // AI bilan rasmni tahlil qilish
   analyzeImage: async (imageBase64: string): Promise<ScanResult> => {
     try {
-      // Python backend orqali AI tahlil
-      const response = await api.post('/unified-scanner/analyze', {
+      // Node.js backend orqali AI tahlil (requireAuth)
+      const response = await api.post('/ai/scanner/analyze-base64', {
         image_base64: imageBase64,
         language: 'uz',
       });
@@ -164,39 +164,29 @@ export const scannerApi = {
         };
       }
       
-      // Agar unified-scanner ishlamasa, to'g'ridan-to'g'ri python backendga
-      const pythonResponse = await axios.post(`${API_BASE_URL.replace('/api', '')}/api/gemini/analyze-image`, {
-        image_base64: imageBase64,
-      });
-      
-      if (pythonResponse.data.success) {
-        const info = pythonResponse.data.product_info || pythonResponse.data;
-        return {
-          success: true,
-          product: {
-            brand: info.brand || 'Unknown',
-            model: info.model || '',
-            name: info.product_name || info.name || 'Mahsulot',
-            category: info.category || '',
-            categoryRu: info.category_ru || info.category,
-            features: info.features || [],
-            materials: info.materials || [],
-            country: info.country_of_origin,
-            suggestedPrice: info.suggested_price,
-            confidence: info.confidence || 80,
-          },
-        };
-      }
-      
       return {
         success: false,
         error: response.data.error || 'Mahsulot aniqlanmadi',
       };
     } catch (error: any) {
       console.error('Scanner API xatosi:', error);
+      
+      // Xato xabarini aniqroq ko'rsatish
+      let errorMessage = 'Server bilan bog\'lanishda xato';
+      
+      if (error.response?.status === 401) {
+        errorMessage = 'Iltimos, qaytadan tizimga kiring';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Partner topilmadi';
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return {
         success: false,
-        error: error.response?.data?.error || error.message || 'Server bilan bog\'lanishda xato',
+        error: errorMessage,
       };
     }
   },
