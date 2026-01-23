@@ -95,6 +95,78 @@ router.post('/scan-image', requireAuth, (req: any, res: any, next: any) => {
 });
 
 /**
+ * POST /api/ai/scanner/analyze-base64
+ * Analyze image from base64 (for mobile app)
+ */
+router.post('/analyze-base64', requireAuth, async (req: any, res: any) => {
+  try {
+    const userId = req.session?.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Tizimga kirish talab qilinadi',
+      });
+    }
+
+    const { image_base64, language = 'uz' } = req.body;
+    
+    if (!image_base64) {
+      return res.status(400).json({
+        success: false,
+        error: 'image_base64 talab qilinadi',
+      });
+    }
+
+    // Get partner
+    const partner = await storage.getPartnerByUserId(userId);
+    if (!partner) {
+      return res.status(404).json({
+        success: false,
+        error: 'Partner topilmadi',
+      });
+    }
+
+    // Create data URL from base64
+    const imageUrl = `data:image/jpeg;base64,${image_base64}`;
+
+    // Import AI Manager
+    const { aiManager } = await import('../services/aiManagerV2Service');
+
+    // Scan image
+    const result = await aiManager.scanProductImage({
+      imageUrl,
+      partnerId: partner.id,
+    });
+
+    // Format response for mobile app
+    return res.status(200).json({
+      success: true,
+      product_info: {
+        brand: result.brand || 'Unknown',
+        model: result.model || '',
+        product_name: result.name || result.productName || 'Mahsulot',
+        name: result.name || result.productName,
+        category: result.category || '',
+        category_ru: result.categoryRu || result.category,
+        features: result.features || [],
+        materials: result.materials || [],
+        country_of_origin: result.country || 'Unknown',
+        suggested_price: result.suggestedPrice || result.marketPrice,
+      },
+      suggested_price: result.suggestedPrice || result.marketPrice,
+      confidence: result.confidence || 85,
+    });
+  } catch (error: any) {
+    console.error('Base64 scan error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Rasmni tahlil qilishda xatolik',
+    });
+  }
+});
+
+/**
  * GET /api/ai/scanner/status
  * Check scanner service status
  */
