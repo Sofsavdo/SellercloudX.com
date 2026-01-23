@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://ecomm-automation-2.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://marketbot-30.preview.emergentagent.com')
 
 class TestYandexMarketRules:
     """Test /api/yandex-market/rules endpoint"""

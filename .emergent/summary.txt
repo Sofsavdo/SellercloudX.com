@@ -2,118 +2,136 @@
 The user's primary goal is to create a fully automated e-commerce system, SellerCloudX, for Yandex Market. The core feature allows partners to upload an image and cost price, with AI handling product identification, content generation (Russian/Uzbek), infographic creation, and posting a 100/100 quality product card to Yandex.
 
 The project scope has significantly expanded to include:
--   Fixing recurring production deployment issues on the Railway platform.
--   Automating the entire partner lifecycle, including payment-based activation and tier upgrades, removing manual admin tasks.
--   Implementing tier-based feature limits (product creation, AI usage).
+-   Fixing recurring production deployment issues.
+-   Automating the entire partner lifecycle, including payment-based activation and tier upgrades.
+-   Implementing tier-based feature limits.
 -   Adding an annual subscription with a 20% discount.
--   Preventing free-tier abuse by enforcing a one business, one account rule via a unique business identifier (INN/STIR) during registration.
+-   Preventing free-tier abuse via a unique business identifier (INN/STIR) during registration.
 -   **New Major Requirement:** Build a fully functional mobile application for iOS and Android, with the AI camera scanner as its central feature.
+-   **Newest Requirement:** Conduct a full audit of the entire project (web and mobile), fix all non-functional parts (Trend Hunter, Chat, AI Scanner, Analytics), remove all mock data, and bring the application to a stable, professional, and fully functional state.
 
 **User's preferred language**: Uzbek (). The next agent MUST respond in Uzbek.
 
 **what currently exists?**
-The project is a full-stack application with a dual-backend architecture: a Node.js/Express server () for business logic and a Python/FastAPI backend () for AI tasks. The web application features for partner registration (with INN validation), automated tier logic, and backend setup for Click payments are implemented.
+The project is a full-stack application with a dual-backend architecture: a Node.js/Express server () for business logic and a Python/FastAPI backend () for AI tasks. The web application features for partner registration, automated tier logic, and backend setup for payments are partially implemented but contain numerous bugs.
 
-A new mobile application has been scaffolded in  using React Native and Expo. It includes the basic file structure, navigation, state management (Zustand), API services, and screens for core features like the AI scanner, login, registration, and product management. The mobile app has been wired to connect to the existing backend APIs, replacing initial mock data.
+A mobile application has been built in  using React Native and Expo. Several APK versions have been delivered to the user for testing, but core features like the AI Scanner and Settings screen are currently broken and crash the app.
 
 **Last working item**:
--   **Last item agent was working:** Debugging a critical production deployment failure on Railway. The user provided logs showing the Node.js server is crashing on startup with a PostgreSQL error: . The agent correctly identified that the production database schema is out of sync with the application code, requiring a database migration.
+-   **Last item agent was working:** Diagnosing and fixing multiple critical bugs across the entire application stack based on user feedback and Railway logs. The user reported that the Trend Hunter feature was not working and provided logs revealing several backend errors.
 -   **Status:** IN PROGRESS
 -   **Agent Testing Done:** N
--   **Which testing method agent to use?** Backend. The agent needs to create and apply a PostgreSQL migration to add the missing columns to the  table. Verification will be done by asking the user to redeploy and checking the new Railway logs.
--   **User Testing Done:** N
+-   **Which testing method agent to use?** Both. The backend needs to be tested with  to verify fixes for Trend Hunter, Analytics, and Date errors. The web and mobile frontends need to be checked with the screenshot tool to confirm the UI is functional and displays correct data.
+-   **User Testing Done:** Y (User tested the web app and found Trend Hunter broken).
 
 **All Pending/In progress Issue list**:
--   Issue 1: (P0) Fix Production Deployment on Railway by Creating a PostgreSQL Migration.
--   Issue 2: (P1) Build and Deliver a Testable Android APK for the Mobile App.
--   Issue 3: (P2) Implement Real Payment Gateway Integration (Payme/Click) in the UI.
--   Issue 4: (P3) Finalize and Test the End-to-End Automated Partner Onboarding Flow (Web).
--   Issue 5: (P4) Achieve 100/100 Quality Score for Yandex Product Cards.
+-   Issue 1: (P0) Fix Multiple Critical Backend Bugs (Trend Hunter, Analytics, Date Errors).
+-   Issue 2: (P1) Fix Mobile App Functionality (AI scanner failure, Settings screen crash).
+-   Issue 3: (P2) Implement Real-time Chat.
+-   Issue 4: (P3) Complete Real Payment Gateway Integration (Payme/Click) in the UI.
 
 **Issues Detail:**
--   **Issue 1: Fix Production Deployment on Railway by Creating a PostgreSQL Migration**
-    -   **Attempted fixes:** The agent previously fixed a deployment error in . The current error is different and database-related.
+-   **Issue 1: Fix Multiple Critical Backend Bugs (Trend Hunter, Analytics, Date Errors)**
+    -   **Attempted fixes:** The agent correctly added the user's RapidAPI key to the  file and started a project-wide audit. However, the root causes of the bugs have only just been identified from logs.
     -   **Next debug checklist:**
-        1.  Examine  to identify all columns present in the code but missing from the production PostgreSQL database (the log confirms  is missing, but others added for INN and Click payments may also be missing).
-        2.  Create a new SQL migration file (e.g., ) with the  statements for PostgreSQL.
-        3.  Ensure the application's startup logic in  is configured to run database migrations automatically.
-        4.  Instruct the user to save the changes to GitHub and trigger a new deployment on Railway.
-        5.  Analyze the new deployment logs to confirm the server starts successfully without the database column error.
-    -   **Why fix this issue and what will be achieved with the fix?** This is a critical blocker. The entire production application is down and unusable until this is resolved.
+        1.  **Trend Hunter:** In , the code incorrectly calls an OpenAI endpoint for trend prediction, causing a 401 API key error. Remove this call entirely and ensure the service only uses the data returned from the RapidAPI AliExpress DataHub.
+        2.  **Analytics:** The production logs show a . This requires creating a new PostgreSQL migration file in  to add the missing  column to the  table, and updating  to run it.
+        3.  **Date Errors:** Logs show  and  errors, particularly when creating audit logs. Inspect the  function in  and other date-handling logic to ensure all timestamps are in a format compatible with PostgreSQL before being inserted into the database.
+    -   **Why fix this issue and what will be achieved with the fix?** These bugs make core features of the web application unusable and prevent data from being stored correctly. Fixing them is critical to making the platform stable.
     -   **Status:** IN PROGRESS
-    -   **Is recurring issue?** Y (Deployment issues are frequent).
-    -   **Should Test frontend/backend/both after fix?** Backend (via Railway logs).
+    -   **Is recurring issue?** Y (Database schema mismatches are a recurring problem).
+    -   **Should Test frontend/backend/both after fix?** Both.
+    -   **Blocked on other issue:** None.
+
+-   **Issue 2: Fix Mobile App Functionality (AI scanner failure, Settings screen crash)**
+    -   **Attempted fixes:** The agent created a public endpoint for the scanner and added a placeholder  to prevent crashes. These fixes were ineffective.
+    -   **Next debug checklist:**
+        1.  **AI Scanner:** The endpoint  was created, but the user reports it still fails. Trace the entire data flow from the mobile app's API call in  through the Node.js router () to the backend service (). The issue is likely in how the image data is processed or passed to the AI service.
+        2.  **Settings Crash:** The app crashes when the settings button is pressed. The previous fix of adding a  was not enough. The issue lies in the navigation stack (). Verify that the  screen is correctly registered and that the  call in  is correct. Simplify the  to a  first to isolate the issue.
+    -   **Why fix this issue and what will be achieved with the fix?** The mobile app is a major user requirement and is currently unusable.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** Both (Mobile frontend + backend).
     -   **Blocked on other issue:** None.
 
 **In progress Task List**:
--   **Task 1: Create a fully functional mobile application.**
-    -   **Where to resume:** The application skeleton is built in  and connected to backend APIs. The next step is to perform a build to create a testable Android APK file.
-    -   **What will be achieved with this?** A deliverable mobile app that the user can install and test on their device, fulfilling a major new requirement.
+-   **Task 1: Full Project Audit and Refactor**
+    -   **Where to resume:** Continue the systematic fix of all identified issues, starting with the backend bugs (Issue 1) and then moving to the mobile app (Issue 2). After those are resolved, address the non-functional Chat system.
+    -   **What will be achieved with this?** A stable, functional, and production-ready application that meets the user's expectations.
     -   **Status:** IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?** Both (Mobile frontend + existing backend).
-    -   **Blocked on something:** Critically blocked by the production deployment failure (Issue 1). The mobile app cannot function without a stable backend.
+    -   **Should Test frontend/backend/both after fix?** Both.
+    -   **Blocked on something:** Blocked by the resolution of the individual issues listed above.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   (P0) Implement Push Notifications for the mobile app.
-    -   (P1) Implement an offline-first job queue for the mobile app, so that product uploads can be initiated without an internet connection and synced later.
-    -   (P2) Complete the UI for the Click payment gateway on both web and mobile.
+    -   (P0) Complete the UI for the Click payment gateway on both web and mobile.
+    -   (P1) Implement Push Notifications for the mobile app.
+    -   (P2) Implement an offline-first job queue for the mobile app.
 -   **Future Tasks:**
     -   (P3) Implement Biometric Login (Face ID / Touch ID) for the mobile app.
     -   (P3) Add a barcode scanning feature to the mobile AI scanner.
     -   (P4) Complete the Uzum Market automation workflow.
-    -   (P4) Enhance the admin-partner chat with real-time capabilities.
 
 **Completed work in this session**
--   **Robust INN Verification (Web):** Implemented and fully tested the backend system to prevent duplicate accounts based on a unique business ID (INN). Fixed a critical bug where the INN was not being saved to the database.
--   **Click Payment Backend Setup:** Laid the groundwork for the Click payment integration by creating the necessary services, routes, and database schema updates (for SQLite).
--   **Mobile App Scaffolding (React Native/Expo):** Created a new, well-structured mobile application in . This includes navigation, all necessary screens, API services connected to the live backend, and state management.
--   **Deployment Fix:** Resolved a Railway deployment crash caused by an invalid environment variable () in the  file.
+-   **Fixed Production Deployment:** Successfully resolved a critical Railway deployment blocker by creating and applying PostgreSQL migrations to add  and  columns to the  table.
+-   **Mobile App APK Generation:** Successfully configured Expo EAS Build, created credentials, and debugged multiple Gradle/syntax errors to build and deliver several Android APKs for user testing.
+-   **Project Audit and Refactoring (Started):** Began a full project audit at the user's request. Consolidated and cleaned up duplicated AI scanner code, created new unified backend routes, and added the user's RapidAPI key to the environment.
+
+**Known issue recurrence from previous fork**
+-   **Issue recurrence in previous fork:** Production deployment failures due to database schema mismatches.
+-   **Recurrence count:** 2+
+-   **Status:** RESOLVED (for now). The last deployment was fixed, but the underlying issue of schema drift remains a risk.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Dual Backend Architecture:** Node.js for business logic, Python for intensive tasks.
--   **React Native / Expo:** Framework for cross-platform (iOS/Android) mobile app development.
--   **PostgreSQL Migration Management:** A critical, unresolved need for keeping the production database schema in sync with the application code.
+-   **Dual Backend Architecture:** Node.js for business logic, Python for AI.
+-   **React Native / Expo:** Framework for cross-platform mobile app development.
+-   **Expo Application Services (EAS):** Cloud service used for building mobile app binaries (APKs).
+-   **PostgreSQL Migration Management:** A critical and recurring challenge.
+-   **Drizzle ORM:** Used for database interaction in the Node.js server.
 
 **key DB schema**
--   **partners:** The schema has been updated in the code to include  (string, unique),  (text), and several columns for Click payment integration. These changes have not yet been applied to the production PostgreSQL database.
+-   **analytics:** Is missing a  column, which is causing backend errors when fetching analytics data.
+-   **audit_logs:** Is causing  errors, indicating a problem with how timestamps are being inserted.
 
 **All files of reference**
--   : The configuration file for running services on Railway; was recently fixed.
--   : Contains the  function that was fixed to correctly save the .
--   : Defines the Drizzle schema, which is currently out of sync with the production database.
--   : The root directory for the new mobile application.
--   : The central service for all mobile app API calls.
+-   : The service for Trend Hunter, which needs to be fixed to stop calling OpenAI.
+-   : Contains DB logic, including the  and  functions that are causing errors.
+-   : Defines all database schemas; needs to be updated for the  table.
+-   : Script for running DB migrations.
+-   : The settings screen that is crashing the mobile app.
+-   : Central API service for the mobile app, which calls the scanner endpoint.
+-   : The new, consolidated routes for the AI scanner.
 
 **Critical Info for New Agent**
--   **PRIORITY #1: FIX PRODUCTION.** The application is down on Railway. The logs clearly indicate a PostgreSQL error: . You must create a database migration to add this and other potentially missing columns to the  table and ensure it runs on deployment.
--   After fixing the deployment, the next priority is to build an **Android APK** of the mobile app in  so the user can test it.
--   The user wants to push code to . Remind them to use the **Save to GitHub** feature in the UI.
+-   **The user is frustrated.** Both the web and mobile applications have critical, user-facing bugs. The priority is to fix the existing broken features, not add new ones.
+-   **Start with the backend bugs.** The Trend Hunter, Analytics, and Date errors identified in the Railway logs must be fixed first, as they break the core web application.
+-   **Then fix the mobile app.** Once the backend is stable, focus on fixing the AI Scanner failure and the Settings screen crash. The user cannot use the mobile app in its current state.
+-   **Communicate Clearly.** The user wants to see progress. Address each reported issue directly and explain what has been fixed.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User (latest):** Provides new Railway deployment logs showing a  error, indicating a database schema issue.
-2.  **Agent:** Confirms the previous supervisord fix and asks the user to redeploy (this led to the new error).
-3.  **User:** Provides the initial Railway deployment logs showing an  error.
-4.  **Agent:** Offers different methods for delivering the mobile app for testing (Expo Go, APK, TestFlight).
-5.  **User:** Asks how and when they will receive the completed mobile application for testing.
-6.  **User:** Stresses that the mobile app must be fully functional and connected to real data, not just a mock-up.
-7.  **User:** Approves the completion of the mobile app's initial structure and asks to proceed.
-8.  **User:** Answers the agent's questions, confirming requirements for the mobile app: iOS & Android, Uzbek as the primary language, and an offline queue for uploads.
-9.  **User:** After the web fixes, issues a major new request: push the current work to GitHub and then create a detailed plan to build a mobile application.
-10. **User:** Approves the agent's plan to implement INN validation and start the Click payment integration.
+1.  **User (latest):** Reports Trend Hunter is not working and points out errors from Railway logs (, etc.). Asks the agent to fix things sequentially.
+2.  **Agent:** Provides a summary of the full project audit and the fixes implemented.
+3.  **User:** Provides a RapidAPI key and instructs the agent to fix everything sequentially.
+4.  **Agent:** Proposes a detailed plan for the full project audit and refactor.
+5.  **User:** Reports that many features are not working, are using mock data (Trend Hunter, Chat), and the AI scanner is not working correctly. Asks for a full audit and fix.
+6.  **Agent:** Delivers a new APK (v1.0.1) with attempted fixes.
+7.  **User:** Reports that the AI scanner and settings button are still broken after the update.
+8.  **Agent:** Delivers another new APK with more fixes.
+9.  **User:** Reports that the app still has many bugs (settings, scanner, broken UI) and asks how updates will be handled.
+10. **Agent:** Delivers the first fixed APK.
 
 **Project Health Check:**
--   **Broken:** The production deployment on Railway is **CRITICAL/DOWN**. The Node.js server fails to start due to a PostgreSQL schema mismatch, making the entire platform inaccessible.
--   **Mocked:** The payment integration is not yet connected to a live payment provider UI. The mobile app is built but remains completely untested by the user.
+-   **Broken:**
+    -   **Web App:** The Trend Hunter and Analytics features are non-functional due to critical backend bugs (incorrect API usage, database schema errors).
+    -   **Mobile App:** Critically broken. The AI scanner fails to identify products, and the Settings screen reliably crashes the application, making it unusable.
+-   **Mocked:** The user feels several key features (Chat, Trends) are not working with real, live data.
 
 **3rd Party Integrations**
 -   **Yandex Market Partner API:** For product management.
--   **Gemini (via ):** For AI text and image generation. Uses the **Emergent LLM Key**.
+-   **Gemini (via ):** Used for AI tasks. Requires the **Emergent LLM Key**.
 -   **ImgBB API:** For image hosting.
--   **Click / Payme:** Planned for payment processing, but not yet fully integrated.
-
-**What agent forgot to execute**
--   The agent did not create a PostgreSQL migration script to align the production database schema with the changes made in the application code (). While migrations were run for the local SQLite database, the production PostgreSQL database was neglected, causing the current critical failure.</analysis>
+-   **Click / Payme:** Planned for payment processing.
+-   **RapidAPI (AliExpress DataHub):** Key has been provided by the user for the Trend Hunter feature, but the implementation is faulty and is incorrectly calling an OpenAI endpoint instead.</analysis>

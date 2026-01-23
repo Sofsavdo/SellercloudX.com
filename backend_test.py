@@ -12,7 +12,7 @@ import base64
 from typing import Dict, Any, Optional
 
 # Configuration - Using the external URL from frontend/.env
-BASE_URL = "https://ecomm-automation-2.preview.emergentagent.com"
+BASE_URL = "https://marketbot-30.preview.emergentagent.com"
 # Test credentials from review request
 ADMIN_CREDENTIALS = {"username": "admin", "password": "admin123"}
 
