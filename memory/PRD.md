@@ -56,6 +56,12 @@ To'liq avtomatlashtirilgan e-commerce tizimi yaratish - Yandex Market uchun. Ham
 - `/app/migrations/012_fix_partners_business_and_payment_columns.sql`
 - Added `is_active`, `business_address`, `phone`, `website`, `created_at`, `updated_at` columns
 
+### 2025-01-23
+- Mobile app API URL updated to `https://sellercloudx.com/api`
+- Expo project created: `@medik2244/sellercloudx-mobile` (ID: e37f5496-4917-4ebd-8a05-8640a6045a5a)
+- Dependencies updated to Expo 50 compatible versions
+- EAS Build configured but requires Android SDK for local build
+
 ## Prioritized Backlog
 
 ### P0 - Critical
