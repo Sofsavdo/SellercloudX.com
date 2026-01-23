@@ -18,6 +18,7 @@ import StatsScreen from '../screens/StatsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import UploadProductScreen from '../screens/UploadProductScreen';
 import PricingScreen from '../screens/PricingScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
