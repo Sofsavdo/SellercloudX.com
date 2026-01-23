@@ -1,5 +1,6 @@
 // SellerCloudX Mobile - Asosiy Konstantalar
-export const API_BASE_URL = 'https://sellercloudx.com/api';
+// Production API - Preview or Railway
+export const API_BASE_URL = 'https://marketbot-30.preview.emergentagent.com/api';
 
 // Ranglar
 export const COLORS = {
