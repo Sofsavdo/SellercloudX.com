@@ -85,7 +85,7 @@ export default function SettingsScreen() {
   
   const handleLanguageChange = () => {
     Alert.alert(
-      t('settings.language'),
+      'Til / Язык',
       'Tilni tanlang / Выберите язык',
       [
         {
@@ -100,24 +100,40 @@ export default function SettingsScreen() {
             setStoredLanguage('ru');
           },
         },
-        { text: t('common.cancel'), style: 'cancel' },
+        { text: 'Bekor qilish', style: 'cancel' },
       ]
     );
   };
   
   const handleLogout = () => {
     Alert.alert(
-      t('auth.logout'),
+      'Chiqish',
       'Hisobdan chiqishni xohlaysizmi?',
       [
-        { text: t('common.cancel'), style: 'cancel' },
+        { text: 'Bekor qilish', style: 'cancel' },
         {
-          text: t('auth.logout'),
+          text: 'Chiqish',
           style: 'destructive',
           onPress: logout,
         },
       ]
     );
+  };
+  
+  const openProfile = () => {
+    try {
+      navigation.navigate('Profile');
+    } catch (e) {
+      Alert.alert('Xato', 'Profil sahifasi ochilmadi');
+    }
+  };
+  
+  const openPricing = () => {
+    try {
+      navigation.navigate('Pricing');
+    } catch (e) {
+      Alert.alert('Xato', 'Tariflar sahifasi ochilmadi');
+    }
   };
   
   return (
