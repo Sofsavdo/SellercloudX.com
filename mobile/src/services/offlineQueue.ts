@@ -207,7 +207,7 @@ export const offlineQueue = new OfflineQueue();
 // Network o'zgarishini kuzatish
 NetInfo.addEventListener(state => {
   if (state.isConnected) {
-    console.log('🌐 Internet qaytdi, queue'ni qayta ishlaymiz...');
+    console.log('🌐 Internet qaytdi, queue ni qayta ishlaymiz...');
     offlineQueue.processQueue();
   }
 });
