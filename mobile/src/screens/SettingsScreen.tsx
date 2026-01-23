@@ -122,7 +122,7 @@ export default function SettingsScreen() {
   
   const openProfile = () => {
     try {
-      navigation.navigate('Profile');
+      navigation.navigate(SCREENS.PROFILE);
     } catch (e) {
       Alert.alert('Xato', 'Profil sahifasi ochilmadi');
     }
@@ -130,7 +130,7 @@ export default function SettingsScreen() {
   
   const openPricing = () => {
     try {
-      navigation.navigate('Pricing');
+      navigation.navigate(SCREENS.PRICING);
     } catch (e) {
       Alert.alert('Xato', 'Tariflar sahifasi ochilmadi');
     }
