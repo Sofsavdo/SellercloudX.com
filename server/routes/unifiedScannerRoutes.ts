@@ -4,7 +4,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { imageSearchService } from '../services/imageSearchService';
-import { geminiApiService } from '../services/geminiApiService';
+import { geminiService } from '../services/geminiService';
 
 const router = Router();
 
