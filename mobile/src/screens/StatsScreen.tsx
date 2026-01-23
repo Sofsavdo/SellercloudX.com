@@ -8,7 +8,9 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../utils/constants';
@@ -20,6 +22,7 @@ type Period = 'today' | 'week' | 'month' | 'all';
 
 export default function StatsScreen() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const { products, fetchProducts } = useProductsStore();
   
   const [period, setPeriod] = useState<Period>('month');
@@ -39,6 +42,16 @@ export default function StatsScreen() {
       setAnalytics(data);
     } catch (error) {
       console.error('Analytics yuklashda xato:', error);
+      // Set default values on error
+      setAnalytics({
+        revenue: 0,
+        profit: 0,
+        orders: 0,
+        views: 0,
+        conversionRate: 0,
+        topProducts: [],
+        marketplaceBreakdown: [],
+      });
     } finally {
       setIsLoading(false);
     }
@@ -51,10 +64,10 @@ export default function StatsScreen() {
   };
   
   const periods = [
-    { id: 'today', label: t('stats.today') },
-    { id: 'week', label: t('stats.thisWeek') },
-    { id: 'month', label: t('stats.thisMonth') },
-    { id: 'all', label: t('stats.allTime') },
+    { id: 'today', label: 'Bugun' },
+    { id: 'week', label: 'Hafta' },
+    { id: 'month', label: 'Oy' },
+    { id: 'all', label: 'Hammasi' },
   ];
   
   if (isLoading && !analytics) {
@@ -78,38 +91,47 @@ export default function StatsScreen() {
   };
   
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
-      {/* Period Selector */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.periodContainer}
-      >
-        {periods.map((p) => (
-          <TouchableOpacity
-            key={p.id}
-            style={[
-              styles.periodButton,
-              period === p.id && styles.periodButtonActive,
-            ]}
-            onPress={() => setPeriod(p.id as Period)}
-          >
-            <Text
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>📊 Statistika</Text>
+      </View>
+      
+      {/* Period Selector - Fixed position */}
+      <View style={styles.periodWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.periodContainer}
+        >
+          {periods.map((p) => (
+            <TouchableOpacity
+              key={p.id}
               style={[
-                styles.periodButtonText,
-                period === p.id && styles.periodButtonTextActive,
+                styles.periodButton,
+                period === p.id && styles.periodButtonActive,
               ]}
+              onPress={() => setPeriod(p.id as Period)}
             >
-              {p.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+              <Text
+                style={[
+                  styles.periodButtonText,
+                  period === p.id && styles.periodButtonTextActive,
+                ]}
+              >
+                {p.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+      
+      <ScrollView
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
       
       {/* Main Stats */}
       <View style={styles.mainStats}>
