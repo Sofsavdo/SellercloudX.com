@@ -165,6 +165,14 @@ function MainStack() {
           headerBackTitle: 'Orqaga',
         }}
       />
+      
+      <Stack.Screen
+        name={SCREENS.PROFILE}
+        component={ProfileScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack.Navigator>
   );
 }
