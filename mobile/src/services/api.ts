@@ -139,11 +139,13 @@ export const scannerApi = {
   // AI bilan rasmni tahlil qilish
   analyzeImage: async (imageBase64: string): Promise<ScanResult> => {
     try {
-      // Node.js backend orqali AI tahlil (requireAuth)
-      const response = await api.post('/ai/scanner/analyze-base64', {
+      // Public endpoint (autentifikatsiyasiz)
+      const response = await api.post('/ai/scanner/public-analyze', {
         image_base64: imageBase64,
         language: 'uz',
       });
+      
+      console.log('Scanner response:', JSON.stringify(response.data).substring(0, 200));
       
       // Backend response format'ini moslash
       if (response.data.success && response.data.product_info) {
@@ -152,7 +154,7 @@ export const scannerApi = {
           product: {
             brand: response.data.product_info.brand || 'Unknown',
             model: response.data.product_info.model || '',
-            name: response.data.product_info.product_name || response.data.product_info.name,
+            name: response.data.product_info.product_name || response.data.product_info.name || 'Mahsulot',
             category: response.data.product_info.category || '',
             categoryRu: response.data.product_info.category_ru || response.data.product_info.category,
             features: response.data.product_info.features || [],
@@ -169,16 +171,12 @@ export const scannerApi = {
         error: response.data.error || 'Mahsulot aniqlanmadi',
       };
     } catch (error: any) {
-      console.error('Scanner API xatosi:', error);
+      console.error('Scanner API xatosi:', error?.response?.data || error.message);
       
       // Xato xabarini aniqroq ko'rsatish
       let errorMessage = 'Server bilan bog\'lanishda xato';
       
-      if (error.response?.status === 401) {
-        errorMessage = 'Iltimos, qaytadan tizimga kiring';
-      } else if (error.response?.status === 404) {
-        errorMessage = 'Partner topilmadi';
-      } else if (error.response?.data?.error) {
+      if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
       } else if (error.message) {
         errorMessage = error.message;
