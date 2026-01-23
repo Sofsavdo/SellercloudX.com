@@ -260,7 +260,8 @@ export default function StatsScreen() {
       </View>
       
       <View style={styles.footer} />
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -268,6 +269,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  header: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  scrollView: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -282,9 +298,13 @@ const styles = StyleSheet.create({
   },
   
   // Period
+  periodWrapper: {
+    backgroundColor: COLORS.white,
+    paddingBottom: 8,
+  },
   periodContainer: {
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 8,
     paddingBottom: 8,
     gap: 8,
   },
