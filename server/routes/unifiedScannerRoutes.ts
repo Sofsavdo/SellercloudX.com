@@ -65,16 +65,31 @@ router.post('/scan-image', upload.single('file'), async (req: any, res: any) => 
 
     // Fallback: Use Gemini directly
     try {
-      const geminiResult = await geminiApiService.analyzeImage(imageBase64, 'uz');
+      const geminiResult = await geminiService.analyzeImage(
+        imageBase64, 
+        'Bu rasmda qanday mahsulot ko\'rsatilgan? Mahsulot nomi, brendi, kategoriyasi va tavsifini bering. JSON formatda javob bering: {"productName": "", "brand": "", "category": "", "description": "", "features": []}'
+      );
+      
+      // Parse Gemini response
+      let parsed: any = {};
+      try {
+        const text = geminiResult.text || '';
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          parsed = JSON.parse(jsonMatch[0]);
+        }
+      } catch (e) {
+        console.warn('[Unified Scanner] Could not parse Gemini response');
+      }
       
       return res.json({
         success: true,
         product: {
-          name: geminiResult.productName || 'Mahsulot',
-          brand: geminiResult.brand || 'Unknown',
-          category: geminiResult.category || 'electronics',
-          description: geminiResult.description || '',
-          specifications: geminiResult.features || [],
+          name: parsed.productName || 'Mahsulot',
+          brand: parsed.brand || 'Unknown',
+          category: parsed.category || 'electronics',
+          description: parsed.description || '',
+          specifications: parsed.features || [],
           confidence: 75,
         }
       });
