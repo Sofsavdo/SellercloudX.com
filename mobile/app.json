@@ -58,7 +58,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "--non-interactive"
+        "projectId": ""
       }
     }
   }
