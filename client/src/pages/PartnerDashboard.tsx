@@ -45,7 +45,7 @@ import {
   LayoutDashboard, Sparkles, ShoppingCart, Wallet, ArrowRight,
   TrendingUp, CheckCircle, Building, XCircle, Globe, Scan
 } from 'lucide-react';
-import AIScannerV2 from './AIScannerV2';
+import AIScanner from '../components/AIScanner';
 import TrendHunterDashboard from './TrendHunterDashboard';
 
 interface Product { id: string; name: string; category: string; price: string; costPrice: string; sku: string; isActive: boolean; createdAt: string; }
