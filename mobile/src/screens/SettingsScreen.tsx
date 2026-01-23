@@ -267,7 +267,6 @@ export default function SettingsScreen() {
             title={t('settings.privacyPolicy')}
             onPress={() => Linking.openURL('https://sellercloudx.com/privacy')}
           />
-          />
         </View>
       </View>
       
