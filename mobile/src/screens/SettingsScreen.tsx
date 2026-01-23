@@ -169,17 +169,17 @@ export default function SettingsScreen() {
           <SettingsItem
             icon="person-outline"
             iconColor={COLORS.primary}
-            title={t('settings.profile')}
+            title="Profil"
             subtitle="Shaxsiy ma'lumotlarni tahrirlash"
-            onPress={() => navigation.navigate(SCREENS.PROFILE)}
+            onPress={openProfile}
           />
           
           <SettingsItem
             icon="card-outline"
             iconColor={COLORS.secondary}
-            title={t('settings.subscription')}
+            title="Obuna"
             value={partner?.pricingTier || 'Free'}
-            onPress={() => navigation.navigate(SCREENS.PRICING)}
+            onPress={openPricing}
           />
           
           <SettingsItem
