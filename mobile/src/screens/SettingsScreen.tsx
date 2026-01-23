@@ -231,21 +231,26 @@ export default function SettingsScreen() {
             iconColor={COLORS.primary}
             title={t('settings.support')}
             subtitle="Telegram: @sellercloudx"
-            onPress={() => {}}
+            onPress={() => Linking.openURL('https://t.me/sellercloudx')}
           />
           
           <SettingsItem
             icon="star-outline"
             iconColor={COLORS.accent}
             title={t('settings.rateApp')}
-            onPress={() => {}}
+            onPress={() => Alert.alert(
+              'Baholash',
+              'Ilovani yoqtirsangiz, Google Play da baholang! ⭐⭐⭐⭐⭐',
+              [{ text: 'OK' }]
+            )}
           />
           
           <SettingsItem
             icon="document-text-outline"
             iconColor={COLORS.textSecondary}
             title={t('settings.privacyPolicy')}
-            onPress={() => {}}
+            onPress={() => Linking.openURL('https://sellercloudx.com/privacy')}
+          />
           />
         </View>
       </View>
