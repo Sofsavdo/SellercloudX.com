@@ -171,7 +171,17 @@ export default function SettingsScreen() {
             iconColor={COLORS.accent}
             title={t('settings.apiKeys')}
             subtitle="Yandex, Uzum API kalitlari"
-            onPress={() => {}}
+            onPress={() => Alert.alert(
+              'API Kalitlari',
+              'API kalitlarini sozlash uchun web versiyaga kiring:\n\nsellercloudx.com/settings',
+              [
+                { text: 'OK' },
+                { 
+                  text: 'Ochish', 
+                  onPress: () => Linking.openURL('https://sellercloudx.com/settings')
+                }
+              ]
+            )}
           />
         </View>
       </View>
