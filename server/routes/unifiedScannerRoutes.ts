@@ -204,24 +204,46 @@ router.post('/full-process', async (req: any, res: any) => {
     // Try to enhance with Gemini
     try {
       if (image_base64) {
-        const geminiCard = await geminiApiService.generateProductCard({
-          productName: product_name,
-          brand,
-          category,
-          description,
-          imageBase64: image_base64
-        });
+        const geminiResult = await geminiService.analyzeImage(
+          image_base64,
+          `Bu mahsulot uchun Yandex Market product card yarating:
+          Mahsulot: ${product_name}
+          Brend: ${brand}
+          Kategoriya: ${category}
+          
+          JSON formatda javob bering:
+          {
+            "titleUz": "O'zbek tilida sarlavha (80 belgigacha)",
+            "titleRu": "Русское название (до 80 символов)",
+            "descriptionUz": "O'zbek tilida to'liq tavsif (500 belgigacha)",
+            "descriptionRu": "Полное описание на русском (до 500 символов)",
+            "keywords": ["kalit", "so'zlar", "massivi"],
+            "bulletPointsUz": ["Xususiyat 1", "Xususiyat 2"],
+            "bulletPointsRu": ["Характеристика 1", "Характеристика 2"],
+            "seoScore": 85
+          }`
+        );
         
-        if (geminiCard) {
-          productCard = {
-            ...productCard,
-            title_uz: geminiCard.titleUz || productCard.title_uz,
-            title_ru: geminiCard.titleRu || productCard.title_ru,
-            description_uz: geminiCard.descriptionUz || productCard.description_uz,
-            description_ru: geminiCard.descriptionRu || productCard.description_ru,
-            keywords: geminiCard.keywords || productCard.keywords,
-            seo_score: geminiCard.seoScore || 85
-          };
+        // Parse response
+        try {
+          const text = geminiResult.text || '';
+          const jsonMatch = text.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const geminiCard = JSON.parse(jsonMatch[0]);
+            productCard = {
+              ...productCard,
+              title_uz: geminiCard.titleUz || productCard.title_uz,
+              title_ru: geminiCard.titleRu || productCard.title_ru,
+              description_uz: geminiCard.descriptionUz || productCard.description_uz,
+              description_ru: geminiCard.descriptionRu || productCard.description_ru,
+              keywords: geminiCard.keywords || productCard.keywords,
+              bullet_points_uz: geminiCard.bulletPointsUz || productCard.bullet_points_uz,
+              bullet_points_ru: geminiCard.bulletPointsRu || productCard.bullet_points_ru,
+              seo_score: geminiCard.seoScore || 85
+            };
+          }
+        } catch (parseError) {
+          console.warn('[Unified Scanner] Could not parse Gemini card response');
         }
       }
     } catch (geminiError) {
