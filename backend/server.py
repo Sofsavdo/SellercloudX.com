@@ -3876,21 +3876,31 @@ async def yandex_partner_dashboard(credentials: YandexCredentials):
 # ========================================
 
 class InfographicRequest(BaseModel):
-    """Request model for infographic generation"""
+    """Request model for professional infographic generation"""
     product_name: str
     brand: str
     features: List[str] = []
+    category: str = "general"  # cosmetics, food, electronics, perfume, general
     count: int = 6  # Default 6 images for Yandex
 
 
 @app.post("/api/ai/generate-infographics")
 async def generate_infographics(request: InfographicRequest):
     """
-    Generate AI infographic images for product card
+    Generate PROFESSIONAL marketplace infographic set
     Uses Gemini Nano Banana (gemini-3-pro-image-preview)
+    
+    Creates 6 different infographic types:
+    1. Hero shot with floating ingredients
+    2. Features & benefits with icons
+    3. Ingredient composition visualization
+    4. Usage instructions step-by-step
+    5. "Does NOT contain" / purity badges
+    6. Premium lifestyle shot
     
     Returns:
     - images: List of image URLs
+    - image_types: Type of each image
     - generated_count: Number of successfully generated images
     """
     try:
@@ -3900,6 +3910,7 @@ async def generate_infographics(request: InfographicRequest):
             product_name=request.product_name,
             brand=request.brand,
             features=request.features,
+            category=request.category,
             count=min(request.count, 6)  # Max 6 images
         )
         
