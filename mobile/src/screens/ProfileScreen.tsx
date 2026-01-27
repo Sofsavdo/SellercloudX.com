@@ -20,7 +20,7 @@ import { partnerApi } from '../services/api';
 export default function ProfileScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation();
-  const { user, partner, setPartner } = useAuthStore();
+  const { user, partner, updatePartner } = useAuthStore();
   
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -39,16 +39,32 @@ export default function ProfileScreen() {
       });
       
       if (result.partner) {
-        setPartner(result.partner);
+        updatePartner(result.partner);
       }
       
       Alert.alert('Muvaffaqiyat', 'Ma\'lumotlar saqlandi');
       navigation.goBack();
     } catch (error: any) {
-      Alert.alert('Xato', error.message || 'Saqlashda xatolik yuz berdi');
+      console.log('Profile save error:', error);
+      // 404 xatosi - backend endpoint yo'q bo'lishi mumkin
+      if (error.response?.status === 404) {
+        Alert.alert('Ma\'lumot', 'Profil serverda saqlanmadi. Local saqlandi.');
+        updatePartner({ businessName: formData.businessName, phone: formData.phone });
+        navigation.goBack();
+      } else {
+        Alert.alert('Xato', error.message || 'Saqlashda xatolik yuz berdi');
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  const getTierName = () => {
+    if (partner?.pricingTier === 'premium_2026') return '💎 Premium 2026';
+    if (partner?.pricingTier === 'enterprise_elite') return '🏆 Enterprise';
+    if (partner?.pricingTier === 'professional_plus') return '💎 Professional';
+    if (partner?.pricingTier === 'starter_pro') return '⭐ Starter';
+    return '📦 Sinov';
   };
   
   return (
