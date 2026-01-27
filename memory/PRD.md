@@ -9,22 +9,37 @@ SellerCloudX.com - AI-powered marketplace automation SaaS. 4 ta marketplace (Yan
 
 ## Mobile App v1.0.4 (Jan 27, 2026)
 
-### Oxirgi APK (v1.0.3):
-- https://expo.dev/artifacts/eas/4tX4Wy5CP5vjmMYVDPdZHq.apk
+### 📱 APK Download:
+**https://expo.dev/artifacts/eas/9xsHKc7iMKeApRSC1pLsFG.apk**
 
-### v1.0.4 yangilanishlar (Build limiti tugagani uchun hali build qilinmagan):
-1. ✅ **Fintech Splash Screen** - Professional animatsiya bilan
-2. ✅ **Dark Header Design** - HomeScreen uchun gradient header
-3. ✅ **Account Activation System** - isActive tekshiruvi
-4. ✅ **$699 setup fee olib tashlandi** - PricingScreen da endi ko'rsatilmaydi
-5. ✅ **"7 kunlik bepul sinov" olib tashlandi**
-6. ✅ **Admin Activation Endpoint** - `/api/admin/partners/:id/activate`
-7. ✅ **4 Marketplace Support UI** - Yandex, Uzum, Wildberries, Ozon
+### Yangiliklar (v1.0.4):
+1. ✅ **Fintech Splash Screen** - Professional animatsiya (4 marketplace logolari)
+2. ✅ **Dark Theme Header** - HomeScreen uchun gradient header
+3. ✅ **Account Activation System** - isActive=false bo'lsa ilova bloklaydi
+4. ✅ **$699 setup fee OLIB TASHLANDI** - Endi faqat $499/oy ko'rsatadi
+5. ✅ **"7 kunlik bepul sinov" OLIB TASHLANDI**
+6. ✅ **Admin Activation Endpoint** - PUT /api/admin/partners/:id/activate
+7. ✅ **4 Marketplace UI** - Yandex(faol), Uzum/Wildberries/Ozon(tez kunda)
+8. ✅ **Raqobatchi narx tahlili** - AI Scanner
 
-### EAS Build Limit:
-- Bu oy uchun bepul build limiti tugadi
-- Yangi build: Feb 1, 2026 dan keyin
-- Yoki: expo.dev/accounts/medik2244s-organization/settings/billing orqali plan upgrade
+## Expo Credentials (Yangi akkaunt)
+- **Email**: Dubaymall.beauty@gmail.com
+- **Username**: medik3636
+- **Password**: Medik9298
+
+## 2026 Pricing Model
+```
+Premium Tariff:
+├── Oylik to'lov: $499/month
+├── Revenue Share: 4%
+└── Cheksiz AI karta, mahsulot
+```
+
+## Admin Panel Endpoints
+- `PUT /api/admin/partners/:id/activate` - Manual activation (to'lovsiz)
+- `GET /api/admin/partners` - List all partners
+- `PUT /api/admin/partners/:id/approve` - Approve partner
+- `PUT /api/admin/partners/:id/block` - Block partner
 
 ## Architecture
 ```
@@ -36,42 +51,6 @@ SellerCloudX.com - AI-powered marketplace automation SaaS. 4 ta marketplace (Yan
 └── migrations/         # SQL Migrations
 ```
 
-## 2026 Pricing Model
-```
-Premium Tariff:
-├── Oylik to'lov: $499/month
-├── Revenue Share: 4%
-└── Cheksiz AI karta, mahsulot
-
-Individual Tariff:
-├── Kelishuv asosida
-└── 2% minimum revenue share
-```
-
-## Admin Panel Features
-- `/api/admin/partners` - Hamkorlar ro'yxati
-- `/api/admin/partners/:id/activate` - Hamkorni faollashtirish (to'lovsiz)
-- `/api/admin/partners/:id/approve` - Hamkorni tasdiqlash
-- `/api/admin/partners/:id/block` - Hamkorni bloklash
-
-## API Endpoints
-
-### Admin (Node.js)
-- `PUT /api/admin/partners/:id/activate` - Manual activation
-- `GET /api/admin/partners` - List all partners
-
-### Mobile Scanner (Python)
-- `POST /api/unified-scanner/analyze-base64`
-- `POST /api/unified-scanner/full-process`
-
-### Partner
-- `GET /api/partner/marketplace-integrations`
-- `PUT /api/partners/me`
-
-## Test Credentials
-- **Expo**: rasmiydorixona@gmail.com / Medik9298
-- **Yandex**: token: ACMA:OIjjTDFMnmBe7XOs7EqaWqdoXUS772aKqwqjXj6C:245e5a96
-
 ## Files Modified (v1.0.4)
 
 ### New Files:
@@ -79,35 +58,23 @@ Individual Tariff:
 
 ### Modified Files:
 - `/app/mobile/App.tsx` - Custom splash integration
-- `/app/mobile/src/screens/HomeScreen.tsx` - Full redesign with dark header
+- `/app/mobile/src/screens/HomeScreen.tsx` - Dark header, activation check
 - `/app/mobile/src/screens/PricingScreen.tsx` - No setup fee, no free trial
 - `/app/mobile/src/utils/constants.ts` - 4 marketplaces, new colors
 - `/app/server/routes.ts` - Admin activate endpoint
 - `/app/backend/server.py` - Admin endpoints (Python)
 
+## Test Credentials
+- **Yandex**: token: ACMA:OIjjTDFMnmBe7XOs7EqaWqdoXUS772aKqwqjXj6C:245e5a96
+
 ## Known Issues
-
-### P1 - EAS Build Limit
-- Build limit tugadi, Feb 1 dan keyin yangi build
-- Hozirgi APK (v1.0.3) ishlaydi
-
-### P1 - Node.js Drizzle ORM
-- Production DB schema mismatch
-- Workaround applied
+- Node.js Drizzle ORM production schema mismatch (workaround applied)
 
 ## Backlog
 
-### P0 (Done in v1.0.4 code)
-- [x] Fintech splash screen
-- [x] Account activation system
-- [x] Remove $699 setup fee display
-- [x] Remove 7-day free trial
-- [x] Admin manual activation
-
-### P1 (Pending Build)
-- [ ] Build APK v1.0.4
-- [ ] Test account activation flow
-- [ ] Test kartochka yaratish
+### P1 (Pending Test)
+- [ ] Test kartochka yaratish flow
+- [ ] Test account activation
 
 ### P2
 - [ ] Uzum Market integration
