@@ -176,6 +176,7 @@ export default function UploadProductScreen() {
       return;
     }
     
+    // Qisqa loading - faqat rasm tayyorlash uchun
     setIsLoading(true);
     setUploadProgress('Rasm tayyorlanmoqda...');
     
@@ -201,44 +202,39 @@ export default function UploadProductScreen() {
         marketplace: selectedMarketplace,
       };
       
-      // QUEUE GA QO'SHISH - Fonga o'tkazish
+      // QUEUE GA QO'SHISH - Darhol qaytish
       await offlineQueue.addToQueue(
         selectedMarketplace === 'yandex' ? 'yandex_upload' : 'uzum_upload',
         uploadData
       );
       
-      // AI karta ishlatilganini qayd qilish
-      try {
-        await partnerApi.recordAiCardUsage();
-        updatePartner({
-          aiCardsUsed: (partner.aiCardsUsed || 0) + 1,
-          aiCardsThisMonth: (partner.aiCardsThisMonth || 0) + 1,
-        });
-      } catch (e) {
-        console.log('AI card usage error:', e);
-      }
+      // Loading ni o'chirish - foydalanuvchi darhol davom eta oladi
+      setIsLoading(false);
+      setUploadProgress('');
       
       // Darhol scanner'ga qaytish
       Alert.alert(
-        '✅ Navbatga qo\'shildi',
+        '✅ Navbatga qo\'shildi!',
         `Mahsulot kartochkasi fonda yaratilmoqda.\n\n` +
-        `Siz davom etib boshqa mahsulotlarni skanerlashingiz mumkin.`,
+        `Siz davom etib boshqa mahsulotlarni skanerlashingiz mumkin.\n\n` +
+        `📊 Holat: Bosh sahifadagi "Kutilmoqda" bo'limida ko'ring.`,
         [
           {
-            text: 'Yangi skan',
+            text: '📸 Yangi skan',
             onPress: () => navigation.navigate(SCREENS.SCANNER),
           },
           {
-            text: 'Bosh sahifa',
+            text: '🏠 Bosh sahifa',
             onPress: () => navigation.navigate(SCREENS.HOME),
+            style: 'cancel',
           },
         ]
       );
       
-      // Fonda yuklashni boshlash (agar online bo'lsa)
+      // Fonda yuklashni boshlash (UI blokirovka qilmaydi)
       const netInfo = await NetInfo.fetch();
       if (netInfo.isConnected) {
-        // Background upload - UI blokirovka qilmaydi
+        // Fire and forget - UI kutmaydi
         scannerApi.fullProcess({
           imageBase64: base64Image,
           costPrice: costPriceNum,
@@ -246,9 +242,11 @@ export default function UploadProductScreen() {
           partnerId: partner.id,
         }).then(result => {
           if (result.success) {
-            console.log('✅ Background upload completed:', result.sku);
+            console.log('✅ Background upload completed:', result.sku || result.offer_id);
             // Navbatdan o'chirish
             offlineQueue.removeCompleted(uploadData);
+            // AI karta ishlatilganini qayd qilish
+            partnerApi.recordAiCardUsage().catch(e => console.log('AI card usage error:', e));
           } else {
             console.log('❌ Background upload failed:', result.error);
           }
@@ -259,10 +257,9 @@ export default function UploadProductScreen() {
       
     } catch (error: any) {
       console.error('Upload error:', error);
-      Alert.alert(t('common.error'), error.message || t('product.uploadFailed'));
-    } finally {
       setIsLoading(false);
       setUploadProgress('');
+      Alert.alert(t('common.error'), error.message || t('product.uploadFailed'));
     }
   };
   
