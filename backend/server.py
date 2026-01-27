@@ -443,6 +443,12 @@ async def ai_scan_from_url(request: ScanFromURLRequest):
             from yandex_rules import get_yandex_commission_rate
             commission_rate = get_yandex_commission_rate(category)
             
+            # Calculate suggested price with proper margin
+            cost = estimated_price
+            commission_decimal = commission_rate / 100 if commission_rate > 1 else commission_rate
+            margin = 0.25  # 25% margin
+            suggested_price = int(cost / (1 - commission_decimal - margin))
+            
             return {
                 "success": True,
                 "scan_result": {
@@ -461,10 +467,11 @@ async def ai_scan_from_url(request: ScanFromURLRequest):
                     },
                     "price_analysis": {
                         "estimated_cost": estimated_price,
-                        "commission_rate": commission_rate,
-                        "suggested_price": int(estimated_price * (1 + commission_rate + 0.15)),
-                        "min_price": int(estimated_price * 1.1),
-                        "max_price": int(estimated_price * 1.5)
+                        "commission_percent": commission_rate if commission_rate > 1 else commission_rate * 100,
+                        "margin_percent": 25,
+                        "suggested_price": suggested_price,
+                        "min_price": int(cost * 1.2),
+                        "max_price": int(cost * 1.8)
                     },
                     "image_url": request.image_url,
                     "ready_for_card": True
