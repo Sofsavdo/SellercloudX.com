@@ -187,14 +187,27 @@ class AutonomousAIManager {
 
       for (const partner of activePartners) {
         try {
-          // Get partner's products
-          const partnerProducts = await db.select()
+          // Get partner's products - select only required columns
+          const partnerProducts = await db.select({
+            id: products.id,
+            name: products.name,
+            category: products.category,
+            description: products.description,
+            price: products.price,
+            isActive: products.isActive,
+            partnerId: products.partnerId
+          })
             .from(products)
             .where(eq(products.partnerId, partner.id))
             .where(eq(products.isActive, true));
 
-          // Get active marketplace integrations
-          const integrations = await db.select()
+          // Get active marketplace integrations - select only required columns
+          const integrations = await db.select({
+            id: marketplaceIntegrations.id,
+            marketplace: marketplaceIntegrations.marketplace,
+            partnerId: marketplaceIntegrations.partnerId,
+            active: marketplaceIntegrations.active
+          })
             .from(marketplaceIntegrations)
             .where(eq(marketplaceIntegrations.partnerId, partner.id))
             .where(eq(marketplaceIntegrations.active, true));
