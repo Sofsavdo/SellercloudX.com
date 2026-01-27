@@ -170,6 +170,14 @@ class YandexMarketAPI:
             }
         
         try:
+            # Validate required fields
+            if not pictures or len(pictures) == 0:
+                return {
+                    "success": False,
+                    "error": "Kamida 1 ta rasm kerak (pictures)",
+                    "help": "AI Manager infografika generatsiya qilishi yoki siz rasm yuklashingiz kerak"
+                }
+            
             # Build offer data
             offer_data = {
                 "offerId": offer_id,
@@ -184,18 +192,13 @@ class YandexMarketAPI:
             if category_id:
                 offer_data["marketCategoryId"] = category_id
             
-            # Add dimensions if provided
-            if weight_kg or dimensions:
-                offer_data["weightDimensions"] = {}
-                if weight_kg:
-                    offer_data["weightDimensions"]["weight"] = weight_kg
-                if dimensions:
-                    if "length" in dimensions:
-                        offer_data["weightDimensions"]["length"] = dimensions["length"]
-                    if "width" in dimensions:
-                        offer_data["weightDimensions"]["width"] = dimensions["width"]
-                    if "height" in dimensions:
-                        offer_data["weightDimensions"]["height"] = dimensions["height"]
+            # REQUIRED: Weight and dimensions - Yandex requires all 4 values
+            offer_data["weightDimensions"] = {
+                "weight": weight_kg if weight_kg else 0.5,  # Default 500g
+                "length": dimensions.get("length", 20) if dimensions else 20,  # Default 20cm
+                "width": dimensions.get("width", 15) if dimensions else 15,    # Default 15cm
+                "height": dimensions.get("height", 10) if dimensions else 10   # Default 10cm
+            }
             
             # Add barcode if provided
             if barcode:
