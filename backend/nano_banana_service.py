@@ -237,13 +237,21 @@ async def generate_single_infographic(
         print(f"🎨 Generating professional infographic #{index} for: {brand} {product_name}")
         
         # Get specialized prompt for this index
-        prompt = get_marketplace_infographic_prompt(
+        base_prompt = get_marketplace_infographic_prompt(
             product_name=product_name,
             brand=brand,
             features=features,
             category=category,
             index=index
         )
+        
+        # Add size requirement to prompt
+        prompt = f"""{base_prompt}
+
+IMAGE SPECIFICATIONS:
+- Resolution: 1080x1440 pixels (portrait, 3:4 aspect ratio)
+- Format: High quality, marketplace-ready
+- Style: Professional e-commerce infographic"""
         
         # Try emergentintegrations first
         try:
@@ -252,10 +260,14 @@ async def generate_single_infographic(
             chat = LlmChat(
                 api_key=EMERGENT_LLM_KEY,
                 session_id=f"infographic-{datetime.now().strftime('%Y%m%d%H%M%S')}-{index}",
-                system_message="You are a PROFESSIONAL e-commerce product photographer and infographic designer specializing in Wildberries and Yandex Market product cards. You create sales-boosting, conversion-optimized marketplace images."
+                system_message="You are a PROFESSIONAL e-commerce product photographer and infographic designer specializing in Wildberries and Yandex Market product cards. You create sales-boosting, conversion-optimized marketplace images at 1080x1440 resolution."
             )
             
-            chat.with_model("gemini", "gemini-3-pro-image-preview").with_params(modalities=["image", "text"])
+            # Set model with aspect ratio parameter
+            chat.with_model("gemini", "gemini-3-pro-image-preview").with_params(
+                modalities=["image", "text"],
+                aspect_ratio="3:4"  # Portrait for marketplace
+            )
             
             msg = UserMessage(text=prompt)
             text_response, images = await chat.send_message_multimodal_response(msg)
@@ -273,7 +285,8 @@ async def generate_single_infographic(
                         "success": True,
                         "image_url": image_url,
                         "index": index,
-                        "type": ["hero_floating", "benefits", "composition", "usage", "purity", "lifestyle"][index-1]
+                        "type": ["hero_floating", "benefits", "composition", "usage", "purity", "lifestyle"][index-1],
+                        "size": "1080x1440"
                     }
             
             return {
