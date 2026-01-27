@@ -279,6 +279,7 @@ export const partnerNavItems: SidebarNavItem[] = [
   { id: 'ai-scanner', label: 'AI Scanner', icon: Search, isNew: true, isPremium: true },
   { id: 'trend-hunter', label: 'Trend Hunter', icon: TrendingUp, isNew: true, isPremium: true },
   { id: 'analytics', label: 'Tahlillar', icon: BarChart3 },
+  { id: 'payments', label: 'To\'lovlar', icon: CreditCard, isNew: true },
   { id: 'wallet', label: 'Hamyon', icon: Wallet },
   { id: 'referrals', label: 'Referrallar', icon: Gift },
   { id: 'chat', label: 'Yordam', icon: MessageSquare },
