@@ -139,8 +139,8 @@ export const scannerApi = {
   // AI bilan rasmni tahlil qilish
   analyzeImage: async (imageBase64: string): Promise<ScanResult> => {
     try {
-      // Public endpoint (autentifikatsiyasiz)
-      const response = await api.post('/ai/scanner/public-analyze', {
+      // Unified scanner endpoint (autentifikatsiyasiz)
+      const response = await api.post('/unified-scanner/analyze-base64', {
         image_base64: imageBase64,
         language: 'uz',
       });
