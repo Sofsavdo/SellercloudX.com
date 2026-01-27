@@ -174,8 +174,13 @@ class AutonomousAIManager {
     console.log('🔍 Checking for products without marketplace cards...');
     
     try {
-      // Get all active partners with AI enabled
-      const activePartners = await db.select()
+      // Get all active partners with AI enabled - select only required columns
+      const activePartners = await db.select({
+        id: partners.id,
+        name: partners.name,
+        aiEnabled: partners.aiEnabled,
+        approved: partners.approved
+      })
         .from(partners)
         .where(eq(partners.aiEnabled, true))
         .where(eq(partners.approved, true));
