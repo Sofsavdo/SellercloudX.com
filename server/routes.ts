@@ -234,6 +234,17 @@ export function registerRoutes(app: express.Application): Server {
 
   // Serve uploaded files statically
   app.use('/uploads', express.static(uploadPath));
+  
+  // Serve mobile app statically
+  const mobileAppPath = path.join(__dirname, '../backend/static/mobile');
+  if (fs.existsSync(mobileAppPath)) {
+    app.use('/mobile-app', express.static(mobileAppPath));
+    // Serve index.html for all mobile app routes (SPA)
+    app.get('/mobile-app/*', (_req, res) => {
+      res.sendFile(path.join(mobileAppPath, 'index.html'));
+    });
+    console.log('📱 Mobile app served at /mobile-app');
+  }
 
   // Session configuration
   app.use(session(getSessionConfig()));
