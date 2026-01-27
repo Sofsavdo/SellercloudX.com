@@ -319,7 +319,7 @@ export default function PartnerDashboard() {
                 icon={Scan} 
                 badge={{ text: 'NEW', icon: Sparkles }} 
               />
-              <AIScanner />
+              <DashboardAIScanner />
             </div>
           )}
 
