@@ -3872,6 +3872,77 @@ async def yandex_partner_dashboard(credentials: YandexCredentials):
 
 
 # ========================================
+# NANO BANANA INFOGRAPHIC GENERATION
+# ========================================
+
+class InfographicRequest(BaseModel):
+    """Request model for infographic generation"""
+    product_name: str
+    brand: str
+    features: List[str] = []
+    count: int = 6  # Default 6 images for Yandex
+
+
+@app.post("/api/ai/generate-infographics")
+async def generate_infographics(request: InfographicRequest):
+    """
+    Generate AI infographic images for product card
+    Uses Gemini Nano Banana (gemini-3-pro-image-preview)
+    
+    Returns:
+    - images: List of image URLs
+    - generated_count: Number of successfully generated images
+    """
+    try:
+        from nano_banana_service import generate_product_infographics
+        
+        result = await generate_product_infographics(
+            product_name=request.product_name,
+            brand=request.brand,
+            features=request.features,
+            count=min(request.count, 6)  # Max 6 images
+        )
+        
+        return result
+        
+    except ImportError as e:
+        # Service not available, return helpful message
+        return {
+            "success": False,
+            "error": "Nano Banana service not available",
+            "help": "emergentintegrations kutubxonasini o'rnating",
+            "details": str(e)
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.post("/api/ai/generate-single-image")
+async def generate_single_image(
+    product_name: str,
+    brand: str,
+    style: str = "professional",
+    features: List[str] = []
+):
+    """Generate single product image"""
+    try:
+        from nano_banana_service import generate_single_infographic
+        
+        result = await generate_single_infographic(
+            product_name=product_name,
+            brand=brand,
+            features=features,
+            style=style,
+            index=1
+        )
+        
+        return result
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+# ========================================
 # MXIK/IKPU ENDPOINTS - tasnif.soliq.uz
 # ========================================
 
