@@ -2,6 +2,7 @@
 // Shows monthly sales, debt calculation, payment history, and sales growth comparison
 
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,36 +26,43 @@ const USD_TO_UZS = 12600;
 
 export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardProps) {
   const { toast } = useToast();
-  const [salesData, setSalesData] = useState<any>(null);
-  const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Calculate values
-  const setupFeeUzs = (partner?.setupFeeUsd || 699) * USD_TO_UZS;
-  const monthlyFeeUzs = (partner?.monthlyFeeUsd || 499) * USD_TO_UZS;
-  const revenueSharePercent = partner?.revenueSharePercent || 0.04;
-  const totalDebt = partner?.totalDebtUzs || 0;
-  const isBlocked = partner?.blockedUntil && new Date(partner.blockedUntil) > new Date();
-  const setupPaid = partner?.setupPaid || false;
+  // Fetch billing summary from API
+  const { data: billingData, isLoading, refetch } = useQuery({
+    queryKey: ['billing-summary'],
+    queryFn: async () => {
+      try {
+        const res = await apiRequest('GET', '/api/billing/revenue-share/summary');
+        const data = await res.json();
+        return data.success ? data.data : null;
+      } catch (error) {
+        console.error('Billing fetch error:', error);
+        return null;
+      }
+    },
+    refetchInterval: 60000, // Refresh every minute
+  });
 
-  // Mock sales data for demo (replace with real API)
-  const mockSalesData = {
-    currentMonth: {
-      totalSales: 85000000, // 85M UZS
-      orders: 127,
-      revenueShare: 3400000, // 4% of 85M
-      monthlyFee: monthlyFeeUzs,
-      totalDue: 3400000 + monthlyFeeUzs
-    },
-    previousMonth: {
-      totalSales: 72000000,
-      orders: 98,
-      revenueShare: 2880000,
-      monthlyFee: monthlyFeeUzs,
-      paid: true
-    },
-    beforeUs: partner?.salesBeforeUs || 45000000, // Sales before joining
-    growth: 0 // Calculated below
+  // Calculate values from partner or API response
+  const setupFeeUzs = (billingData?.setupFeeUsd || partner?.setupFeeUsd || 699) * USD_TO_UZS;
+  const monthlyFeeUzs = (billingData?.monthlyFeeUsd || partner?.monthlyFeeUsd || 499) * USD_TO_UZS;
+  const revenueSharePercent = billingData?.revenueSharePercent || partner?.revenueSharePercent || 0.04;
+  const totalDebt = billingData?.currentDebt || partner?.totalDebtUzs || 0;
+  const isBlocked = billingData?.isBlocked || (partner?.blockedUntil && new Date(partner.blockedUntil) > new Date());
+  const setupPaid = billingData?.setupPaid || partner?.setupPaid || false;
+  const salesBeforeUs = billingData?.salesBeforeUs || partner?.salesBeforeUs || 0;
+  const currentMonthSales = billingData?.currentMonthSales || 0;
+  const salesGrowthPercent = billingData?.salesGrowthPercent || 0;
+  const paymentHistory = billingData?.paymentHistory || [];
+  const monthlyBreakdown = billingData?.monthlyBreakdown || [];
+
+  // Calculate current month data
+  const currentMonthData = {
+    totalSales: currentMonthSales,
+    orders: monthlyBreakdown[0]?.totalOrders || 0,
+    revenueShare: Math.round(currentMonthSales * revenueSharePercent),
+    monthlyFee: monthlyFeeUzs,
+    totalDue: Math.round(currentMonthSales * revenueSharePercent) + monthlyFeeUzs
   };
 
   // Calculate growth
