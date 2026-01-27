@@ -79,6 +79,7 @@ import uzumMarketRoutes from "./routes/uzumMarketRoutes";
 import pythonBackendProxy from "./routes/pythonBackendProxy";
 import clickPaymentRoutes from "./routes/clickPaymentRoutes";
 import unifiedScannerRoutes from "./routes/unifiedScannerRoutes";
+import mxikRoutes from "./routes/mxikRoutes";
 import { checkAndProcessFirstPurchase } from "./services/referralFirstPurchaseService";
 
 // Yangi tizimlar
