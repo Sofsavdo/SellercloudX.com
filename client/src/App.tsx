@@ -33,6 +33,7 @@ import YandexMarketScanner from "./pages/YandexMarketScanner";
 import YandexQuickCreate from "./pages/YandexQuickCreate";
 import InfographicGenerator from "./pages/InfographicGenerator";
 import AIProductCreator from "./pages/AIProductCreator";
+import PricingPage from "./pages/PricingPage";
 
 function Router() {
   return (
