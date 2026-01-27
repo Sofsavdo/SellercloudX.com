@@ -457,7 +457,7 @@ async def ai_scan_from_url(request: ScanFromURLRequest):
                     },
                     "mxik": {
                         "code": mxik_code,
-                        "full_code": mxik_code + "000000000" if len(mxik_code) < 17 else mxik_code
+                        "full_code": mxik_full
                     },
                     "price_analysis": {
                         "estimated_cost": estimated_price,
