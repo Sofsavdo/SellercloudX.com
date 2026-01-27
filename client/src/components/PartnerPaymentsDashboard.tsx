@@ -353,7 +353,7 @@ export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardPr
                 <div className="flex justify-between items-center text-lg">
                   <span className="font-bold">JAMI TO'LOV:</span>
                   <span className="text-2xl font-black text-primary">
-                    {formatUzs((salesData?.currentMonth?.totalDue || 0) + (!setupPaid ? setupFeeUzs : 0))}
+                    {formatUzs(currentMonthData.totalDue + (!setupPaid ? setupFeeUzs : 0))}
                   </span>
                 </div>
               </div>
@@ -377,7 +377,7 @@ export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardPr
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {paymentHistory.map((payment) => (
+                {paymentHistory.map((payment: any) => (
                   <div key={payment.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -391,17 +391,19 @@ export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardPr
                       </div>
                       <div>
                         <p className="font-medium">
-                          {payment.type === 'monthly_fee' ? 'Oylik to\'lov' : 
-                           payment.type === 'revenue_share' ? 'Revenue Share' :
-                           payment.type === 'setup_fee' ? 'Setup to\'lov' : payment.type}
+                          {payment.paymentType === 'monthly_fee' ? 'Oylik to\'lov' : 
+                           payment.paymentType === 'revenue_share' ? 'Revenue Share' :
+                           payment.paymentType === 'setup_fee' ? 'Setup to\'lov' : payment.paymentType}
                         </p>
-                        <p className="text-sm text-muted-foreground">{payment.date}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(payment.createdAt * 1000).toLocaleDateString('uz-UZ')}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold">{formatUzs(payment.amount)}</p>
+                      <p className="font-bold">{formatUzs(payment.amountUzs)}</p>
                       <Badge variant="outline" className="text-xs">
-                        {payment.method.toUpperCase()}
+                        {(payment.paymentMethod || 'N/A').toUpperCase()}
                       </Badge>
                     </div>
                   </div>
