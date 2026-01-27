@@ -2,62 +2,94 @@
 // Production API - Preview or Railway
 export const API_BASE_URL = 'https://ezmktplace.preview.emergentagent.com/api';
 
-// Ranglar
+// Ranglar - Zamonaviy Professional Palette
 export const COLORS = {
-  primary: '#4F46E5',      // Indigo
-  primaryDark: '#4338CA',
-  secondary: '#10B981',    // Emerald (success)
-  accent: '#F59E0B',       // Amber
-  danger: '#EF4444',       // Red
-  error: '#EF4444',        // Red (alias for danger)
+  primary: '#2563EB',      // Royal Blue - professional
+  primaryDark: '#1D4ED8',
+  secondary: '#059669',    // Emerald - success
+  accent: '#F59E0B',       // Amber - warnings
+  danger: '#DC2626',       // Red
+  error: '#DC2626',        // Red (alias)
   
-  background: '#F9FAFB',
+  background: '#F8FAFC',
   surface: '#FFFFFF',
-  surfaceAlt: '#F3F4F6',
+  surfaceAlt: '#F1F5F9',
   
-  text: '#111827',
-  textSecondary: '#6B7280',
-  textLight: '#9CA3AF',
+  text: '#0F172A',
+  textSecondary: '#64748B',
+  textLight: '#94A3B8',
   
-  border: '#E5E7EB',
-  borderDark: '#D1D5DB',
+  border: '#E2E8F0',
+  borderDark: '#CBD5E1',
   
   white: '#FFFFFF',
   black: '#000000',
+  
+  // Marketplace colors
+  yandex: '#FFCC00',
+  uzum: '#7C3AED',
+  wildberries: '#CB11AB',
+  ozon: '#005BFF',
 };
 
-// Tariflar
+// 2026 MODEL - Yangi tarif tizimi (Revenue Share)
+export const PRICING_2026 = {
+  premium: {
+    id: 'premium_2026',
+    name: 'Premium',
+    setupFee: 699,      // USD
+    monthlyFee: 499,    // USD
+    revenueShare: 4,    // %
+    aiCards: -1,        // Cheksiz
+    products: -1,       // Cheksiz
+  }
+};
+
+// Eski tariflar (legacy - faqat mavjud foydalanuvchilar uchun)
 export const TIERS = {
   free_starter: {
-    name: "Free Starter",
+    name: "Sinov",
     monthlyPrice: 0,
-    aiCards: 10,
-    products: 50,
+    aiCards: 5,
+    products: 10,
+    legacy: true,
   },
   starter_pro: {
-    name: "Starter Pro",
+    name: "Starter",
     monthlyPrice: 828000,
-    aiCards: 100,
-    products: 500,
+    aiCards: 50,
+    products: 200,
+    legacy: true,
   },
   professional_plus: {
-    name: "Professional Plus",
+    name: "Professional",
     monthlyPrice: 4188000,
-    aiCards: 1000,
-    products: 5000,
+    aiCards: 500,
+    products: 2000,
+    legacy: true,
   },
   enterprise_elite: {
-    name: "Enterprise Elite",
+    name: "Enterprise",
     monthlyPrice: 10788000,
-    aiCards: -1, // Unlimited
+    aiCards: -1,
     products: -1,
+    legacy: true,
+  },
+  premium_2026: {
+    name: "Premium 2026",
+    monthlyPrice: 499,
+    aiCards: -1,
+    products: -1,
+    legacy: false,
   },
 };
 
-// Marketplacelar
+// 4 ta Marketplace - Hozir va kelajak
 export const MARKETPLACES = [
-  { id: 'yandex', name: 'Yandex Market', icon: '🛒', color: '#FFCC00' },
-  { id: 'uzum', name: 'Uzum Market', icon: '🛍️', color: '#7C3AED' },
+  { id: 'yandex', name: 'Yandex Market', icon: '🟡', color: '#FFCC00', active: true },
+  { id: 'uzum', name: 'Uzum Market', icon: '🟣', color: '#7C3AED', active: false, coming: true },
+  { id: 'wildberries', name: 'Wildberries', icon: '🟣', color: '#CB11AB', active: false, coming: true },
+  { id: 'ozon', name: 'Ozon', icon: '🔵', color: '#005BFF', active: false, coming: true },
 ];
 
 // Offline Queue statuslari
@@ -75,6 +107,7 @@ export const STORAGE_KEYS = {
   PARTNER_DATA: 'partner_data',
   OFFLINE_QUEUE: 'offline_queue',
   LANGUAGE: 'language',
+  DARK_MODE: 'dark_mode',
 };
 
 // Ekran nomlari
