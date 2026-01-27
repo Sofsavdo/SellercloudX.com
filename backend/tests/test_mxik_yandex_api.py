@@ -12,7 +12,7 @@ import time
 # Get BASE_URL from environment
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://vendorai.preview.emergentagent.com"
+    BASE_URL = "https://yandexbot.preview.emergentagent.com"
 
 # Test credentials provided by main agent
 YANDEX_API_TOKEN = "ACMA:OIjjTDFMnmBe7XOs7EqaWqdoXUS772aKqwqjXj6C:245e5a96"

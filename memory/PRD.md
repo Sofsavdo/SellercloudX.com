@@ -4,8 +4,8 @@
 SellerCloudX.com - AI-powered marketplace automation SaaS. Complete automation from camera scan to Yandex Market listing with real API integration.
 
 ## Live Environment
-- **Preview URL**: https://vendorai.preview.emergentagent.com
-- **Mobile API**: https://vendorai.preview.emergentagent.com/api
+- **Preview URL**: https://yandexbot.preview.emergentagent.com
+- **Mobile API**: https://yandexbot.preview.emergentagent.com/api
 
 ## Architecture
 ```
@@ -191,7 +191,7 @@ total_debt = monthly_fee_uzs + revenue_share
 
 ### Mobile API Base
 ```
-https://vendorai.preview.emergentagent.com/api
+https://yandexbot.preview.emergentagent.com/api
 ```
 
 ## Last Updated

@@ -52,7 +52,7 @@ yarn android
 
 ### API URL (`src/utils/constants.ts`)
 ```typescript
-export const API_BASE_URL = 'https://vendorai.preview.emergentagent.com/api';
+export const API_BASE_URL = 'https://yandexbot.preview.emergentagent.com/api';
 ```
 
 Production uchun o'zgartiring:

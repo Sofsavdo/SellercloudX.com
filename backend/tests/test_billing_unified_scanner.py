@@ -17,7 +17,7 @@ import time
 from datetime import datetime
 
 # Base URL from environment
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://vendorai.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://yandexbot.preview.emergentagent.com').rstrip('/')
 
 # Test image URL
 TEST_IMAGE_URL = "https://i.ibb.co/MkqKDcBn/68785868b3db.jpg"

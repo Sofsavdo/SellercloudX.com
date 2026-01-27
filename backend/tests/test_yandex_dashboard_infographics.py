@@ -13,7 +13,7 @@ import os
 import time
 
 # Use public URL from environment
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://vendorai.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://yandexbot.preview.emergentagent.com').rstrip('/')
 
 # Test credentials from review request
 YANDEX_API_TOKEN = "ACMA:OIjjTDFMnmBe7XOs7EqaWqdoXUS772aKqwqjXj6C:245e5a96"
