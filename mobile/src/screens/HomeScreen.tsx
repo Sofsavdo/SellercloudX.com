@@ -1,4 +1,4 @@
-// Home Screen - Dashboard (HAQIQIY API)
+// Home Screen - Dashboard (2026 MODEL)
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
@@ -8,21 +8,25 @@ import {
   TouchableOpacity,
   RefreshControl,
   Image,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { COLORS, SCREENS, TIERS } from '../utils/constants';
+import { COLORS, SCREENS, MARKETPLACES, PRICING_2026 } from '../utils/constants';
 import { formatPrice, formatShortPrice } from '../utils/helpers';
 import { useAuthStore } from '../store/authStore';
 import { useProductsStore } from '../store/productsStore';
-import { offlineQueue, QueueItem } from '../services/offlineQueue';
+import { offlineQueue } from '../services/offlineQueue';
 import { partnerApi } from '../services/api';
 
-// Marketplace ulanish holati
-interface MarketplaceConnectionStatus {
+const { width } = Dimensions.get('window');
+
+interface MarketplaceStatus {
   yandex: boolean;
   uzum: boolean;
+  wildberries: boolean;
+  ozon: boolean;
   loading: boolean;
 }
 
@@ -34,20 +38,20 @@ export default function HomeScreen() {
   
   const [refreshing, setRefreshing] = useState(false);
   const [queueStats, setQueueStats] = useState({ pending: 0, total: 0 });
-  const [marketplaceStatus, setMarketplaceStatus] = useState<MarketplaceConnectionStatus>({
+  const [marketplaceStatus, setMarketplaceStatus] = useState<MarketplaceStatus>({
     yandex: false,
     uzum: false,
+    wildberries: false,
+    ozon: false,
     loading: true,
   });
   
-  // Load data on mount
   useEffect(() => {
     fetchProducts();
     loadQueueStats();
     checkMarketplaceConnections();
   }, []);
   
-  // Refresh partner data when screen is focused
   useFocusEffect(
     useCallback(() => {
       refreshPartner();
@@ -56,7 +60,6 @@ export default function HomeScreen() {
     }, [])
   );
   
-  // Marketplace ulanishlarini tekshirish
   const checkMarketplaceConnections = async () => {
     try {
       const response = await partnerApi.getMarketplaceStatus();
@@ -64,22 +67,15 @@ export default function HomeScreen() {
         setMarketplaceStatus({
           yandex: response.yandex?.connected || false,
           uzum: response.uzum?.connected || false,
+          wildberries: false,
+          ozon: false,
           loading: false,
         });
       } else {
-        setMarketplaceStatus({
-          yandex: false,
-          uzum: false,
-          loading: false,
-        });
+        setMarketplaceStatus(prev => ({ ...prev, loading: false }));
       }
     } catch (error) {
-      console.log('Marketplace status check error:', error);
-      setMarketplaceStatus({
-        yandex: false,
-        uzum: false,
-        loading: false,
-      });
+      setMarketplaceStatus(prev => ({ ...prev, loading: false }));
     }
   };
   
@@ -99,161 +95,181 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
   
-  // Stats - haqiqiy ma'lumotlar asosida
   const activeProducts = products.filter(p => p.status === 'active').length;
-  const tierLimits = TIERS[partner?.pricingTier as keyof typeof TIERS] || TIERS.free_starter;
-  const aiCardsLimit = tierLimits.aiCards;
-  const aiCardsUsed = partner?.aiCardsThisMonth || partner?.aiCardsUsed || 0;
-  const aiCardsLeft = aiCardsLimit === -1 ? '♾️' : Math.max(0, aiCardsLimit - aiCardsUsed);
-  
-  // Birorta marketplace ulangan mi?
   const hasAnyMarketplace = marketplaceStatus.yandex || marketplaceStatus.uzum;
   
   return (
     <ScrollView
       style={styles.container}
+      contentContainerStyle={styles.contentContainer}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>{t('home.welcome')},</Text>
-          <Text style={styles.username}>{user?.username || partner?.businessName}</Text>
+        <View style={styles.headerLeft}>
+          <Text style={styles.greeting}>Salom,</Text>
+          <Text style={styles.username} numberOfLines={1}>
+            {partner?.businessName || user?.username || 'Foydalanuvchi'}
+          </Text>
         </View>
         <TouchableOpacity
-          style={styles.notificationButton}
+          style={styles.settingsBtn}
           onPress={() => navigation.navigate(SCREENS.SETTINGS)}
         >
-          <Ionicons name="notifications-outline" size={24} color={COLORS.text} />
-          {queueStats.pending > 0 && (
-            <View style={styles.notificationBadge}>
-              <Text style={styles.notificationBadgeText}>{queueStats.pending}</Text>
-            </View>
-          )}
+          <Ionicons name="settings-outline" size={22} color={COLORS.text} />
         </TouchableOpacity>
       </View>
       
-      {/* Marketplace Ulanmagan Ogohlantirish */}
+      {/* Marketplace Status Banner */}
       {!marketplaceStatus.loading && !hasAnyMarketplace && (
         <TouchableOpacity
           style={styles.warningBanner}
           onPress={() => navigation.navigate(SCREENS.SETTINGS)}
         >
-          <Ionicons name="warning" size={24} color={COLORS.white} />
+          <View style={styles.warningIconBox}>
+            <Ionicons name="warning" size={20} color={COLORS.white} />
+          </View>
           <View style={styles.warningContent}>
-            <Text style={styles.warningTitle}>⚠️ Marketplace Ulanmagan</Text>
-            <Text style={styles.warningText}>
-              Mahsulotlarni sotish uchun Yandex yoki Uzum Market API kalitlarini ulang
-            </Text>
+            <Text style={styles.warningTitle}>Marketplace ulanmagan</Text>
+            <Text style={styles.warningText}>API kalitlarini ulang</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={COLORS.white} />
         </TouchableOpacity>
       )}
       
-      {/* Marketplace Status - Agar ulangan bo'lsa */}
+      {/* Connected Marketplaces */}
       {!marketplaceStatus.loading && hasAnyMarketplace && (
-        <View style={styles.marketplaceStatusBar}>
-          {marketplaceStatus.yandex && (
-            <View style={styles.connectedMarketplace}>
-              <Text style={styles.connectedLogo}>🟡</Text>
-              <Text style={styles.connectedName}>Yandex</Text>
-              <Ionicons name="checkmark-circle" size={16} color={COLORS.secondary} />
+        <View style={styles.connectedBar}>
+          {MARKETPLACES.filter(m => m.active && marketplaceStatus[m.id as keyof MarketplaceStatus]).map(mp => (
+            <View key={mp.id} style={styles.connectedItem}>
+              <Text style={styles.connectedIcon}>{mp.icon}</Text>
+              <Text style={styles.connectedName}>{mp.name.split(' ')[0]}</Text>
+              <Ionicons name="checkmark-circle" size={14} color={COLORS.secondary} />
             </View>
-          )}
-          {marketplaceStatus.uzum && (
-            <View style={styles.connectedMarketplace}>
-              <Text style={styles.connectedLogo}>🟣</Text>
-              <Text style={styles.connectedName}>Uzum</Text>
-              <Ionicons name="checkmark-circle" size={16} color={COLORS.secondary} />
-            </View>
-          )}
+          ))}
         </View>
       )}
       
-      {/* Quick Scan Button */}
+      {/* Quick Scan - Main CTA */}
       <TouchableOpacity
-        style={styles.quickScanButton}
+        style={styles.scanButton}
         onPress={() => navigation.navigate(SCREENS.SCANNER)}
+        activeOpacity={0.85}
       >
-        <View style={styles.quickScanContent}>
-          <View style={styles.quickScanIcon}>
-            <Ionicons name="camera" size={32} color={COLORS.white} />
-          </View>
-          <View style={styles.quickScanText}>
-            <Text style={styles.quickScanTitle}>{t('home.quickScan')}</Text>
-            <Text style={styles.quickScanSubtitle}>
-              Mahsulotni kameraga tutib, bir bosishda marketplace ga qo'shing
-            </Text>
-          </View>
+        <View style={styles.scanIconBox}>
+          <Ionicons name="scan" size={28} color={COLORS.white} />
         </View>
-        <Ionicons name="chevron-forward" size={24} color={COLORS.white} />
+        <View style={styles.scanTextBox}>
+          <Text style={styles.scanTitle}>AI Skaner</Text>
+          <Text style={styles.scanSubtitle}>Mahsulotni skanerlang</Text>
+        </View>
+        <Ionicons name="arrow-forward-circle" size={32} color="rgba(255,255,255,0.8)" />
       </TouchableOpacity>
       
-      {/* Stats Grid */}
+      {/* Stats Grid - 2x2 */}
       <View style={styles.statsGrid}>
         <View style={styles.statCard}>
-          <Ionicons name="cube-outline" size={24} color={COLORS.primary} />
+          <View style={[styles.statIconBox, { backgroundColor: COLORS.primary + '15' }]}>
+            <Ionicons name="cube" size={20} color={COLORS.primary} />
+          </View>
           <Text style={styles.statValue}>{products.length}</Text>
-          <Text style={styles.statLabel}>{t('home.totalProducts')}</Text>
+          <Text style={styles.statLabel}>Mahsulot</Text>
         </View>
         
         <View style={styles.statCard}>
-          <Ionicons name="checkmark-circle-outline" size={24} color={COLORS.secondary} />
+          <View style={[styles.statIconBox, { backgroundColor: COLORS.secondary + '15' }]}>
+            <Ionicons name="checkmark-done" size={20} color={COLORS.secondary} />
+          </View>
           <Text style={styles.statValue}>{activeProducts}</Text>
-          <Text style={styles.statLabel}>{t('home.activeProducts')}</Text>
+          <Text style={styles.statLabel}>Faol</Text>
         </View>
         
         <View style={styles.statCard}>
-          <Ionicons name="cloud-upload-outline" size={24} color={COLORS.accent} />
+          <View style={[styles.statIconBox, { backgroundColor: COLORS.accent + '15' }]}>
+            <Ionicons name="time" size={20} color={COLORS.accent} />
+          </View>
           <Text style={styles.statValue}>{queueStats.pending}</Text>
-          <Text style={styles.statLabel}>{t('home.pendingUploads')}</Text>
+          <Text style={styles.statLabel}>Navbatda</Text>
         </View>
         
         <View style={styles.statCard}>
-          <Ionicons name="sparkles-outline" size={24} color={COLORS.primary} />
-          <Text style={styles.statValue}>{aiCardsLeft}</Text>
-          <Text style={styles.statLabel}>{t('home.aiCardsLeft')}</Text>
+          <View style={[styles.statIconBox, { backgroundColor: '#8B5CF6' + '15' }]}>
+            <Ionicons name="sparkles" size={20} color="#8B5CF6" />
+          </View>
+          <Text style={styles.statValue}>∞</Text>
+          <Text style={styles.statLabel}>AI Karta</Text>
         </View>
       </View>
       
-      {/* Tier Info */}
-      {partner && (
-        <View style={styles.tierCard}>
-          <View style={styles.tierHeader}>
-            <Text style={styles.tierLabel}>{t('settings.currentTier')}</Text>
-            <TouchableOpacity
-              style={styles.upgradeButton}
-              onPress={() => navigation.navigate(SCREENS.PRICING)}
-            >
-              <Text style={styles.upgradeButtonText}>{t('settings.upgradeTier')}</Text>
-              <Ionicons name="arrow-forward" size={16} color={COLORS.primary} />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.tierName}>
-            {partner.pricingTier === 'free_starter' && '🆓 Free Starter'}
-            {partner.pricingTier === 'starter_pro' && '⭐ Starter Pro'}
-            {partner.pricingTier === 'professional_plus' && '💎 Professional Plus'}
-            {partner.pricingTier === 'enterprise_elite' && '🏆 Enterprise Elite'}
-          </Text>
+      {/* 2026 Model Info */}
+      <TouchableOpacity
+        style={styles.pricingCard}
+        onPress={() => navigation.navigate(SCREENS.PRICING)}
+      >
+        <View style={styles.pricingHeader}>
+          <Text style={styles.pricingBadge}>2026 MODEL</Text>
+          <Ionicons name="arrow-forward" size={18} color={COLORS.primary} />
         </View>
-      )}
+        <Text style={styles.pricingTitle}>Premium Tarif</Text>
+        <Text style={styles.pricingDesc}>
+          $699 boshlang'ich + $499/oy + 4% revenue share
+        </Text>
+        <View style={styles.pricingFeatures}>
+          <View style={styles.pricingFeature}>
+            <Ionicons name="infinite" size={14} color={COLORS.secondary} />
+            <Text style={styles.pricingFeatureText}>Cheksiz AI karta</Text>
+          </View>
+          <View style={styles.pricingFeature}>
+            <Ionicons name="infinite" size={14} color={COLORS.secondary} />
+            <Text style={styles.pricingFeatureText}>Cheksiz mahsulot</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+      
+      {/* 4 Marketplace Support */}
+      <View style={styles.marketplacesSection}>
+        <Text style={styles.sectionTitle}>Qo'llab-quvvatlanadigan Marketplacelar</Text>
+        <View style={styles.marketplacesGrid}>
+          {MARKETPLACES.map(mp => (
+            <View 
+              key={mp.id} 
+              style={[
+                styles.marketplaceItem,
+                !mp.active && styles.marketplaceItemDisabled
+              ]}
+            >
+              <Text style={styles.marketplaceIcon}>{mp.icon}</Text>
+              <Text style={styles.marketplaceName}>{mp.name.split(' ')[0]}</Text>
+              {mp.active ? (
+                <View style={styles.activeBadge}>
+                  <Text style={styles.activeBadgeText}>Faol</Text>
+                </View>
+              ) : (
+                <View style={styles.comingBadge}>
+                  <Text style={styles.comingBadgeText}>Tez kunda</Text>
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+      </View>
       
       {/* Recent Products */}
-      <View style={styles.section}>
+      <View style={styles.recentSection}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{t('home.recentProducts')}</Text>
+          <Text style={styles.sectionTitle}>Oxirgi mahsulotlar</Text>
           <TouchableOpacity onPress={() => navigation.navigate(SCREENS.PRODUCTS)}>
-            <Text style={styles.viewAllText}>{t('home.viewAll')}</Text>
+            <Text style={styles.viewAllText}>Hammasi</Text>
           </TouchableOpacity>
         </View>
         
         {products.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="cube-outline" size={48} color={COLORS.textLight} />
-            <Text style={styles.emptyStateText}>{t('product.noProducts')}</Text>
-            <Text style={styles.emptyStateSubtext}>{t('product.startScanning')}</Text>
+            <Ionicons name="cube-outline" size={40} color={COLORS.textLight} />
+            <Text style={styles.emptyText}>Mahsulot yo'q</Text>
+            <Text style={styles.emptySubtext}>AI Skaner orqali qo'shing</Text>
           </View>
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -270,31 +286,15 @@ export default function HomeScreen() {
                     <Ionicons name="image-outline" size={24} color={COLORS.textLight} />
                   </View>
                 )}
-                <Text style={styles.productName} numberOfLines={1}>
-                  {product.name}
-                </Text>
-                <Text style={styles.productPrice}>
-                  {formatShortPrice(product.price)} UZS
-                </Text>
-                <View style={styles.productStatus}>
-                  <View
-                    style={[
-                      styles.statusDot,
-                      product.status === 'active' && styles.statusActive,
-                      product.status === 'pending' && styles.statusPending,
-                    ]}
-                  />
-                  <Text style={styles.statusText}>
-                    {product.status === 'active' && 'Faol'}
-                    {product.status === 'pending' && 'Kutilmoqda'}
-                    {product.status === 'draft' && 'Qoralama'}
-                  </Text>
-                </View>
+                <Text style={styles.productName} numberOfLines={1}>{product.name}</Text>
+                <Text style={styles.productPrice}>{formatShortPrice(product.price)}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
         )}
       </View>
+      
+      <View style={styles.bottomPadding} />
     </ScrollView>
   );
 }
@@ -304,108 +304,105 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  contentContainer: {
+    paddingTop: 50,
+  },
   
   // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  headerLeft: {
+    flex: 1,
   },
   greeting: {
     fontSize: 14,
     color: COLORS.textSecondary,
   },
   username: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '700',
     color: COLORS.text,
+    marginTop: 2,
   },
-  notificationButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  settingsBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: COLORS.white,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 2,
   },
-  notificationBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: COLORS.danger,
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  notificationBadgeText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: COLORS.white,
-  },
   
-  // Warning Banner - Marketplace Ulanmagan
+  // Warning Banner
   warningBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FF6B6B',
+    backgroundColor: '#EF4444',
     marginHorizontal: 20,
     marginBottom: 16,
-    padding: 16,
+    padding: 14,
     borderRadius: 12,
-    gap: 12,
+  },
+  warningIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   warningContent: {
     flex: 1,
+    marginLeft: 12,
   },
   warningTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
     color: COLORS.white,
   },
   warningText: {
     fontSize: 12,
-    color: COLORS.white,
-    opacity: 0.9,
-    marginTop: 2,
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: 1,
   },
   
-  // Marketplace Status Bar
-  marketplaceStatusBar: {
+  // Connected Bar
+  connectedBar: {
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
     marginHorizontal: 20,
     marginBottom: 16,
-    padding: 12,
+    padding: 10,
     backgroundColor: COLORS.white,
     borderRadius: 12,
-    gap: 20,
+    gap: 16,
   },
-  connectedMarketplace: {
+  connectedItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  connectedLogo: {
-    fontSize: 20,
+  connectedIcon: {
+    fontSize: 16,
   },
   connectedName: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '500',
     color: COLORS.text,
   },
   
-  // Quick Scan
-  quickScanButton: {
+  // Scan Button
+  scanButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.primary,
@@ -414,101 +411,177 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
   },
-  quickScanContent: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  quickScanIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  scanIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
   },
-  quickScanText: {
+  scanTextBox: {
     flex: 1,
+    marginLeft: 14,
   },
-  quickScanTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  scanTitle: {
+    fontSize: 17,
+    fontWeight: '700',
     color: COLORS.white,
   },
-  quickScanSubtitle: {
-    fontSize: 12,
+  scanSubtitle: {
+    fontSize: 13,
     color: 'rgba(255,255,255,0.8)',
-    marginTop: 4,
+    marginTop: 2,
   },
   
-  // Stats
+  // Stats Grid
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 12,
-    marginBottom: 8,
+    paddingHorizontal: 14,
+    marginBottom: 16,
   },
   statCard: {
-    width: '50%',
-    padding: 8,
-  },
-  statCardInner: {
+    width: (width - 48) / 2,
     backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
+    margin: 6,
+    padding: 14,
+    borderRadius: 14,
     alignItems: 'center',
   },
+  statIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '700',
     color: COLORS.text,
-    marginTop: 8,
   },
   statLabel: {
     fontSize: 12,
     color: COLORS.textSecondary,
-    marginTop: 4,
-    textAlign: 'center',
+    marginTop: 2,
   },
   
-  // Tier
-  tierCard: {
+  // Pricing Card
+  pricingCard: {
     backgroundColor: COLORS.white,
     marginHorizontal: 20,
     marginBottom: 20,
-    borderRadius: 12,
     padding: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.primary + '30',
   },
-  tierHeader: {
+  pricingHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
   },
-  tierLabel: {
+  pricingBadge: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.primary,
+    backgroundColor: COLORS.primary + '15',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  pricingTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  pricingDesc: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginTop: 4,
+  },
+  pricingFeatures: {
+    flexDirection: 'row',
+    marginTop: 12,
+    gap: 16,
+  },
+  pricingFeature: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  pricingFeatureText: {
     fontSize: 12,
     color: COLORS.textSecondary,
   },
-  tierName: {
-    fontSize: 18,
+  
+  // Marketplaces Section
+  marketplacesSection: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 15,
     fontWeight: '600',
     color: COLORS.text,
+    marginBottom: 12,
   },
-  upgradeButton: {
+  marketplacesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  marketplaceItem: {
+    width: (width - 50) / 2,
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: COLORS.white,
+    padding: 12,
+    borderRadius: 12,
+    gap: 8,
   },
-  upgradeButtonText: {
-    fontSize: 14,
-    color: COLORS.primary,
-    marginRight: 4,
+  marketplaceItemDisabled: {
+    opacity: 0.6,
+  },
+  marketplaceIcon: {
+    fontSize: 18,
+  },
+  marketplaceName: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.text,
+  },
+  activeBadge: {
+    backgroundColor: COLORS.secondary + '20',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  activeBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: COLORS.secondary,
+  },
+  comingBadge: {
+    backgroundColor: COLORS.textLight + '30',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  comingBadgeText: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
   },
   
-  // Section
-  section: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
+  // Recent Section
+  recentSection: {
+    marginHorizontal: 20,
+    marginBottom: 20,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -516,37 +589,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
   viewAllText: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.primary,
+    fontWeight: '500',
   },
   
-  // Empty state
+  // Empty State
   emptyState: {
     alignItems: 'center',
     paddingVertical: 32,
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: 14,
   },
-  emptyStateText: {
-    fontSize: 16,
+  emptyText: {
+    fontSize: 15,
+    fontWeight: '500',
     color: COLORS.text,
-    marginTop: 12,
+    marginTop: 10,
   },
-  emptyStateSubtext: {
-    fontSize: 14,
+  emptySubtext: {
+    fontSize: 13,
     color: COLORS.textSecondary,
     marginTop: 4,
   },
   
-  // Product card
+  // Product Card
   productCard: {
-    width: 150,
+    width: 130,
     marginRight: 12,
     backgroundColor: COLORS.white,
     borderRadius: 12,
@@ -554,7 +624,7 @@ const styles = StyleSheet.create({
   },
   productImage: {
     width: '100%',
-    height: 120,
+    height: 100,
     resizeMode: 'cover',
   },
   productImagePlaceholder: {
@@ -563,40 +633,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   productName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
     color: COLORS.text,
     paddingHorizontal: 10,
     paddingTop: 8,
   },
   productPrice: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: COLORS.primary,
     paddingHorizontal: 10,
-    paddingTop: 4,
-  },
-  productStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
     paddingVertical: 8,
   },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.textLight,
-    marginRight: 6,
-  },
-  statusActive: {
-    backgroundColor: COLORS.secondary,
-  },
-  statusPending: {
-    backgroundColor: COLORS.accent,
-  },
-  statusText: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
+  
+  bottomPadding: {
+    height: 30,
   },
 });
