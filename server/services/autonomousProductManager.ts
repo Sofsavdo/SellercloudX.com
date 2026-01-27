@@ -504,12 +504,19 @@ class AutonomousProductManager {
   ): Promise<ProductCardGenerationResult[]> {
     logger.info(`🎨 Manual card generation for ${productIds.length} products`);
 
-    const products = await db
-      .select()
+    const allProducts = await db
+      .select({
+        id: products.id,
+        name: products.name,
+        partnerId: products.partnerId,
+        category: products.category,
+        description: products.description,
+        price: products.price
+      })
       .from(products)
       .where(eq(products.partnerId, partnerId));
 
-    const selectedProducts = products.filter(p => productIds.includes(p.id));
+    const selectedProducts = allProducts.filter(p => productIds.includes(p.id));
 
     return await this.batchGenerateProductCards(partnerId, selectedProducts, targetMarketplaces);
   }
