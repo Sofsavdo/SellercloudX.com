@@ -152,17 +152,57 @@ export default function PricingScreen() {
         </View>
       </View>
       
-      {/* Enterprise Option */}
-      <TouchableOpacity style={styles.enterpriseCard} onPress={handleEnterprise}>
-        <View style={styles.enterpriseHeader}>
+      {/* Enterprise/Individual Option - Full Details */}
+      <View style={styles.enterpriseCard}>
+        <View style={styles.enterpriseCardHeader}>
           <Text style={styles.enterpriseIcon}>🏢</Text>
-          <View style={styles.enterpriseText}>
+          <View>
             <Text style={styles.enterpriseName}>Individual Tarif</Text>
-            <Text style={styles.enterpriseDesc}>Katta bizneslar uchun</Text>
+            <Text style={styles.enterpriseDesc}>Katta hajmli bizneslar uchun</Text>
           </View>
         </View>
-        <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
-      </TouchableOpacity>
+        
+        {/* Pricing */}
+        <View style={styles.enterprisePricing}>
+          <View style={styles.enterprisePriceRow}>
+            <Text style={styles.enterprisePriceLabel}>Oylik to'lov</Text>
+            <Text style={styles.enterprisePriceValue}>Kelishiladi</Text>
+          </View>
+          <View style={styles.enterprisePriceRow}>
+            <Text style={styles.enterprisePriceLabel}>Revenue share</Text>
+            <Text style={styles.enterprisePriceValue}>2% dan boshlab</Text>
+          </View>
+        </View>
+        
+        {/* Features */}
+        <View style={styles.enterpriseFeatures}>
+          <View style={styles.enterpriseFeatureRow}>
+            <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+            <Text style={styles.enterpriseFeatureText}>Shaxsiy menejer</Text>
+          </View>
+          <View style={styles.enterpriseFeatureRow}>
+            <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+            <Text style={styles.enterpriseFeatureText}>24/7 qo'llab-quvvatlash</Text>
+          </View>
+          <View style={styles.enterpriseFeatureRow}>
+            <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+            <Text style={styles.enterpriseFeatureText}>Maxsus integratsiyalar</Text>
+          </View>
+          <View style={styles.enterpriseFeatureRow}>
+            <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+            <Text style={styles.enterpriseFeatureText}>API prioritet kirish</Text>
+          </View>
+          <View style={styles.enterpriseFeatureRow}>
+            <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+            <Text style={styles.enterpriseFeatureText}>SLA kafolati</Text>
+          </View>
+        </View>
+        
+        <TouchableOpacity style={styles.enterpriseBtn} onPress={handleEnterprise}>
+          <Text style={styles.enterpriseBtnText}>Bog'lanish</Text>
+          <Ionicons name="arrow-forward" size={18} color="#FFF" />
+        </TouchableOpacity>
+      </View>
       
       {/* Contact */}
       <TouchableOpacity 
