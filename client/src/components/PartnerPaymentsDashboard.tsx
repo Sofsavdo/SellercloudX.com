@@ -258,8 +258,8 @@ export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardPr
 
             {/* Arrow */}
             <div className="flex items-center justify-center">
-              <div className={`p-4 rounded-full ${salesData?.growth >= 0 ? 'bg-success/10' : 'bg-destructive/10'}`}>
-                {salesData?.growth >= 0 ? (
+              <div className={`p-4 rounded-full ${salesGrowthPercent >= 0 ? 'bg-success/10' : 'bg-destructive/10'}`}>
+                {salesGrowthPercent >= 0 ? (
                   <ArrowUpRight className="w-8 h-8 text-success" />
                 ) : (
                   <ArrowDownRight className="w-8 h-8 text-destructive" />
@@ -269,20 +269,20 @@ export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardPr
 
             {/* With Us */}
             <div className={`text-center p-4 rounded-xl ${
-              salesData?.growth >= 0 ? 'bg-success/10 border border-success/30' : 'bg-destructive/10 border border-destructive/30'
+              salesGrowthPercent >= 0 ? 'bg-success/10 border border-success/30' : 'bg-destructive/10 border border-destructive/30'
             }`}>
               <p className="text-sm text-muted-foreground mb-2">Biz BILAN (bu oy)</p>
-              <p className={`text-3xl font-black ${salesData?.growth >= 0 ? 'text-success' : 'text-destructive'}`}>
-                {formatUzs(salesData?.currentMonth?.totalSales || 0)}
+              <p className={`text-3xl font-black ${salesGrowthPercent >= 0 ? 'text-success' : 'text-destructive'}`}>
+                {formatUzs(currentMonthSales)}
               </p>
-              <Badge className={`mt-2 ${salesData?.growth >= 0 ? 'bg-success text-white' : 'bg-destructive text-white'}`}>
-                {salesData?.growth >= 0 ? '+' : ''}{salesData?.growth}% o'sish
+              <Badge className={`mt-2 ${salesGrowthPercent >= 0 ? 'bg-success text-white' : 'bg-destructive text-white'}`}>
+                {salesGrowthPercent >= 0 ? '+' : ''}{salesGrowthPercent}% o'sish
               </Badge>
             </div>
           </div>
 
           {/* 60-day guarantee note */}
-          {salesData?.growth < 0 && (
+          {salesGrowthPercent < 0 && (
             <div className="mt-4 p-3 bg-warning/10 rounded-lg border border-warning/30">
               <p className="text-sm">
                 <AlertTriangle className="w-4 h-4 inline mr-2 text-warning" />
@@ -319,7 +319,7 @@ export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardPr
                     <ShoppingCart className="w-4 h-4 text-muted-foreground" />
                     Jami savdo
                   </span>
-                  <span className="font-bold">{formatUzs(salesData?.currentMonth?.totalSales || 0)}</span>
+                  <span className="font-bold">{formatUzs(currentMonthData.totalSales)}</span>
                 </div>
                 
                 <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
@@ -327,7 +327,7 @@ export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardPr
                     <Percent className="w-4 h-4 text-muted-foreground" />
                     4% Revenue Share
                   </span>
-                  <span className="font-bold">{formatUzs(salesData?.currentMonth?.revenueShare || 0)}</span>
+                  <span className="font-bold">{formatUzs(currentMonthData.revenueShare)}</span>
                 </div>
                 
                 <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
