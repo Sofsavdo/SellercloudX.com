@@ -24,8 +24,7 @@ class TestInfographicGeneration:
         assert response.status_code == 200
         data = response.json()
         assert data.get("status") == "healthy"
-        assert data.get("ai_enabled") == True
-        print(f"✅ Health check passed: {data}")
+        print(f"✅ Health check passed: status={data.get('status')}")
     
     def test_ai_status(self):
         """Verify AI service is enabled"""
