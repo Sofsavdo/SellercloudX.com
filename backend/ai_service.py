@@ -9,7 +9,7 @@ from typing import Optional
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+load_dotenv('/app/backend/.env')
 
 # Get Emergent LLM Key
 EMERGENT_KEY = os.getenv("EMERGENT_LLM_KEY", "")
