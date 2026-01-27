@@ -377,6 +377,161 @@ class YandexMarketAPI:
                     }
         except Exception as e:
             return {"success": False, "error": str(e)}
+    
+    async def get_offer_status(self, offer_id: str) -> dict:
+        """
+        Get real-time status of a specific offer/product
+        
+        Statuses:
+        - READY_TO_SUPPLY: Tayyor sotuvga
+        - IN_WORK: Moderatsiyada
+        - NEED_CONTENT: Kontent kerak
+        - NEED_INFO: Ma'lumot kerak
+        - REJECTED: Rad etilgan
+        - SUSPENDED: To'xtatilgan
+        - OTHER: Boshqa
+        """
+        if not self.business_id:
+            return {"success": False, "error": "business_id required"}
+        
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                # Get offer details
+                response = await client.post(
+                    f"{YANDEX_API_BASE}/v2/businesses/{self.business_id}/offer-mappings",
+                    headers=self.headers,
+                    json={
+                        "offerIds": [offer_id]
+                    }
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    offers = data.get("result", {}).get("offerMappings", [])
+                    
+                    if offers:
+                        offer = offers[0].get("offer", {})
+                        mapping = offers[0].get("mapping", {})
+                        
+                        # Determine status
+                        status = "UNKNOWN"
+                        status_uz = "Noma'lum"
+                        
+                        if mapping.get("marketSku"):
+                            status = "READY_TO_SUPPLY"
+                            status_uz = "✅ Sotuvga tayyor"
+                        elif offer.get("processingState", {}).get("status") == "IN_WORK":
+                            status = "IN_WORK"
+                            status_uz = "⏳ Moderatsiyada"
+                        elif offer.get("processingState", {}).get("status") == "NEED_CONTENT":
+                            status = "NEED_CONTENT"
+                            status_uz = "📝 Kontent kerak"
+                        elif offer.get("processingState", {}).get("status") == "REJECTED":
+                            status = "REJECTED"
+                            status_uz = "❌ Rad etildi"
+                        else:
+                            status = offer.get("processingState", {}).get("status", "PENDING")
+                            status_uz = "🔄 Kutilmoqda"
+                        
+                        return {
+                            "success": True,
+                            "offer_id": offer_id,
+                            "status": status,
+                            "status_uz": status_uz,
+                            "name": offer.get("name", ""),
+                            "price": offer.get("basicPrice", {}).get("value"),
+                            "market_sku": mapping.get("marketSku"),
+                            "category_id": mapping.get("marketCategoryId"),
+                            "pictures_count": len(offer.get("pictures", [])),
+                            "last_updated": datetime.now().isoformat(),
+                            "errors": offer.get("processingState", {}).get("notes", [])
+                        }
+                    else:
+                        return {
+                            "success": False,
+                            "error": "Mahsulot topilmadi",
+                            "offer_id": offer_id
+                        }
+                else:
+                    return {
+                        "success": False,
+                        "error": f"API xatosi: {response.status_code}",
+                        "details": response.text[:500]
+                    }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def get_all_offers_status(self, limit: int = 50) -> dict:
+        """Get status of all offers for real-time dashboard"""
+        if not self.business_id:
+            return {"success": False, "error": "business_id required"}
+        
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    f"{YANDEX_API_BASE}/v2/businesses/{self.business_id}/offer-mappings",
+                    headers=self.headers,
+                    json={
+                        "limit": limit
+                    }
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    offers = data.get("result", {}).get("offerMappings", [])
+                    
+                    # Categorize by status
+                    stats = {
+                        "total": len(offers),
+                        "ready": 0,
+                        "in_moderation": 0,
+                        "need_content": 0,
+                        "rejected": 0,
+                        "other": 0
+                    }
+                    
+                    offer_list = []
+                    for item in offers:
+                        offer = item.get("offer", {})
+                        mapping = item.get("mapping", {})
+                        
+                        status = "OTHER"
+                        if mapping.get("marketSku"):
+                            status = "READY"
+                            stats["ready"] += 1
+                        elif offer.get("processingState", {}).get("status") == "IN_WORK":
+                            status = "IN_MODERATION"
+                            stats["in_moderation"] += 1
+                        elif offer.get("processingState", {}).get("status") == "NEED_CONTENT":
+                            status = "NEED_CONTENT"
+                            stats["need_content"] += 1
+                        elif offer.get("processingState", {}).get("status") == "REJECTED":
+                            status = "REJECTED"
+                            stats["rejected"] += 1
+                        else:
+                            stats["other"] += 1
+                        
+                        offer_list.append({
+                            "offer_id": offer.get("offerId"),
+                            "name": offer.get("name", "")[:50],
+                            "status": status,
+                            "price": offer.get("basicPrice", {}).get("value"),
+                            "market_sku": mapping.get("marketSku")
+                        })
+                    
+                    return {
+                        "success": True,
+                        "stats": stats,
+                        "offers": offer_list,
+                        "last_updated": datetime.now().isoformat()
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "error": response.text
+                    }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
 
 
 class YandexCardGenerator:
