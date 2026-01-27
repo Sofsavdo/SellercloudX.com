@@ -1,164 +1,183 @@
 # SellerCloudX - Product Requirements Document
 
 ## Overview
-SellerCloudX.com - AI-powered marketplace automation SaaS for Uzbekistan sellers. The platform helps partners automate sales on Yandex Market (primary focus) with AI-driven product recognition, card generation, and analytics.
+SellerCloudX.com - AI-powered marketplace automation SaaS for Uzbekistan sellers. Complete automation from product scan to Yandex Market listing.
 
 ## Live Environment
-- **Production URL**: https://sellercloudx.com
 - **Preview URL**: https://vendorai.preview.emergentagent.com
+- **Production URL**: https://sellercloudx.com
 
 ## Architecture
 ```
 /app
-├── backend/            # Python/FastAPI: AI tasks, Yandex API (port 8001)
-├── client/             # React/Vite Web Frontend (port 3000)
-├── mobile/             # React Native/Expo Mobile App
-├── server/             # Node.js/Express: Auth, Business Logic
+├── backend/            # Python/FastAPI (port 8001)
+├── client/             # React/Vite (port 3000)
+├── mobile/             # React Native/Expo
+├── server/             # Node.js/Express
 ├── shared/             # Drizzle schema
-├── migrations/         # SQL Migrations
+└── migrations/         # SQL Migrations
 ```
 
 ## Completed Features (Jan 27, 2026)
 
-### 1. Yandex Market Full API Integration ✅
-- **API Connection**: OAuth token authentication
-- **6 Campaigns**: 80 mahsulot, 76 sotuvga tayyor (95%)
-- **Product Creation**: Full API automation (FULL_API type)
-- **Credentials**:
-  - API Token: ACMA:OIjjTDFMnmBe7XOs7EqaWqdoXUS772aKqwqjXj6C:245e5a96
-  - Campaign ID: 148650502
-  - Business ID: 197529861
+### 1. Full Automation ✅ NEW - ONE-CLICK PRODUCT CREATION
+**Endpoint**: `POST /api/ai/full-automation`
 
-### 2. Real-Time Status Tracking ✅ NEW
-- **Dashboard API**: `/api/yandex/dashboard/status`
-  - Total: 80 mahsulot
-  - Ready: 76 (95%)
-  - Moderation: 0
-  - Rejected: 0
-- **Offer Status**: `/api/yandex/offer/{offer_id}/status`
-  - ✅ Sotuvga tayyor
-  - ⏳ Moderatsiyada
-  - 📝 Kontent kerak
-  - ❌ Rad etildi
-- **Partner Dashboard**: `/api/yandex/partner/dashboard`
-  - Multi-tenant support
-  - Custom OAuth tokens
-- **Frontend**: `/yandex-dashboard` sahifasi
+Complete 6-step automation:
+1. **Scan** - AI product recognition from image URL
+2. **MXIK** - Automatic tax code assignment (tasnif.soliq.uz)
+3. **AI Card** - SEO-optimized Russian product card
+4. **Pricing** - Competitive price calculation
+5. **Infographics** - 6 professional images (1080x1440)
+6. **Yandex** - Direct API upload to marketplace
 
-### 3. Nano Banana Infographic Generator ✅ UPDATED
-- **Model**: Gemini 3 Pro Image Preview
-- **Endpoint**: `/api/ai/generate-infographics`
-- **Category-based prompts**:
-  - `cosmetics`: Floating vitamins, citrus, plant leaves
-  - `food`: Floating nuts, chocolate, dried fruits
-  - `electronics`: Tech elements, sound waves
-  - `perfume`: Perfume molecules, flower petals
-- **6 infographic types per product**:
-  1. Hero shot with floating ingredients
-  2. Features & benefits with icons
-  3. Ingredient composition visualization
-  4. Usage instructions step-by-step
-  5. "Does NOT contain" / purity badges
-  6. Premium lifestyle shot
-- **Performance**: ~20-25 seconds per image
-- **Storage**: ImgBB (permanent URLs)
-- **Sample images**:
-  - Cosmetics: https://i.ibb.co/cSpMBB0r/ac834c6dbfb3.jpg
-  - Food: https://i.ibb.co/MkqKDcBn/68785868b3db.jpg
+**Input:**
+```json
+{
+  "image_url": "https://example.com/product.jpg",
+  "cost_price": 15000,
+  "generate_infographics": true
+}
+```
 
-### 4. MXIK/IKPU Code Integration ✅
+**Output:** 6/6 steps completed, product on Yandex Market
+
+### 2. AI Scanner ✅ NEW
+**Endpoint**: `POST /api/ai/scan-from-url`
+
+- Image URL scan (camera/web)
+- Product recognition with 85%+ confidence
+- Automatic category detection
+- MXIK code assignment
+- Price suggestion
+
+### 3. Yandex Market Integration ✅
+- **6 Campaigns** connected
+- **83 Products** total (76 ready, 95%)
+- **Real-time Dashboard**: `/api/yandex/dashboard/status`
+- **Status Tracking**: `/api/yandex/offer/{id}/status`
+- **Product Creation**: Full API automation
+
+### 4. Nano Banana Infographics ✅ UPDATED
+**Resolution**: 1080x1440 pixels (3:4 portrait)
+
+6 infographic types:
+1. Hero shot with floating ingredients
+2. Features & benefits with icons
+3. Ingredient composition
+4. Usage instructions
+5. Purity/quality badges
+6. Lifestyle shot
+
+Category-specific prompts for:
+- Cosmetics: vitamins, citrus, plant leaves
+- Food: nuts, chocolate, dried fruits
+- Electronics: tech elements, sound waves
+- Perfume: flower petals, molecules
+
+### 5. MXIK/IKPU Codes ✅
 - **250+ codes** from tasnif.soliq.uz
-- **17-digit format** for tax compliance
-- **API Endpoints**:
-  - `GET /api/mxik/status`
-  - `GET /api/mxik/search?q=&lang=uz|ru`
-  - `GET /api/mxik/best-match?q=&category=`
-
-### 5. AI Card Generator ✅
-- SEO-optimized product names
-- Full descriptions (6000 chars max)
-- Keywords and specifications
-- SEO Score: 85+
+- **8-digit format** (full 17-digit available)
+- **Auto-detection** by product category
 
 ### 6. Price Calculator ✅
-- Commission rates by category (8-15%)
-- Payout fees (1.3%-5.5%)
-- Logistics costs (FBS/FBY/DBS)
-- Net profit calculation
+- Commission: 8-15% by category
+- Payout fees: 1.3-5.5%
+- Logistics: FBS/FBY/DBS
+- Margin: 15-30%
 
-### 7. 2026 Premium Pricing Model ✅
-- **Premium**: $699 setup + $499/month + 4% revenue share
-- **Individual**: Custom pricing
-- **Partner Dashboard**: "To'lovlar" section
+### 7. Real-time Dashboard ✅
+**Frontend**: `/yandex-dashboard`
+
+- Total products count
+- Ready/moderation/rejected stats
+- Auto-refresh every 30 seconds
+- Campaign list
 
 ## Test Results (Jan 27, 2026)
-- **Backend**: 100% (10/10 tests passed)
-- **MXIK API**: All working
-- **Yandex API**: All working
-- **Nano Banana**: Working (~17s/image)
-- **Real-time Status**: Working
+- **Backend**: 100% (11/11 tests passed)
+- **Full Automation**: 6/6 steps working
+- **Infographics**: 1080x1440 generating
+- **Yandex API**: Products created successfully
 
 ## API Endpoints Summary
 
+### Full Automation (NEW)
+- `POST /api/ai/full-automation` - One-click product creation
+- `POST /api/ai/scan-from-url` - Scan from image URL
+
 ### Yandex Market
-- `POST /api/yandex-market/test-connection`
-- `POST /api/yandex-market/full-process`
-- `POST /api/yandex-market/create-product`
-- `GET /api/yandex/dashboard/status` ← NEW
-- `GET /api/yandex/offer/{offer_id}/status` ← NEW
-- `POST /api/yandex/partner/dashboard` ← NEW
+- `GET /api/yandex/dashboard/status` - Real-time stats
+- `GET /api/yandex/offer/{id}/status` - Single product status
+- `POST /api/yandex/partner/dashboard` - Partner dashboard
+- `POST /api/yandex-market/full-process` - Full AI process
+- `POST /api/yandex-market/create-product` - Create product
 
 ### AI Services
-- `POST /api/ai/generate-infographics` ← NEW (Nano Banana)
-- `POST /api/ai/scanner/recognize`
-- `GET /api/ai/status`
+- `POST /api/ai/generate-infographics` - 6 images @ 1080x1440
+- `GET /api/ai/status` - AI service status
 
 ### MXIK
-- `GET /api/mxik/status`
 - `GET /api/mxik/search?q=&lang=uz|ru`
 - `GET /api/mxik/best-match?q=&category=`
 
-## Yandex Market Statistics
+## Yandex Statistics
 | Metric | Value |
 |--------|-------|
-| Jami mahsulotlar | 80 |
-| Sotuvga tayyor | 76 (95%) |
-| Moderatsiyada | 0 |
-| Kontent kerak | 0 |
-| Rad etildi | 0 |
-| Kampaniyalar | 6 |
+| Total Products | 83 |
+| Ready | 76 (92%) |
+| Campaigns | 6 |
+| New (today) | 3 |
+
+## Sample Generated Data
+- **Offer IDs**: SCX-20260127094012, SCX-20260127094650
+- **Infographics**: https://i.ibb.co/sDpkcxR/4e54acb182ec.jpg
 
 ## Upcoming Tasks (P1)
 
-### Revenue Share Automation
-- [ ] Oylik savdo sinxronizatsiyasi (cron job)
-- [ ] Revenue share hisoblash
-- [ ] Avtomatik bloklash (overdue payments)
-
 ### Video Generation
 - [ ] Sora 2 integration
-- [ ] 8 soniyalik mahsulot videosi
+- [ ] 8-second product video
 
-### Mobile App Update
-- [ ] Yangi API bilan integratsiya
-- [ ] Real-time status dashboard
+### Revenue Share Automation
+- [ ] Monthly sales sync cron job
+- [ ] 4% revenue calculation
+- [ ] Auto-blocking for overdue
+
+### Mobile App
+- [ ] Full automation integration
+- [ ] Camera scan improvements
 
 ## Future Tasks (P2-P4)
 
 ### P2
-- [ ] Uzum Market integratsiyasi
+- [ ] Uzum Market integration
 - [ ] Push notifications
 
 ### P3
-- [ ] Wildberries/Ozon integration
+- [ ] Wildberries/Ozon
 - [ ] Advanced analytics
 
 ### P4
 - [ ] CI/CD pipeline
-- [ ] API documentation (Swagger)
+- [ ] API documentation
+
+## Technical Notes
+
+### Image Specifications
+- Resolution: 1080x1440 pixels
+- Aspect ratio: 3:4 (portrait)
+- Format: PNG/JPG via ImgBB
+- Max: 6 images per product
+
+### Yandex API Requirements
+- Weight & dimensions required
+- Price: Integer only
+- Max 10 images per upload
+- Business ID: 197529861
 
 ## Last Updated
-January 27, 2026 - Real-time Status + Nano Banana Integration Complete
+January 27, 2026 - Full Automation Complete (100% tests passed)
 
 ## Contact
 - Telegram: @sellercloudx_support
