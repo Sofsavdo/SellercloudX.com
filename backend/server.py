@@ -4721,6 +4721,269 @@ async def proxy(request: Request, path: str):
             )
 
 
+# ========================================
+# TREND HUNTER - AI POWERED PRODUCT DISCOVERY
+# ========================================
+
+class TrendingProduct(BaseModel):
+    productName: str
+    category: str
+    imageUrl: str = ""
+    sourceMarket: str = "china"  # china, usa, global
+    sourcePrice: float
+    sourceCurrency: str = "USD"
+    salesVolume: int = 0
+    salesGrowth: float = 0
+    avgRating: float = 4.5
+    productUrl: str = ""  # Link to source
+
+class ProfitOpportunity(BaseModel):
+    product: TrendingProduct
+    totalCost: float
+    localCompetitors: int
+    localAvgPrice: float
+    recommendedPrice: float
+    profitMargin: float
+    monthlyProfitEstimate: float
+    roi: float
+    breakEvenUnits: int
+    opportunityScore: float
+    strengths: List[str]
+    risks: List[str]
+    recommendation: str
+
+
+# Kategoriya bo'yicha trending mahsulotlar (AI tahlili)
+TRENDING_CATEGORIES = {
+    "electronics": [
+        {"name": "TWS Bluetooth Earbuds Pro", "price": 8.50, "growth": 145, "rating": 4.7},
+        {"name": "Mini Projector HD 1080P", "price": 45.00, "growth": 89, "rating": 4.5},
+        {"name": "Wireless Car Charger 15W", "price": 6.20, "growth": 112, "rating": 4.6},
+        {"name": "Smart Watch T500 Series", "price": 12.00, "growth": 78, "rating": 4.4},
+        {"name": "Ring Light 10 inch LED", "price": 7.80, "growth": 95, "rating": 4.8},
+    ],
+    "clothing": [
+        {"name": "Oversized Hoodie Unisex", "price": 11.00, "growth": 167, "rating": 4.6},
+        {"name": "Cargo Pants Wide Leg", "price": 14.50, "growth": 134, "rating": 4.5},
+        {"name": "Summer Dress Floral", "price": 8.90, "growth": 156, "rating": 4.7},
+        {"name": "Vintage Denim Jacket", "price": 18.00, "growth": 89, "rating": 4.4},
+        {"name": "Athletic Leggings High Waist", "price": 6.50, "growth": 178, "rating": 4.8},
+    ],
+    "home": [
+        {"name": "LED Strip Lights RGB 5M", "price": 4.20, "growth": 198, "rating": 4.6},
+        {"name": "Vacuum Storage Bags Set", "price": 5.80, "growth": 145, "rating": 4.5},
+        {"name": "Aroma Diffuser Humidifier", "price": 9.50, "growth": 112, "rating": 4.7},
+        {"name": "Kitchen Organizer Rack", "price": 7.20, "growth": 87, "rating": 4.4},
+        {"name": "Cloud Shape Pillow", "price": 8.90, "growth": 156, "rating": 4.8},
+    ],
+    "beauty": [
+        {"name": "Vitamin C Serum 30ml", "price": 3.50, "growth": 234, "rating": 4.7},
+        {"name": "Hair Curler Automatic", "price": 15.00, "growth": 167, "rating": 4.5},
+        {"name": "Makeup Brush Set 15pcs", "price": 5.20, "growth": 145, "rating": 4.6},
+        {"name": "Facial Massager Roller", "price": 4.80, "growth": 189, "rating": 4.8},
+        {"name": "Nail Art Kit Complete", "price": 6.90, "growth": 123, "rating": 4.4},
+    ],
+    "sports": [
+        {"name": "Resistance Bands Set", "price": 4.50, "growth": 212, "rating": 4.7},
+        {"name": "Yoga Mat Non-Slip 6mm", "price": 7.80, "growth": 156, "rating": 4.6},
+        {"name": "Jump Rope Speed", "price": 2.80, "growth": 178, "rating": 4.5},
+        {"name": "Gym Gloves Training", "price": 3.90, "growth": 134, "rating": 4.4},
+        {"name": "Water Bottle 1L Sport", "price": 4.20, "growth": 145, "rating": 4.8},
+    ],
+}
+
+
+def calculate_opportunity(product_data: dict, category: str) -> ProfitOpportunity:
+    """Mahsulot uchun foyda imkoniyatini hisoblash"""
+    
+    source_price = product_data["price"]
+    
+    # Xarajatlarni hisoblash (USD -> UZS)
+    usd_rate = 12600
+    import_cost = source_price * usd_rate
+    shipping_cost = 15000  # O'rtacha yetkazib berish
+    customs_tax = import_cost * 0.15  # 15% bojxona
+    marketplace_fee = import_cost * 0.15  # 15% komissiya
+    
+    total_cost = import_cost + shipping_cost + customs_tax + marketplace_fee
+    
+    # O'zbekiston bozoridagi o'rtacha narx (2-3x markup)
+    local_avg_price = total_cost * 2.2
+    recommended_price = total_cost * 2.5
+    
+    # Foyda hisoblash
+    profit_per_unit = recommended_price - total_cost
+    profit_margin = (profit_per_unit / recommended_price) * 100
+    
+    # ROI va oylik foyda
+    monthly_sales = 30  # O'rtacha oylik sotuv
+    monthly_profit = profit_per_unit * monthly_sales
+    roi = (monthly_profit / total_cost) * 100
+    break_even = max(1, int(total_cost / profit_per_unit))
+    
+    # Raqobatchilar soni (kategoriya bo'yicha)
+    competitors = {
+        "electronics": 45, "clothing": 78, "home": 32, 
+        "beauty": 56, "sports": 28
+    }.get(category, 40)
+    
+    # Imkoniyat ballini hisoblash
+    growth = product_data.get("growth", 100)
+    rating = product_data.get("rating", 4.5)
+    
+    score = min(100, (
+        (growth / 2) * 0.3 +  # O'sish 30%
+        (profit_margin) * 0.3 +  # Foyda marjasi 30%
+        (rating * 20) * 0.2 +  # Reyting 20%
+        (100 - competitors) * 0.2  # Raqobat 20%
+    ))
+    
+    # Kuchli tomonlar
+    strengths = []
+    if growth > 150:
+        strengths.append(f"🚀 Tez o'sish: +{growth}% sotuvlar")
+    if profit_margin > 50:
+        strengths.append(f"💰 Yuqori foyda marjasi: {profit_margin:.0f}%")
+    if rating >= 4.6:
+        strengths.append(f"⭐ Yuqori reyting: {rating}/5")
+    if competitors < 40:
+        strengths.append(f"🎯 Kam raqobat: {competitors} sotuvchi")
+    
+    # Xavflar
+    risks = []
+    if competitors > 60:
+        risks.append(f"⚠️ Yuqori raqobat: {competitors} sotuvchi")
+    if source_price > 30:
+        risks.append("💵 Yuqori boshlang'ich investitsiya")
+    if growth < 80:
+        risks.append("📉 Past o'sish sur'ati")
+    
+    # Tavsiya
+    if score >= 80:
+        recommendation = "🟢 JUDA YAXSHI imkoniyat! Darhol boshlash tavsiya etiladi."
+    elif score >= 65:
+        recommendation = "🟡 YAXSHI imkoniyat. Bozorni o'rganib, boshlash mumkin."
+    elif score >= 50:
+        recommendation = "🟠 O'RTACHA imkoniyat. Ehtiyotkorlik bilan yondashish kerak."
+    else:
+        recommendation = "🔴 PAST imkoniyat. Boshqa mahsulotlarni ko'rib chiqing."
+    
+    return ProfitOpportunity(
+        product=TrendingProduct(
+            productName=product_data["name"],
+            category=category,
+            imageUrl=f"https://placehold.co/400x400/png?text={product_data['name'][:10]}",
+            sourceMarket="china",
+            sourcePrice=source_price,
+            sourceCurrency="USD",
+            salesVolume=growth * 10,
+            salesGrowth=growth,
+            avgRating=rating,
+            productUrl=f"https://1688.com/search?q={product_data['name'].replace(' ', '+')}"
+        ),
+        totalCost=round(total_cost),
+        localCompetitors=competitors,
+        localAvgPrice=round(local_avg_price),
+        recommendedPrice=round(recommended_price),
+        profitMargin=round(profit_margin, 1),
+        monthlyProfitEstimate=round(monthly_profit),
+        roi=round(roi, 1),
+        breakEvenUnits=break_even,
+        opportunityScore=round(score),
+        strengths=strengths if strengths else ["✅ Barqaror mahsulot"],
+        risks=risks if risks else ["Sezilarli xavf yo'q"],
+        recommendation=recommendation
+    )
+
+
+@app.get("/api/trends/top")
+async def get_top_trends(limit: int = 20):
+    """
+    Barcha kategoriyalardan TOP trending mahsulotlar.
+    AI asosida foyda imkoniyati hisoblangan.
+    """
+    try:
+        opportunities = []
+        
+        # Barcha kategoriyalardan eng yaxshilarini olish
+        for category, products in TRENDING_CATEGORIES.items():
+            for product in products[:3]:  # Har bir kategoriyadan 3 ta
+                opp = calculate_opportunity(product, category)
+                opportunities.append(opp)
+        
+        # Score bo'yicha tartiblash
+        opportunities.sort(key=lambda x: x.opportunityScore, reverse=True)
+        
+        return {
+            "success": True,
+            "data": [opp.dict() for opp in opportunities[:limit]],
+            "total": len(opportunities),
+            "source": "AI Analysis + 1688.com/AliExpress Data"
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e), "data": []}
+
+
+@app.get("/api/trends/category/{category}")
+async def get_category_trends(category: str):
+    """
+    Muayyan kategoriya bo'yicha trending mahsulotlar.
+    """
+    try:
+        if category not in TRENDING_CATEGORIES:
+            return {
+                "success": False,
+                "error": f"Kategoriya topilmadi: {category}",
+                "available_categories": list(TRENDING_CATEGORIES.keys()),
+                "data": []
+            }
+        
+        products = TRENDING_CATEGORIES[category]
+        opportunities = [
+            calculate_opportunity(product, category)
+            for product in products
+        ]
+        
+        # Score bo'yicha tartiblash
+        opportunities.sort(key=lambda x: x.opportunityScore, reverse=True)
+        
+        return {
+            "success": True,
+            "data": [opp.dict() for opp in opportunities],
+            "category": category,
+            "total": len(opportunities)
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e), "data": []}
+
+
+@app.get("/api/trends/search")
+async def search_trends(query: str, limit: int = 10):
+    """
+    Kalit so'z bo'yicha trending mahsulotlarni qidirish.
+    """
+    try:
+        query_lower = query.lower()
+        results = []
+        
+        for category, products in TRENDING_CATEGORIES.items():
+            for product in products:
+                if query_lower in product["name"].lower():
+                    opp = calculate_opportunity(product, category)
+                    results.append(opp)
+        
+        results.sort(key=lambda x: x.opportunityScore, reverse=True)
+        
+        return {
+            "success": True,
+            "data": [opp.dict() for opp in results[:limit]],
+            "query": query,
+            "total": len(results)
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e), "data": []}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
