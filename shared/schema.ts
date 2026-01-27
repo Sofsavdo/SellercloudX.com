@@ -202,6 +202,44 @@ export const payments = sqliteTable('payments', {
   completedAt: integer('completed_at', { mode: 'timestamp' }),
 });
 
+// ===== 2026 REVENUE SHARE & SALES TRACKING =====
+
+// Monthly Sales Tracking - Oylik savdo tracking
+export const monthlySalesTracking = sqliteTable('monthly_sales_tracking', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => partners.id),
+  month: integer('month').notNull(), // YYYYMM format (e.g., 202601)
+  marketplace: text('marketplace').notNull(), // yandex, uzum, wildberries, etc.
+  totalSalesUzs: integer('total_sales_uzs').default(0), // Jami savdo (UZS)
+  totalOrders: integer('total_orders').default(0), // Buyurtmalar soni
+  revenueShareUzs: integer('revenue_share_uzs').default(0), // Hisoblangan 4% ulush
+  monthlyFeeUzs: integer('monthly_fee_uzs').default(0), // Oylik to'lov (UZS)
+  totalDebtUzs: integer('total_debt_uzs').default(0), // Jami qarz (share + monthly)
+  isPaid: integer('is_paid', { mode: 'boolean' }).default(false),
+  paidAt: integer('paid_at', { mode: 'timestamp' }),
+  paidAmount: integer('paid_amount'),
+  paymentMethod: text('payment_method'), // click, payme, manual
+  lastSyncAt: integer('last_sync_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }),
+});
+
+// Revenue Share Payments - Ulush to'lovlari tarixi
+export const revenueSharePayments = sqliteTable('revenue_share_payments', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => partners.id),
+  monthlyTrackingId: text('monthly_tracking_id').references(() => monthlySalesTracking.id),
+  amountUzs: integer('amount_uzs').notNull(), // To'langan summa (UZS)
+  paymentType: text('payment_type').notNull(), // revenue_share, monthly_fee, setup_fee
+  paymentMethod: text('payment_method').notNull(), // click, payme, manual
+  transactionId: text('transaction_id'),
+  confirmedBy: text('confirmed_by').references(() => users.id), // Admin tasdiqladi (manual uchun)
+  notes: text('notes'),
+  status: text('status').notNull().default('pending'), // pending, completed, failed
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  completedAt: integer('completed_at', { mode: 'timestamp' }),
+});
+
 // Commission Records - Komissiya yozuvlari
 export const commissionRecords = sqliteTable('commission_records', {
   id: text('id').primaryKey(),
