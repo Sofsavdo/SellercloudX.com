@@ -408,11 +408,32 @@ async def ai_scan_from_url(request: ScanFromURLRequest):
             product = result.get("product", {})
             
             # Get MXIK code for product
+            product_name_for_mxik = product.get("name", "") + " " + product.get("category", "")
             mxik_result = await IKPUService.search_ikpu(
-                product.get("name", ""), 
+                product_name_for_mxik, 
                 limit=1
             )
-            mxik_code = mxik_result[0].get("code", "47190000") if mxik_result else "47190000"
+            
+            if mxik_result and len(mxik_result) > 0:
+                mxik_code = mxik_result[0].get("code", "")[:8] if mxik_result[0].get("code") else "47190000"
+                mxik_full = mxik_result[0].get("code", "47190000000000000")
+            else:
+                # Fallback to category-based MXIK
+                category_mxik_map = {
+                    "beauty": "20420100",
+                    "cosmetics": "20420100",
+                    "skincare": "20420100",
+                    "electronics": "26121900",
+                    "phone": "26121900",
+                    "food": "10810100",
+                    "snack": "10890100",
+                    "perfume": "20420100",
+                    "clothing": "14130000",
+                    "general": "47190000"
+                }
+                category = product.get("category", "general").lower()
+                mxik_code = category_mxik_map.get(category, "47190000")
+                mxik_full = mxik_code + "000000000"
             
             # Generate price analysis
             estimated_price = product.get("estimatedPrice", 100000)
