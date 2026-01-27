@@ -3,7 +3,6 @@
 
 import { Router } from 'express';
 import { realTrendHunterService } from '../services/realTrendHunter';
-import { requireAuth } from '../middleware/auth';
 
 const router = Router();
 
