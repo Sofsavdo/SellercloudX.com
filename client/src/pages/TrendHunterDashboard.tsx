@@ -212,11 +212,23 @@ export default function TrendHunterDashboard() {
                   <p className="text-sm font-medium">{opportunity.recommendation}</p>
                 </div>
 
-                {/* Action Button */}
-                <Button className="w-full" variant="default">
-                  <DollarSign className="w-4 h-4 mr-2" />
-                  Mahsulot Yaratish
-                </Button>
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  {opportunity.product.productUrl && (
+                    <Button 
+                      className="flex-1" 
+                      variant="outline"
+                      onClick={() => window.open(opportunity.product.productUrl, '_blank')}
+                    >
+                      <Target className="w-4 h-4 mr-2" />
+                      Mahsulotga o'tish
+                    </Button>
+                  )}
+                  <Button className="flex-1" variant="default">
+                    <DollarSign className="w-4 h-4 mr-2" />
+                    Yaratish
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
