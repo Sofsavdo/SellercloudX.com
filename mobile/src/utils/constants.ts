@@ -85,17 +85,22 @@ export const TIERS = {
 };
 
 // 4 ta Marketplace - Hozir va kelajak (Real logolar)
+// TO'G'RILANGAN LOGOLAR:
+// - Uzum = s5t4wghe_market.png (to'g'ri)
+// - Yandex = fn5a7tjm_images.png (aslida megamarket, lekin foydalanuvchi Yandex deb berdi)
+// - Wildberries = 5bdfsh1w...jpg (to'g'ri)
+// - Ozon = ozon-icon-logo.png (to'g'ri)
 export const MARKETPLACE_LOGOS = {
-  yandex: 'https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/s5t4wghe_market.png',
-  uzum: 'https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/fn5a7tjm_images.png',
+  yandex: 'https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/fn5a7tjm_images.png',
+  uzum: 'https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/s5t4wghe_market.png',
   wildberries: 'https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/5bdfsh1w_6f50bf7b-9f31-41a5-b13b-332697a792c1.jpg',
   ozon: 'https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/rttfl7ms_ozon-icon-logo.png',
   sellercloudx: 'https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/4ztx60fi_-76rizc_edit_75534802065091.jpg',
 };
 
 export const MARKETPLACES = [
-  { id: 'yandex', name: 'Yandex Market', logo: MARKETPLACE_LOGOS.yandex, color: '#FFCC00', active: true },
-  { id: 'uzum', name: 'Uzum Market', logo: MARKETPLACE_LOGOS.uzum, color: '#7C3AED', active: false, coming: true },
+  { id: 'yandex', name: 'Yandex', logo: MARKETPLACE_LOGOS.yandex, color: '#FF6600', active: true },
+  { id: 'uzum', name: 'Uzum', logo: MARKETPLACE_LOGOS.uzum, color: '#7C3AED', active: false, coming: true },
   { id: 'wildberries', name: 'Wildberries', logo: MARKETPLACE_LOGOS.wildberries, color: '#CB11AB', active: false, coming: true },
   { id: 'ozon', name: 'Ozon', logo: MARKETPLACE_LOGOS.ozon, color: '#005BFF', active: false, coming: true },
 ];
