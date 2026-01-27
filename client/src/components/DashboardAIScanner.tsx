@@ -138,8 +138,8 @@ export default function DashboardAIScanner() {
 
       setScanStage('AI tahlil qilmoqda...');
 
-      // Call public scanner API
-      const response = await fetch('/api/ai/scanner/public-analyze', {
+      // Call unified scanner API (public endpoint)
+      const response = await fetch('/api/unified-scanner/analyze-base64', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
