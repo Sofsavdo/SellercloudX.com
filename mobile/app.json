@@ -40,9 +40,7 @@
       "fallbackToCacheTimeout": 0,
       "url": "https://u.expo.dev/314308c3-1931-45ef-bd5c-bd962b774a07"
     },
-    "runtimeVersion": {
-      "policy": "sdkVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "plugins": [
       [
         "expo-camera",
