@@ -13,7 +13,7 @@ import {
   MessageCircle, AlertCircle, Bot, Image as ImageIcon,
   LineChart, PieChart, ShoppingCart, Box, Warehouse,
   Infinity, Gauge, UserCheck, Lock, Award, Plus, X, FileText, ChevronDown,
-  Camera, Lightbulb
+  Camera, Lightbulb, Calculator
 } from 'lucide-react';
 
 export default function Landing() {
