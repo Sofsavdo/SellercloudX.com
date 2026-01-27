@@ -1756,6 +1756,25 @@ export function registerRoutes(app: express.Application): Server {
   // No auth required for public access
   app.use("/api/trends", trendHunterRoutesV2);
 
+  // Mobile App Static Files (served from FastAPI backend)
+  // Proxy to FastAPI for mobile app
+  app.use("/api/mobile", async (req, res) => {
+    try {
+      const mobilePath = req.path === '/' ? '/index.html' : req.path;
+      const fullPath = path.join('/app/backend/static/mobile', mobilePath);
+      
+      if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+        res.sendFile(fullPath);
+      } else {
+        // SPA fallback
+        res.sendFile('/app/backend/static/mobile/index.html');
+      }
+    } catch (error) {
+      console.error('Mobile app error:', error);
+      res.status(500).send('Mobile app error');
+    }
+  });
+
   // Referral System Routes
   app.use("/api/referrals", requireAuth, requirePartnerWithData, referralRoutes);
   
