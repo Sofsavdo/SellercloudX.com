@@ -284,6 +284,9 @@ export function registerRoutes(app: express.Application): Server {
   // Unified Scanner - public endpoint (autentifikatsiyasiz demo uchun)
   app.use('/api/unified-scanner', unifiedScannerRoutes);
 
+  // MXIK Code Search - public endpoint for tax code lookup
+  app.use('/api/mxik', mxikRoutes);
+
   // Authentication routes
   app.post("/api/auth/login", asyncHandler(async (req: Request, res: Response) => {
     try {
