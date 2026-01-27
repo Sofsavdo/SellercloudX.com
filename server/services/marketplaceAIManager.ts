@@ -128,7 +128,15 @@ export async function autoProcessOrders(partnerId: string): Promise<number> {
 
   try {
     const integrations = await db
-      .select()
+      .select({
+        id: marketplaceIntegrations.id,
+        marketplace: marketplaceIntegrations.marketplace,
+        partnerId: marketplaceIntegrations.partnerId,
+        apiKey: marketplaceIntegrations.apiKey,
+        apiSecret: marketplaceIntegrations.apiSecret,
+        sellerId: marketplaceIntegrations.sellerId,
+        active: marketplaceIntegrations.active
+      })
       .from(marketplaceIntegrations)
       .where(eq(marketplaceIntegrations.partnerId, partnerId))
       .where(eq(marketplaceIntegrations.active, true));
