@@ -131,6 +131,14 @@ export interface ScanResult {
     country?: string;
     suggestedPrice?: number;
     confidence: number;
+    // Raqobatchi narxlar
+    competitorPrices?: {
+      yandex?: number;
+      uzum?: number;
+      ozon?: number;
+      wildberries?: number;
+    };
+    priceReason?: string;
   };
   error?: string;
 }
