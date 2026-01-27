@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="12" time="281.985" timestamp="2026-01-27T08:48:42.786401+00:00" hostname="agent-env-845de409-b7fb-4a93-9b2b-8f44b2b6aac8"><testcase classname="backend.tests.test_yandex_dashboard_infographics.TestYandexDashboardStatus" name="test_dashboard_status_returns_success" time="1.591" /><testcase classname="backend.tests.test_yandex_dashboard_infographics.TestYandexDashboardStatus" name="test_dashboard_status_with_limit" time="1.182"><failure message="AssertionError: Should return at most 10 offers, got 80&#10;assert 80 &lt;= 10&#10; +  where 80 = len([{'market_sku': 4752797516, 'name': 'Фен для волос, для сушки и укладки FaKang FK-9900,', 'offer_id': '9900', 'price': 79000.0, ...}, {'market_sku': 4754494058, 'name': 'Сыворотка Axis-Y &quot;Dark Spot Correcting&quot;, против пи', 'offer_id': 'Axis-y', 'price': 129000.0, ...}, {'market_sku': 4752966694, 'name': 'Набор &quot;Чка Доян&quot;, для сужения влагалища, с интимны', 'offer_id': 'Chka', 'price': 99000.0, ...}, {'market_sku': 4754531772, 'name': 'Препарат для повышения потенции Super Black Ant Ki', 'offer_id': 'Chumoli', 'price': 69900.0, ...}, {'market_sku': 4752769286, 'name': 'Фен для сушки и для укладки волос + сумка в подаро', 'offer_id': 'Dyson Qora', 'price': 171000.0, ...}, {'market_sku': 5062057552, 'name': 'Парфюмерная вода &quot;Formula Sexy&quot;, цветочно-сладкий ', 'offer_id': 'Formula Sexy3 Pushti', 'price': 59900.0, ...}, ...])">backend/tests/test_yandex_dashboard_infographics.py:66: in test_dashboard_status_with_limit
+    assert len(offers) &lt;= 10, f"Should return at most 10 offers, got {len(offers)}"
+E   AssertionError: Should return at most 10 offers, got 80
+E   assert 80 &lt;= 10
+E    +  where 80 = len([{'market_sku': 4752797516, 'name': 'Фен для волос, для сушки и укладки FaKang FK-9900,', 'offer_id': '9900', 'price': 79000.0, ...}, {'market_sku': 4754494058, 'name': 'Сыворотка Axis-Y "Dark Spot Correcting", против пи', 'offer_id': 'Axis-y', 'price': 129000.0, ...}, {'market_sku': 4752966694, 'name': 'Набор "Чка Доян", для сужения влагалища, с интимны', 'offer_id': 'Chka', 'price': 99000.0, ...}, {'market_sku': 4754531772, 'name': 'Препарат для повышения потенции Super Black Ant Ki', 'offer_id': 'Chumoli', 'price': 69900.0, ...}, {'market_sku': 4752769286, 'name': 'Фен для сушки и для укладки волос + сумка в подаро', 'offer_id': 'Dyson Qora', 'price': 171000.0, ...}, {'market_sku': 5062057552, 'name': 'Парфюмерная вода "Formula Sexy", цветочно-сладкий ', 'offer_id': 'Formula Sexy3 Pushti', 'price': 59900.0, ...}, ...])</failure></testcase><testcase classname="backend.tests.test_yandex_dashboard_infographics.TestYandexDashboardStatus" name="test_dashboard_status_stats_structure" time="1.138" /><testcase classname="backend.tests.test_yandex_dashboard_infographics.TestYandexOfferStatus" name="test_offer_status_valid_id" time="0.725" /><testcase classname="backend.tests.test_yandex_dashboard_infographics.TestYandexOfferStatus" name="test_offer_status_invalid_id" time="0.678" /><testcase classname="backend.tests.test_yandex_dashboard_infographics.TestYandexPartnerDashboard" name="test_partner_dashboard_with_valid_credentials" time="1.918" /><testcase classname="backend.tests.test_yandex_dashboard_infographics.TestYandexPartnerDashboard" name="test_partner_dashboard_with_invalid_token" time="1.216" /><testcase classname="backend.tests.test_yandex_dashboard_infographics.TestNanoBananaInfographics" name="test_generate_infographics_single_image" time="24.271" /><testcase classname="backend.tests.test_yandex_dashboard_infographics.TestNanoBananaInfographics" name="test_generate_infographics_request_validation" time="120.157"><failure message="requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='vendorai.preview.emergentagent.com', port=443): Read timed out. (read timeout=120)">/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:534: in _make_request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/urllib3/connection.py:571: in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/http/client.py:1395: in getresponse
+    response.begin()
+/usr/local/lib/python3.11/http/client.py:325: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/http/client.py:286: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/socket.py:718: in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/ssl.py:1314: in recv_into
+    return self.read(nbytes, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/ssl.py:1166: in read
+    return self._sslobj.read(len, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TimeoutError: The read operation timed out
+
+The above exception was the direct cause of the following exception:
+/root/.venv/lib/python3.11/site-packages/requests/adapters.py:644: in send
+    resp = conn.urlopen(
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:841: in urlopen
+    retries = retries.increment(
+/root/.venv/lib/python3.11/site-packages/urllib3/util/retry.py:474: in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/urllib3/util/util.py:39: in reraise
+    raise value
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:787: in urlopen
+    response = self._make_request(
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:536: in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:367: in _raise_timeout
+    raise ReadTimeoutError(
+E   urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='vendorai.preview.emergentagent.com', port=443): Read timed out. (read timeout=120)
+
+During handling of the above exception, another exception occurred:
+backend/tests/test_yandex_dashboard_infographics.py:254: in test_generate_infographics_request_validation
+    response = requests.post(
+/root/.venv/lib/python3.11/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:589: in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:703: in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/adapters.py:690: in send
+    raise ReadTimeout(e, request=request)
+E   requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='vendorai.preview.emergentagent.com', port=443): Read timed out. (read timeout=120)</failure></testcase><testcase classname="backend.tests.test_yandex_dashboard_infographics.TestNanoBananaInfographics" name="test_generate_infographics_max_count_limit" time="120.127"><failure message="requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='vendorai.preview.emergentagent.com', port=443): Read timed out. (read timeout=120)">/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:534: in _make_request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/urllib3/connection.py:571: in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/http/client.py:1395: in getresponse
+    response.begin()
+/usr/local/lib/python3.11/http/client.py:325: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/http/client.py:286: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/socket.py:718: in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/ssl.py:1314: in recv_into
+    return self.read(nbytes, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/ssl.py:1166: in read
+    return self._sslobj.read(len, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TimeoutError: The read operation timed out
+
+The above exception was the direct cause of the following exception:
+/root/.venv/lib/python3.11/site-packages/requests/adapters.py:644: in send
+    resp = conn.urlopen(
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:841: in urlopen
+    retries = retries.increment(
+/root/.venv/lib/python3.11/site-packages/urllib3/util/retry.py:474: in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/urllib3/util/util.py:39: in reraise
+    raise value
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:787: in urlopen
+    response = self._make_request(
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:536: in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:367: in _raise_timeout
+    raise ReadTimeoutError(
+E   urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='vendorai.preview.emergentagent.com', port=443): Read timed out. (read timeout=120)
+
+During handling of the above exception, another exception occurred:
+backend/tests/test_yandex_dashboard_infographics.py:276: in test_generate_infographics_max_count_limit
+    response = requests.post(
+/root/.venv/lib/python3.11/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:589: in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:703: in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/adapters.py:690: in send
+    raise ReadTimeout(e, request=request)
+E   requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='vendorai.preview.emergentagent.com', port=443): Read timed out. (read timeout=120)</failure></testcase><testcase classname="backend.tests.test_yandex_dashboard_infographics.TestHealthAndAIStatus" name="test_health_endpoint" time="0.084"><failure message="AssertionError: assert 'ok' == 'healthy'&#10;  &#10;  - healthy&#10;  + ok">backend/tests/test_yandex_dashboard_infographics.py:302: in test_health_endpoint
+    assert data.get("status") == "healthy"
+E   AssertionError: assert 'ok' == 'healthy'
+E     
+E     - healthy
+E     + ok</failure></testcase><testcase classname="backend.tests.test_yandex_dashboard_infographics.TestHealthAndAIStatus" name="test_ai_status_endpoint" time="8.599" /></testsuite></testsuites>
