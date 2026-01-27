@@ -122,6 +122,9 @@ function Router() {
       <Route path="/remote-access">
         <ProtectedRoute requiredTier="enterprise"><RemoteAccessDashboard /></ProtectedRoute>
       </Route>
+      <Route path="/yandex-dashboard">
+        <ProtectedRoute requiredTier="basic"><YandexDashboard /></ProtectedRoute>
+      </Route>
       
       {/* Admin panel - faqat adminlar uchun */}
       <Route path="/admin-panel">
