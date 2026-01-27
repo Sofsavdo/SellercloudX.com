@@ -17,6 +17,18 @@ SellerCloudX.com - AI-powered marketplace automation SaaS. Complete automation f
 └── migrations/         # SQL Migrations
 ```
 
+## 2026 Revenue Share Model
+```
+Premium Tariff:
+├── Setup: $699 (one-time)
+├── Monthly: $499/month
+└── Revenue Share: 4% of sales
+
+Individual Tariff:
+├── Custom contract
+└── Minimum 2% share
+```
+
 ## Completed Features (Jan 27, 2026)
 
 ### 1. Full Automation ✅ 
@@ -24,6 +36,7 @@ SellerCloudX.com - AI-powered marketplace automation SaaS. Complete automation f
 
 **Web Endpoint**: `POST /api/ai/full-automation`
 **Mobile Endpoint**: `POST /api/unified-scanner/full-process`
+**Mobile Scanner**: `POST /api/unified-scanner/analyze-base64` ✅ NEW
 
 6-step flow:
 1. **Scan** - AI product recognition
@@ -33,7 +46,35 @@ SellerCloudX.com - AI-powered marketplace automation SaaS. Complete automation f
 5. **Infographics** - 6 images @ 1080x1440
 6. **Yandex** - Real API upload
 
-### 2. Revenue Share Billing ✅ NEW
+### 2. Mobile Scanner Endpoint ✅ NEW (Jan 27, 2026)
+**Critical for mobile app camera functionality**
+
+**Endpoint**: `POST /api/unified-scanner/analyze-base64`
+**Request**:
+```json
+{
+  "image_base64": "base64_encoded_image_string",
+  "language": "uz"
+}
+```
+**Response**:
+```json
+{
+  "success": true,
+  "product_info": {
+    "brand": "Nutley",
+    "model": "Yong'oqli batonchik",
+    "product_name": "Yong'oqli donli batonchik",
+    "category": "food",
+    "features": ["Tabiiy", "Yong'oq", "Protein"],
+    "suggested_price": 100000
+  },
+  "suggested_price": 100000,
+  "confidence": 85
+}
+```
+
+### 3. Revenue Share Billing ✅
 **2026 Premium Monetization Model**
 
 **Pricing:**
@@ -57,14 +98,16 @@ SellerCloudX.com - AI-powered marketplace automation SaaS. Complete automation f
 - Revenue share: 400,000 UZS ($32)
 - Total: 6,687,400 UZS ($531)
 
-### 3. Mobile App Integration ✅ UPDATED
+### 4. Mobile App Integration ✅ UPDATED
 **Real API - No Mock Data**
 
 **Files:**
 - `/app/mobile/src/services/api.ts`
 - `/app/mobile/src/utils/constants.ts`
+- `/app/mobile/src/screens/ScannerScreen.tsx`
 
 **Endpoints used by mobile:**
+- `/api/unified-scanner/analyze-base64` - Image scan (NEW)
 - `/api/unified-scanner/full-process` - Full automation
 - `/api/ai/scan-from-url` - URL scan
 - `/api/billing/summary` - Partner billing
@@ -72,8 +115,8 @@ SellerCloudX.com - AI-powered marketplace automation SaaS. Complete automation f
 **Flow:**
 Camera → AI Scan → MXIK → Price → Card → Yandex Upload
 
-### 4. Yandex Market API ✅
-**84 Products | 77 Ready (92%)**
+### 5. Yandex Market API ✅
+**89 Products | 76 Ready (85%)**
 
 **Endpoints:**
 - `GET /api/yandex/dashboard/status` - Real-time stats
@@ -82,9 +125,9 @@ Camera → AI Scan → MXIK → Price → Card → Yandex Upload
 
 **Credentials:**
 - Business ID: 197529861
-- 6 Campaigns active
+- Token: ACMA:rHqOiebT6JY1JlkEN0rdYdZn2SkO6iC2V6HvLE22:1806b892
 
-### 5. Nano Banana Infographics ✅
+### 6. Nano Banana Infographics ✅
 **1080x1440 pixels | 3:4 portrait**
 
 6 types per product:
@@ -95,7 +138,7 @@ Camera → AI Scan → MXIK → Price → Card → Yandex Upload
 5. Purity badges
 6. Lifestyle
 
-### 6. MXIK/IKPU Codes ✅
+### 7. MXIK/IKPU Codes ✅
 **250+ codes from tasnif.soliq.uz**
 
 Common codes:
@@ -105,19 +148,22 @@ Common codes:
 - 14130000 - Clothing
 
 ## Test Results (Jan 27, 2026)
-- **Backend**: 100% (14/14 passed)
-- **Revenue Share**: Working
-- **Mobile Flow**: Working
-- **Yandex API**: Working
+- **Backend**: 100% (9/9 passed)
+- **Mobile Scanner**: Working ✅
+- **Revenue Share**: Working ✅
+- **Yandex API**: Working ✅
 
 ## API Endpoints Summary
+
+### Mobile Scanner (NEW)
+- `POST /api/unified-scanner/analyze-base64` - Base64 image scan
 
 ### Full Automation
 - `POST /api/ai/full-automation` - Web
 - `POST /api/unified-scanner/full-process` - Mobile
 - `POST /api/ai/scan-from-url` - URL scan
 
-### Billing (NEW)
+### Billing
 - `GET /api/billing/calculate`
 - `POST /api/billing/summary`
 - `POST /api/billing/invoice`
@@ -128,29 +174,22 @@ Common codes:
 - `POST /api/yandex-market/create-product`
 
 ### AI Services
+- `GET /api/ai/status`
 - `POST /api/ai/generate-infographics`
-
-## Revenue Share Model
-```
-Premium Tariff:
-├── Setup: $699 (one-time)
-├── Monthly: $499/month
-└── Revenue Share: 4% of sales
-
-Individual Tariff:
-├── Custom contract
-└── Minimum 2% share
-```
 
 ## Yandex Statistics
 | Metric | Value |
 |--------|-------|
-| Total Products | 84 |
-| Ready | 77 (92%) |
+| Total Products | 89 |
+| Ready | 76 (85%) |
 | Campaigns | 6 |
-| New Today | 5 |
 
 ## Upcoming Tasks (P1)
+
+### Trend Hunter Enhancement
+- [ ] Fix AliExpress API integration
+- [ ] Add direct product links
+- [ ] 1688.com integration (user requested)
 
 ### Video Generation
 - [ ] Sora 2 integration
@@ -194,8 +233,16 @@ total_debt = monthly_fee_uzs + revenue_share
 https://yandexbot.preview.emergentagent.com/api
 ```
 
+### Environment Variables (Backend)
+```
+EMERGENT_LLM_KEY=sk-emergent-...
+YANDEX_API_KEY=ACMA:rHq...
+YANDEX_BUSINESS_ID=197529861
+IMGBB_API_KEY=0cc4c8e...
+```
+
 ## Last Updated
-January 27, 2026 - Revenue Share & Mobile Integration Complete
+January 27, 2026 - Mobile Scanner Endpoint Added & Tested
 
 ## Contact
 - Telegram: @sellercloudx_support
