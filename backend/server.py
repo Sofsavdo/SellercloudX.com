@@ -3858,6 +3858,231 @@ async def yandex_full_auto_create(request: YandexAutoCreateRequest):
         }
 
 
+class FullAutomationRequest(BaseModel):
+    """To'liq avtomatizatsiya uchun so'rov - scan'dan Yandex'ga qo'shishgacha"""
+    image_url: str
+    cost_price: float  # Tannarx UZS
+    partner_id: Optional[str] = None
+    oauth_token: Optional[str] = None
+    business_id: Optional[str] = None
+    generate_infographics: bool = True
+    infographic_count: int = 6
+
+
+@app.post("/api/ai/full-automation")
+async def ai_full_automation(request: FullAutomationRequest):
+    """
+    TO'LIQ AVTOMATIZATSIYA - Rasmdan Yandex Market'ga mahsulot qo'shish
+    
+    Oqim:
+    1. Rasmni AI bilan skanerlash (mahsulotni aniqlash)
+    2. MXIK kodini topish
+    3. AI kartochka yaratish (nom, tavsif, kalit so'zlar)
+    4. Narxni hisoblash (komissiya, margin, logistika)
+    5. Infografika rasmlar generatsiya qilish (6 ta)
+    6. Yandex Market'ga mahsulot qo'shish
+    
+    Bu endpoint hamkorlar uchun "bir tugma" bilan mahsulot yaratish imkonini beradi.
+    """
+    try:
+        import httpx
+        from nano_banana_service import generate_product_infographics
+        
+        result = {
+            "success": False,
+            "steps": {},
+            "errors": []
+        }
+        
+        # ========== STEP 1: Rasmni yuklash va skanerlash ==========
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                img_response = await client.get(request.image_url)
+                if img_response.status_code != 200:
+                    result["errors"].append(f"Rasmni yuklab bo'lmadi: {img_response.status_code}")
+                    return result
+                
+                contents = img_response.content
+                image_base64 = base64.b64encode(contents).decode('utf-8')
+            
+            scan_result = await scan_product_image(image_base64)
+            
+            if not scan_result.get("success"):
+                result["errors"].append(f"Scan xatosi: {scan_result.get('error')}")
+                return result
+            
+            product = scan_result.get("product", {})
+            result["steps"]["scan"] = {
+                "success": True,
+                "product_name": product.get("name"),
+                "brand": product.get("brand"),
+                "category": product.get("category")
+            }
+        except Exception as e:
+            result["errors"].append(f"Scan xatosi: {str(e)}")
+            return result
+        
+        # ========== STEP 2: MXIK kodini topish ==========
+        try:
+            product_name = product.get("name", "")
+            category = product.get("category", "general")
+            
+            mxik_result = await IKPUService.search_ikpu(product_name + " " + category, limit=1)
+            
+            if mxik_result and len(mxik_result) > 0:
+                mxik_code = mxik_result[0].get("code", "")[:8] or "47190000"
+            else:
+                category_mxik = {
+                    "beauty": "20420100", "cosmetics": "20420100", "skincare": "20420100",
+                    "electronics": "26121900", "phone": "26121900",
+                    "food": "10810100", "snack": "10890100",
+                    "perfume": "20420100", "clothing": "14130000"
+                }
+                mxik_code = category_mxik.get(category.lower(), "47190000")
+            
+            result["steps"]["mxik"] = {
+                "success": True,
+                "code": mxik_code
+            }
+        except Exception as e:
+            mxik_code = "47190000"
+            result["steps"]["mxik"] = {"success": False, "error": str(e), "fallback_code": mxik_code}
+        
+        # ========== STEP 3: AI Kartochka yaratish ==========
+        try:
+            brand = product.get("brand", "No Brand")
+            
+            card_result = await YandexCardGenerator.generate_card(
+                product_name=product_name,
+                category=category,
+                brand=brand,
+                description=product.get("description", ""),
+                price=request.cost_price
+            )
+            
+            if card_result.get("success"):
+                card_data = card_result.get("card", {})
+                result["steps"]["ai_card"] = {
+                    "success": True,
+                    "name_ru": card_data.get("name"),
+                    "description_length": len(card_data.get("description", "")),
+                    "keywords_count": len(card_data.get("keywords", []))
+                }
+            else:
+                result["steps"]["ai_card"] = {"success": False, "error": card_result.get("error")}
+        except Exception as e:
+            result["steps"]["ai_card"] = {"success": False, "error": str(e)}
+            card_data = {"name": product_name, "description": product.get("description", "")}
+        
+        # ========== STEP 4: Narxni hisoblash ==========
+        try:
+            price_calc = calculate_yandex_price(
+                cost_price=request.cost_price,
+                category=category,
+                weight_kg=0.5,
+                fulfillment="fbs",
+                target_margin=25,
+                payout_frequency="daily"
+            )
+            
+            result["steps"]["pricing"] = {
+                "success": True,
+                "cost_price": request.cost_price,
+                "optimal_price": price_calc.get("optimal_price"),
+                "breakdown": price_calc.get("breakdown")
+            }
+        except Exception as e:
+            result["steps"]["pricing"] = {"success": False, "error": str(e)}
+            price_calc = {"optimal_price": int(request.cost_price * 1.5)}
+        
+        # ========== STEP 5: Infografika generatsiya ==========
+        infographic_urls = [request.image_url]  # Original rasm ham qo'shiladi
+        
+        if request.generate_infographics:
+            try:
+                infographic_result = await generate_product_infographics(
+                    product_name=product_name,
+                    brand=brand,
+                    features=product.get("keywords", []) + product.get("specifications", []),
+                    category=category,
+                    count=min(request.infographic_count, 6)
+                )
+                
+                if infographic_result.get("success"):
+                    infographic_urls.extend(infographic_result.get("images", []))
+                    result["steps"]["infographics"] = {
+                        "success": True,
+                        "generated_count": infographic_result.get("generated_count"),
+                        "images": infographic_result.get("images", [])
+                    }
+                else:
+                    result["steps"]["infographics"] = {"success": False, "error": infographic_result.get("error")}
+            except Exception as e:
+                result["steps"]["infographics"] = {"success": False, "error": str(e)}
+        else:
+            result["steps"]["infographics"] = {"success": True, "skipped": True}
+        
+        # ========== STEP 6: Yandex Market'ga qo'shish ==========
+        try:
+            oauth_token = request.oauth_token or os.getenv("YANDEX_API_KEY")
+            business_id = request.business_id or os.getenv("YANDEX_BUSINESS_ID", "197529861")
+            
+            if not oauth_token:
+                result["steps"]["yandex"] = {"success": False, "error": "YANDEX_API_KEY topilmadi"}
+            else:
+                api = YandexMarketAPI(oauth_token=oauth_token, business_id=business_id)
+                
+                # Test connection first
+                conn_test = await api.test_connection()
+                if not conn_test.get("success"):
+                    result["steps"]["yandex"] = {"success": False, "error": "Yandex API ulanishi xato"}
+                else:
+                    # Create product
+                    create_result = await api.create_product(
+                        offer_id=f"SCX-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                        name=card_data.get("name", product_name),
+                        description=card_data.get("description", ""),
+                        vendor=brand,
+                        price=price_calc.get("optimal_price", int(request.cost_price * 1.5)),
+                        pictures=infographic_urls[:10],  # Max 10 images
+                        category_id=get_yandex_category_id(category)
+                    )
+                    
+                    result["steps"]["yandex"] = {
+                        "success": create_result.get("success"),
+                        "offer_id": create_result.get("offer_id"),
+                        "message": create_result.get("message"),
+                        "error": create_result.get("error")
+                    }
+        except Exception as e:
+            result["steps"]["yandex"] = {"success": False, "error": str(e)}
+        
+        # ========== FINAL RESULT ==========
+        successful_steps = sum(1 for step in result["steps"].values() if step.get("success"))
+        total_steps = len(result["steps"])
+        
+        result["success"] = successful_steps >= 4  # At least 4 steps successful
+        result["summary"] = {
+            "product_name": product_name,
+            "brand": brand,
+            "category": category,
+            "mxik_code": mxik_code,
+            "final_price": price_calc.get("optimal_price"),
+            "images_count": len(infographic_urls),
+            "steps_completed": f"{successful_steps}/{total_steps}"
+        }
+        
+        return result
+        
+    except Exception as e:
+        import traceback
+        return {
+            "success": False,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+
+
 @app.get("/api/yandex/campaigns")
 async def yandex_get_campaigns():
     """Yandex Market kampaniyalarini (do'konlarini) olish"""
