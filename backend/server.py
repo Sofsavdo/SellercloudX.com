@@ -1498,6 +1498,76 @@ async def unified_scan_image(file: UploadFile = File(...)):
         }
 
 
+# ========================================
+# UNIFIED SCANNER - BASE64 ANALYZE (MOBILE APP UCHUN)
+# ========================================
+
+class AnalyzeBase64Request(BaseModel):
+    """Base64 rasm tahlili (mobil ilova uchun)"""
+    image_base64: str
+    language: Optional[str] = "uz"
+
+
+@app.post("/api/unified-scanner/analyze-base64")
+async def unified_scanner_analyze_base64(request: AnalyzeBase64Request):
+    """
+    MOBILE APP UCHUN - Base64 rasmni AI bilan tahlil qilish
+    
+    Bu endpoint mobil ilovadan to'g'ridan-to'g'ri base64 rasm qabul qiladi
+    va AI yordamida mahsulotni aniqlaydi.
+    
+    Returns:
+        - product_info: Aniqlangan mahsulot ma'lumotlari
+        - suggested_price: Tavsiya etilgan narx
+        - confidence: AI ishonch darajasi
+    """
+    try:
+        # Base64 dan prefix olib tashlash (agar mavjud bo'lsa)
+        image_base64 = request.image_base64
+        if image_base64.startswith('data:'):
+            image_base64 = image_base64.split(',')[1]
+        
+        # AI bilan rasmni tahlil qilish
+        result = await scan_product_image(image_base64)
+        
+        if result.get("success"):
+            product = result.get("product", {})
+            
+            # Mobil ilova kutgan formatda javob qaytarish
+            return {
+                "success": True,
+                "product_info": {
+                    "brand": product.get("brand", "Unknown"),
+                    "model": product.get("name", ""),
+                    "product_name": product.get("name", "Mahsulot"),
+                    "name": product.get("name", "Mahsulot"),
+                    "category": product.get("category", "general"),
+                    "category_ru": product.get("category", "Общее"),
+                    "description": product.get("description", ""),
+                    "features": product.get("keywords", []),
+                    "materials": product.get("specifications", []),
+                    "country_of_origin": product.get("country", ""),
+                    "suggested_price": product.get("estimatedPrice", 100000),
+                },
+                "suggested_price": product.get("estimatedPrice", 100000),
+                "confidence": product.get("confidence", 85),
+                "language": request.language,
+            }
+        else:
+            return {
+                "success": False,
+                "error": result.get("error", "Mahsulot aniqlanmadi"),
+            }
+            
+    except Exception as e:
+        import traceback
+        return {
+            "success": False,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+
+
 @app.post("/api/unified-scanner/analyze-price")
 async def unified_analyze_price(
     product_name: str,
