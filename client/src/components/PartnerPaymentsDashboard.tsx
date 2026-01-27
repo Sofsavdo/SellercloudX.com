@@ -545,7 +545,7 @@ export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardPr
                 </div>
                 <span className="font-semibold">JAMI</span>
               </div>
-              <p className="text-2xl font-black text-primary">{formatUzs(salesData?.currentMonth?.totalSales || 0)}</p>
+              <p className="text-2xl font-black text-primary">{formatUzs(currentMonthSales)}</p>
               <p className="text-sm text-muted-foreground mt-1">
                 Barcha marketplace
               </p>
@@ -557,7 +557,7 @@ export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardPr
               <RefreshCw className="w-4 h-4" />
               Oxirgi yangilanish: {new Date().toLocaleString('uz-UZ')}
             </span>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => refetch()}>
               <RefreshCw className="w-4 h-4 mr-2" />
               Yangilash
             </Button>
