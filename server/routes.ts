@@ -1223,6 +1223,43 @@ export function registerRoutes(app: express.Application): Server {
     res.json(partner);
   }));
 
+  // Admin: Activate/Deactivate partner (without payment)
+  app.put("/api/admin/partners/:id/activate", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { isActive, pricingTier, adminNote } = req.body;
+    
+    const updateData: any = { 
+      isActive: isActive !== undefined ? isActive : true,
+      approved: isActive !== undefined ? isActive : true
+    };
+    
+    if (pricingTier) {
+      updateData.pricingTier = pricingTier;
+    }
+    
+    const partner = await storage.updatePartner(id, updateData);
+    if (!partner) {
+      return res.status(404).json({ 
+        message: "Hamkor topilmadi",
+        code: "PARTNER_NOT_FOUND"
+      });
+    }
+
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: isActive ? 'PARTNER_ACTIVATED_BY_ADMIN' : 'PARTNER_DEACTIVATED_BY_ADMIN',
+      entityType: 'partner',
+      entityId: id,
+      payload: { adminNote, pricingTier }
+    });
+
+    res.json({
+      success: true,
+      message: `Partner ${isActive ? 'faollashtirildi' : 'deaktivatsiya qilindi'}`,
+      partner
+    });
+  }));
+
   // Pricing tiers
   app.get("/api/pricing-tiers", asyncHandler(async (req: Request, res: Response) => {
     const tiers = await storage.getAllPricingTiers();
