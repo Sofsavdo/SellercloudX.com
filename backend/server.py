@@ -1377,10 +1377,85 @@ async def unified_scanner_full_process(request: UnifiedScanRequest):
             ]
         }
         
+        # ========== STEP 8: Marketplace ga yuklash (Yandex) ==========
+        if request.marketplace == "yandex" and request.image_base64:
+            try:
+                from nano_banana_service import generate_product_infographics, upload_to_imgbb
+                
+                # 1. Upload original image to ImgBB
+                original_url = await upload_to_imgbb(request.image_base64)
+                image_urls = [original_url] if original_url else []
+                
+                # 2. Generate infographics (optional - can be skipped for speed)
+                if request.auto_generate_infographics:
+                    result_data["upload_progress"] = "Infografika yaratilmoqda..."
+                    infographic_result = await generate_product_infographics(
+                        product_name=product_name,
+                        brand=request.brand or "No Brand",
+                        features=detected_info.get("keywords", []) if detected_info else [],
+                        category=request.category or "general",
+                        count=3  # Tezlik uchun 3 ta rasm
+                    )
+                    if infographic_result.get("success"):
+                        image_urls.extend(infographic_result.get("images", []))
+                        result_data["infographics"] = infographic_result.get("images", [])
+                        result_data["steps_completed"].append("infographics_generated")
+                
+                # 3. Create product on Yandex Market
+                if image_urls:
+                    oauth_token = os.getenv("YANDEX_API_KEY")
+                    business_id = os.getenv("YANDEX_BUSINESS_ID", "197529861")
+                    
+                    if oauth_token:
+                        api = YandexMarketAPI(oauth_token=oauth_token, business_id=business_id)
+                        
+                        # Generate offer ID
+                        offer_id = f"SCX-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                        
+                        # Get card data or fallback
+                        card_data = result_data.get("product_card", {})
+                        product_title = card_data.get("name", product_name)
+                        product_desc = card_data.get("description", "") or f"{request.brand} {product_name}"
+                        
+                        create_result = await api.create_product(
+                            offer_id=offer_id,
+                            name=product_title,
+                            description=product_desc,
+                            vendor=request.brand or "No Brand",
+                            price=price_calculation["optimal_price"],
+                            pictures=image_urls[:10],
+                            category_id=get_yandex_category_id(request.category)
+                        )
+                        
+                        if create_result.get("success"):
+                            result_data["yandex_upload"] = {
+                                "success": True,
+                                "offer_id": offer_id,
+                                "images_uploaded": len(image_urls),
+                                "price": price_calculation["optimal_price"]
+                            }
+                            result_data["steps_completed"].append("yandex_upload")
+                            final_package["yandex_offer_id"] = offer_id
+                        else:
+                            result_data["yandex_upload"] = {
+                                "success": False,
+                                "error": create_result.get("error")
+                            }
+                            result_data["steps_failed"].append({
+                                "step": "yandex_upload",
+                                "error": create_result.get("error")
+                            })
+            except Exception as e:
+                result_data["yandex_upload"] = {"success": False, "error": str(e)}
+                result_data["steps_failed"].append({"step": "yandex_upload", "error": str(e)})
+        
         return {
             "success": True,
             "message": "Mahsulot kartochkasi tayyor!",
-            "data": result_data
+            "data": result_data,
+            "sku": sku,
+            "offer_id": result_data.get("yandex_upload", {}).get("offer_id"),
+            "infographics": result_data.get("infographics", [])
         }
         
     except Exception as e:
