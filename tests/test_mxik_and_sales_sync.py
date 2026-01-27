@@ -8,7 +8,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://marketbot-30.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://vendorai.preview.emergentagent.com').rstrip('/')
 
 class TestMXIKAPI:
     """MXIK Code API Tests - Uzbekistan Tax Compliance"""

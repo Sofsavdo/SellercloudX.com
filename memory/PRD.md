@@ -5,7 +5,7 @@ SellerCloudX.com - AI-powered marketplace automation SaaS for Uzbekistan sellers
 
 ## Live Environment
 - **Production URL**: https://sellercloudx.com
-- **Preview URL**: https://marketbot-30.preview.emergentagent.com
+- **Preview URL**: https://vendorai.preview.emergentagent.com
 - **Repository**: https://github.com/Sofsavdo/SellercloudX.com
 
 ## Architecture

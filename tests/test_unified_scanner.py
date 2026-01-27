@@ -8,7 +8,7 @@ import os
 import time
 
 # API Base URL from environment
-BASE_URL = os.environ.get('VITE_API_URL', 'https://marketbot-30.preview.emergentagent.com')
+BASE_URL = os.environ.get('VITE_API_URL', 'https://vendorai.preview.emergentagent.com')
 
 
 class TestUnifiedScannerEndpoints:
