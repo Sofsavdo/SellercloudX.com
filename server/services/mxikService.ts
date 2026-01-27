@@ -223,10 +223,23 @@ export function getMxikByCode(code: string): MxikCode | null {
  */
 export async function loadMxikDatabase(filePath?: string): Promise<boolean> {
   try {
-    const defaultPath = path.join(process.cwd(), 'data', 'mxik_codes.json');
-    const loadPath = filePath || defaultPath;
-
-    if (!fs.existsSync(loadPath)) {
+    // Try multiple paths for MXIK database
+    const possiblePaths = [
+      filePath,
+      path.join(process.cwd(), 'server', 'data', 'mxik_codes.json'),
+      path.join(process.cwd(), 'data', 'mxik_codes.json'),
+      '/app/server/data/mxik_codes.json'
+    ].filter(Boolean) as string[];
+    
+    let loadPath = '';
+    for (const p of possiblePaths) {
+      if (fs.existsSync(p)) {
+        loadPath = p;
+        break;
+      }
+    }
+    
+    if (!loadPath) {
       console.log('⚠️ MXIK database file not found, using built-in codes');
       mxikDatabase = COMMON_MXIK_CODES;
       isLoaded = true;
