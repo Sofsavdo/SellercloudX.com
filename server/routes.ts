@@ -80,6 +80,7 @@ import pythonBackendProxy from "./routes/pythonBackendProxy";
 import clickPaymentRoutes from "./routes/clickPaymentRoutes";
 import unifiedScannerRoutes from "./routes/unifiedScannerRoutes";
 import mxikRoutes from "./routes/mxikRoutes";
+import salesSyncService from "./services/salesSyncService";
 import { checkAndProcessFirstPurchase } from "./services/referralFirstPurchaseService";
 
 // Yangi tizimlar
