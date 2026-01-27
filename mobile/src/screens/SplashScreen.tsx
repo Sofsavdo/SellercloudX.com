@@ -1,5 +1,5 @@
-// Splash Screen - SellerCloudX with Real Logos
-import React, { useEffect, useRef, useState } from 'react';
+// Splash Screen - Professional Fintech Animation
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -15,8 +15,8 @@ const { width, height } = Dimensions.get('window');
 // Real marketplace logos
 const LOGOS = {
   sellercloudx: 'https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/4ztx60fi_-76rizc_edit_75534802065091.jpg',
-  yandex: 'https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/s5t4wghe_market.png',
-  uzum: 'https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/fn5a7tjm_images.png',
+  yandex: 'https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/fn5a7tjm_images.png',
+  uzum: 'https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/s5t4wghe_market.png',
   wildberries: 'https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/5bdfsh1w_6f50bf7b-9f31-41a5-b13b-332697a792c1.jpg',
   ozon: 'https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/rttfl7ms_ozon-icon-logo.png',
 };
@@ -26,70 +26,92 @@ interface SplashScreenProps {
 }
 
 export default function SplashScreen({ onFinish }: SplashScreenProps) {
-  const [imagesLoaded, setImagesLoaded] = useState(0);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.5)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
-  const progressAnim = useRef(new Animated.Value(0)).current;
+  // Main logo animations
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const logoScale = useRef(new Animated.Value(0.6)).current;
   
-  // Marketplace icons animation
-  const marketplaceOpacity = useRef(new Animated.Value(0)).current;
+  // Brand text
+  const brandOpacity = useRef(new Animated.Value(0)).current;
+  const brandTranslateY = useRef(new Animated.Value(20)).current;
   
-  // Count loaded images
-  const handleImageLoad = () => {
-    setImagesLoaded(prev => prev + 1);
-  };
+  // Individual marketplace logo animations
+  const mp1Opacity = useRef(new Animated.Value(0)).current;
+  const mp1Scale = useRef(new Animated.Value(0.5)).current;
+  const mp2Opacity = useRef(new Animated.Value(0)).current;
+  const mp2Scale = useRef(new Animated.Value(0.5)).current;
+  const mp3Opacity = useRef(new Animated.Value(0)).current;
+  const mp3Scale = useRef(new Animated.Value(0.5)).current;
+  const mp4Opacity = useRef(new Animated.Value(0)).current;
+  const mp4Scale = useRef(new Animated.Value(0.5)).current;
+  
+  // Progress bar
+  const progressWidth = useRef(new Animated.Value(0)).current;
   
   useEffect(() => {
-    // Start animation after a short delay
-    const timer = setTimeout(() => {
-      startAnimation();
-    }, 300);
-    
-    return () => clearTimeout(timer);
+    startAnimation();
   }, []);
   
   const startAnimation = () => {
     Animated.sequence([
-      // Logo fade in and scale
+      // 1. Main logo appears
       Animated.parallel([
-        Animated.timing(fadeAnim, {
+        Animated.timing(logoOpacity, {
           toValue: 1,
-          duration: 600,
+          duration: 500,
           useNativeDriver: true,
         }),
-        Animated.spring(scaleAnim, {
+        Animated.spring(logoScale, {
           toValue: 1,
           friction: 8,
-          tension: 40,
+          tension: 50,
           useNativeDriver: true,
         }),
       ]),
-      // Tagline slide in
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-      // Marketplace logos fade in
-      Animated.timing(marketplaceOpacity, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      // Progress bar
-      Animated.timing(progressAnim, {
+      
+      // 2. Brand name appears
+      Animated.parallel([
+        Animated.timing(brandOpacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(brandTranslateY, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+      ]),
+      
+      // 3. Marketplace logos appear one by one
+      Animated.parallel([
+        Animated.timing(mp1Opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.spring(mp1Scale, { toValue: 1, friction: 8, useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(mp2Opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.spring(mp2Scale, { toValue: 1, friction: 8, useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(mp3Opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.spring(mp3Scale, { toValue: 1, friction: 8, useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(mp4Opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.spring(mp4Scale, { toValue: 1, friction: 8, useNativeDriver: true }),
+      ]),
+      
+      // 4. Progress bar fills
+      Animated.timing(progressWidth, {
         toValue: 1,
         duration: 600,
         useNativeDriver: false,
       }),
     ]).start(() => {
-      // Finish after animation
-      setTimeout(onFinish, 200);
+      setTimeout(onFinish, 300);
     });
   };
   
-  const progressWidth = progressAnim.interpolate({
+  const progressInterpolated = progressWidth.interpolate({
     inputRange: [0, 1],
     outputRange: ['0%', '100%'],
   });
@@ -98,35 +120,31 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0F172A" />
       
-      {/* Background */}
-      <View style={styles.background}>
-        {/* Subtle grid pattern */}
-        {[...Array(8)].map((_, i) => (
-          <View key={`h-${i}`} style={[styles.gridLine, { top: i * (height / 8) }]} />
-        ))}
-        {[...Array(6)].map((_, i) => (
-          <View key={`v-${i}`} style={[styles.gridLineVertical, { left: i * (width / 6) }]} />
+      {/* Background grid */}
+      <View style={styles.gridContainer}>
+        {[...Array(10)].map((_, i) => (
+          <View key={i} style={[styles.gridLine, { top: (height / 10) * i }]} />
         ))}
       </View>
       
       {/* Main Logo */}
-      <Animated.View 
+      <Animated.View
         style={[
           styles.logoContainer,
           {
-            opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }],
-          }
+            opacity: logoOpacity,
+            transform: [{ scale: logoScale }],
+          },
         ]}
       >
         <View style={styles.logoWrapper}>
           <Image
             source={{ uri: LOGOS.sellercloudx }}
             style={styles.mainLogo}
-            resizeMode="contain"
-            onLoad={handleImageLoad}
+            resizeMode="cover"
           />
         </View>
+        <View style={styles.logoGlow} />
       </Animated.View>
       
       {/* Brand Name */}
@@ -134,71 +152,55 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
         style={[
           styles.brandContainer,
           {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          }
+            opacity: brandOpacity,
+            transform: [{ translateY: brandTranslateY }],
+          },
         ]}
       >
-        <Text style={styles.brandName}>SellerCloud<Text style={styles.brandAccent}>X</Text></Text>
+        <Text style={styles.brandName}>
+          SellerCloud<Text style={styles.brandAccent}>X</Text>
+        </Text>
         <Text style={styles.tagline}>Marketplace Avtomatizatsiya</Text>
       </Animated.View>
       
-      {/* Marketplace Logos */}
-      <Animated.View style={[styles.marketplaceContainer, { opacity: marketplaceOpacity }]}>
-        <Text style={styles.supportText}>Qo'llab-quvvatlanadigan marketplacelar</Text>
+      {/* Marketplace Logos - Sequential */}
+      <View style={styles.marketplaceContainer}>
+        <Text style={styles.supportText}>Qo'llab-quvvatlanadigan platformalar</Text>
         <View style={styles.logosRow}>
-          <View style={styles.logoBox}>
-            <Image
-              source={{ uri: LOGOS.yandex }}
-              style={styles.mpLogo}
-              resizeMode="contain"
-              onLoad={handleImageLoad}
-            />
-          </View>
-          <View style={styles.logoBox}>
-            <Image
-              source={{ uri: LOGOS.uzum }}
-              style={styles.mpLogo}
-              resizeMode="contain"
-              onLoad={handleImageLoad}
-            />
-          </View>
-          <View style={styles.logoBox}>
-            <Image
-              source={{ uri: LOGOS.wildberries }}
-              style={styles.mpLogo}
-              resizeMode="contain"
-              onLoad={handleImageLoad}
-            />
-          </View>
-          <View style={styles.logoBox}>
-            <Image
-              source={{ uri: LOGOS.ozon }}
-              style={styles.mpLogo}
-              resizeMode="contain"
-              onLoad={handleImageLoad}
-            />
-          </View>
+          {/* Yandex */}
+          <Animated.View style={[styles.mpLogoBox, { opacity: mp1Opacity, transform: [{ scale: mp1Scale }] }]}>
+            <Image source={{ uri: LOGOS.yandex }} style={styles.mpLogo} resizeMode="cover" />
+          </Animated.View>
+          
+          {/* Uzum */}
+          <Animated.View style={[styles.mpLogoBox, { opacity: mp2Opacity, transform: [{ scale: mp2Scale }] }]}>
+            <Image source={{ uri: LOGOS.uzum }} style={styles.mpLogo} resizeMode="cover" />
+          </Animated.View>
+          
+          {/* Wildberries */}
+          <Animated.View style={[styles.mpLogoBox, { opacity: mp3Opacity, transform: [{ scale: mp3Scale }] }]}>
+            <Image source={{ uri: LOGOS.wildberries }} style={styles.mpLogo} resizeMode="cover" />
+          </Animated.View>
+          
+          {/* Ozon */}
+          <Animated.View style={[styles.mpLogoBox, { opacity: mp4Opacity, transform: [{ scale: mp4Scale }] }]}>
+            <Image source={{ uri: LOGOS.ozon }} style={styles.mpLogo} resizeMode="cover" />
+          </Animated.View>
         </View>
-      </Animated.View>
+      </View>
       
       {/* Progress Bar */}
       <View style={styles.progressContainer}>
         <View style={styles.progressBg}>
-          <Animated.View 
-            style={[
-              styles.progressFill,
-              { width: progressWidth }
-            ]} 
-          />
+          <Animated.View style={[styles.progressFill, { width: progressInterpolated }]} />
         </View>
         <Text style={styles.loadingText}>Yuklanmoqda...</Text>
       </View>
       
       {/* Footer */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>AI-Powered E-Commerce Platform</Text>
-        <Text style={styles.versionText}>v1.0.4</Text>
+        <Text style={styles.footerText}>E-Commerce • Fintech • AI</Text>
+        <Text style={styles.versionText}>v1.0.6</Text>
       </View>
     </View>
   );
@@ -211,9 +213,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  background: {
+  
+  // Grid
+  gridContainer: {
     ...StyleSheet.absoluteFillObject,
-    overflow: 'hidden',
   },
   gridLine: {
     position: 'absolute',
@@ -221,45 +224,42 @@ const styles = StyleSheet.create({
     right: 0,
     height: 1,
     backgroundColor: '#1E293B',
-    opacity: 0.5,
-  },
-  gridLineVertical: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: 1,
-    backgroundColor: '#1E293B',
-    opacity: 0.5,
+    opacity: 0.4,
   },
   
   // Main Logo
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   logoWrapper: {
-    width: 140,
-    height: 140,
-    borderRadius: 28,
+    width: 120,
+    height: 120,
+    borderRadius: 32,
     backgroundColor: '#1E293B',
+    overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
-    shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
   },
   mainLogo: {
     width: 120,
     height: 120,
+    borderRadius: 32,
+  },
+  logoGlow: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: '#3B82F6',
+    opacity: 0.15,
+    zIndex: -1,
   },
   
   // Brand
   brandContainer: {
     alignItems: 'center',
-    marginBottom: 50,
+    marginBottom: 48,
   },
   brandName: {
     fontSize: 32,
@@ -271,44 +271,42 @@ const styles = StyleSheet.create({
     color: '#3B82F6',
   },
   tagline: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#64748B',
     marginTop: 8,
   },
   
-  // Marketplace Logos
+  // Marketplace
   marketplaceContainer: {
     alignItems: 'center',
-    marginBottom: 50,
+    marginBottom: 48,
   },
   supportText: {
     fontSize: 12,
     color: '#475569',
     marginBottom: 16,
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
   logosRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
     gap: 16,
   },
-  logoBox: {
-    width: 56,
-    height: 56,
-    borderRadius: 12,
+  mpLogoBox: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
     backgroundColor: '#1E293B',
-    justifyContent: 'center',
-    alignItems: 'center',
     overflow: 'hidden',
   },
   mpLogo: {
-    width: 44,
-    height: 44,
+    width: 52,
+    height: 52,
+    borderRadius: 14,
   },
   
   // Progress
   progressContainer: {
-    width: width * 0.6,
+    width: width * 0.55,
     alignItems: 'center',
   },
   progressBg: {
@@ -338,7 +336,7 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 11,
     color: '#334155',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     marginBottom: 6,
   },
   versionText: {
