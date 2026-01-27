@@ -14,7 +14,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { COLORS, SCREENS, MARKETPLACES } from '../utils/constants';
+import { COLORS, SCREENS, MARKETPLACES, MARKETPLACE_LOGOS } from '../utils/constants';
 import { formatShortPrice } from '../utils/helpers';
 import { useAuthStore } from '../store/authStore';
 import { useProductsStore } from '../store/productsStore';
