@@ -68,6 +68,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount mobile app static files
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os as os_module
+
+mobile_static_path = "/app/backend/static/mobile"
+if os_module.path.exists(mobile_static_path):
+    app.mount("/mobile", StaticFiles(directory=mobile_static_path, html=True), name="mobile")
+
 # Main Express server URL
 MAIN_SERVER = os.getenv("MAIN_SERVER_URL", "http://127.0.0.1:3000")
 
