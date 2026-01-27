@@ -461,6 +461,19 @@ export default function PartnerDashboard() {
             </div>
           )}
 
+          {/* Payments - 2026 Revenue Share Model */}
+          {selectedTab === 'payments' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader 
+                title="To'lovlar va Qarz" 
+                subtitle="Revenue share, oylik to'lov va savdo taqqoslash" 
+                icon={CreditCard}
+                badge={{ text: 'YANGI', icon: Sparkles }}
+              />
+              <PartnerPaymentsDashboard partner={partner} />
+            </div>
+          )}
+
           {/* Referrals - Promo Code System */}
           {selectedTab === 'referrals' && (
             <div className="space-y-6 mt-6">
