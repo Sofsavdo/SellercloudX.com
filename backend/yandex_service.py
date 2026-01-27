@@ -213,10 +213,10 @@ class YandexMarketAPI:
                     }
                 ]
             
-            # Add price if provided
+            # Add price if provided (must be integer for Yandex)
             if price:
                 offer_data["basicPrice"] = {
-                    "value": price,
+                    "value": int(price),  # Yandex requires integer price
                     "currencyId": currency
                 }
             
