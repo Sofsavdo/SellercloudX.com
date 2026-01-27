@@ -1742,7 +1742,8 @@ export function registerRoutes(app: express.Application): Server {
   app.use("/api/trending", requireAuth, trendingRoutes);
   
   // Trend Hunter V2 routes (New - Real Profit Opportunity Detection)
-  app.use("/api/trends", requireAuth, trendHunterRoutesV2);
+  // No auth required for public access
+  app.use("/api/trends", trendHunterRoutesV2);
 
   // Referral System Routes
   app.use("/api/referrals", requireAuth, requirePartnerWithData, referralRoutes);
