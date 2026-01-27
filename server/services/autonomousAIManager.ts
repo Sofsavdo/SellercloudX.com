@@ -174,43 +174,68 @@ class AutonomousAIManager {
     console.log('🔍 Checking for products without marketplace cards...');
     
     try {
-      // Get all active partners with AI enabled - select only required columns
-      const activePartners = await db.select({
-        id: partners.id,
-        name: partners.name,
-        aiEnabled: partners.aiEnabled,
-        approved: partners.approved
-      })
-        .from(partners)
-        .where(eq(partners.aiEnabled, true))
-        .where(eq(partners.approved, true));
+      // SAFE: Only try if database is available
+      // Get all active partners with AI enabled
+      let activePartners: any[] = [];
+      
+      try {
+        activePartners = await db.select({
+          id: partners.id,
+          name: partners.name,
+          aiEnabled: partners.aiEnabled,
+          approved: partners.approved
+        })
+          .from(partners)
+          .where(eq(partners.aiEnabled, true))
+          .where(eq(partners.approved, true));
+      } catch (dbError) {
+        console.log('⚠️ Database query skipped in createMissingCards:', (dbError as Error).message);
+        return; // Exit gracefully
+      }
+      
+      if (!activePartners || activePartners.length === 0) {
+        console.log('ℹ️ No active partners to process');
+        return;
+      }
 
       for (const partner of activePartners) {
         try {
-          // Get partner's products - select only required columns
-          const partnerProducts = await db.select({
-            id: products.id,
-            name: products.name,
-            category: products.category,
-            description: products.description,
-            price: products.price,
-            isActive: products.isActive,
-            partnerId: products.partnerId
-          })
-            .from(products)
-            .where(eq(products.partnerId, partner.id))
-            .where(eq(products.isActive, true));
+          // Get partner's products
+          let partnerProducts: any[] = [];
+          try {
+            partnerProducts = await db.select({
+              id: products.id,
+              name: products.name,
+              category: products.category,
+              description: products.description,
+              price: products.price,
+              isActive: products.isActive,
+              partnerId: products.partnerId
+            })
+              .from(products)
+              .where(eq(products.partnerId, partner.id))
+              .where(eq(products.isActive, true));
+          } catch (e) {
+            console.log(`⚠️ Products query skipped for partner ${partner.id}`);
+            continue;
+          }
 
-          // Get active marketplace integrations - select only required columns
-          const integrations = await db.select({
-            id: marketplaceIntegrations.id,
-            marketplace: marketplaceIntegrations.marketplace,
-            partnerId: marketplaceIntegrations.partnerId,
-            active: marketplaceIntegrations.active
-          })
-            .from(marketplaceIntegrations)
-            .where(eq(marketplaceIntegrations.partnerId, partner.id))
-            .where(eq(marketplaceIntegrations.active, true));
+          // Get active marketplace integrations
+          let integrations: any[] = [];
+          try {
+            integrations = await db.select({
+              id: marketplaceIntegrations.id,
+              marketplace: marketplaceIntegrations.marketplace,
+              partnerId: marketplaceIntegrations.partnerId,
+              active: marketplaceIntegrations.active
+            })
+              .from(marketplaceIntegrations)
+              .where(eq(marketplaceIntegrations.partnerId, partner.id))
+              .where(eq(marketplaceIntegrations.active, true));
+          } catch (e) {
+            console.log(`⚠️ Integrations query skipped for partner ${partner.id}`);
+            continue;
+          }
 
           for (const product of partnerProducts) {
             for (const integration of integrations) {
@@ -218,11 +243,15 @@ class AutonomousAIManager {
               const { sqlite } = await import('../db');
               let existingCard = null;
               if (sqlite) {
-                const stmt = sqlite.prepare(
-                  `SELECT id FROM ai_generated_products 
-                   WHERE partner_id = ? AND marketplace = ? LIMIT 1`
-                );
-                existingCard = stmt.get(partner.id, integration.marketplace);
+                try {
+                  const stmt = sqlite.prepare(
+                    `SELECT id FROM ai_generated_products 
+                     WHERE partner_id = ? AND marketplace = ? LIMIT 1`
+                  );
+                  existingCard = stmt.get(partner.id, integration.marketplace);
+                } catch (e) {
+                  continue;
+                }
               } else {
                 // Fallback: skip if SQLite not available
                 existingCard = null;
@@ -239,7 +268,7 @@ class AutonomousAIManager {
                     price: parseFloat(product.price?.toString() || '0') || 0,
                     images: [],
                     targetMarketplace: integration.marketplace as any
-                  }, partner.id); // Pass as STRING, not parseInt!
+                  }, partner.id);
                   
                   console.log(`✅ Card created for ${product.name}`);
                 } catch (error) {
