@@ -430,8 +430,10 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.border,
     gap: 10,
   },
-  marketplaceIcon: {
-    fontSize: 20,
+  marketplaceLogo: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
   },
   marketplaceName: {
     flex: 1,
