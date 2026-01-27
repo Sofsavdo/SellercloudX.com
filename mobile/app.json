@@ -57,6 +57,11 @@
       "expo-localization",
       "expo-secure-store"
     ],
-    "owner": "medik3636s-organization"
+    "owner": "medik3636s-organization",
+    "extra": {
+      "eas": {
+        "projectId": "1596dffc-11fc-4efe-aa78-aa7c0ecbb421"
+      }
+    }
   }
 }
