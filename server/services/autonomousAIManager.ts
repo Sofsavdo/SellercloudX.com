@@ -434,17 +434,24 @@ JSON formatda javob bering:
     console.log('👁️ Monitoring partners...');
     
     try {
-      // Select only columns that exist in both SQLite and PostgreSQL
-      const activePartners = await db.select({
-        id: partners.id,
-        name: partners.name,
-        email: partners.email,
-        aiEnabled: partners.aiEnabled,
-        approved: partners.approved
-      })
-        .from(partners)
-        .where(eq(partners.aiEnabled, true))
-        .where(eq(partners.approved, true));
+      // SAFE: Only try if database is available
+      let activePartners: any[] = [];
+      
+      try {
+        activePartners = await db.select({
+          id: partners.id,
+          name: partners.name,
+          email: partners.email,
+          aiEnabled: partners.aiEnabled,
+          approved: partners.approved
+        })
+          .from(partners)
+          .where(eq(partners.aiEnabled, true))
+          .where(eq(partners.approved, true));
+      } catch (dbError) {
+        console.log('⚠️ Database query skipped in monitorAllPartners:', (dbError as Error).message);
+        return; // Exit gracefully
+      }
 
       // Validate we have partners to monitor
       if (!activePartners || activePartners.length === 0) {
