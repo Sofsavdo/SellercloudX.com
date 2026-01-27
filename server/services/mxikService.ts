@@ -223,23 +223,13 @@ export function getMxikByCode(code: string): MxikCode | null {
  */
 export async function loadMxikDatabase(filePath?: string): Promise<boolean> {
   try {
-    // Try multiple paths for MXIK database
-    const possiblePaths = [
-      filePath,
-      path.join(process.cwd(), 'server', 'data', 'mxik_codes.json'),
-      path.join(process.cwd(), 'data', 'mxik_codes.json'),
-      '/app/server/data/mxik_codes.json'
-    ].filter(Boolean) as string[];
+    // Use absolute path by default
+    const defaultPath = '/app/server/data/mxik_codes.json';
+    const loadPath = filePath || defaultPath;
     
-    let loadPath = '';
-    for (const p of possiblePaths) {
-      if (fs.existsSync(p)) {
-        loadPath = p;
-        break;
-      }
-    }
+    console.log(`📂 Attempting to load MXIK from: ${loadPath}`);
     
-    if (!loadPath) {
+    if (!fs.existsSync(loadPath)) {
       console.log('⚠️ MXIK database file not found, using built-in codes');
       mxikDatabase = COMMON_MXIK_CODES;
       isLoaded = true;
@@ -247,10 +237,20 @@ export async function loadMxikDatabase(filePath?: string): Promise<boolean> {
     }
 
     const data = fs.readFileSync(loadPath, 'utf-8');
-    mxikDatabase = JSON.parse(data);
-    isLoaded = true;
-    console.log(`✅ Loaded ${mxikDatabase.length} MXIK codes`);
-    return true;
+    const parsed = JSON.parse(data);
+    
+    // Validate data structure
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      mxikDatabase = parsed;
+      isLoaded = true;
+      console.log(`✅ Loaded ${mxikDatabase.length} MXIK codes from file`);
+      return true;
+    } else {
+      console.log('⚠️ Invalid MXIK data, using built-in codes');
+      mxikDatabase = COMMON_MXIK_CODES;
+      isLoaded = true;
+      return false;
+    }
   } catch (error: any) {
     console.error('❌ Failed to load MXIK database:', error.message);
     mxikDatabase = COMMON_MXIK_CODES;
