@@ -3786,6 +3786,92 @@ async def yandex_get_products(page: int = 1, limit: int = 50):
 
 
 # ========================================
+# YANDEX REAL-TIME STATUS TRACKING
+# ========================================
+
+@app.get("/api/yandex/offer/{offer_id}/status")
+async def yandex_offer_status(offer_id: str):
+    """
+    Real-time mahsulot holati
+    
+    Statuses:
+    - READY_TO_SUPPLY: ✅ Sotuvga tayyor
+    - IN_WORK: ⏳ Moderatsiyada
+    - NEED_CONTENT: 📝 Kontent kerak
+    - REJECTED: ❌ Rad etildi
+    """
+    try:
+        api_key = os.getenv("YANDEX_API_KEY", "")
+        business_id = os.getenv("YANDEX_BUSINESS_ID", "197529861")
+        
+        if not api_key:
+            return {"success": False, "error": "YANDEX_API_KEY topilmadi"}
+        
+        api = YandexMarketAPI(oauth_token=api_key, business_id=business_id)
+        result = await api.get_offer_status(offer_id)
+        return result
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/yandex/dashboard/status")
+async def yandex_dashboard_status(limit: int = 50):
+    """
+    Real-time dashboard - barcha mahsulotlar holati
+    
+    Returns:
+    - stats: total, ready, in_moderation, need_content, rejected
+    - offers: offer_id, name, status, price, market_sku
+    """
+    try:
+        api_key = os.getenv("YANDEX_API_KEY", "")
+        business_id = os.getenv("YANDEX_BUSINESS_ID", "197529861")
+        
+        if not api_key:
+            return {"success": False, "error": "YANDEX_API_KEY topilmadi"}
+        
+        api = YandexMarketAPI(oauth_token=api_key, business_id=business_id)
+        result = await api.get_all_offers_status(limit=limit)
+        return result
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.post("/api/yandex/partner/dashboard")
+async def yandex_partner_dashboard(credentials: YandexCredentials):
+    """
+    Partner uchun real-time dashboard
+    Hamkorning o'z API kaliti bilan
+    """
+    try:
+        api = YandexMarketAPI(
+            oauth_token=credentials.oauth_token,
+            business_id=credentials.business_id
+        )
+        
+        # Get all offers status
+        offers_result = await api.get_all_offers_status(limit=100)
+        
+        # Get campaigns
+        connection = await api.test_connection()
+        
+        return {
+            "success": True,
+            "partner_id": credentials.partner_id,
+            "business_id": credentials.business_id,
+            "campaigns": connection.get("campaigns", []),
+            "products": offers_result.get("stats", {}),
+            "offers": offers_result.get("offers", []),
+            "last_updated": offers_result.get("last_updated")
+        }
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+# ========================================
 # MXIK/IKPU ENDPOINTS - tasnif.soliq.uz
 # ========================================
 
