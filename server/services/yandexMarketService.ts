@@ -1,9 +1,9 @@
 // Yandex Market API Service - REAL Implementation
 import axios, { AxiosInstance } from 'axios';
 
-const YANDEX_API_KEY = process.env.YANDEX_API_KEY || 'ACMA:CEZ5yFOtzlZ3IKfhPdMq0FN5R1EMdnHAaxQYDvtg:509d92ef';
+const YANDEX_API_KEY = process.env.YANDEX_API_KEY || 'ACMA:OIjjTDFMnmBe7XOs7EqaWqdoXUS772aKqwqjXj6C:245e5a96';
 const YANDEX_CAMPAIGN_ID = process.env.YANDEX_CAMPAIGN_ID || '148650502';
-const YANDEX_BASE_URL = 'https://api.partner.market.yandex.net'; // Uzbekistan uses .net
+const YANDEX_BASE_URL = 'https://api.partner.market.yandex.ru'; // Main API endpoint
 
 export interface YandexProductData {
   offer_id: string; // Unique SKU
