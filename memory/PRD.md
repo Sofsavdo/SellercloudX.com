@@ -23,93 +23,111 @@ SellerCloudX.com - AI-powered marketplace automation SaaS for Uzbekistan sellers
 └── railway.json        # Railway deployment config
 ```
 
-## 2026 PRICING MODEL ✅ (Jan 27, 2026) - FULLY IMPLEMENTED
+## Completed Features (Jan 27, 2026)
 
-### Premium Tariff (Public) - /pricing
-- **One-time Setup**: $699
-- **Monthly Fee**: $499/month  
-- **Revenue Share**: 4% of total sales
-- **60-Day Guarantee**: Sales growth guarantee with partial refund
-- **7-Day Free Trial**: Full access trial period
+### 1. 2026 Premium Pricing Model ✅
+- **Premium**: $699 setup + $499/month + 4% revenue share
+- **Individual**: Custom pricing ($1,599+ setup, 2%+ share)
+- **Pricing Page**: `/pricing` with calculator and FAQ
+- **Partner Dashboard**: "To'lovlar" section with debt tracking
+
+### 2. MXIK Code Integration ✅ NEW
+- **Service**: `/app/server/services/mxikService.ts`
+- **API Routes**: `/api/mxik/*`
 - **Features**:
-  - Unlimited AI card creation
-  - All marketplace integrations
-  - Trend Hunter FULL access
-  - Profit analytics
-  - Priority 24/7 support
-  - API access
+  - Fuzzy search using Levenshtein distance
+  - 23 built-in common codes for marketplace products
+  - Best match finder for product names
+  - Code validation (8-digit format)
+- **Endpoints**:
+  - `GET /api/mxik/status` - Database status
+  - `GET /api/mxik/search?q=&lang=uz|ru` - Search codes
+  - `GET /api/mxik/best-match?q=&category=` - Best match
+  - `GET /api/mxik/validate/:code` - Validate format
+  - `GET /api/mxik/code/:code` - Get code details
 
-### Individual Tariff (Custom, not public)
-- **Setup**: $1,599+
-- **Revenue Share**: 2% or lower (negotiable)
-- **For**: High-volume sellers ($50,000+ monthly sales)
+### 3. Yandex Sales Sync Service ✅ NEW
+- **Service**: `/app/server/services/salesSyncService.ts`
 - **Features**:
-  - All Premium features
-  - Dedicated account manager
-  - Custom integrations
-  - SLA guarantee
+  - Daily sales sync from Yandex Market API
+  - Monthly sales tracking per partner
+  - Automatic revenue share calculation
+  - Debt check and partner blocking
+  - Trial expiration checking
+- **Endpoints**:
+  - `POST /api/admin/sales-sync/run` - Manual sync trigger
+  - `GET /api/admin/sales-sync/status` - Sync status
+  - `POST /api/admin/sales-sync/partner/:id` - Sync single partner
 
-### Partner Dashboard - "To'lovlar" Section ✅
-- **Route**: Partner Dashboard → Payments tab
-- **Features**:
-  - Current debt display (UZS)
-  - Monthly sales tracking (from Yandex)
-  - Revenue share calculation (4%)
-  - Sales comparison: "Before Us" vs "With Us"
-  - 60-day growth tracking
-  - Payment history
-  - Bank details for manual payment
-  - Click/Payme payment buttons
+### 4. Yandex Market Service Extended ✅ NEW
+- **Service**: `/app/server/services/yandexMarketService.ts`
+- **New Methods**:
+  - `getSalesStats(dateFrom, dateTo)` - Order statistics
+  - `getMonthlySales(year, month)` - Monthly summary
+  - `getCampaigns()` - List all campaigns
+  - `getCommissionRates(categoryId)` - Commission rates
 
-### Pricing Page ✅
-- **Route**: `/pricing`
-- Premium tariff card with full details
-- Individual tariff card with "Contact Us"
-- Revenue calculator (slider 10M-500M UZS)
-- FAQ section
-- 60-day guarantee badge
+### 5. Login Redirect Fix ✅
+- Admin → `/admin-panel`
+- Partner → `/partner-dashboard`
+- Uses `window.location.href` for full page reload
+
+### 6. AI Scanner ✅
+- **Endpoint**: `POST /api/unified-scanner/analyze-base64`
+- Camera and file upload support
+
+### 7. Trend Hunter ✅
+- **Endpoint**: `GET /api/trends/opportunities`
+- RapidAPI AliExpress DataHub integration
+
+### 8. Click Payment ✅
+- SERVICE_ID: 92585
+- MERCHANT_ID: 54318
+- Webhook endpoints configured
 
 ## Test Results (Jan 27, 2026)
-- **Backend**: 100% (8/8 tests passed)
-- **Frontend**: 90% (pricing page works, login redirect pre-existing issue)
-- **Database**: All 2026 columns migrated successfully
+- **Backend**: 100% (19/19 tests passed)
+- **Frontend**: 100% (all pages working)
+- **MXIK API**: All endpoints working
+- **Sales Sync**: Ready for cron job
 
-### Test Credentials Created
-- Admin: admin / admin123
-- Test Partner: test2026_mkw8x8m4 / test123456
+## MXIK Built-in Codes (23 codes)
+```
+26101100 - Mobil telefonlar
+26201000 - Kompyuterlar va aksessuarlar
+26301000 - Audio va video uskunalar
+27401000 - Maishiy elektr jihozlari
+14101000 - Erkaklar kiyimlari
+14102000 - Ayollar kiyimlari
+14103000 - Bolalar kiyimlari
+15201000 - Poyabzallar
+31001000 - Mebel
+32201000 - O'yinchoqlar
+27501000 - Oshxona jihozlari
+20421000 - Parfyumeriya
+20422000 - Kosmetika
+10101000 - Go'sht mahsulotlari
+10201000 - Baliq mahsulotlari
+10501000 - Sut mahsulotlari
+32301000 - Sport jihozlari
+32401000 - Dam olish uchun mahsulotlar
+29101000 - Avtomobil ehtiyot qismlari
+29201000 - Avtomobil aksessuarlari
+23101000 - Qurilish materiallari
+27101000 - Elektr jihozlari
+47190000 - Boshqa chakana savdo (default)
+```
 
-## API Endpoints Summary
+## Database Schema (2026 Updates)
 
-### Billing (2026 Model) ✅
-- `GET /api/billing/revenue-share/summary` - Partner billing summary
-- `POST /api/billing/revenue-share/start-trial` - Start 7-day trial
-- `POST /api/billing/revenue-share/record-payment` - Record payment
-- `POST /api/admin/revenue-share/confirm-payment` - Admin confirms payment
-- `POST /api/admin/revenue-share/activate-premium` - Admin activates premium
-- `POST /api/admin/revenue-share/unblock-partner` - Admin unblocks partner
-- `POST /api/admin/revenue-share/update-sales` - Update sales data
-- `GET /api/admin/revenue-share/all-debts` - Get partners with debt
-
-### Click Payment
-- `GET /api/click/tiers` - Returns 4 tiers with UZS pricing
-- `POST /api/click/create-payment` - Create Click payment
-
-### Authentication
-- `POST /api/auth/login`
-- `POST /api/auth/register`
-- `GET /api/auth/me`
-
-## Database Schema Updates (Jan 27, 2026)
-
-### Partners Table - New 2026 Columns
+### Partners Table - New Columns
 ```sql
-tariff_type TEXT DEFAULT 'trial'  -- trial, premium, individual
+tariff_type TEXT DEFAULT 'trial'
 setup_paid INTEGER DEFAULT 0
 setup_fee_usd INTEGER DEFAULT 699
 monthly_fee_usd INTEGER DEFAULT 499
 revenue_share_percent REAL DEFAULT 0.04
 total_debt_uzs INTEGER DEFAULT 0
-last_debt_calculated_at INTEGER
 blocked_until INTEGER
 block_reason TEXT
 trial_start_date INTEGER
@@ -119,55 +137,76 @@ sales_before_us INTEGER DEFAULT 0
 ```
 
 ### New Tables
-- `monthly_sales_tracking` - Monthly sales per marketplace
-- `revenue_share_payments` - Payment history
+- `monthly_sales_tracking`
+- `revenue_share_payments`
 
-## Completed Features This Session
+## API Endpoints Summary
 
-1. ✅ 2026 Premium Pricing Model implemented
-2. ✅ Pricing Page created at `/pricing`
-3. ✅ Revenue Share Service created (`revenueShareService.ts`)
-4. ✅ Billing API routes added
-5. ✅ Database migration applied (013_2026_revenue_share_model.sql)
-6. ✅ PartnerPaymentsDashboard component created
-7. ✅ Sidebar "To'lovlar" menu item added
-8. ✅ Partner Dashboard payments tab integrated
-9. ✅ Revenue calculator on pricing page
-10. ✅ Sales comparison widget (Before Us vs With Us)
+### MXIK (NEW)
+- `GET /api/mxik/status`
+- `GET /api/mxik/search?q=&lang=uz|ru`
+- `GET /api/mxik/best-match?q=&category=`
+- `GET /api/mxik/validate/:code`
+- `GET /api/mxik/code/:code`
 
-## Known Issues (Minor)
-- Login redirect doesn't work in some cases (pre-existing)
-- Drizzle ORM sync with new columns needs attention
+### Billing (2026)
+- `GET /api/billing/revenue-share/summary`
+- `POST /api/billing/revenue-share/start-trial`
+- `POST /api/billing/revenue-share/record-payment`
+
+### Admin (NEW)
+- `POST /api/admin/sales-sync/run`
+- `GET /api/admin/sales-sync/status`
+- `POST /api/admin/sales-sync/partner/:id`
+- `POST /api/admin/revenue-share/confirm-payment`
+- `POST /api/admin/revenue-share/activate-premium`
+- `POST /api/admin/revenue-share/unblock-partner`
+
+### Authentication
+- `POST /api/auth/login`
+- `POST /api/auth/register`
+- `GET /api/auth/me`
+
+### Click Payment
+- `GET /api/click/tiers`
+- `POST /api/click/create-payment`
 
 ## Upcoming Tasks (P0-P2)
 
 ### P0 - Critical
-- [ ] MXIK code auto-fill from tasnif.soliq.uz
-- [ ] Yandex Market API full integration for automatic sales sync
-- [ ] Fix login redirect issue
+- [ ] Set up cron job for daily sales sync
+- [ ] Full MXIK database from tasnif.soliq.uz Excel
+- [ ] Yandex API OAuth integration
+- [ ] 100% quality index card generation
 
 ### P1 - High Priority
-- [ ] Mobile app production build with new API
+- [ ] Mobile app update with new API
+- [ ] Email verification
 - [ ] Push notifications
-- [ ] Email verification for registration
-- [ ] Cron job for daily revenue share calculation
 
 ### P2 - Medium Priority
-- [ ] Real-time chat implementation
-- [ ] Video generation for product cards
+- [ ] Real-time chat
+- [ ] Video generation for cards
 - [ ] Infographic generation
 
 ## Future Tasks (P3-P4)
 
 ### P3
-- [ ] Biometric login (Face ID / Touch ID)
-- [ ] Barcode scanning
 - [ ] Uzum Market integration
+- [ ] Biometric login
+- [ ] Barcode scanning
 
 ### P4
-- [ ] Wildberries integration
-- [ ] Ozon integration
-- [ ] Advanced analytics dashboard
+- [ ] Wildberries/Ozon integration
+- [ ] Advanced analytics
+
+## Audit Notes (Secondary Priority)
+- Merge dual backends (Node.js primary)
+- Unify to PostgreSQL only
+- Refactor large files (routes.ts 2499 lines)
+- Add strict TypeScript
+- Improve test coverage to 70%
+- Add CI/CD pipeline
 
 ## Last Updated
 January 27, 2026
