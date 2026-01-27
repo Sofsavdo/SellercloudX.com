@@ -49,6 +49,7 @@ interface AuthState {
   checkAuth: () => Promise<void>;
   clearError: () => void;
   updatePartner: (data: Partial<Partner>) => void;
+  setPartner: (partner: Partner) => void;
   refreshPartner: () => Promise<void>;
 }
 
