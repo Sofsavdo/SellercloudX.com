@@ -17,6 +17,14 @@ import { formatPrice, formatShortPrice } from '../utils/helpers';
 import { useAuthStore } from '../store/authStore';
 import { useProductsStore } from '../store/productsStore';
 import { offlineQueue, QueueItem } from '../services/offlineQueue';
+import { partnerApi } from '../services/api';
+
+// Marketplace ulanish holati
+interface MarketplaceConnectionStatus {
+  yandex: boolean;
+  uzum: boolean;
+  loading: boolean;
+}
 
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -26,11 +34,17 @@ export default function HomeScreen() {
   
   const [refreshing, setRefreshing] = useState(false);
   const [queueStats, setQueueStats] = useState({ pending: 0, total: 0 });
+  const [marketplaceStatus, setMarketplaceStatus] = useState<MarketplaceConnectionStatus>({
+    yandex: false,
+    uzum: false,
+    loading: true,
+  });
   
   // Load data on mount
   useEffect(() => {
     fetchProducts();
     loadQueueStats();
+    checkMarketplaceConnections();
   }, []);
   
   // Refresh partner data when screen is focused
@@ -38,8 +52,36 @@ export default function HomeScreen() {
     useCallback(() => {
       refreshPartner();
       loadQueueStats();
+      checkMarketplaceConnections();
     }, [])
   );
+  
+  // Marketplace ulanishlarini tekshirish
+  const checkMarketplaceConnections = async () => {
+    try {
+      const response = await partnerApi.getMarketplaceStatus();
+      if (response.success) {
+        setMarketplaceStatus({
+          yandex: response.yandex?.connected || false,
+          uzum: response.uzum?.connected || false,
+          loading: false,
+        });
+      } else {
+        setMarketplaceStatus({
+          yandex: false,
+          uzum: false,
+          loading: false,
+        });
+      }
+    } catch (error) {
+      console.log('Marketplace status check error:', error);
+      setMarketplaceStatus({
+        yandex: false,
+        uzum: false,
+        loading: false,
+      });
+    }
+  };
   
   const loadQueueStats = async () => {
     const stats = await offlineQueue.getStats();
@@ -52,6 +94,7 @@ export default function HomeScreen() {
       fetchProducts(),
       refreshPartner(),
       loadQueueStats(),
+      checkMarketplaceConnections(),
     ]);
     setRefreshing(false);
   };
@@ -62,6 +105,9 @@ export default function HomeScreen() {
   const aiCardsLimit = tierLimits.aiCards;
   const aiCardsUsed = partner?.aiCardsThisMonth || partner?.aiCardsUsed || 0;
   const aiCardsLeft = aiCardsLimit === -1 ? '♾️' : Math.max(0, aiCardsLimit - aiCardsUsed);
+  
+  // Birorta marketplace ulangan mi?
+  const hasAnyMarketplace = marketplaceStatus.yandex || marketplaceStatus.uzum;
   
   return (
     <ScrollView
