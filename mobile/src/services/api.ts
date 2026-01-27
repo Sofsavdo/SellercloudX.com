@@ -139,28 +139,32 @@ export const scannerApi = {
   // AI bilan rasmni tahlil qilish
   analyzeImage: async (imageBase64: string): Promise<ScanResult> => {
     try {
+      console.log('📸 Sending image to AI scanner...');
+      console.log('📡 API URL:', API_BASE_URL);
+      
       // Unified scanner endpoint (autentifikatsiyasiz)
       const response = await api.post('/unified-scanner/analyze-base64', {
         image_base64: imageBase64,
         language: 'uz',
       });
       
-      console.log('Scanner response:', JSON.stringify(response.data).substring(0, 200));
+      console.log('✅ Scanner response received:', JSON.stringify(response.data).substring(0, 300));
       
       // Backend response format'ini moslash
       if (response.data.success && response.data.product_info) {
+        const productInfo = response.data.product_info;
         return {
           success: true,
           product: {
-            brand: response.data.product_info.brand || 'Unknown',
-            model: response.data.product_info.model || '',
-            name: response.data.product_info.product_name || response.data.product_info.name || 'Mahsulot',
-            category: response.data.product_info.category || '',
-            categoryRu: response.data.product_info.category_ru || response.data.product_info.category,
-            features: response.data.product_info.features || [],
-            materials: response.data.product_info.materials || [],
-            country: response.data.product_info.country_of_origin,
-            suggestedPrice: response.data.suggested_price || response.data.product_info.suggested_price,
+            brand: productInfo.brand || 'Unknown',
+            model: productInfo.model || productInfo.product_name || '',
+            name: productInfo.product_name || productInfo.name || 'Mahsulot',
+            category: productInfo.category || 'general',
+            categoryRu: productInfo.category_ru || productInfo.category || 'Общее',
+            features: productInfo.features || [],
+            materials: productInfo.materials || [],
+            country: productInfo.country_of_origin || '',
+            suggestedPrice: response.data.suggested_price || productInfo.suggested_price || 100000,
             confidence: response.data.confidence || 85,
           },
         };
@@ -171,13 +175,20 @@ export const scannerApi = {
         error: response.data.error || 'Mahsulot aniqlanmadi',
       };
     } catch (error: any) {
-      console.error('Scanner API xatosi:', error?.response?.data || error.message);
+      console.error('❌ Scanner API xatosi:', error?.response?.data || error.message);
+      console.error('📍 Request URL:', API_BASE_URL + '/unified-scanner/analyze-base64');
       
       // Xato xabarini aniqroq ko'rsatish
       let errorMessage = 'Server bilan bog\'lanishda xato';
       
-      if (error.response?.data?.error) {
+      if (error.response?.status === 404) {
+        errorMessage = 'AI Scanner endpoint topilmadi. Backend yangilanishi kerak.';
+      } else if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.code === 'NETWORK_ERROR' || error.message?.includes('Network')) {
+        errorMessage = 'Internet aloqasini tekshiring';
       } else if (error.message) {
         errorMessage = error.message;
       }
