@@ -143,9 +143,13 @@ class AutonomousProductManager {
         // Save to database
         for (const product of marketplaceProducts) {
           try {
-            // Check if product exists
+            // Check if product exists - select only required columns
             const existing = await db
-              .select()
+              .select({
+                id: products.id,
+                partnerId: products.partnerId,
+                sku: products.sku
+              })
               .from(products)
               .where(
                 and(
