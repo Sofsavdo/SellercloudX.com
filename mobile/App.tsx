@@ -1,6 +1,6 @@
 // SellerCloudX Mobile App - Entry Point
-import React, { useEffect, useState } from 'react';
-import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useState, useCallback } from 'react';
+import { StatusBar, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
@@ -18,58 +18,61 @@ import AppNavigator from './src/navigation/AppNavigator';
 // Store
 import { useAuthStore } from './src/store/authStore';
 
-// Keep expo splash screen visible initially
-ExpoSplashScreen.preventAutoHideAsync();
+// Prevent auto-hiding expo splash
+ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
 // Query client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 2,
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 5,
     },
   },
 });
 
 function AppContent() {
-  const { checkAuth, isLoading } = useAuthStore();
-  const [showCustomSplash, setShowCustomSplash] = useState(true);
-  const [isReady, setIsReady] = useState(false);
+  const { checkAuth } = useAuthStore();
+  const [appState, setAppState] = useState<'splash' | 'loading' | 'ready'>('splash');
   
   useEffect(() => {
-    // Hide expo splash immediately to show our custom one
-    ExpoSplashScreen.hideAsync();
+    // Hide expo splash immediately
+    ExpoSplashScreen.hideAsync().catch(() => {});
     
-    // Check authentication in background
-    checkAuth().finally(() => {
-      setIsReady(true);
-    });
+    // Start auth check
+    initializeApp();
   }, []);
   
-  // Show custom splash until animation completes AND auth is ready
-  if (showCustomSplash) {
+  const initializeApp = async () => {
+    try {
+      await checkAuth();
+    } catch (error) {
+      console.log('Auth check error:', error);
+    }
+  };
+  
+  const handleSplashFinish = useCallback(() => {
+    setAppState('ready');
+  }, []);
+  
+  // Show custom splash screen
+  if (appState === 'splash') {
+    return <SplashScreen onFinish={handleSplashFinish} />;
+  }
+  
+  // Show loading if needed
+  if (appState === 'loading') {
     return (
-      <SplashScreen 
-        onFinish={() => {
-          if (isReady) {
-            setShowCustomSplash(false);
-          } else {
-            // Wait for auth to be ready
-            const checkReady = setInterval(() => {
-              if (isReady) {
-                clearInterval(checkReady);
-                setShowCustomSplash(false);
-              }
-            }, 100);
-          }
-        }} 
-      />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3B82F6" />
+      </View>
     );
   }
   
+  // Main app
   return (
     <>
-      <StatusBar style="auto" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
       <AppNavigator />
       <Toast />
     </>
@@ -85,3 +88,12 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#0F172A',
+  },
+});
