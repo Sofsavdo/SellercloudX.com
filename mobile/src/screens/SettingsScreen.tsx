@@ -214,7 +214,11 @@ export default function SettingsScreen() {
         <View style={styles.sectionContent}>
           {MARKETPLACES.map(mp => (
             <View key={mp.id} style={styles.marketplaceRow}>
-              <Text style={styles.marketplaceIcon}>{mp.icon}</Text>
+              <Image 
+                source={{ uri: mp.logo }} 
+                style={styles.marketplaceLogo}
+                resizeMode="contain"
+              />
               <Text style={styles.marketplaceName}>{mp.name}</Text>
               {mp.active ? (
                 <View style={styles.statusBadge}>
