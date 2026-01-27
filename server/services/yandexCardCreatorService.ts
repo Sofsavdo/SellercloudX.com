@@ -15,10 +15,11 @@
 import axios from 'axios';
 import mxikService from './mxikService';
 import { yandexMarketService } from './yandexMarketService';
+import nanoBananaService from './nanoBananaService';
 
 // API Keys
 const IMGBB_API_KEY = process.env.IMGBB_API_KEY || 'ae8d1c66d2c3b97a5fbed414c9ee4b4f';
-const GEMINI_API_KEY = process.env.EMERGENT_LLM_KEY || process.env.GEMINI_API_KEY;
+const EMERGENT_LLM_KEY = process.env.EMERGENT_LLM_KEY || 'sk-emergent-c0d5c506030Fa49400';
 
 // Yandex Category Map
 const YANDEX_CATEGORIES: Record<string, { id: number; name: string; nameUz: string }> = {
@@ -122,6 +123,11 @@ export interface ProductCardInput {
   // AI-generated fields
   features?: string[];    // Product features
   barcode?: string;       // EAN/UPC barcode
+  
+  // AI Generation options
+  generateInfographics?: boolean;  // Generate AI infographics
+  generateAIDescription?: boolean; // Generate AI description
+  infographicCount?: number;       // Number of infographics (default: 6)
 }
 
 export interface ProductCardOutput {
