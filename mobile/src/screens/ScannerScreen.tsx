@@ -147,7 +147,7 @@ export default function ScannerScreen() {
   if (hasPermission === false) {
     return (
       <View style={styles.centerContainer}>
-        <Ionicons name="camera-off" size={64} color={COLORS.textLight} />
+        <Ionicons name="camera-outline" size={64} color={COLORS.textLight} />
         <Text style={styles.permissionText}>{t('scanner.cameraPermission')}</Text>
         <TouchableOpacity
           style={styles.permissionButton}
