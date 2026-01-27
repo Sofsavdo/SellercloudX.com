@@ -1,5 +1,5 @@
-// Pricing Screen - Tarif tanlash va Click to'lov
-import React, { useState, useEffect } from 'react';
+// Pricing Screen - 2026 Revenue Share Model
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -15,306 +15,283 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../utils/constants';
 import { formatPrice } from '../utils/helpers';
-import { paymentApi, PaymentTier } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 
-const TIER_FEATURES: Record<string, string[]> = {
-  free_starter: [
-    '10 ta AI karta/oy',
-    '50 ta mahsulot',
-    '1 ta marketplace',
-    'Asosiy statistika',
-  ],
-  starter_pro: [
-    '100 ta AI karta/oy',
-    '500 ta mahsulot',
-    '2 ta marketplace',
-    'Kengaytirilgan statistika',
-    'Email qo\'llab-quvvatlash',
-  ],
-  professional_plus: [
-    '1000 ta AI karta/oy',
-    '5000 ta mahsulot',
-    'Barcha marketplace\'lar',
-    'AI Trend Hunter',
-    'Priority qo\'llab-quvvatlash',
-    'API kirish',
-  ],
-  enterprise_elite: [
-    '♾️ Cheksiz AI karta',
-    '♾️ Cheksiz mahsulot',
-    'Barcha marketplace\'lar',
-    'Shaxsiy menejer',
-    '24/7 qo\'llab-quvvatlash',
-    'White-label imkoniyati',
-  ],
+// 2026 MODEL - $699 setup + $499/oy + 4% savdodan
+const PRICING_2026 = {
+  premium: {
+    id: 'premium_2026',
+    name: 'Premium Tarif',
+    icon: '💎',
+    setupFee: 699, // USD
+    monthlyFee: 499, // USD
+    revenueShare: 4, // %
+    features: [
+      '♾️ Cheksiz AI karta generatsiya',
+      '♾️ Cheksiz mahsulot',
+      '🎨 Professional infografikalar',
+      '🤖 To\'liq avtomatizatsiya',
+      '📊 Real-time Yandex statistika',
+      '💰 Avtomatik narxlash',
+      '📱 Mobil ilova',
+      '🎯 AI Trend Hunter',
+      '⚡ Priority qo\'llab-quvvatlash',
+      '🔑 API kirish',
+    ],
+    popular: true,
+  },
+  individual: {
+    id: 'individual_2026',
+    name: 'Individual Tarif',
+    icon: '🏢',
+    setupFee: null, // Kelishuv bo'yicha
+    monthlyFee: null,
+    revenueShare: 2, // Minimum 2%
+    features: [
+      'Premium tarifning barcha imkoniyatlari',
+      '🤝 Shaxsiy shartnoma',
+      '👔 Shaxsiy menejer',
+      '24/7 Qo\'llab-quvvatlash',
+      '🏷️ White-label imkoniyati',
+      '📈 Maxsus integratsiyalar',
+    ],
+    popular: false,
+  },
 };
 
-const TIER_ICONS: Record<string, string> = {
-  free_starter: '🆓',
-  starter_pro: '⭐',
-  professional_plus: '💎',
-  enterprise_elite: '🏆',
-};
+// USD to UZS rate
+const USD_RATE = 12600;
 
 export default function PricingScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation();
-  const { partner, updatePartner } = useAuthStore();
+  const { partner } = useAuthStore();
   
-  const [tiers, setTiers] = useState<PaymentTier[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
-  const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  
-  // Load tiers
-  useEffect(() => {
-    loadTiers();
-  }, []);
-  
-  const loadTiers = async () => {
-    try {
-      const response = await paymentApi.getTiers();
-      if (response.success) {
-        setTiers(response.tiers);
-      }
-    } catch (error) {
-      console.error('Failed to load tiers:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   
   // Handle payment
-  const handlePayment = async (tierId: string) => {
-    if (tierId === 'free_starter') {
-      Alert.alert('', 'Siz allaqachon bepul tarifdasiz');
+  const handleSubscribe = async (planId: string) => {
+    if (planId === 'individual_2026') {
+      // Individual tarif uchun aloqa
+      Alert.alert(
+        'Individual Tarif',
+        'Individual tarif uchun biz bilan bog\'laning:\n\n📞 +998 90 123 45 67\n📧 sales@sellercloudx.com\n💬 Telegram: @sellercloudx',
+        [
+          { text: 'OK' },
+          { 
+            text: 'Telegram', 
+            onPress: () => Linking.openURL('https://t.me/sellercloudx') 
+          },
+        ]
+      );
       return;
     }
     
-    if (tierId === partner?.pricingTier) {
-      Alert.alert('', 'Siz allaqachon bu tarifdasiz');
-      return;
-    }
-    
-    setSelectedTier(tierId);
+    setSelectedPlan(planId);
     setIsProcessing(true);
     
     try {
-      const response = await paymentApi.createPayment(tierId, billingPeriod);
+      // Premium tarif uchun to'lov
+      const plan = PRICING_2026.premium;
+      const totalSetup = plan.setupFee * USD_RATE;
       
-      if (response.success && response.paymentUrl) {
-        // Open Click payment page
-        const canOpen = await Linking.canOpenURL(response.paymentUrl);
-        if (canOpen) {
-          await Linking.openURL(response.paymentUrl);
-          
-          Alert.alert(
-            'To\'lov sahifasi ochildi',
-            'Click sahifasida to\'lovni yakunlang. To\'lov muvaffaqiyatli bo\'lgandan so\'ng, tarifingiz avtomatik yangilanadi.',
-            [{ text: 'OK' }]
-          );
-        } else {
-          Alert.alert(t('common.error'), 'To\'lov sahifasini ochib bo\'lmadi');
-        }
-      } else {
-        Alert.alert(t('common.error'), response.error || 'To\'lov yaratishda xatolik');
-      }
+      Alert.alert(
+        '💎 Premium Tarifga O\'tish',
+        `\n📋 To'lov tafsilotlari:\n\n` +
+        `• Setup: $${plan.setupFee} (${formatPrice(totalSetup)})\n` +
+        `• Oylik: $${plan.monthlyFee}/oy\n` +
+        `• Savdodan: ${plan.revenueShare}%\n\n` +
+        `🎁 7 kunlik BEPUL sinov davri\n` +
+        `✅ 60 kunlik kafolat`,
+        [
+          { text: 'Bekor qilish', style: 'cancel' },
+          { 
+            text: 'To\'lovga o\'tish', 
+            onPress: () => {
+              // To'lov sahifasiga yo'naltirish
+              Alert.alert(
+                'To\'lov',
+                'Click to\'lov tizimi orqali to\'lov qiling. Menejerimiz siz bilan bog\'lanadi.',
+                [{ text: 'OK' }]
+              );
+            }
+          },
+        ]
+      );
     } catch (error: any) {
-      Alert.alert(t('common.error'), error.message || 'To\'lov yaratishda xatolik');
+      Alert.alert('Xato', error.message || 'Xatolik yuz berdi');
     } finally {
       setIsProcessing(false);
-      setSelectedTier(null);
+      setSelectedPlan(null);
     }
   };
-  
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
-  }
   
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Tariflar</Text>
+        <Text style={styles.title}>2026 Premium Model</Text>
         <Text style={styles.subtitle}>
-          O'zingizga mos tarifni tanlang
+          To'liq avtomatizatsiya + Revenue Share
         </Text>
       </View>
       
-      {/* Billing Toggle */}
-      <View style={styles.billingToggle}>
-        <TouchableOpacity
-          style={[
-            styles.billingOption,
-            billingPeriod === 'monthly' && styles.billingOptionActive,
-          ]}
-          onPress={() => setBillingPeriod('monthly')}
-        >
-          <Text
-            style={[
-              styles.billingOptionText,
-              billingPeriod === 'monthly' && styles.billingOptionTextActive,
-            ]}
-          >
-            Oylik
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[
-            styles.billingOption,
-            billingPeriod === 'annual' && styles.billingOptionActive,
-          ]}
-          onPress={() => setBillingPeriod('annual')}
-        >
-          <Text
-            style={[
-              styles.billingOptionText,
-              billingPeriod === 'annual' && styles.billingOptionTextActive,
-            ]}
-          >
-            Yillik
-          </Text>
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>-20%</Text>
-          </View>
-        </TouchableOpacity>
+      {/* Model Info Banner */}
+      <View style={styles.modelBanner}>
+        <Text style={styles.modelTitle}>🚀 Yangi Biznes Model</Text>
+        <Text style={styles.modelDescription}>
+          Setup + Oylik + Savdodan % = Hamkorlik
+        </Text>
       </View>
       
-      {/* Tier Cards */}
-      {tiers.map((tier) => {
-        const isCurrentTier = partner?.pricingTier === tier.id;
-        const isFree = tier.monthlyPrice === 0;
-        const price = billingPeriod === 'annual' ? tier.annualPrice : tier.monthlyPrice;
-        const monthlyEquivalent = billingPeriod === 'annual' 
-          ? Math.round(tier.annualPrice / 12) 
-          : tier.monthlyPrice;
+      {/* Premium Plan */}
+      <View style={[styles.planCard, styles.planCardPremium]}>
+        <View style={styles.popularBadge}>
+          <Text style={styles.popularText}>⭐ TAVSIYA ETILADI</Text>
+        </View>
         
-        return (
-          <View
-            key={tier.id}
-            style={[
-              styles.tierCard,
-              isCurrentTier && styles.tierCardCurrent,
-              tier.id === 'professional_plus' && styles.tierCardPopular,
-            ]}
-          >
-            {/* Popular Badge */}
-            {tier.id === 'professional_plus' && (
-              <View style={styles.popularBadge}>
-                <Text style={styles.popularText}>Ommabop</Text>
-              </View>
-            )}
-            
-            {/* Current Badge */}
-            {isCurrentTier && (
-              <View style={styles.currentBadge}>
-                <Ionicons name="checkmark-circle" size={16} color={COLORS.secondary} />
-                <Text style={styles.currentText}>Joriy tarif</Text>
-              </View>
-            )}
-            
-            {/* Tier Header */}
-            <View style={styles.tierHeader}>
-              <Text style={styles.tierIcon}>{TIER_ICONS[tier.id]}</Text>
-              <Text style={styles.tierName}>{tier.name}</Text>
-            </View>
-            
-            {/* Price */}
-            <View style={styles.priceContainer}>
-              {isFree ? (
-                <Text style={styles.priceText}>Bepul</Text>
-              ) : (
-                <>
-                  <Text style={styles.priceText}>
-                    {formatPrice(monthlyEquivalent)}
-                  </Text>
-                  <Text style={styles.pricePeriod}>/oy</Text>
-                </>
-              )}
-            </View>
-            
-            {/* Annual total */}
-            {billingPeriod === 'annual' && !isFree && (
-              <Text style={styles.annualTotal}>
-                Yillik: {formatPrice(price)}
-              </Text>
-            )}
-            
-            {/* Features */}
-            <View style={styles.featuresContainer}>
-              {TIER_FEATURES[tier.id]?.map((feature, index) => (
-                <View key={index} style={styles.featureRow}>
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={18}
-                    color={COLORS.secondary}
-                  />
-                  <Text style={styles.featureText}>{feature}</Text>
-                </View>
-              ))}
-            </View>
-            
-            {/* Action Button */}
-            <TouchableOpacity
-              style={[
-                styles.actionButton,
-                isCurrentTier && styles.actionButtonDisabled,
-                isFree && styles.actionButtonFree,
-              ]}
-              onPress={() => handlePayment(tier.id)}
-              disabled={isCurrentTier || (isProcessing && selectedTier === tier.id)}
-            >
-              {isProcessing && selectedTier === tier.id ? (
-                <ActivityIndicator color={COLORS.white} />
-              ) : (
-                <Text
-                  style={[
-                    styles.actionButtonText,
-                    isFree && styles.actionButtonTextFree,
-                  ]}
-                >
-                  {isCurrentTier
-                    ? 'Joriy tarif'
-                    : isFree
-                    ? 'Bepul boshlash'
-                    : 'Sotib olish'}
-                </Text>
-              )}
-            </TouchableOpacity>
+        <View style={styles.planHeader}>
+          <Text style={styles.planIcon}>{PRICING_2026.premium.icon}</Text>
+          <Text style={styles.planName}>{PRICING_2026.premium.name}</Text>
+        </View>
+        
+        {/* Pricing */}
+        <View style={styles.pricingSection}>
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>Setup (bir martalik)</Text>
+            <Text style={styles.priceValue}>${PRICING_2026.premium.setupFee}</Text>
           </View>
-        );
-      })}
-      
-      {/* Payment Info */}
-      <View style={styles.paymentInfo}>
-        <View style={styles.paymentMethod}>
-          <Text style={styles.paymentMethodTitle}>To'lov usullari</Text>
-          <View style={styles.paymentIcons}>
-            <View style={styles.paymentIcon}>
-              <Text style={styles.paymentIconText}>💳</Text>
-              <Text style={styles.paymentIconLabel}>Click</Text>
-            </View>
-            <View style={styles.paymentIcon}>
-              <Text style={styles.paymentIconText}>💳</Text>
-              <Text style={styles.paymentIconLabel}>UzCard</Text>
-            </View>
-            <View style={styles.paymentIcon}>
-              <Text style={styles.paymentIconText}>💳</Text>
-              <Text style={styles.paymentIconLabel}>Humo</Text>
-            </View>
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>Oylik to'lov</Text>
+            <Text style={styles.priceValue}>${PRICING_2026.premium.monthlyFee}/oy</Text>
+          </View>
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>Savdodan ulush</Text>
+            <Text style={[styles.priceValue, styles.revenueShare]}>
+              {PRICING_2026.premium.revenueShare}%
+            </Text>
           </View>
         </View>
         
-        <Text style={styles.securityText}>
-          🔒 Barcha to'lovlar xavfsiz Click tizimi orqali amalga oshiriladi
-        </Text>
+        {/* Bonuses */}
+        <View style={styles.bonusSection}>
+          <View style={styles.bonusItem}>
+            <Ionicons name="gift" size={18} color={COLORS.secondary} />
+            <Text style={styles.bonusText}>7 kunlik BEPUL sinov</Text>
+          </View>
+          <View style={styles.bonusItem}>
+            <Ionicons name="shield-checkmark" size={18} color={COLORS.secondary} />
+            <Text style={styles.bonusText}>60 kunlik kafolat</Text>
+          </View>
+        </View>
+        
+        {/* Features */}
+        <View style={styles.featuresContainer}>
+          {PRICING_2026.premium.features.map((feature, index) => (
+            <View key={index} style={styles.featureRow}>
+              <Ionicons name="checkmark-circle" size={18} color={COLORS.secondary} />
+              <Text style={styles.featureText}>{feature}</Text>
+            </View>
+          ))}
+        </View>
+        
+        {/* Action Button */}
+        <TouchableOpacity
+          style={styles.subscribeButton}
+          onPress={() => handleSubscribe('premium_2026')}
+          disabled={isProcessing && selectedPlan === 'premium_2026'}
+        >
+          {isProcessing && selectedPlan === 'premium_2026' ? (
+            <ActivityIndicator color={COLORS.white} />
+          ) : (
+            <>
+              <Text style={styles.subscribeButtonText}>Boshlash</Text>
+              <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+            </>
+          )}
+        </TouchableOpacity>
+      </View>
+      
+      {/* Individual Plan */}
+      <View style={styles.planCard}>
+        <View style={styles.planHeader}>
+          <Text style={styles.planIcon}>{PRICING_2026.individual.icon}</Text>
+          <Text style={styles.planName}>{PRICING_2026.individual.name}</Text>
+        </View>
+        
+        {/* Custom Pricing */}
+        <View style={styles.pricingSection}>
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>Narx</Text>
+            <Text style={styles.priceValue}>Kelishuv bo'yicha</Text>
+          </View>
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>Min. Revenue Share</Text>
+            <Text style={[styles.priceValue, styles.revenueShare]}>
+              {PRICING_2026.individual.revenueShare}%+
+            </Text>
+          </View>
+        </View>
+        
+        {/* Features */}
+        <View style={styles.featuresContainer}>
+          {PRICING_2026.individual.features.map((feature, index) => (
+            <View key={index} style={styles.featureRow}>
+              <Ionicons name="checkmark-circle" size={18} color={COLORS.primary} />
+              <Text style={styles.featureText}>{feature}</Text>
+            </View>
+          ))}
+        </View>
+        
+        {/* Contact Button */}
+        <TouchableOpacity
+          style={styles.contactButton}
+          onPress={() => handleSubscribe('individual_2026')}
+        >
+          <Ionicons name="chatbubbles" size={20} color={COLORS.primary} />
+          <Text style={styles.contactButtonText}>Bog'lanish</Text>
+        </TouchableOpacity>
+      </View>
+      
+      {/* Calculator Example */}
+      <View style={styles.calculatorCard}>
+        <Text style={styles.calculatorTitle}>💰 Hisob-kitob misoli</Text>
+        <Text style={styles.calculatorSubtitle}>Agar oylik savdo 10,000,000 so'm bo'lsa:</Text>
+        
+        <View style={styles.calcRow}>
+          <Text style={styles.calcLabel}>Oylik to'lov ($499)</Text>
+          <Text style={styles.calcValue}>{formatPrice(499 * USD_RATE)}</Text>
+        </View>
+        <View style={styles.calcRow}>
+          <Text style={styles.calcLabel}>4% revenue share</Text>
+          <Text style={styles.calcValue}>{formatPrice(10000000 * 0.04)}</Text>
+        </View>
+        <View style={[styles.calcRow, styles.calcTotal]}>
+          <Text style={styles.calcTotalLabel}>Jami</Text>
+          <Text style={styles.calcTotalValue}>
+            {formatPrice(499 * USD_RATE + 10000000 * 0.04)}
+          </Text>
+        </View>
+      </View>
+      
+      {/* FAQ */}
+      <View style={styles.faqSection}>
+        <Text style={styles.faqTitle}>Tez-tez so'raladigan savollar</Text>
+        
+        <View style={styles.faqItem}>
+          <Text style={styles.faqQuestion}>Revenue share qachon hisoblanadi?</Text>
+          <Text style={styles.faqAnswer}>
+            Har oy oxirida Yandex Market'dagi sotuvlaringiz asosida avtomatik hisoblanadi.
+          </Text>
+        </View>
+        
+        <View style={styles.faqItem}>
+          <Text style={styles.faqQuestion}>7 kunlik sinov qanday ishlaydi?</Text>
+          <Text style={styles.faqAnswer}>
+            To'liq funksionallikdan foydalaning. Agar yoqmasa - bekor qiling, hech narsa to'lamaysiz.
+          </Text>
+        </View>
       </View>
       
       <View style={styles.footer} />
@@ -327,149 +304,133 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   
   // Header
   header: {
     padding: 20,
     paddingTop: 60,
+    backgroundColor: COLORS.primary,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: COLORS.text,
+    color: COLORS.white,
   },
   subtitle: {
     fontSize: 16,
-    color: COLORS.textSecondary,
+    color: COLORS.white,
+    opacity: 0.9,
     marginTop: 4,
   },
   
-  // Billing Toggle
-  billingToggle: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.white,
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 12,
-    padding: 4,
-  },
-  billingOption: {
-    flex: 1,
-    flexDirection: 'row',
+  // Model Banner
+  modelBanner: {
+    backgroundColor: COLORS.accent,
+    padding: 16,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 10,
   },
-  billingOptionActive: {
-    backgroundColor: COLORS.primary,
-  },
-  billingOptionText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: COLORS.textSecondary,
-  },
-  billingOptionTextActive: {
-    color: COLORS.white,
-  },
-  discountBadge: {
-    backgroundColor: COLORS.secondary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginLeft: 6,
-  },
-  discountText: {
-    fontSize: 10,
+  modelTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: COLORS.white,
   },
+  modelDescription: {
+    fontSize: 14,
+    color: COLORS.white,
+    opacity: 0.9,
+    marginTop: 4,
+  },
   
-  // Tier Card
-  tierCard: {
+  // Plan Card
+  planCard: {
     backgroundColor: COLORS.white,
-    marginHorizontal: 20,
-    marginBottom: 16,
+    marginHorizontal: 16,
+    marginTop: 16,
     borderRadius: 16,
     padding: 20,
     borderWidth: 2,
     borderColor: COLORS.border,
   },
-  tierCardCurrent: {
-    borderColor: COLORS.secondary,
-  },
-  tierCardPopular: {
+  planCardPremium: {
     borderColor: COLORS.primary,
   },
   
-  // Badges
+  // Popular Badge
   popularBadge: {
     position: 'absolute',
-    top: -10,
+    top: -12,
     right: 20,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accent,
     paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingVertical: 6,
     borderRadius: 12,
   },
   popularText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.white,
   },
-  currentBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  currentText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: COLORS.secondary,
-    marginLeft: 4,
-  },
   
-  // Tier Header
-  tierHeader: {
+  // Plan Header
+  planHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  tierIcon: {
-    fontSize: 28,
+  planIcon: {
+    fontSize: 32,
     marginRight: 12,
   },
-  tierName: {
-    fontSize: 20,
-    fontWeight: '600',
+  planName: {
+    fontSize: 22,
+    fontWeight: '700',
     color: COLORS.text,
   },
   
-  // Price
-  priceContainer: {
+  // Pricing Section
+  pricingSection: {
+    backgroundColor: COLORS.surfaceAlt,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  priceRow: {
     flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: 4,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
   },
-  priceText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  pricePeriod: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    marginLeft: 4,
-  },
-  annualTotal: {
+  priceLabel: {
     fontSize: 14,
     color: COLORS.textSecondary,
+  },
+  priceValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  revenueShare: {
+    color: COLORS.primary,
+  },
+  
+  // Bonus Section
+  bonusSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     marginBottom: 16,
+    paddingVertical: 12,
+    backgroundColor: COLORS.secondary + '15',
+    borderRadius: 8,
+  },
+  bonusItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bonusText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.secondary,
+    marginLeft: 6,
   },
   
   // Features
@@ -479,73 +440,125 @@ const styles = StyleSheet.create({
   featureRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
+    paddingVertical: 8,
   },
   featureText: {
     fontSize: 14,
     color: COLORS.text,
     marginLeft: 10,
+    flex: 1,
   },
   
-  // Action Button
-  actionButton: {
+  // Subscribe Button
+  subscribeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: COLORS.primary,
     borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 16,
+  },
+  subscribeButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.white,
+    marginRight: 8,
+  },
+  
+  // Contact Button
+  contactButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-  },
-  actionButtonDisabled: {
-    backgroundColor: COLORS.surfaceAlt,
-  },
-  actionButtonFree: {
+    justifyContent: 'center',
     backgroundColor: COLORS.white,
     borderWidth: 2,
     borderColor: COLORS.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
   },
-  actionButtonText: {
+  contactButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.white,
-  },
-  actionButtonTextFree: {
     color: COLORS.primary,
+    marginLeft: 8,
   },
   
-  // Payment Info
-  paymentInfo: {
+  // Calculator
+  calculatorCard: {
     backgroundColor: COLORS.white,
-    marginHorizontal: 20,
-    borderRadius: 16,
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 12,
     padding: 20,
   },
-  paymentMethod: {
+  calculatorTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  calculatorSubtitle: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
     marginBottom: 16,
   },
-  paymentMethodTitle: {
+  calcRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  calcLabel: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  calcValue: {
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.text,
+  },
+  calcTotal: {
+    borderBottomWidth: 0,
+    paddingTop: 12,
+  },
+  calcTotalLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  calcTotalValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  
+  // FAQ
+  faqSection: {
+    padding: 16,
+  },
+  faqTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 16,
+  },
+  faqItem: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 16,
     marginBottom: 12,
   },
-  paymentIcons: {
-    flexDirection: 'row',
-    gap: 16,
+  faqQuestion: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 8,
   },
-  paymentIcon: {
-    alignItems: 'center',
-  },
-  paymentIconText: {
-    fontSize: 24,
-  },
-  paymentIconLabel: {
-    fontSize: 12,
+  faqAnswer: {
+    fontSize: 14,
     color: COLORS.textSecondary,
-    marginTop: 4,
-  },
-  securityText: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
+    lineHeight: 20,
   },
   
   footer: {
