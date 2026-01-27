@@ -3793,11 +3793,10 @@ async def yandex_get_products(page: int = 1, limit: int = 50):
 async def mxik_status():
     """MXIK database status"""
     try:
-        ikpu = IKPUService()
         return {
             "success": True,
             "loaded": True,
-            "totalCodes": len(ikpu.ikpu_codes) if hasattr(ikpu, 'ikpu_codes') else 250,
+            "totalCodes": len(COMMON_IKPU_CODES) if 'COMMON_IKPU_CODES' in dir() else 250,
             "source": "file",
             "description": "tasnif.soliq.uz MXIK/IKPU kodlari"
         }
@@ -3809,23 +3808,25 @@ async def mxik_status():
 async def mxik_search(q: str, lang: str = "uz"):
     """MXIK kodni mahsulot nomi bo'yicha qidirish"""
     try:
-        ikpu = IKPUService()
-        result = ikpu.find_ikpu_code(q)
+        # Search in API first, fallback to local
+        results = await IKPUService.search_ikpu(q, limit=5)
+        
+        formatted_results = []
+        for r in results:
+            formatted_results.append({
+                "code": r.get("code", "")[:8] if r.get("code") else "",
+                "fullCode": r.get("code", ""),
+                "nameUz": r.get("name_uz") or r.get("name", ""),
+                "nameRu": r.get("name_ru") or r.get("name", ""),
+                "similarity": 90 if r else 0
+            })
         
         return {
             "success": True,
             "query": q,
             "language": lang,
-            "count": 1 if result else 0,
-            "results": [
-                {
-                    "code": result.get("code", "")[:8] if result else "",
-                    "fullCode": result.get("code", "") if result else "",
-                    "nameUz": result.get("name", "") if result else "",
-                    "nameRu": result.get("name", "") if result else "",
-                    "similarity": 90 if result else 0
-                }
-            ] if result else []
+            "count": len(formatted_results),
+            "results": formatted_results
         }
     except Exception as e:
         return {"success": False, "error": str(e)}
@@ -3835,19 +3836,51 @@ async def mxik_search(q: str, lang: str = "uz"):
 async def mxik_best_match(q: str, category: str = None):
     """Mahsulotga eng mos MXIK kodni topish"""
     try:
-        ikpu = IKPUService()
-        result = ikpu.find_ikpu_code(q, category)
+        # Get from category or search
+        if category:
+            result = IKPUService.get_ikpu_by_category(category)
+            if result:
+                return {
+                    "success": True,
+                    "query": q,
+                    "category": category,
+                    "match": {
+                        "code": result.get("code", "")[:8],
+                        "fullCode": result.get("code", ""),
+                        "nameUz": result.get("name", ""),
+                        "nameRu": result.get("name", ""),
+                        "similarity": 95
+                    }
+                }
         
+        # Search by query
+        results = await IKPUService.search_ikpu(q, limit=1)
+        if results:
+            r = results[0]
+            return {
+                "success": True,
+                "query": q,
+                "category": category,
+                "match": {
+                    "code": r.get("code", "")[:8] if r.get("code") else "47190000",
+                    "fullCode": r.get("code", "") or "47190000000000000",
+                    "nameUz": r.get("name_uz") or r.get("name", "") or "Boshqa chakana savdo",
+                    "nameRu": r.get("name_ru") or r.get("name", "") or "Прочая розничная торговля",
+                    "similarity": 90
+                }
+            }
+        
+        # Default fallback
         return {
             "success": True,
             "query": q,
             "category": category,
             "match": {
-                "code": result.get("code", "")[:8] if result else "47190000",
-                "fullCode": result.get("code", "") if result else "47190000000000000",
-                "nameUz": result.get("name", "") if result else "Boshqa chakana savdo",
-                "nameRu": result.get("name", "") if result else "Прочая розничная торговля",
-                "similarity": 90 if result else 30
+                "code": "47190000",
+                "fullCode": "47190000000000000",
+                "nameUz": "Boshqa chakana savdo",
+                "nameRu": "Прочая розничная торговля",
+                "similarity": 30
             }
         }
     except Exception as e:
@@ -3858,7 +3891,7 @@ async def mxik_best_match(q: str, category: str = None):
 async def mxik_validate(code: str):
     """MXIK kod formatini tekshirish"""
     try:
-        is_valid = len(code) >= 8 and code[:8].isdigit()
+        is_valid = IKPUService.validate_ikpu_code(code) or (len(code) >= 8 and code[:8].isdigit())
         
         return {
             "success": True,
