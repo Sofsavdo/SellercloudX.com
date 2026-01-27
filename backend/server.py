@@ -15,7 +15,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+load_dotenv('/app/backend/.env')
 
 # Import AI service
 from ai_service import generate_product_card, scan_product_image, optimize_price
