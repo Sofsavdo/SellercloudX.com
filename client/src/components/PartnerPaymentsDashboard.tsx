@@ -200,7 +200,7 @@ export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardPr
               <div>
                 <p className="text-sm text-muted-foreground">4% Ulush</p>
                 <p className="text-2xl font-black">
-                  {formatUzs(salesData?.currentMonth?.revenueShare || 0)}
+                  {formatUzs(currentMonthData.revenueShare)}
                 </p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
@@ -211,19 +211,19 @@ export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardPr
         </Card>
 
         {/* Growth */}
-        <Card className={salesData?.growth >= 0 ? 'border-success/50' : 'border-destructive/50'}>
+        <Card className={salesGrowthPercent >= 0 ? 'border-success/50' : 'border-destructive/50'}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Savdo O'sishi</p>
-                <p className={`text-2xl font-black ${salesData?.growth >= 0 ? 'text-success' : 'text-destructive'}`}>
-                  {salesData?.growth >= 0 ? '+' : ''}{salesData?.growth}%
+                <p className={`text-2xl font-black ${salesGrowthPercent >= 0 ? 'text-success' : 'text-destructive'}`}>
+                  {salesGrowthPercent >= 0 ? '+' : ''}{salesGrowthPercent}%
                 </p>
               </div>
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                salesData?.growth >= 0 ? 'bg-success/10' : 'bg-destructive/10'
+                salesGrowthPercent >= 0 ? 'bg-success/10' : 'bg-destructive/10'
               }`}>
-                {salesData?.growth >= 0 ? (
+                {salesGrowthPercent >= 0 ? (
                   <TrendingUp className="w-6 h-6 text-success" />
                 ) : (
                   <TrendingDown className="w-6 h-6 text-destructive" />
@@ -250,7 +250,7 @@ export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardPr
             {/* Before Us */}
             <div className="text-center p-4 bg-muted/30 rounded-xl">
               <p className="text-sm text-muted-foreground mb-2">Bizdan OLDIN (oylik)</p>
-              <p className="text-3xl font-black">{formatUzs(salesData?.beforeUs || 0)}</p>
+              <p className="text-3xl font-black">{formatUzs(salesBeforeUs)}</p>
               <p className="text-xs text-muted-foreground mt-2">
                 Ro'yxatdan o'tish vaqtidagi savdo
               </p>
