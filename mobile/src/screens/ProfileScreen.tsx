@@ -85,12 +85,7 @@ export default function ProfileScreen() {
             {(formData.businessName || user?.username || 'U')[0].toUpperCase()}
           </Text>
         </View>
-        <Text style={styles.tierText}>
-          {partner?.pricingTier === 'free_starter' && '🆓 Free Starter'}
-          {partner?.pricingTier === 'starter_pro' && '⭐ Starter Pro'}
-          {partner?.pricingTier === 'professional_plus' && '💎 Professional'}
-          {partner?.pricingTier === 'enterprise_elite' && '🏆 Enterprise'}
-        </Text>
+        <Text style={styles.tierText}>{getTierName()}</Text>
       </View>
       
       {/* Form */}
