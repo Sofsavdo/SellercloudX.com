@@ -633,8 +633,10 @@ const styles = StyleSheet.create({
   mpCardDim: {
     opacity: 0.6,
   },
-  mpCardIcon: {
-    fontSize: 20,
+  mpCardLogo: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
   },
   mpCardName: {
     flex: 1,
