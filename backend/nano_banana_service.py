@@ -80,6 +80,40 @@ def get_marketplace_infographic_prompt(
     is_perfume = any(word in category.lower() or word in product_name.lower() 
                     for word in ['perfume', 'парфюм', 'духи', 'аромат', 'atir', 'parfum'])
     
+    # Select content based on category
+    if is_cosmetic:
+        floating_elements = "Floating vitamin capsules, citrus slices, plant leaves around product"
+        benefits_list = "Увлажняет и питает кожу, Разглаживает морщины, Осветляет пигментацию, Антиоксидантная защита"
+        ingredients = "ГИАЛУРОНОВАЯ КИСЛОТА with water drop icon, ВИТАМИН Е with capsule, ВИТАМИН С with orange slice"
+        usage_demo = "Beautiful woman applying product to face"
+        usage_steps = "1. После умывания нанесите на чистую кожу, 2. Распределите массажными движениями, 3. Используйте утром и вечером"
+        purity_badges = "НЕ СОДЕРЖИТ: СУЛЬФАТОВ, ПАРАБЕНОВ, СПИРТА, ОТДУШЕК (crossed out icons)"
+        lifestyle_setting = "Spa/bathroom aesthetic with plants, water droplets, spa stones"
+    elif is_food:
+        floating_elements = "Floating ingredients: nuts, chocolate pieces, dried fruits around product"
+        benefits_list = "100% натуральный состав, Без сахара, Богат белком, Заряд энергии"
+        ingredients = "ФИНИК date image, АРАХИС peanut, ШОКОЛАД chocolate pieces"
+        usage_demo = "Person enjoying the snack"
+        usage_steps = "1. Откройте упаковку, 2. Наслаждайтесь вкусом, 3. Идеально для перекуса"
+        purity_badges = "НЕ СОДЕРЖИТ: САХАРА, ГМО, КОНСЕРВАНТОВ, КРАСИТЕЛЕЙ (crossed out icons)"
+        lifestyle_setting = "Healthy lifestyle with nuts, dried fruits scattered artistically"
+    elif is_electronics:
+        floating_elements = "Tech elements, sound waves, connectivity icons floating"
+        benefits_list = "Активное шумоподавление, Долгое время работы, Bluetooth 5.0, Водонепроницаемость"
+        ingredients = "Tech specs: ДРАЙВЕР 40мм, БАТАРЕЯ 800mAh, BLUETOOTH 5.0"
+        usage_demo = "Person wearing/using the product"
+        usage_steps = "1. Включите устройство, 2. Подключите по Bluetooth, 3. Наслаждайтесь звуком"
+        purity_badges = "Quality badges: ОРИГИНАЛ, ГАРАНТИЯ, СЕРТИФИКАТ, КАЧЕСТВО (with checkmarks)"
+        lifestyle_setting = "Modern tech lifestyle, clean desk, travel case"
+    else:  # perfume or general
+        floating_elements = "Perfume molecules, flower petals floating elegantly"
+        benefits_list = "Стойкий аромат 24 часа, Премиальный флакон, Натуральные масла, Подходит для чувствительной кожи"
+        ingredients = "ВЕРХНИЕ НОТЫ citrus, СЕРДЕЧНЫЕ НОТЫ flowers, БАЗОВЫЕ НОТЫ wood/musk"
+        usage_demo = "Person applying perfume elegantly"
+        usage_steps = "1. Нанесите на точки пульса, 2. Не растирайте, 3. Аромат раскрывается постепенно"
+        purity_badges = "Quality badges: ОРИГИНАЛ, СТОЙКОСТЬ, БЕЗ АЛЛЕРГЕНОВ, ПРЕМИУМ (with checkmarks)"
+        lifestyle_setting = "Elegant perfume bottles, flowers, luxury accessories"
+    
     prompts = {
         1: f"""Create a PROFESSIONAL e-commerce marketplace infographic for {brand} {product_name}.
 
@@ -90,7 +124,7 @@ TEXT LANGUAGE: Russian
 
 MUST INCLUDE:
 - Large product image in center on elegant pedestal/platform
-- {"Floating vitamin capsules, citrus slices, plant leaves around product" if is_cosmetic else "Floating ingredients (nuts, chocolate pieces, dried fruits) around product" if is_food else "Tech elements, sound waves, connectivity icons" if is_electronics else "Perfume molecules, flower petals floating elegantly"}
+- {floating_elements}
 - Product name in bold Russian typography at top
 - "100% НАТУРАЛЬНО" or quality badge
 - Clean, professional marketplace aesthetic
@@ -107,8 +141,7 @@ TEXT LANGUAGE: Russian
 
 MUST INCLUDE:
 - Product image (smaller, on left side)
-- 4-5 benefit icons with Russian text:
-  {"• Увлажняет и питает кожу\n  • Разглаживает морщины\n  • Осветляет пигментацию\n  • Антиоксидантная защита" if is_cosmetic else "• 100% натуральный состав\n  • Без сахара\n  • Богат белком\n  • Заряд энергии" if is_food else "• Активное шумоподавление\n  • Долгое время работы\n  • Bluetooth 5.0\n  • Водонепроницаемость" if is_electronics else "• Стойкий аромат 24 часа\n  • Премиальный флакон\n  • Натуральные масла\n  • Подходит для чувствительной кожи"}
+- 4-5 benefit icons with Russian text: {benefits_list}
 - Clean icons next to each benefit
 - Professional typography
 
@@ -123,7 +156,7 @@ TEXT LANGUAGE: Russian
 
 MUST INCLUDE:
 - Product image in center
-- {"Ingredient circles: ГИАЛУРОНОВАЯ КИСЛОТА (with water drop icon), ВИТАМИН Е (with capsule), ВИТАМИН С (with orange slice)" if is_cosmetic else "Ingredient circles: ФИНИК (date image), АРАХИС (peanut), ШОКОЛАД (chocolate)" if is_food else "Tech spec circles: ДРАЙВЕР 40мм, БАТАРЕЯ 800mAh, BLUETOOTH 5.0" if is_electronics else "Note circles: ВЕРХНИЕ НОТЫ (citrus), СЕРДЕЧНЫЕ НОТЫ (flowers), БАЗОВЫЕ НОТЫ (wood/musk)"}
+- Ingredient circles: {ingredients}
 - Small icons/images for each ingredient
 - Connecting lines from ingredients to product
 - Clean, informative design
@@ -139,26 +172,24 @@ TEXT LANGUAGE: Russian
 
 MUST INCLUDE:
 - Product image on left side
-- {"Beautiful woman applying product to face" if is_cosmetic else "Person enjoying the snack" if is_food else "Person wearing/using the product" if is_electronics else "Person applying perfume elegantly"}
+- {usage_demo}
 - "Способ применения" header
-- Numbered steps (1, 2, 3) in Russian:
-  {"1. После умывания нанесите на чистую кожу\n  2. Распределите массажными движениями\n  3. Используйте утром и вечером" if is_cosmetic else "1. Откройте упаковку\n  2. Наслаждайтесь вкусом\n  3. Идеально для перекуса" if is_food else "1. Включите устройство\n  2. Подключите по Bluetooth\n  3. Наслаждайтесь звуком" if is_electronics else "1. Нанесите на точки пульса\n  2. Не растирайте\n  3. Аромат раскрывается постепенно"}
+- Numbered steps in Russian: {usage_steps}
 - Clean step-by-step layout
 
 This is slide 4 of 6 - USAGE INSTRUCTIONS.""",
 
-        5: f"""Create a PROFESSIONAL marketplace infographic showing "DOES NOT CONTAIN" / PURITY for {brand} {product_name}.
+        5: f"""Create a PROFESSIONAL marketplace infographic showing PURITY/QUALITY for {brand} {product_name}.
 
 STYLE: Wildberries/Yandex Market purity/safety card
-LAYOUT: Product on one side, crossed-out harmful ingredients on other
+LAYOUT: Product on one side, quality badges on other
 BACKGROUND: Clean white
 TEXT LANGUAGE: Russian
 
 MUST INCLUDE:
 - Product image
-- "НЕ СОДЕРЖИТ:" header in bold
-- {"4 crossed-out icons with text:\n  ✗ СУЛЬФАТОВ\n  ✗ ПАРАБЕНОВ\n  ✗ СПИРТА\n  ✗ ОТДУШЕК" if is_cosmetic else "4 crossed-out icons:\n  ✗ САХАРА\n  ✗ ГМО\n  ✗ КОНСЕРВАНТОВ\n  ✗ КРАСИТЕЛЕЙ" if is_food else "4 quality badges:\n  ✓ ОРИГИНАЛ\n  ✓ ГАРАНТИЯ\n  ✓ СЕРТИФИКАТ\n  ✓ КАЧЕСТВО" if is_electronics else "4 purity badges:\n  ✓ ОРИГИНАЛ\n  ✓ СТОЙКОСТЬ\n  ✓ БЕЗ АЛЛЕРГЕНОВ\n  ✓ ПРЕМИУМ"}
-- Clean icons (circle with X or checkmark)
+- {purity_badges}
+- Clean badge icons (circles with X or checkmark)
 - Professional, trustworthy design
 
 This is slide 5 of 6 - PURITY/SAFETY badges.""",
@@ -167,12 +198,11 @@ This is slide 5 of 6 - PURITY/SAFETY badges.""",
 
 STYLE: Wildberries/Yandex Market luxury/lifestyle card  
 LAYOUT: Product in elegant setting with premium feel
-BACKGROUND: {"Spa/bathroom aesthetic with plants" if is_cosmetic else "Healthy lifestyle, gym/outdoor" if is_food else "Modern tech lifestyle, desk/travel" if is_electronics else "Luxury vanity, elegant setting"}
+BACKGROUND: {lifestyle_setting}
 TEXT LANGUAGE: Russian
 
 MUST INCLUDE:
 - Product as hero in premium setting
-- {"Fresh green leaves, water droplets, spa stones" if is_cosmetic else "Nuts, dried fruits, healthy ingredients scattered artistically" if is_food else "Modern gadgets, clean desk, travel case" if is_electronics else "Elegant perfume bottles, flowers, luxury accessories"}
 - Brand name prominently displayed
 - Premium, aspirational aesthetic
 - Makes customer want to buy immediately
