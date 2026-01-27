@@ -135,6 +135,43 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
       
+      {/* Marketplace Ulanmagan Ogohlantirish */}
+      {!marketplaceStatus.loading && !hasAnyMarketplace && (
+        <TouchableOpacity
+          style={styles.warningBanner}
+          onPress={() => navigation.navigate(SCREENS.SETTINGS)}
+        >
+          <Ionicons name="warning" size={24} color={COLORS.white} />
+          <View style={styles.warningContent}>
+            <Text style={styles.warningTitle}>⚠️ Marketplace Ulanmagan</Text>
+            <Text style={styles.warningText}>
+              Mahsulotlarni sotish uchun Yandex yoki Uzum Market API kalitlarini ulang
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.white} />
+        </TouchableOpacity>
+      )}
+      
+      {/* Marketplace Status - Agar ulangan bo'lsa */}
+      {!marketplaceStatus.loading && hasAnyMarketplace && (
+        <View style={styles.marketplaceStatusBar}>
+          {marketplaceStatus.yandex && (
+            <View style={styles.connectedMarketplace}>
+              <Text style={styles.connectedLogo}>🟡</Text>
+              <Text style={styles.connectedName}>Yandex</Text>
+              <Ionicons name="checkmark-circle" size={16} color={COLORS.secondary} />
+            </View>
+          )}
+          {marketplaceStatus.uzum && (
+            <View style={styles.connectedMarketplace}>
+              <Text style={styles.connectedLogo}>🟣</Text>
+              <Text style={styles.connectedName}>Uzum</Text>
+              <Ionicons name="checkmark-circle" size={16} color={COLORS.secondary} />
+            </View>
+          )}
+        </View>
+      )}
+      
       {/* Quick Scan Button */}
       <TouchableOpacity
         style={styles.quickScanButton}
