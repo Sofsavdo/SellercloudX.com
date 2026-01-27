@@ -400,10 +400,10 @@ function calculateQualityIndex(card: Partial<ProductCardOutput>): { index: numbe
 }
 
 /**
- * Main function: Create complete product card
+ * Main function: Create complete product card with AI enhancements
  */
 export async function createCompleteProductCard(input: ProductCardInput): Promise<ProductCardOutput> {
-  console.log('🚀 Creating complete product card...');
+  console.log('🚀 Creating complete product card with AI...');
   console.log(`Product: ${input.brand} ${input.name}`);
   
   try {
@@ -415,28 +415,69 @@ export async function createCompleteProductCard(input: ProductCardInput): Promis
     const category = detectCategory(input.name, input.brand);
     console.log(`📂 Category: ${category.name} (${category.id})`);
     
-    // 3. Get MXIK code
+    // 3. Get MXIK code from full database
     const mxikResult = mxikService.getBestMxikCode(input.name, category.nameUz);
     const mxikCode = mxikResult?.code || '47190000';
-    console.log(`🏷️ MXIK: ${mxikCode}`);
+    const mxikName = mxikResult?.nameUz || 'Boshqa chakana savdo';
+    console.log(`🏷️ MXIK: ${mxikCode} - ${mxikName}`);
     
-    // 4. Generate titles
-    const titleRu = input.description 
-      ? `${input.brand} ${input.name}${input.model ? ' ' + input.model : ''}`
-      : generateTitleRu(input.name, input.brand, input.model, input.features);
-    const titleUz = input.descriptionUz 
-      ? `${input.brand} ${input.name}${input.model ? ' ' + input.model : ''}`
-      : generateTitleUz(input.name, input.brand, input.model, input.features);
+    // 4. Generate AI-enhanced titles
+    let titleRu = '';
+    let titleUz = '';
     
-    // 5. Generate descriptions
-    const descriptionRu = input.description || generateDescriptionRu(
-      input.name, input.brand, input.model, input.features, input.country
-    );
-    const descriptionUz = input.descriptionUz || generateDescriptionUz(
-      input.name, input.brand, input.model, input.features, input.country
-    );
+    if (input.generateAIDescription) {
+      console.log('🤖 Generating AI titles...');
+      const titleResultRu = await nanoBananaService.generateProductTitle(
+        input.name, input.brand, category.name, 'ru'
+      );
+      const titleResultUz = await nanoBananaService.generateProductTitle(
+        input.name, input.brand, category.nameUz, 'uz'
+      );
+      
+      titleRu = titleResultRu.success && titleResultRu.title 
+        ? titleResultRu.title 
+        : generateTitleRu(input.name, input.brand, input.model, input.features);
+      titleUz = titleResultUz.success && titleResultUz.title 
+        ? titleResultUz.title 
+        : generateTitleUz(input.name, input.brand, input.model, input.features);
+    } else {
+      titleRu = input.description 
+        ? `${input.brand} ${input.name}${input.model ? ' ' + input.model : ''}`
+        : generateTitleRu(input.name, input.brand, input.model, input.features);
+      titleUz = input.descriptionUz 
+        ? `${input.brand} ${input.name}${input.model ? ' ' + input.model : ''}`
+        : generateTitleUz(input.name, input.brand, input.model, input.features);
+    }
     
-    // 6. Calculate price
+    // 5. Generate AI-enhanced descriptions
+    let descriptionRu = '';
+    let descriptionUz = '';
+    
+    if (input.generateAIDescription && !input.description) {
+      console.log('🤖 Generating AI descriptions...');
+      const descResultRu = await nanoBananaService.generateProductDescription(
+        input.name, input.brand, input.features || [], 'ru'
+      );
+      const descResultUz = await nanoBananaService.generateProductDescription(
+        input.name, input.brand, input.features || [], 'uz'
+      );
+      
+      descriptionRu = descResultRu.success && descResultRu.description 
+        ? descResultRu.description 
+        : generateDescriptionRu(input.name, input.brand, input.model, input.features, input.country);
+      descriptionUz = descResultUz.success && descResultUz.description 
+        ? descResultUz.description 
+        : generateDescriptionUz(input.name, input.brand, input.model, input.features, input.country);
+    } else {
+      descriptionRu = input.description || generateDescriptionRu(
+        input.name, input.brand, input.model, input.features, input.country
+      );
+      descriptionUz = input.descriptionUz || generateDescriptionUz(
+        input.name, input.brand, input.model, input.features, input.country
+      );
+    }
+    
+    // 6. Calculate competitive price
     const priceBreakdown = calculateOptimalPrice(
       input.costPrice, 
       category.key,
@@ -444,8 +485,11 @@ export async function createCompleteProductCard(input: ProductCardInput): Promis
     );
     console.log(`💰 Price: ${priceBreakdown.finalPrice} UZS`);
     
-    // 7. Upload images
+    // 7. Process images
     let uploadedImages: string[] = [];
+    let generatedInfographics: string[] = [];
+    
+    // Upload provided images
     if (input.images && input.images.length > 0) {
       console.log(`📷 Uploading ${input.images.length} images...`);
       for (const imageUrl of input.images.slice(0, 10)) {
@@ -453,6 +497,24 @@ export async function createCompleteProductCard(input: ProductCardInput): Promis
         if (uploaded) uploadedImages.push(uploaded);
       }
       console.log(`✅ Uploaded ${uploadedImages.length} images`);
+    }
+    
+    // Generate AI infographics if requested
+    if (input.generateInfographics) {
+      console.log('🎨 Generating AI infographics with Nano Banana...');
+      const infographicCount = input.infographicCount || 6;
+      const infographicResult = await nanoBananaService.generateProductInfographics(
+        `${input.brand} ${input.name}`,
+        descriptionRu,
+        input.features || [],
+        infographicCount
+      );
+      
+      if (infographicResult.success) {
+        generatedInfographics = infographicResult.images;
+        uploadedImages = [...uploadedImages, ...generatedInfographics];
+        console.log(`✅ Generated ${generatedInfographics.length} infographics`);
+      }
     }
     
     // 8. Calculate quality index
@@ -470,6 +532,7 @@ export async function createCompleteProductCard(input: ProductCardInput): Promis
     let yandexError: string | undefined;
     
     try {
+      console.log('📤 Sending to Yandex Market API...');
       yandexResponse = await yandexMarketService.createProduct({
         offer_id: sku,
         name: titleRu,
@@ -484,10 +547,13 @@ export async function createCompleteProductCard(input: ProductCardInput): Promis
       
       if (!yandexResponse.success) {
         yandexError = yandexResponse.error;
+        console.log(`⚠️ Yandex API warning: ${yandexError}`);
+      } else {
+        console.log('✅ Product card created on Yandex Market!');
       }
     } catch (error: any) {
       yandexError = error.message;
-      console.error('Yandex API error:', error.message);
+      console.error('❌ Yandex API error:', error.message);
     }
     
     // 10. Return complete result
@@ -502,9 +568,11 @@ export async function createCompleteProductCard(input: ProductCardInput): Promis
       categoryId: category.id,
       categoryName: category.name,
       mxikCode,
+      mxikName,
       suggestedPrice: priceBreakdown.finalPrice,
       priceBreakdown,
       uploadedImages,
+      generatedInfographics,
       qualityIndex: quality.index,
       missingFields: quality.missing,
       yandexResponse,
