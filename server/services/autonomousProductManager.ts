@@ -208,7 +208,15 @@ class AutonomousProductManager {
   private async getProductsWithoutCards(partnerId: string): Promise<any[]> {
     try {
       const allProducts = await db
-        .select()
+        .select({
+          id: products.id,
+          name: products.name,
+          partnerId: products.partnerId,
+          category: products.category,
+          description: products.description,
+          price: products.price,
+          isActive: products.isActive
+        })
         .from(products)
         .where(
           and(
@@ -221,7 +229,10 @@ class AutonomousProductManager {
 
       for (const product of allProducts) {
         const existingCards = await db
-          .select()
+          .select({
+            id: aiProductCards.id,
+            productId: aiProductCards.productId
+          })
           .from(aiProductCards)
           .where(eq(aiProductCards.productId, product.id))
           .limit(1);
