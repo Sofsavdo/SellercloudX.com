@@ -231,6 +231,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ error: null });
   },
   
+  // Set partner directly
+  setPartner: (partner: Partner) => {
+    set({ partner });
+    AsyncStorage.setItem(STORAGE_KEYS.PARTNER_DATA, JSON.stringify(partner));
+  },
+  
   // Update partner data locally
   updatePartner: (data: Partial<Partner>) => {
     const current = get().partner;
