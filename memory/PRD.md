@@ -7,22 +7,36 @@ SellerCloudX.com - AI-powered marketplace automation SaaS. 4 ta marketplace (Yan
 - **Preview**: https://ezmktplace.preview.emergentagent.com
 - **Mobile API**: https://ezmktplace.preview.emergentagent.com/api
 
-## Mobile App v1.0.4 (Jan 27, 2026)
+## Mobile App v1.0.5 (Jan 27, 2026)
 
 ### 📱 APK Download:
-**https://expo.dev/artifacts/eas/9xsHKc7iMKeApRSC1pLsFG.apk**
+**https://expo.dev/artifacts/eas/nFn95tydsEA7qG1LjTmLZs.apk**
 
-### Yangiliklar (v1.0.4):
-1. ✅ **Fintech Splash Screen** - Professional animatsiya (4 marketplace logolari)
-2. ✅ **Dark Theme Header** - HomeScreen uchun gradient header
-3. ✅ **Account Activation System** - isActive=false bo'lsa ilova bloklaydi
-4. ✅ **$699 setup fee OLIB TASHLANDI** - Endi faqat $499/oy ko'rsatadi
-5. ✅ **"7 kunlik bepul sinov" OLIB TASHLANDI**
-6. ✅ **Admin Activation Endpoint** - PUT /api/admin/partners/:id/activate
-7. ✅ **4 Marketplace UI** - Yandex(faol), Uzum/Wildberries/Ozon(tez kunda)
-8. ✅ **Raqobatchi narx tahlili** - AI Scanner
+### Yangiliklar (v1.0.5):
+1. ✅ **Real Logolar** - Yandex, Uzum, Wildberries, Ozon haqiqiy logolari
+2. ✅ **SellerCloudX Logo** - Raketa va O'zbekiston bayrog'i
+3. ✅ **SplashScreen Tuzatildi** - To'g'ri animatsiya bilan ishlaydi
+4. ✅ **HomeScreen Real Logolar** - Marketplace grid da real logolar
+5. ✅ **SettingsScreen Real Logolar** - Sozlamalar sahifasida real logolar
 
-## Expo Credentials (Yangi akkaunt)
+### v1.0.4 dan:
+- Fintech Splash Screen
+- Dark Theme Header
+- Account Activation System
+- $699 setup fee olib tashlandi
+- "7 kunlik bepul sinov" olib tashlandi
+- Admin Activation Endpoint
+
+## Real Marketplace Logos
+```
+Yandex: https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/s5t4wghe_market.png
+Uzum: https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/fn5a7tjm_images.png
+Wildberries: https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/5bdfsh1w_6f50bf7b-9f31-41a5-b13b-332697a792c1.jpg
+Ozon: https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/rttfl7ms_ozon-icon-logo.png
+SellerCloudX: https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/4ztx60fi_-76rizc_edit_75534802065091.jpg
+```
+
+## Expo Credentials
 - **Email**: Dubaymall.beauty@gmail.com
 - **Username**: medik3636
 - **Password**: Medik9298
@@ -36,10 +50,8 @@ Premium Tariff:
 ```
 
 ## Admin Panel Endpoints
-- `PUT /api/admin/partners/:id/activate` - Manual activation (to'lovsiz)
+- `PUT /api/admin/partners/:id/activate` - Manual activation
 - `GET /api/admin/partners` - List all partners
-- `PUT /api/admin/partners/:id/approve` - Approve partner
-- `PUT /api/admin/partners/:id/block` - Block partner
 
 ## Architecture
 ```
@@ -51,28 +63,19 @@ Premium Tariff:
 └── migrations/         # SQL Migrations
 ```
 
-## Files Modified (v1.0.4)
-
-### New Files:
-- `/app/mobile/src/screens/SplashScreen.tsx` - Fintech animation
-
-### Modified Files:
-- `/app/mobile/App.tsx` - Custom splash integration
-- `/app/mobile/src/screens/HomeScreen.tsx` - Dark header, activation check
-- `/app/mobile/src/screens/PricingScreen.tsx` - No setup fee, no free trial
-- `/app/mobile/src/utils/constants.ts` - 4 marketplaces, new colors
-- `/app/server/routes.ts` - Admin activate endpoint
-- `/app/backend/server.py` - Admin endpoints (Python)
+## Files Modified (v1.0.5)
+- `/app/mobile/src/screens/SplashScreen.tsx` - Real logos, fixed animation
+- `/app/mobile/src/screens/HomeScreen.tsx` - Real marketplace logos
+- `/app/mobile/src/screens/SettingsScreen.tsx` - Real logos
+- `/app/mobile/src/utils/constants.ts` - MARKETPLACE_LOGOS object
+- `/app/mobile/App.tsx` - Simplified splash logic
 
 ## Test Credentials
 - **Yandex**: token: ACMA:OIjjTDFMnmBe7XOs7EqaWqdoXUS772aKqwqjXj6C:245e5a96
 
-## Known Issues
-- Node.js Drizzle ORM production schema mismatch (workaround applied)
-
 ## Backlog
 
-### P1 (Pending Test)
+### P1 (Test)
 - [ ] Test kartochka yaratish flow
 - [ ] Test account activation
 
