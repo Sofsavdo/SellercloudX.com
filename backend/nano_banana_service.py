@@ -1,9 +1,17 @@
 """
 Nano Banana Infographic Generator Service
-Gemini 3 Pro Image Preview - for product infographics
+Gemini 3 Pro Image Preview - for PROFESSIONAL marketplace infographics
 
 Uses Emergent LLM Key with emergentintegrations library
-Generates 6 professional product images for Yandex Market
+Generates 6 SALES-BOOSTING product infographics for Yandex Market/Wildberries
+
+Reference: Professional marketplace infographics with:
+- Product hero shot with floating ingredients
+- Features/benefits with icons
+- Ingredient composition visualization
+- Usage instructions
+- "Does NOT contain" badges
+- 100% natural/organic badges
 """
 
 import os
@@ -40,43 +48,172 @@ async def upload_to_imgbb(base64_data: str) -> Optional[str]:
         return None
 
 
+def get_marketplace_infographic_prompt(
+    product_name: str,
+    brand: str,
+    features: List[str],
+    category: str,
+    index: int = 1
+) -> str:
+    """
+    Generate professional marketplace infographic prompts
+    Based on top-selling Wildberries/Yandex Market card designs
+    
+    Each index creates different type of infographic:
+    1. Hero shot with floating ingredients/elements
+    2. Features & benefits with icons
+    3. Ingredient composition visualization
+    4. Usage instructions step-by-step
+    5. "Does NOT contain" / purity badges
+    6. Premium lifestyle/context shot
+    """
+    
+    features_text = ", ".join(features[:5]) if features else "premium quality, effective formula"
+    
+    # Determine product category for appropriate styling
+    is_cosmetic = any(word in category.lower() or word in product_name.lower() 
+                     for word in ['serum', 'cream', 'skincare', 'vitamin', 'сыворотка', 'крем', 'косметика', 'уход'])
+    is_food = any(word in category.lower() or word in product_name.lower() 
+                 for word in ['bar', 'snack', 'food', 'chocolate', 'батончик', 'еда', 'шоколад', 'орех'])
+    is_electronics = any(word in category.lower() or word in product_name.lower() 
+                        for word in ['phone', 'headphones', 'speaker', 'телефон', 'наушники', 'электроника'])
+    is_perfume = any(word in category.lower() or word in product_name.lower() 
+                    for word in ['perfume', 'парфюм', 'духи', 'аромат', 'atir', 'parfum'])
+    
+    prompts = {
+        1: f"""Create a PROFESSIONAL e-commerce marketplace infographic for {brand} {product_name}.
+
+STYLE: Premium Wildberries/Yandex Market product card design
+LAYOUT: Product in center with floating ingredients/elements around it
+BACKGROUND: Clean gradient (soft colors matching product)
+TEXT LANGUAGE: Russian
+
+MUST INCLUDE:
+- Large product image in center on elegant pedestal/platform
+- {"Floating vitamin capsules, citrus slices, plant leaves around product" if is_cosmetic else "Floating ingredients (nuts, chocolate pieces, dried fruits) around product" if is_food else "Tech elements, sound waves, connectivity icons" if is_electronics else "Perfume molecules, flower petals floating elegantly"}
+- Product name in bold Russian typography at top
+- "100% НАТУРАЛЬНО" or quality badge
+- Clean, professional marketplace aesthetic
+- High contrast, eye-catching design
+
+This is slide 1 of 6 - HERO SHOT with floating elements.""",
+
+        2: f"""Create a PROFESSIONAL marketplace infographic showing PRODUCT BENEFITS for {brand} {product_name}.
+
+STYLE: Wildberries/Yandex Market benefits card
+LAYOUT: Product on left side, benefits list on right with icons
+BACKGROUND: Clean white/light gradient
+TEXT LANGUAGE: Russian
+
+MUST INCLUDE:
+- Product image (smaller, on left side)
+- 4-5 benefit icons with Russian text:
+  {"• Увлажняет и питает кожу\n  • Разглаживает морщины\n  • Осветляет пигментацию\n  • Антиоксидантная защита" if is_cosmetic else "• 100% натуральный состав\n  • Без сахара\n  • Богат белком\n  • Заряд энергии" if is_food else "• Активное шумоподавление\n  • Долгое время работы\n  • Bluetooth 5.0\n  • Водонепроницаемость" if is_electronics else "• Стойкий аромат 24 часа\n  • Премиальный флакон\n  • Натуральные масла\n  • Подходит для чувствительной кожи"}
+- Clean icons next to each benefit
+- Professional typography
+
+This is slide 2 of 6 - BENEFITS with icons.""",
+
+        3: f"""Create a PROFESSIONAL marketplace infographic showing INGREDIENTS/COMPOSITION for {brand} {product_name}.
+
+STYLE: Wildberries/Yandex Market composition card
+LAYOUT: Product in center, ingredient circles around it with connecting lines
+BACKGROUND: Light, clean
+TEXT LANGUAGE: Russian
+
+MUST INCLUDE:
+- Product image in center
+- {"Ingredient circles: ГИАЛУРОНОВАЯ КИСЛОТА (with water drop icon), ВИТАМИН Е (with capsule), ВИТАМИН С (with orange slice)" if is_cosmetic else "Ingredient circles: ФИНИК (date image), АРАХИС (peanut), ШОКОЛАД (chocolate)" if is_food else "Tech spec circles: ДРАЙВЕР 40мм, БАТАРЕЯ 800mAh, BLUETOOTH 5.0" if is_electronics else "Note circles: ВЕРХНИЕ НОТЫ (citrus), СЕРДЕЧНЫЕ НОТЫ (flowers), БАЗОВЫЕ НОТЫ (wood/musk)"}
+- Small icons/images for each ingredient
+- Connecting lines from ingredients to product
+- Clean, informative design
+
+This is slide 3 of 6 - COMPOSITION visualization.""",
+
+        4: f"""Create a PROFESSIONAL marketplace infographic showing USAGE INSTRUCTIONS for {brand} {product_name}.
+
+STYLE: Wildberries/Yandex Market how-to-use card
+LAYOUT: Product on left, numbered steps on right with model/demonstration
+BACKGROUND: Soft, warm tones
+TEXT LANGUAGE: Russian
+
+MUST INCLUDE:
+- Product image on left side
+- {"Beautiful woman applying product to face" if is_cosmetic else "Person enjoying the snack" if is_food else "Person wearing/using the product" if is_electronics else "Person applying perfume elegantly"}
+- "Способ применения" header
+- Numbered steps (1, 2, 3) in Russian:
+  {"1. После умывания нанесите на чистую кожу\n  2. Распределите массажными движениями\n  3. Используйте утром и вечером" if is_cosmetic else "1. Откройте упаковку\n  2. Наслаждайтесь вкусом\n  3. Идеально для перекуса" if is_food else "1. Включите устройство\n  2. Подключите по Bluetooth\n  3. Наслаждайтесь звуком" if is_electronics else "1. Нанесите на точки пульса\n  2. Не растирайте\n  3. Аромат раскрывается постепенно"}
+- Clean step-by-step layout
+
+This is slide 4 of 6 - USAGE INSTRUCTIONS.""",
+
+        5: f"""Create a PROFESSIONAL marketplace infographic showing "DOES NOT CONTAIN" / PURITY for {brand} {product_name}.
+
+STYLE: Wildberries/Yandex Market purity/safety card
+LAYOUT: Product on one side, crossed-out harmful ingredients on other
+BACKGROUND: Clean white
+TEXT LANGUAGE: Russian
+
+MUST INCLUDE:
+- Product image
+- "НЕ СОДЕРЖИТ:" header in bold
+- {"4 crossed-out icons with text:\n  ✗ СУЛЬФАТОВ\n  ✗ ПАРАБЕНОВ\n  ✗ СПИРТА\n  ✗ ОТДУШЕК" if is_cosmetic else "4 crossed-out icons:\n  ✗ САХАРА\n  ✗ ГМО\n  ✗ КОНСЕРВАНТОВ\n  ✗ КРАСИТЕЛЕЙ" if is_food else "4 quality badges:\n  ✓ ОРИГИНАЛ\n  ✓ ГАРАНТИЯ\n  ✓ СЕРТИФИКАТ\n  ✓ КАЧЕСТВО" if is_electronics else "4 purity badges:\n  ✓ ОРИГИНАЛ\n  ✓ СТОЙКОСТЬ\n  ✓ БЕЗ АЛЛЕРГЕНОВ\n  ✓ ПРЕМИУМ"}
+- Clean icons (circle with X or checkmark)
+- Professional, trustworthy design
+
+This is slide 5 of 6 - PURITY/SAFETY badges.""",
+
+        6: f"""Create a PROFESSIONAL marketplace infographic - PREMIUM LIFESTYLE shot for {brand} {product_name}.
+
+STYLE: Wildberries/Yandex Market luxury/lifestyle card  
+LAYOUT: Product in elegant setting with premium feel
+BACKGROUND: {"Spa/bathroom aesthetic with plants" if is_cosmetic else "Healthy lifestyle, gym/outdoor" if is_food else "Modern tech lifestyle, desk/travel" if is_electronics else "Luxury vanity, elegant setting"}
+TEXT LANGUAGE: Russian
+
+MUST INCLUDE:
+- Product as hero in premium setting
+- {"Fresh green leaves, water droplets, spa stones" if is_cosmetic else "Nuts, dried fruits, healthy ingredients scattered artistically" if is_food else "Modern gadgets, clean desk, travel case" if is_electronics else "Elegant perfume bottles, flowers, luxury accessories"}
+- Brand name prominently displayed
+- Premium, aspirational aesthetic
+- Makes customer want to buy immediately
+
+This is slide 6 of 6 - LIFESTYLE/PREMIUM shot."""
+    }
+    
+    return prompts.get(index, prompts[1])
+
+
 async def generate_single_infographic(
     product_name: str,
     brand: str,
     features: List[str],
-    style: str = "professional",
+    category: str = "general",
     index: int = 1
 ) -> Dict[str, Any]:
     """
-    Generate single product infographic using Gemini Nano Banana
+    Generate single PROFESSIONAL marketplace infographic using Gemini Nano Banana
     
     Args:
         product_name: Full product name
         brand: Brand name
         features: List of product features
-        style: professional, modern, elegant, vibrant
-        index: Image number (1-6)
+        category: Product category for appropriate styling
+        index: Image number (1-6), each creates different infographic type
     
     Returns:
         {success: bool, image_url: str, error: str}
     """
     try:
-        print(f"🎨 Generating infographic #{index} for: {product_name}")
+        print(f"🎨 Generating professional infographic #{index} for: {brand} {product_name}")
         
-        # Create detailed prompt for infographic
-        features_text = ", ".join(features[:4]) if features else "premium quality"
-        
-        # Different prompts for different image positions
-        prompts = {
-            1: f"Create a professional e-commerce hero product image for {brand} {product_name}. Clean white background, centered product, high-quality commercial photography style. Perfect for Yandex Market main listing image.",
-            2: f"Create an infographic showing key features of {brand} {product_name}: {features_text}. Modern design with icons and labels highlighting product benefits. Clean professional marketplace style.",
-            3: f"Create a lifestyle product image showing {brand} {product_name} in use. Natural setting, attractive composition, demonstrates product value. E-commerce ready.",
-            4: f"Create a detailed product image of {brand} {product_name} showing design details and quality. Multiple angles or close-up view. Professional marketplace photography.",
-            5: f"Create a comparison or specification infographic for {brand} {product_name}. Show dimensions, materials, and key specs. Clean professional design for online marketplace.",
-            6: f"Create an elegant product showcase image for {brand} {product_name}. Premium feel, subtle gradient background, professional lighting. Perfect for luxury marketplace listing."
-        }
-        
-        prompt = prompts.get(index, prompts[1])
+        # Get specialized prompt for this index
+        prompt = get_marketplace_infographic_prompt(
+            product_name=product_name,
+            brand=brand,
+            features=features,
+            category=category,
+            index=index
+        )
         
         # Try emergentintegrations first
         try:
@@ -85,7 +222,7 @@ async def generate_single_infographic(
             chat = LlmChat(
                 api_key=EMERGENT_LLM_KEY,
                 session_id=f"infographic-{datetime.now().strftime('%Y%m%d%H%M%S')}-{index}",
-                system_message="You are a professional product photographer and infographic designer for e-commerce marketplaces."
+                system_message="You are a PROFESSIONAL e-commerce product photographer and infographic designer specializing in Wildberries and Yandex Market product cards. You create sales-boosting, conversion-optimized marketplace images."
             )
             
             chat.with_model("gemini", "gemini-3-pro-image-preview").with_params(modalities=["image", "text"])
@@ -101,11 +238,12 @@ async def generate_single_infographic(
                 image_url = await upload_to_imgbb(img_data)
                 
                 if image_url:
-                    print(f"✅ Infographic #{index} generated: {image_url[:50]}...")
+                    print(f"✅ Professional infographic #{index} generated: {image_url[:50]}...")
                     return {
                         "success": True,
                         "image_url": image_url,
-                        "index": index
+                        "index": index,
+                        "type": ["hero_floating", "benefits", "composition", "usage", "purity", "lifestyle"][index-1]
                     }
             
             return {
@@ -115,7 +253,6 @@ async def generate_single_infographic(
             }
             
         except ImportError:
-            # Fallback to direct API call
             print("emergentintegrations not available, using direct API")
             return {
                 "success": False,
@@ -136,40 +273,44 @@ async def generate_product_infographics(
     product_name: str,
     brand: str,
     features: List[str],
+    category: str = "general",
     count: int = 6
 ) -> Dict[str, Any]:
     """
-    Generate multiple infographics for product card (default: 6 images)
+    Generate COMPLETE SET of professional marketplace infographics (default: 6 images)
     
-    This creates professional marketplace-ready images:
-    1. Hero/main product shot
-    2. Features infographic
-    3. Lifestyle image
-    4. Detail shots
-    5. Specifications
-    6. Premium showcase
+    Creates sales-boosting infographic set:
+    1. Hero shot with floating ingredients/elements
+    2. Features & benefits with icons  
+    3. Ingredient composition visualization
+    4. Usage instructions step-by-step
+    5. "Does NOT contain" / purity badges
+    6. Premium lifestyle shot
     
     Args:
         product_name: Full product name
         brand: Brand name
         features: List of product features
+        category: Product category (cosmetics, food, electronics, perfume, general)
         count: Number of images to generate (1-6)
     
     Returns:
         {
             success: bool,
             images: [url1, url2, ...],
+            image_types: [type1, type2, ...],
             generated_count: int,
             errors: []
         }
     """
     try:
-        print(f"🖼️ Starting generation of {count} infographics for: {brand} {product_name}")
+        print(f"🖼️ Starting PROFESSIONAL infographic set for: {brand} {product_name}")
+        print(f"   Category: {category}")
+        print(f"   Features: {features[:3]}...")
         
         images = []
+        image_types = []
         errors = []
-        
-        styles = ["professional", "modern", "elegant", "vibrant", "professional", "modern"]
         
         # Generate images sequentially to avoid rate limits
         for i in range(min(count, 6)):
@@ -177,31 +318,35 @@ async def generate_product_infographics(
                 product_name=product_name,
                 brand=brand,
                 features=features,
-                style=styles[i],
+                category=category,
                 index=i + 1
             )
             
             if result.get("success") and result.get("image_url"):
                 images.append(result["image_url"])
+                image_types.append(result.get("type", f"slide_{i+1}"))
             else:
                 errors.append({
                     "index": i + 1,
                     "error": result.get("error", "Unknown error")
                 })
             
-            # Small delay between requests to avoid rate limiting
+            # Delay between requests to avoid rate limiting
             if i < count - 1:
-                await asyncio.sleep(2)
+                await asyncio.sleep(3)
         
         success_count = len(images)
-        print(f"✅ Generated {success_count}/{count} infographics")
+        print(f"✅ Generated {success_count}/{count} professional infographics")
         
         return {
             "success": success_count > 0,
             "images": images,
+            "image_types": image_types,
             "generated_count": success_count,
             "requested_count": count,
-            "errors": errors if errors else None
+            "errors": errors if errors else None,
+            "product": f"{brand} {product_name}",
+            "category": category
         }
         
     except Exception as e:
@@ -209,6 +354,7 @@ async def generate_product_infographics(
         return {
             "success": False,
             "images": [],
+            "image_types": [],
             "generated_count": 0,
             "requested_count": count,
             "error": str(e)
@@ -234,17 +380,18 @@ async def generate_product_video(
 
 # Test function
 async def test_infographic_generation():
-    """Test infographic generation"""
+    """Test professional infographic generation"""
     result = await generate_product_infographics(
-        product_name="Galaxy Buds Pro",
-        brand="Samsung",
+        product_name="Сыворотка с витамином С",
+        brand="Advanced Skincare",
         features=[
-            "Active Noise Cancellation",
-            "IPX7 Water Resistant",
-            "28 hours battery life",
-            "Bluetooth 5.0"
+            "Увлажняет кожу",
+            "Осветляет пигментацию",
+            "Антиоксидантная защита",
+            "Разглаживает морщины"
         ],
-        count=2  # Just test with 2 images
+        category="cosmetics",
+        count=1  # Test with 1 image
     )
     
     print(f"\nTest result: {result}")
