@@ -369,6 +369,101 @@ async def ai_scan_product(file: UploadFile = File(...)):
         }
 
 
+class ScanFromURLRequest(BaseModel):
+    """Request for scanning product from image URL"""
+    image_url: str
+    partner_id: Optional[str] = None
+
+
+@app.post("/api/ai/scan-from-url")
+async def ai_scan_from_url(request: ScanFromURLRequest):
+    """
+    AI-powered product scanning from image URL
+    
+    This is the main entry point for:
+    1. Camera scan (mobile app sends image URL)
+    2. Web interface (user pastes image URL)
+    
+    Returns product info, category, MXIK code, and price suggestions
+    """
+    try:
+        import httpx
+        
+        # Download image from URL
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(request.image_url)
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "error": f"Rasmni yuklab bo'lmadi: {response.status_code}"
+                }
+            
+            contents = response.content
+            image_base64 = base64.b64encode(contents).decode('utf-8')
+        
+        # Use AI to analyze image
+        result = await scan_product_image(image_base64)
+        
+        if result.get("success"):
+            product = result.get("product", {})
+            
+            # Get MXIK code for product
+            mxik_result = await IKPUService.search_ikpu(
+                product.get("name", ""), 
+                limit=1
+            )
+            mxik_code = mxik_result[0].get("code", "47190000") if mxik_result else "47190000"
+            
+            # Generate price analysis
+            estimated_price = product.get("estimatedPrice", 100000)
+            category = product.get("category", "general")
+            
+            # Calculate Yandex price
+            from yandex_rules import get_yandex_commission_rate
+            commission_rate = get_yandex_commission_rate(category)
+            
+            return {
+                "success": True,
+                "scan_result": {
+                    "product": {
+                        "name": product.get("name", "Unknown Product"),
+                        "brand": product.get("brand", "No Brand"),
+                        "category": category,
+                        "description": product.get("description", ""),
+                        "keywords": product.get("keywords", []),
+                        "specifications": product.get("specifications", []),
+                        "confidence": product.get("confidence", 75)
+                    },
+                    "mxik": {
+                        "code": mxik_code,
+                        "full_code": mxik_code + "000000000" if len(mxik_code) < 17 else mxik_code
+                    },
+                    "price_analysis": {
+                        "estimated_cost": estimated_price,
+                        "commission_rate": commission_rate,
+                        "suggested_price": int(estimated_price * (1 + commission_rate + 0.15)),
+                        "min_price": int(estimated_price * 1.1),
+                        "max_price": int(estimated_price * 1.5)
+                    },
+                    "image_url": request.image_url,
+                    "ready_for_card": True
+                }
+            }
+        else:
+            return {
+                "success": False,
+                "error": result.get("error", "Scan failed")
+            }
+            
+    except Exception as e:
+        import traceback
+        return {
+            "success": False,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+
+
 @app.post("/api/ai/create-uzum-product")
 async def ai_create_uzum_product(request: CreateUzumProductRequest):
     """Create product on Uzum Market using AI-generated content"""
