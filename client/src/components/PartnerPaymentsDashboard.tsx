@@ -183,7 +183,7 @@ export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardPr
               <div>
                 <p className="text-sm text-muted-foreground">Bu Oy Savdo</p>
                 <p className="text-2xl font-black text-primary">
-                  {formatUzs(salesData?.currentMonth?.totalSales || 0)}
+                  {formatUzs(currentMonthSales)}
                 </p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
