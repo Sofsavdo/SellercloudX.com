@@ -41,6 +41,7 @@ function Router() {
       {/* Ochiq sahifalar */}
       <Route path="/" component={LandingNew} />
       <Route path="/login" component={AuthPage} />
+      <Route path="/pricing" component={PricingPage} />
       <Route path="/partner-registration" component={PartnerRegistrationNew} />
       <Route path="/admin-login" component={AdminLogin} />
       <Route path="/blog" component={BlogPage} />
