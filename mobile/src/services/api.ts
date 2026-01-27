@@ -412,6 +412,48 @@ export const partnerApi = {
     return response.data;
   },
   
+  // Marketplace ulanish holatini tekshirish
+  getMarketplaceStatus: async (): Promise<{
+    success: boolean;
+    yandex?: { connected: boolean; campaign_id?: string };
+    uzum?: { connected: boolean };
+  }> => {
+    try {
+      const response = await api.get('/partner/marketplace-integrations');
+      const integrations = response.data?.integrations || response.data || [];
+      
+      // Parse integrations to get connection status
+      let yandexConnected = false;
+      let uzumConnected = false;
+      let yandexCampaignId = '';
+      
+      if (Array.isArray(integrations)) {
+        for (const integration of integrations) {
+          if (integration.marketplace === 'yandex' && integration.api_key) {
+            yandexConnected = true;
+            yandexCampaignId = integration.campaign_id || '';
+          }
+          if (integration.marketplace === 'uzum' && (integration.api_key || integration.login)) {
+            uzumConnected = true;
+          }
+        }
+      }
+      
+      return {
+        success: true,
+        yandex: { connected: yandexConnected, campaign_id: yandexCampaignId },
+        uzum: { connected: uzumConnected },
+      };
+    } catch (error) {
+      console.log('Marketplace status error:', error);
+      return {
+        success: false,
+        yandex: { connected: false },
+        uzum: { connected: false },
+      };
+    }
+  },
+  
   saveMarketplaceCredentials: async (marketplace: string, credentials: any) => {
     const response = await api.post('/partner/marketplace-integrations', {
       marketplace,

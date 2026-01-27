@@ -200,6 +200,32 @@ class OfflineQueue {
     await this.saveQueue(filtered);
     this.notifyListeners();
   }
+  
+  // Specific completed item ni tozalash (data bo'yicha)
+  async removeCompleted(data: any): Promise<void> {
+    try {
+      const queue = await this.getQueue();
+      // Remove items that match the data and are completed or match exactly
+      const filtered = queue.filter(item => {
+        if (item.status === QUEUE_STATUS.COMPLETED) {
+          // Check if data matches
+          const itemPartnerId = item.data?.partner_id;
+          const dataPartnerId = data?.partner_id;
+          const itemCost = item.data?.cost_price;
+          const dataCost = data?.cost_price;
+          
+          if (itemPartnerId === dataPartnerId && itemCost === dataCost) {
+            return false; // Remove this item
+          }
+        }
+        return true;
+      });
+      await this.saveQueue(filtered);
+      this.notifyListeners();
+    } catch (error) {
+      console.log('removeCompleted error:', error);
+    }
+  }
 }
 
 export const offlineQueue = new OfflineQueue();
