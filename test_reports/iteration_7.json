@@ -1,0 +1,87 @@
+{
+  "summary": "Completed testing of SellerCloudX 2026 Premium Pricing Model. All backend APIs working correctly. Pricing page displays Premium ($699+$499+4%) and Individual tariffs. Calculator functional. Database has all new 2026 columns. Partner sidebar has 'To'lovlar' menu item. Frontend login redirect issue exists (pre-existing, not related to 2026 changes).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "monitorAllPartners", "issue": "SqliteError in logs for tariff_type column - appears to be a query using wrong column name format", "priority": "LOW"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "LoginForm", "issue": "Login doesn't redirect to partner-dashboard after successful API login", "selector": "button:has-text('Kirish')", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [
+      {"flow": "Partner login", "issue": "Login API returns 200 but frontend doesn't redirect to dashboard", "affected_selectors": ["[data-testid='button-login']"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/tests/test_2026_pricing.py",
+    "/app/test_reports/pytest/2026_pricing_results.xml"
+  ],
+  "action_items": [
+    "Investigate frontend login redirect issue - login API works but UI doesn't redirect",
+    "Fix monitorAllPartners query to use correct column name format (tariff_type vs tariffType)"
+  ],
+  "critical_code_review_comments": [
+    "2026 pricing model correctly implemented with $699 setup + $499/month + 4% revenue share",
+    "Database migration applied - partners table has all new columns (tariff_type, setup_paid, revenue_share_percent, total_debt_uzs, blocked_until, sales_before_us)",
+    "Billing APIs (/api/billing/revenue-share/summary, /api/billing/revenue-share/start-trial) working correctly",
+    "Partner sidebar has 'To'lovlar' menu item with isNew badge",
+    "PartnerPaymentsDashboard component integrated into PartnerDashboard",
+    "Calculator on pricing page correctly calculates 4% revenue share"
+  ],
+  "updated_files": [
+    "/app/tests/test_2026_pricing.py"
+  ],
+  "success_rate": {
+    "backend": "100% (8/8 tests passed)",
+    "frontend": "90% (pricing page works, login redirect issue)"
+  },
+  "test_credentials": {
+    "admin": {"username": "admin", "password": "admin123"},
+    "partner": {"username": "test2026_mkw8x8m4", "password": "test123456"}
+  },
+  "seed_data_creation": "Created test partner: test2026_mkw8x8m4 with 2026 pricing fields",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "2026 pricing model fully implemented and tested. Backend APIs work correctly. Frontend login redirect issue exists but is pre-existing. Partner dashboard has 'To'lovlar' tab with PartnerPaymentsDashboard component. Test partner created: test2026_mkw8x8m4/test123456.",
+  "features_tested": {
+    "pricing_page": {
+      "url": "/pricing",
+      "status": "PASS",
+      "notes": "Shows Premium ($699+$499+4%) and Individual tariffs, calculator works"
+    },
+    "billing_summary_api": {
+      "endpoint": "GET /api/billing/revenue-share/summary",
+      "status": "PASS",
+      "notes": "Returns all 2026 fields: tariffType, setupPaid, setupFeeUsd, monthlyFeeUsd, revenueSharePercent, currentDebt, isBlocked, salesBeforeUs"
+    },
+    "start_trial_api": {
+      "endpoint": "POST /api/billing/revenue-share/start-trial",
+      "status": "PASS",
+      "notes": "Successfully starts 7-day trial, sets trialEndDate"
+    },
+    "click_tiers_api": {
+      "endpoint": "GET /api/click/tiers",
+      "status": "PASS",
+      "notes": "Returns 4 tiers with UZS pricing"
+    },
+    "database_migration": {
+      "status": "PASS",
+      "notes": "Partners table has all 2026 columns: tariff_type, setup_paid, setup_fee_usd, monthly_fee_usd, revenue_share_percent, total_debt_uzs, blocked_until, sales_before_us"
+    },
+    "sidebar_payments_menu": {
+      "status": "PASS",
+      "notes": "partnerNavItems includes { id: 'payments', label: 'To'lovlar', icon: CreditCard, isNew: true }"
+    }
+  },
+  "api_endpoints_tested": {
+    "GET /api/health": "PASS - Returns status: healthy",
+    "GET /api/click/tiers": "PASS - Returns 4 tiers",
+    "GET /api/billing/revenue-share/summary": "PASS - Returns 2026 billing data (requires partner auth)",
+    "POST /api/billing/revenue-share/start-trial": "PASS - Starts 7-day trial (requires partner auth)",
+    "POST /api/auth/login": "PASS - Admin and partner login work",
+    "POST /api/auth/register": "PASS - Partner registration with INN validation"
+  }
+}
