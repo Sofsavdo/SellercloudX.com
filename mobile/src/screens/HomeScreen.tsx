@@ -352,6 +352,58 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   
+  // Warning Banner - Marketplace Ulanmagan
+  warningBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF6B6B',
+    marginHorizontal: 20,
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 12,
+    gap: 12,
+  },
+  warningContent: {
+    flex: 1,
+  },
+  warningTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+  warningText: {
+    fontSize: 12,
+    color: COLORS.white,
+    opacity: 0.9,
+    marginTop: 2,
+  },
+  
+  // Marketplace Status Bar
+  marketplaceStatusBar: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    gap: 20,
+  },
+  connectedMarketplace: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  connectedLogo: {
+    fontSize: 20,
+  },
+  connectedName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  
   // Quick Scan
   quickScanButton: {
     flexDirection: 'row',
