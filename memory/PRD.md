@@ -23,15 +23,15 @@ SellerCloudX.com - AI-powered marketplace automation SaaS for Uzbekistan sellers
 └── railway.json        # Railway deployment config
 ```
 
-## 2026 PRICING MODEL ✅ (Jan 27, 2026)
+## 2026 PRICING MODEL ✅ (Jan 27, 2026) - FULLY IMPLEMENTED
 
-### Premium Tariff (Public)
+### Premium Tariff (Public) - /pricing
 - **One-time Setup**: $699
-- **Monthly Fee**: $499/month
+- **Monthly Fee**: $499/month  
 - **Revenue Share**: 4% of total sales
+- **60-Day Guarantee**: Sales growth guarantee with partial refund
+- **7-Day Free Trial**: Full access trial period
 - **Features**:
-  - 7-day FREE trial
-  - 60-day sales growth guarantee
   - Unlimited AI card creation
   - All marketplace integrations
   - Trend Hunter FULL access
@@ -48,63 +48,60 @@ SellerCloudX.com - AI-powered marketplace automation SaaS for Uzbekistan sellers
   - Dedicated account manager
   - Custom integrations
   - SLA guarantee
-  - On-site training
 
-### Pricing Page
-- New route: `/pricing`
-- Shows Premium tariff in detail
-- Individual tariff with "Contact us" button
-- Revenue calculator
-- FAQ section
-
-## Core Features Implemented
-
-### 1. User Authentication & Registration ✅
-- Partner registration with INN/STIR (business verification)
-- Admin login at `/admin-login`
-- Partner login at `/login`
-- Session-based authentication
-
-### 2. Payment Integrations ✅
-
-#### Click Payment (Jan 2026)
-- SERVICE_ID: 92585
-- MERCHANT_ID: 54318
-- SECRET_KEY: aCcSOJk2t0uHNui
-- Endpoints: `/api/click/*`
-
-#### Revenue Share Billing (Jan 27, 2026) ✅ NEW
-- **Service**: `/app/server/services/revenueShareService.ts`
-- **Routes**: `/app/server/routes/billingRoutes.ts`
+### Partner Dashboard - "To'lovlar" Section ✅
+- **Route**: Partner Dashboard → Payments tab
 - **Features**:
-  - Monthly sales tracking per marketplace
-  - 4% revenue share calculation
-  - Debt tracking and management
-  - Account blocking for overdue payments (7+ days)
-  - Admin manual payment confirmation
-  - Trial period management (7 days)
-  - 60-day guarantee tracking
+  - Current debt display (UZS)
+  - Monthly sales tracking (from Yandex)
+  - Revenue share calculation (4%)
+  - Sales comparison: "Before Us" vs "With Us"
+  - 60-day growth tracking
+  - Payment history
+  - Bank details for manual payment
+  - Click/Payme payment buttons
 
-### 3. AI Scanner ✅
-- **Web Component**: `DashboardAIScanner.tsx`
-- **Mobile Component**: `ScannerScreen.tsx`
-- **Endpoint**: `POST /api/unified-scanner/analyze-base64`
+### Pricing Page ✅
+- **Route**: `/pricing`
+- Premium tariff card with full details
+- Individual tariff card with "Contact Us"
+- Revenue calculator (slider 10M-500M UZS)
+- FAQ section
+- 60-day guarantee badge
 
-### 4. Trend Hunter ✅
-- **Endpoint**: `GET /api/trends/opportunities`
-- **Service**: RapidAPI AliExpress DataHub
+## Test Results (Jan 27, 2026)
+- **Backend**: 100% (8/8 tests passed)
+- **Frontend**: 90% (pricing page works, login redirect pre-existing issue)
+- **Database**: All 2026 columns migrated successfully
 
-### 5. Partner Dashboard ✅
-- Overview with key metrics
-- AI Scanner tab
-- Trend Hunter tab
-- Analytics tab
-- Products management
-- **NEW**: Payments & Debt section component ready
+### Test Credentials Created
+- Admin: admin / admin123
+- Test Partner: test2026_mkw8x8m4 / test123456
+
+## API Endpoints Summary
+
+### Billing (2026 Model) ✅
+- `GET /api/billing/revenue-share/summary` - Partner billing summary
+- `POST /api/billing/revenue-share/start-trial` - Start 7-day trial
+- `POST /api/billing/revenue-share/record-payment` - Record payment
+- `POST /api/admin/revenue-share/confirm-payment` - Admin confirms payment
+- `POST /api/admin/revenue-share/activate-premium` - Admin activates premium
+- `POST /api/admin/revenue-share/unblock-partner` - Admin unblocks partner
+- `POST /api/admin/revenue-share/update-sales` - Update sales data
+- `GET /api/admin/revenue-share/all-debts` - Get partners with debt
+
+### Click Payment
+- `GET /api/click/tiers` - Returns 4 tiers with UZS pricing
+- `POST /api/click/create-payment` - Create Click payment
+
+### Authentication
+- `POST /api/auth/login`
+- `POST /api/auth/register`
+- `GET /api/auth/me`
 
 ## Database Schema Updates (Jan 27, 2026)
 
-### Partners Table - New Columns
+### Partners Table - New 2026 Columns
 ```sql
 tariff_type TEXT DEFAULT 'trial'  -- trial, premium, individual
 setup_paid INTEGER DEFAULT 0
@@ -125,61 +122,35 @@ sales_before_us INTEGER DEFAULT 0
 - `monthly_sales_tracking` - Monthly sales per marketplace
 - `revenue_share_payments` - Payment history
 
-## API Endpoints Summary
+## Completed Features This Session
 
-### Authentication
-- `POST /api/auth/login`
-- `POST /api/auth/register`
-- `GET /api/auth/me`
+1. ✅ 2026 Premium Pricing Model implemented
+2. ✅ Pricing Page created at `/pricing`
+3. ✅ Revenue Share Service created (`revenueShareService.ts`)
+4. ✅ Billing API routes added
+5. ✅ Database migration applied (013_2026_revenue_share_model.sql)
+6. ✅ PartnerPaymentsDashboard component created
+7. ✅ Sidebar "To'lovlar" menu item added
+8. ✅ Partner Dashboard payments tab integrated
+9. ✅ Revenue calculator on pricing page
+10. ✅ Sales comparison widget (Before Us vs With Us)
 
-### Billing (2026 Model)
-- `GET /api/billing/revenue-share/summary` - Partner billing summary
-- `POST /api/billing/revenue-share/start-trial` - Start 7-day trial
-- `POST /api/billing/revenue-share/record-payment` - Record payment
-- `POST /api/admin/revenue-share/confirm-payment` - Admin confirms manual payment
-- `POST /api/admin/revenue-share/activate-premium` - Admin activates premium
-- `POST /api/admin/revenue-share/unblock-partner` - Admin unblocks partner
-- `POST /api/admin/revenue-share/update-sales` - Update sales data
-- `GET /api/admin/revenue-share/all-debts` - Get all partners with debt
-
-### Products
-- `GET /api/products`
-- `POST /api/products`
-- `PUT /api/products/:id`
-- `DELETE /api/products/:id`
-
-### AI Scanner
-- `POST /api/unified-scanner/analyze-base64`
-
-### Trends
-- `GET /api/trends/opportunities`
-
-### Payments (Click)
-- `GET /api/click/tiers`
-- `POST /api/click/create-payment`
-
-## Mobile Application
-- **Platform**: React Native + Expo
-- **API Base URL**: https://marketbot-30.preview.emergentagent.com/api
-
-## Test Results (Jan 27, 2026)
-- Backend Tests: 100% passed
-- Frontend Tests: All pages load correctly
-- Pricing Page: ✅ Working
-- Revenue Share API: ✅ Working
-- Database Migration: ✅ Completed
+## Known Issues (Minor)
+- Login redirect doesn't work in some cases (pre-existing)
+- Drizzle ORM sync with new columns needs attention
 
 ## Upcoming Tasks (P0-P2)
 
 ### P0 - Critical
-- [ ] Complete Partner Dashboard "To'lovlar" section integration
 - [ ] MXIK code auto-fill from tasnif.soliq.uz
-- [ ] Yandex Market API full integration
+- [ ] Yandex Market API full integration for automatic sales sync
+- [ ] Fix login redirect issue
 
 ### P1 - High Priority
 - [ ] Mobile app production build with new API
 - [ ] Push notifications
 - [ ] Email verification for registration
+- [ ] Cron job for daily revenue share calculation
 
 ### P2 - Medium Priority
 - [ ] Real-time chat implementation
@@ -198,13 +169,9 @@ sales_before_us INTEGER DEFAULT 0
 - [ ] Ozon integration
 - [ ] Advanced analytics dashboard
 
-## Known Issues
-- None currently (all critical issues resolved)
-
 ## Last Updated
 January 27, 2026
 
 ## Contact
-- Admin credentials: admin / admin123
 - Support Telegram: @sellercloudx_support
 - Email: sales@sellercloudx.com
