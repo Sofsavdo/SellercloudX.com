@@ -4993,6 +4993,88 @@ async def search_trends(query: str, limit: int = 10):
         return {"success": False, "error": str(e), "data": []}
 
 
+# ============== ADMIN ENDPOINTS ==============
+
+class AdminActivatePartnerRequest(BaseModel):
+    partner_id: str
+    is_active: bool = True
+    pricing_tier: str = "premium_2026"
+    admin_note: Optional[str] = None
+
+@app.post("/api/admin/activate-partner")
+async def admin_activate_partner(request: AdminActivatePartnerRequest):
+    """
+    Admin tomonidan hamkorni faollashtirish/deaktivashtirish.
+    To'lovsiz ham admin qo'lda faollashtira oladi.
+    """
+    try:
+        # TODO: Admin authentication check
+        # For now, this is a simple activation endpoint
+        
+        # In production, this would update the database
+        # For this preview, we'll just return success
+        
+        return {
+            "success": True,
+            "message": f"Partner {request.partner_id} {'faollashtirildi' if request.is_active else 'deaktivatsiya qilindi'}",
+            "data": {
+                "partner_id": request.partner_id,
+                "is_active": request.is_active,
+                "pricing_tier": request.pricing_tier,
+                "admin_note": request.admin_note,
+                "activated_at": datetime.now().isoformat() if request.is_active else None
+            }
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/admin/partners")
+async def admin_get_partners(status: str = "all", limit: int = 50):
+    """
+    Barcha hamkorlar ro'yxati (admin uchun).
+    status: all, active, inactive, pending
+    """
+    try:
+        # In production, this would fetch from database
+        # For now, return sample data
+        return {
+            "success": True,
+            "data": [],
+            "total": 0,
+            "status_filter": status
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e), "data": []}
+
+
+@app.post("/api/admin/set-partner-status")
+async def admin_set_partner_status(partner_id: str, status: str):
+    """
+    Hamkor statusini o'zgartirish.
+    status: active, inactive, suspended, pending_payment
+    """
+    try:
+        valid_statuses = ["active", "inactive", "suspended", "pending_payment"]
+        if status not in valid_statuses:
+            return {
+                "success": False,
+                "error": f"Noto'g'ri status. Mumkin: {valid_statuses}"
+            }
+        
+        return {
+            "success": True,
+            "message": f"Partner {partner_id} statusi {status} ga o'zgartirildi",
+            "data": {
+                "partner_id": partner_id,
+                "new_status": status,
+                "updated_at": datetime.now().isoformat()
+            }
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
