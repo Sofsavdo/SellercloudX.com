@@ -1,5 +1,5 @@
-// Upload Product Screen - Marketplace ga yuklash (HAQIQIY API)
-import React, { useState } from 'react';
+// Upload Product Screen - Background Upload + Marketplace Check
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,7 @@ interface RouteParams {
   scanResult: {
     brand: string;
     model: string;
+    name?: string;
     category: string;
     categoryRu: string;
     features: string[];
@@ -32,6 +33,13 @@ interface RouteParams {
     confidence: number;
   };
   imageUri: string;
+}
+
+// Marketplace ulanish holati
+interface MarketplaceStatus {
+  yandex: boolean;
+  uzum: boolean;
+  loading: boolean;
 }
 
 export default function UploadProductScreen() {
@@ -47,6 +55,48 @@ export default function UploadProductScreen() {
   const [selectedMarketplace, setSelectedMarketplace] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
+  
+  // Marketplace connection status
+  const [marketplaceStatus, setMarketplaceStatus] = useState<MarketplaceStatus>({
+    yandex: false,
+    uzum: false,
+    loading: true,
+  });
+  
+  // Check marketplace connections on mount
+  useEffect(() => {
+    checkMarketplaceConnections();
+  }, []);
+  
+  const checkMarketplaceConnections = async () => {
+    try {
+      // API orqali marketplace ulanishlarini tekshirish
+      const response = await partnerApi.getMarketplaceStatus();
+      
+      if (response.success) {
+        setMarketplaceStatus({
+          yandex: response.yandex?.connected || false,
+          uzum: response.uzum?.connected || false,
+          loading: false,
+        });
+      } else {
+        // Fallback - partner ma'lumotlaridan tekshirish
+        setMarketplaceStatus({
+          yandex: !!partner?.yandexApiKey || !!partner?.yandexConnected,
+          uzum: !!partner?.uzumApiKey || !!partner?.uzumConnected,
+          loading: false,
+        });
+      }
+    } catch (error) {
+      console.log('Marketplace status check error:', error);
+      // Fallback
+      setMarketplaceStatus({
+        yandex: false,
+        uzum: false,
+        loading: false,
+      });
+    }
+  };
   
   // Computed values
   const costPriceNum = parseInt(costPrice.replace(/\D/g, '')) || 0;
@@ -71,8 +121,32 @@ export default function UploadProductScreen() {
     return num.toLocaleString('uz-UZ');
   };
   
-  // Upload to marketplace
-  const handleUpload = async () => {
+  // Marketplace tanlash
+  const handleMarketplaceSelect = (marketplace: string) => {
+    const isConnected = marketplace === 'yandex' 
+      ? marketplaceStatus.yandex 
+      : marketplaceStatus.uzum;
+    
+    if (!isConnected) {
+      Alert.alert(
+        '⚠️ Marketplace Ulanmagan',
+        `${marketplace === 'yandex' ? 'Yandex Market' : 'Uzum Market'} API kalitlari ulanmagan.\n\nAvval web panel orqali marketplace'ni ulang.`,
+        [
+          { text: 'OK' },
+          { 
+            text: 'Sozlamalarga o\'tish', 
+            onPress: () => navigation.navigate(SCREENS.SETTINGS) 
+          },
+        ]
+      );
+      return;
+    }
+    
+    setSelectedMarketplace(marketplace);
+  };
+  
+  // BACKGROUND UPLOAD - Fonga o'tkazish
+  const handleBackgroundUpload = async () => {
     if (!costPriceNum) {
       Alert.alert(t('common.error'), 'Tan narxini kiriting');
       return;
@@ -84,7 +158,21 @@ export default function UploadProductScreen() {
     }
     
     if (!partner?.id) {
-      Alert.alert(t('common.error'), 'Partner ma\'lumotlari topilmadi. Qayta kiring.');
+      Alert.alert(t('common.error'), 'Partner ma\'lumotlari topilmadi');
+      return;
+    }
+    
+    // Marketplace ulanganmi tekshirish
+    const isConnected = selectedMarketplace === 'yandex' 
+      ? marketplaceStatus.yandex 
+      : marketplaceStatus.uzum;
+    
+    if (!isConnected) {
+      Alert.alert(
+        '⚠️ Marketplace Ulanmagan',
+        'Avval marketplace API kalitlarini ulang.',
+        [{ text: 'OK' }]
+      );
       return;
     }
     
@@ -92,9 +180,6 @@ export default function UploadProductScreen() {
     setUploadProgress('Rasm tayyorlanmoqda...');
     
     try {
-      // Check internet connection
-      const netInfo = await NetInfo.fetch();
-      
       // Convert image to base64
       const response = await fetch(imageUri);
       const blob = await response.blob();
@@ -113,80 +198,94 @@ export default function UploadProductScreen() {
         selling_price: sellingPriceNum,
         product_info: scanResult,
         partner_id: partner.id,
+        marketplace: selectedMarketplace,
       };
       
+      // QUEUE GA QO'SHISH - Fonga o'tkazish
+      await offlineQueue.addToQueue(
+        selectedMarketplace === 'yandex' ? 'yandex_upload' : 'uzum_upload',
+        uploadData
+      );
+      
+      // AI karta ishlatilganini qayd qilish
+      try {
+        await partnerApi.recordAiCardUsage();
+        updatePartner({
+          aiCardsUsed: (partner.aiCardsUsed || 0) + 1,
+          aiCardsThisMonth: (partner.aiCardsThisMonth || 0) + 1,
+        });
+      } catch (e) {
+        console.log('AI card usage error:', e);
+      }
+      
+      // Darhol scanner'ga qaytish
+      Alert.alert(
+        '✅ Navbatga qo\'shildi',
+        `Mahsulot kartochkasi fonda yaratilmoqda.\n\n` +
+        `Siz davom etib boshqa mahsulotlarni skanerlashingiz mumkin.`,
+        [
+          {
+            text: 'Yangi skan',
+            onPress: () => navigation.navigate(SCREENS.SCANNER),
+          },
+          {
+            text: 'Bosh sahifa',
+            onPress: () => navigation.navigate(SCREENS.HOME),
+          },
+        ]
+      );
+      
+      // Fonda yuklashni boshlash (agar online bo'lsa)
+      const netInfo = await NetInfo.fetch();
       if (netInfo.isConnected) {
-        setUploadProgress('Marketplace ga yuklanmoqda...');
-        
-        // Online - darhol yuklash
-        const result = await scannerApi.fullProcess({
+        // Background upload - UI blokirovka qilmaydi
+        scannerApi.fullProcess({
           imageBase64: base64Image,
           costPrice: costPriceNum,
           marketplace: selectedMarketplace as 'yandex' | 'uzum',
           partnerId: partner.id,
-        });
-        
-        if (result.success) {
-          // AI karta ishlatilganini qayd qilish
-          try {
-            await partnerApi.recordAiCardUsage();
-            updatePartner({
-              aiCardsUsed: (partner.aiCardsUsed || 0) + 1,
-              aiCardsThisMonth: (partner.aiCardsThisMonth || 0) + 1,
-            });
-          } catch (e) {
-            console.log('AI card usage qayd qilishda xato:', e);
+        }).then(result => {
+          if (result.success) {
+            console.log('✅ Background upload completed:', result.sku);
+            // Navbatdan o'chirish
+            offlineQueue.removeCompleted(uploadData);
+          } else {
+            console.log('❌ Background upload failed:', result.error);
           }
-          
-          Alert.alert(
-            t('product.uploadSuccess'),
-            `SKU: ${result.sku || 'N/A'}\n` +
-            `${result.infographics?.length || 0} ta rasm yaratildi\n` +
-            `Marketplace: ${selectedMarketplace === 'yandex' ? 'Yandex Market' : 'Uzum Market'}`,
-            [
-              {
-                text: 'OK',
-                onPress: () => navigation.navigate(SCREENS.HOME),
-              },
-            ]
-          );
-        } else {
-          throw new Error(result.error || t('product.uploadFailed'));
-        }
-      } else {
-        // Offline - queue ga qo'shish
-        await offlineQueue.addToQueue(
-          selectedMarketplace === 'yandex' ? 'yandex_upload' : 'uzum_upload',
-          uploadData
-        );
-        
-        Alert.alert(
-          t('product.uploadQueued'),
-          t('product.willUploadWhenOnline'),
-          [
-            {
-              text: 'OK',
-              onPress: () => navigation.navigate(SCREENS.HOME),
-            },
-          ]
-        );
+        }).catch(err => {
+          console.log('❌ Background upload error:', err.message);
+        });
       }
+      
     } catch (error: any) {
       console.error('Upload error:', error);
-      Alert.alert(
-        t('common.error'), 
-        error.response?.data?.error || error.message || t('product.uploadFailed')
-      );
+      Alert.alert(t('common.error'), error.message || t('product.uploadFailed'));
     } finally {
       setIsLoading(false);
       setUploadProgress('');
     }
   };
   
+  // Check if any marketplace is connected
+  const hasConnectedMarketplace = marketplaceStatus.yandex || marketplaceStatus.uzum;
+  
   return (
     <ScrollView style={styles.container}>
       {/* Product Image */}
       <Image source={{ uri: imageUri }} style={styles.productImage} />
+      
+      {/* Marketplace Status Banner */}
+      {!marketplaceStatus.loading && !hasConnectedMarketplace && (
+        <View style={styles.warningBanner}>
+          <Ionicons name="warning" size={24} color={COLORS.white} />
+          <View style={styles.warningContent}>
+            <Text style={styles.warningTitle}>Marketplace Ulanmagan</Text>
+            <Text style={styles.warningText}>
+              Mahsulot yuklash uchun avval Yandex yoki Uzum Market API kalitlarini ulang.
+            </Text>
+          </View>
+        </View>
+      )}
       
       {/* Product Info */}
       <View style={styles.card}>
@@ -199,64 +298,62 @@ export default function UploadProductScreen() {
         
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>{t('product.model')}</Text>
-          <Text style={styles.infoValue}>{scanResult.model}</Text>
+          <Text style={styles.infoValue}>{scanResult.model || scanResult.name}</Text>
         </View>
         
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>{t('product.category')}</Text>
           <Text style={styles.infoValue}>{scanResult.categoryRu || scanResult.category}</Text>
         </View>
+        
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>AI Ishonchi</Text>
+          <View style={styles.confidenceBadge}>
+            <Text style={styles.confidenceText}>{scanResult.confidence}%</Text>
+          </View>
+        </View>
       </View>
       
-      {/* Pricing */}
+      {/* Price Input */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Narxlash</Text>
+        <Text style={styles.cardTitle}>Narxlar</Text>
         
-        {/* Cost Price */}
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>{t('product.costPrice')} *</Text>
-          <View style={styles.priceInputContainer}>
-            <TextInput
-              style={styles.priceInput}
-              value={formatPriceInput(costPrice)}
-              onChangeText={handleCostPriceChange}
-              keyboardType="numeric"
-              placeholder="0"
-              placeholderTextColor={COLORS.textLight}
-            />
-            <Text style={styles.currencyLabel}>UZS</Text>
-          </View>
+          <Text style={styles.inputLabel}>Tan narxi (UZS)</Text>
+          <TextInput
+            style={styles.input}
+            value={costPrice ? formatPriceInput(costPrice) : ''}
+            onChangeText={handleCostPriceChange}
+            placeholder="100 000"
+            placeholderTextColor={COLORS.textLight}
+            keyboardType="numeric"
+          />
         </View>
         
-        {/* Selling Price */}
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>{t('product.sellingPrice')}</Text>
-          <View style={styles.priceInputContainer}>
-            <TextInput
-              style={styles.priceInput}
-              value={formatPriceInput(sellingPrice)}
-              onChangeText={(v) => setSellingPrice(v.replace(/\D/g, ''))}
-              keyboardType="numeric"
-              placeholder="0"
-              placeholderTextColor={COLORS.textLight}
-            />
-            <Text style={styles.currencyLabel}>UZS</Text>
-          </View>
+          <Text style={styles.inputLabel}>Sotuv narxi (UZS)</Text>
+          <TextInput
+            style={styles.input}
+            value={sellingPrice ? formatPriceInput(sellingPrice) : ''}
+            onChangeText={(v) => setSellingPrice(v.replace(/\D/g, ''))}
+            placeholder="150 000"
+            placeholderTextColor={COLORS.textLight}
+            keyboardType="numeric"
+          />
         </View>
         
-        {/* Profit Preview */}
         {costPriceNum > 0 && sellingPriceNum > 0 && (
-          <View style={styles.profitPreview}>
+          <View style={styles.profitInfo}>
             <View style={styles.profitRow}>
-              <Text style={styles.profitLabel}>{t('product.profit')}</Text>
+              <Text style={styles.profitLabel}>Foyda</Text>
               <Text style={[styles.profitValue, profit < 0 && styles.profitNegative]}>
-                {formatPrice(profit)}
+                {formatPrice(profit)} UZS
               </Text>
             </View>
             <View style={styles.profitRow}>
-              <Text style={styles.profitLabel}>{t('product.profitMargin')}</Text>
-              <Text style={[styles.profitValue, profit < 0 && styles.profitNegative]}>
-                {profitMargin}%
+              <Text style={styles.profitLabel}>Marja</Text>
+              <Text style={[styles.profitValue, profitMargin < 20 && styles.profitNegative]}>
+                {profitMargin.toFixed(1)}%
               </Text>
             </View>
           </View>
@@ -265,69 +362,97 @@ export default function UploadProductScreen() {
       
       {/* Marketplace Selection */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>{t('product.marketplace')}</Text>
+        <Text style={styles.cardTitle}>Marketplace tanlang</Text>
         
-        <View style={styles.marketplaceGrid}>
-          {MARKETPLACES.map((mp) => (
+        {marketplaceStatus.loading ? (
+          <ActivityIndicator color={COLORS.primary} />
+        ) : (
+          <View style={styles.marketplaceGrid}>
+            {/* Yandex Market */}
             <TouchableOpacity
-              key={mp.id}
               style={[
-                styles.marketplaceButton,
-                selectedMarketplace === mp.id && styles.marketplaceButtonActive,
+                styles.marketplaceOption,
+                selectedMarketplace === 'yandex' && styles.marketplaceSelected,
+                !marketplaceStatus.yandex && styles.marketplaceDisabled,
               ]}
-              onPress={() => setSelectedMarketplace(mp.id)}
+              onPress={() => handleMarketplaceSelect('yandex')}
             >
-              <Text style={styles.marketplaceIcon}>{mp.icon}</Text>
-              <Text
-                style={[
-                  styles.marketplaceName,
-                  selectedMarketplace === mp.id && styles.marketplaceNameActive,
-                ]}
-              >
-                {mp.name}
-              </Text>
-              {selectedMarketplace === mp.id && (
-                <Ionicons
-                  name="checkmark-circle"
-                  size={20}
-                  color={COLORS.primary}
-                  style={styles.marketplaceCheck}
-                />
+              <Text style={styles.marketplaceLogo}>🟡</Text>
+              <Text style={styles.marketplaceName}>Yandex Market</Text>
+              {marketplaceStatus.yandex ? (
+                <View style={styles.connectedBadge}>
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.secondary} />
+                  <Text style={styles.connectedText}>Ulangan</Text>
+                </View>
+              ) : (
+                <View style={styles.disconnectedBadge}>
+                  <Ionicons name="close-circle" size={16} color={COLORS.error} />
+                  <Text style={styles.disconnectedText}>Ulanmagan</Text>
+                </View>
               )}
             </TouchableOpacity>
-          ))}
-        </View>
+            
+            {/* Uzum Market */}
+            <TouchableOpacity
+              style={[
+                styles.marketplaceOption,
+                selectedMarketplace === 'uzum' && styles.marketplaceSelected,
+                !marketplaceStatus.uzum && styles.marketplaceDisabled,
+              ]}
+              onPress={() => handleMarketplaceSelect('uzum')}
+            >
+              <Text style={styles.marketplaceLogo}>🟣</Text>
+              <Text style={styles.marketplaceName}>Uzum Market</Text>
+              {marketplaceStatus.uzum ? (
+                <View style={styles.connectedBadge}>
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.secondary} />
+                  <Text style={styles.connectedText}>Ulangan</Text>
+                </View>
+              ) : (
+                <View style={styles.disconnectedBadge}>
+                  <Ionicons name="close-circle" size={16} color={COLORS.error} />
+                  <Text style={styles.disconnectedText}>Ulanmagan</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
       
       {/* Upload Button */}
       <TouchableOpacity
         style={[
           styles.uploadButton,
-          (!costPriceNum || !selectedMarketplace || isLoading) && styles.uploadButtonDisabled,
+          (!selectedMarketplace || isLoading) && styles.uploadButtonDisabled,
         ]}
-        onPress={handleUpload}
-        disabled={!costPriceNum || !selectedMarketplace || isLoading}
+        onPress={handleBackgroundUpload}
+        disabled={!selectedMarketplace || isLoading}
       >
         {isLoading ? (
-          <View style={styles.uploadingContainer}>
+          <View style={styles.uploadingContent}>
             <ActivityIndicator color={COLORS.white} />
-            <Text style={styles.uploadingText}>{uploadProgress || t('product.uploading')}</Text>
+            <Text style={styles.uploadingText}>{uploadProgress}</Text>
           </View>
         ) : (
           <>
             <Ionicons name="cloud-upload" size={24} color={COLORS.white} />
-            <Text style={styles.uploadButtonText}>{t('product.uploadToMarketplace')}</Text>
+            <Text style={styles.uploadButtonText}>
+              Fonga Yuklash
+            </Text>
           </>
         )}
       </TouchableOpacity>
       
-      {/* Info note */}
-      <View style={styles.infoNote}>
-        <Ionicons name="information-circle" size={20} color={COLORS.textSecondary} />
-        <Text style={styles.infoNoteText}>
-          AI avtomatik ravishda 6 ta professional rasm va SEO-optimallashtirilgan tavsif yaratadi.
+      {/* Info */}
+      <View style={styles.infoCard}>
+        <Ionicons name="information-circle" size={20} color={COLORS.primary} />
+        <Text style={styles.infoText}>
+          "Fonga Yuklash" tugmasini bosganingizda, mahsulot kartochkasi fonda yaratiladi 
+          va siz davom etib boshqa mahsulotlarni skanerlashingiz mumkin.
         </Text>
       </View>
+      
+      <View style={styles.footer} />
     </ScrollView>
   );
 }
@@ -339,30 +464,53 @@ const styles = StyleSheet.create({
   },
   productImage: {
     width: '100%',
-    height: 200,
+    height: 250,
     resizeMode: 'cover',
   },
+  
+  // Warning Banner
+  warningBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.error,
+    padding: 16,
+    gap: 12,
+  },
+  warningContent: {
+    flex: 1,
+  },
+  warningTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+  warningText: {
+    fontSize: 13,
+    color: COLORS.white,
+    opacity: 0.9,
+    marginTop: 4,
+  },
+  
+  // Card
   card: {
     backgroundColor: COLORS.white,
     margin: 16,
     marginBottom: 0,
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.text,
-    marginBottom: 16,
+    marginBottom: 12,
   },
+  
+  // Info Row
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
@@ -373,44 +521,45 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
     color: COLORS.text,
   },
+  confidenceBadge: {
+    backgroundColor: COLORS.secondary + '20',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  confidenceText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.secondary,
+  },
   
-  // Pricing
+  // Input
   inputGroup: {
     marginBottom: 16,
   },
   inputLabel: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    fontWeight: '500',
+    color: COLORS.text,
     marginBottom: 8,
   },
-  priceInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  input: {
     backgroundColor: COLORS.surfaceAlt,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  priceInput: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '600',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
     color: COLORS.text,
-    padding: 14,
   },
-  currencyLabel: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    paddingRight: 14,
-  },
-  profitPreview: {
+  
+  // Profit Info
+  profitInfo: {
     backgroundColor: COLORS.surfaceAlt,
     borderRadius: 8,
     padding: 12,
-    marginTop: 8,
   },
   profitRow: {
     flexDirection: 'row',
@@ -422,12 +571,12 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   profitValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: COLORS.secondary,
   },
   profitNegative: {
-    color: COLORS.danger,
+    color: COLORS.error,
   },
   
   // Marketplace
@@ -435,37 +584,49 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
   },
-  marketplaceButton: {
+  marketplaceOption: {
     flex: 1,
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: COLORS.border,
     backgroundColor: COLORS.surfaceAlt,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
-  marketplaceButtonActive: {
+  marketplaceSelected: {
     borderColor: COLORS.primary,
     backgroundColor: COLORS.primary + '10',
   },
-  marketplaceIcon: {
+  marketplaceDisabled: {
+    opacity: 0.6,
+  },
+  marketplaceLogo: {
     fontSize: 32,
     marginBottom: 8,
   },
   marketplaceName: {
     fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.textSecondary,
-    textAlign: 'center',
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 8,
   },
-  marketplaceNameActive: {
-    color: COLORS.primary,
+  connectedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  marketplaceCheck: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
+  connectedText: {
+    fontSize: 12,
+    color: COLORS.secondary,
+    marginLeft: 4,
+  },
+  disconnectedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  disconnectedText: {
+    fontSize: 12,
+    color: COLORS.error,
+    marginLeft: 4,
   },
   
   // Upload Button
@@ -474,41 +635,49 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.primary,
-    margin: 16,
-    padding: 16,
+    marginHorizontal: 16,
+    marginTop: 16,
+    paddingVertical: 16,
     borderRadius: 12,
-    gap: 8,
+    gap: 10,
   },
   uploadButtonDisabled: {
     backgroundColor: COLORS.textLight,
   },
   uploadButtonText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.white,
   },
-  uploadingContainer: {
+  uploadingContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   uploadingText: {
     fontSize: 14,
     color: COLORS.white,
   },
   
-  // Info note
-  infoNote: {
+  // Info Card
+  infoCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-    gap: 8,
+    backgroundColor: COLORS.primary + '10',
+    marginHorizontal: 16,
+    marginTop: 16,
+    padding: 12,
+    borderRadius: 8,
+    gap: 10,
   },
-  infoNoteText: {
+  infoText: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 13,
     color: COLORS.textSecondary,
     lineHeight: 18,
+  },
+  
+  footer: {
+    height: 40,
   },
 });
