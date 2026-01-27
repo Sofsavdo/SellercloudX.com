@@ -434,12 +434,19 @@ class AutonomousProductManager {
       const stats = await marketplaceManager.getCombinedStats(partnerId);
       
       const totalProducts = await db
-        .select()
+        .select({
+          id: products.id,
+          isActive: products.isActive
+        })
         .from(products)
         .where(eq(products.partnerId, partnerId));
 
       const totalCards = await db
-        .select()
+        .select({
+          id: aiProductCards.id,
+          status: aiProductCards.status,
+          generationCost: aiProductCards.generationCost
+        })
         .from(aiProductCards)
         .where(eq(aiProductCards.partnerId, partnerId));
 
