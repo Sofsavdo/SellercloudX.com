@@ -176,6 +176,129 @@ class YandexMarketService {
       return false;
     }
   }
+
+  /**
+   * Get sales statistics for revenue share calculation
+   * Uses GET /campaigns/{campaignId}/stats/orders
+   */
+  async getSalesStats(dateFrom: string, dateTo: string): Promise<{
+    success: boolean;
+    totalSales: number;
+    totalOrders: number;
+    currency: string;
+    orders?: any[];
+    error?: string;
+  }> {
+    try {
+      console.log(`📊 Fetching Yandex sales stats: ${dateFrom} to ${dateTo}`);
+      
+      // Get orders for the period
+      const response = await this.client.get(
+        `/v2/campaigns/${this.campaignId}/stats/orders`,
+        {
+          params: {
+            dateFrom,
+            dateTo,
+            status: 'DELIVERED', // Only completed orders
+          }
+        }
+      );
+
+      const orders = response.data?.result?.orders || [];
+      
+      // Calculate total sales
+      let totalSales = 0;
+      for (const order of orders) {
+        totalSales += order.totalPrice || 0;
+      }
+
+      console.log(`✅ Found ${orders.length} orders, total sales: ${totalSales}`);
+      
+      return {
+        success: true,
+        totalSales,
+        totalOrders: orders.length,
+        currency: 'UZS',
+        orders,
+      };
+    } catch (error: any) {
+      console.error('❌ Failed to get sales stats:', error.message);
+      return {
+        success: false,
+        totalSales: 0,
+        totalOrders: 0,
+        currency: 'UZS',
+        error: error.message,
+      };
+    }
+  }
+
+  /**
+   * Get monthly sales summary
+   */
+  async getMonthlySales(year: number, month: number): Promise<{
+    success: boolean;
+    totalSalesUzs: number;
+    totalOrders: number;
+    averageOrderValue: number;
+  }> {
+    const dateFrom = `${year}-${String(month).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const dateTo = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+
+    const stats = await this.getSalesStats(dateFrom, dateTo);
+    
+    return {
+      success: stats.success,
+      totalSalesUzs: stats.totalSales,
+      totalOrders: stats.totalOrders,
+      averageOrderValue: stats.totalOrders > 0 ? Math.round(stats.totalSales / stats.totalOrders) : 0,
+    };
+  }
+
+  /**
+   * Get all campaigns for user
+   */
+  async getCampaigns(): Promise<any[]> {
+    try {
+      const response = await this.client.get('/v2/campaigns');
+      return response.data?.campaigns || [];
+    } catch (error: any) {
+      console.error('❌ Failed to get campaigns:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * Get commission rates for category
+   */
+  async getCommissionRates(categoryId: number): Promise<{
+    success: boolean;
+    commission: number;
+    logistics: number;
+    total: number;
+  }> {
+    try {
+      // Yandex Market commission rates (approximate)
+      // Real rates should be fetched from Yandex API
+      const baseCommission = 0.05; // 5%
+      const logisticsRate = 0.03; // 3%
+      
+      return {
+        success: true,
+        commission: baseCommission,
+        logistics: logisticsRate,
+        total: baseCommission + logisticsRate,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        commission: 0.05,
+        logistics: 0.03,
+        total: 0.08,
+      };
+    }
+  }
 }
 
 export default YandexMarketService;
