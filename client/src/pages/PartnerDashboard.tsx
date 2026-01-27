@@ -43,7 +43,7 @@ import {
   Package, Settings, Crown, BarChart3, DollarSign, Target, Zap,
   Clock, AlertTriangle, Brain, MessageCircle, Gift,
   LayoutDashboard, Sparkles, ShoppingCart, Wallet, ArrowRight,
-  TrendingUp, CheckCircle, Building, XCircle, Globe, Scan
+  TrendingUp, CheckCircle, Building, XCircle, Globe, Scan, CreditCard
 } from 'lucide-react';
 import DashboardAIScanner from '../components/DashboardAIScanner';
 import TrendHunterDashboard from './TrendHunterDashboard';
