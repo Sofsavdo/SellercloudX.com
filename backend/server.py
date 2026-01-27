@@ -1187,7 +1187,7 @@ class UnifiedScanRequest(BaseModel):
     """Unified scanner request - to'liq mahsulot oqimi"""
     partner_id: str
     cost_price: float
-    quantity: int
+    quantity: int = 10
     category: str = "general"
     brand: str = ""
     weight_kg: float = 1.0
@@ -1196,6 +1196,8 @@ class UnifiedScanRequest(BaseModel):
     product_name: Optional[str] = None
     description: Optional[str] = None
     auto_ikpu: bool = True
+    marketplace: str = "yandex"  # yandex yoki uzum
+    auto_generate_infographics: bool = True  # Infografika generatsiya qilish
 
 
 @app.post("/api/unified-scanner/full-process")
