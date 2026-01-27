@@ -45,12 +45,19 @@ export default function AuthPage() {
 
     try {
       const result = await login(loginData.username, loginData.password);
+      console.log('Login result:', result);
+      
+      // Use window.location for full page reload to ensure session is picked up
       if (result?.user?.role === 'admin') {
         window.location.href = '/admin-panel';
       } else if (result?.user?.role === 'partner') {
         window.location.href = '/partner-dashboard';
+      } else {
+        // Default redirect for other roles
+        window.location.href = '/';
       }
     } catch (error: any) {
+      console.error('Login error:', error);
       setError(error.message || 'Kirish xatosi');
       setIsLoading(false);
     }
