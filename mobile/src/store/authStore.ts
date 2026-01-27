@@ -23,6 +23,14 @@ interface Partner {
   promoCode?: string;
   approved?: boolean;
   isActive?: boolean;
+  // Marketplace connections
+  yandexApiKey?: string;
+  yandexConnected?: boolean;
+  uzumApiKey?: string;
+  uzumConnected?: boolean;
+  // Additional info
+  phone?: string;
+  inn?: string;
 }
 
 interface AuthState {
