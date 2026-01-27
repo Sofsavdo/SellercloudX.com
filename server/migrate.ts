@@ -161,6 +161,47 @@ BEGIN
     ALTER TABLE "partners" ADD COLUMN "click_transaction_id" text;
   END IF;
   
+  -- ==================== 2026 REVENUE SHARE MODEL FIELDS ====================
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'tariff_type') THEN
+    ALTER TABLE "partners" ADD COLUMN "tariff_type" text DEFAULT 'trial';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'setup_paid') THEN
+    ALTER TABLE "partners" ADD COLUMN "setup_paid" integer DEFAULT 0;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'setup_fee_usd') THEN
+    ALTER TABLE "partners" ADD COLUMN "setup_fee_usd" integer DEFAULT 699;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'monthly_fee_usd') THEN
+    ALTER TABLE "partners" ADD COLUMN "monthly_fee_usd" integer DEFAULT 499;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'revenue_share_percent') THEN
+    ALTER TABLE "partners" ADD COLUMN "revenue_share_percent" real DEFAULT 0.04;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'total_debt_uzs') THEN
+    ALTER TABLE "partners" ADD COLUMN "total_debt_uzs" integer DEFAULT 0;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'last_debt_calculated_at') THEN
+    ALTER TABLE "partners" ADD COLUMN "last_debt_calculated_at" integer;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'blocked_until') THEN
+    ALTER TABLE "partners" ADD COLUMN "blocked_until" integer;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'block_reason') THEN
+    ALTER TABLE "partners" ADD COLUMN "block_reason" text;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'trial_start_date') THEN
+    ALTER TABLE "partners" ADD COLUMN "trial_start_date" integer;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'trial_end_date') THEN
+    ALTER TABLE "partners" ADD COLUMN "trial_end_date" integer;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'guarantee_start_date') THEN
+    ALTER TABLE "partners" ADD COLUMN "guarantee_start_date" integer;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'sales_before_us') THEN
+    ALTER TABLE "partners" ADD COLUMN "sales_before_us" integer DEFAULT 0;
+  END IF;
+  
   -- ==================== CRITICAL: PARTNER STATUS FIELDS ====================
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'is_active') THEN
     ALTER TABLE "partners" ADD COLUMN "is_active" boolean DEFAULT false;
