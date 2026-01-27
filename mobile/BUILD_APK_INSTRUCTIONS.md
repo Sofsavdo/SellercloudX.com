@@ -44,7 +44,7 @@ Keyin Expo Go ilovasida QR kodni skanerlang.
 
 ## API URL
 \`\`\`
-https://yandexbot.preview.emergentagent.com/api
+https://ezmktplace.preview.emergentagent.com/api
 \`\`\`
 
 ## Web Versiya

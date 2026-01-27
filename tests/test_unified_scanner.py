@@ -8,7 +8,7 @@ import os
 import time
 
 # API Base URL from environment
-BASE_URL = os.environ.get('VITE_API_URL', 'https://yandexbot.preview.emergentagent.com')
+BASE_URL = os.environ.get('VITE_API_URL', 'https://ezmktplace.preview.emergentagent.com')
 
 
 class TestUnifiedScannerEndpoints:

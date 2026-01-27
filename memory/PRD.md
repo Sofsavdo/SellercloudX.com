@@ -4,8 +4,8 @@
 SellerCloudX.com - AI-powered marketplace automation SaaS for Yandex Market. Complete automation from camera scan to product listing.
 
 ## Live Environment
-- **Preview URL**: https://yandexbot.preview.emergentagent.com
-- **Mobile API**: https://yandexbot.preview.emergentagent.com/api
+- **Preview URL**: https://ezmktplace.preview.emergentagent.com
+- **Mobile API**: https://ezmktplace.preview.emergentagent.com/api
 
 ## Mobile App Downloads
 - **Web Export**: `/app/mobile/sellercloudx_mobile_web.zip`
