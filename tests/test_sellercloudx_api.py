@@ -102,6 +102,7 @@ class TestAIScannerAPI:
     def test_unified_scanner_full_process(self):
         """Test POST /api/unified-scanner/full-process"""
         response = requests.post(f"{BASE_URL}/api/unified-scanner/full-process", json={
+            "partner_id": "test_partner",  # Required field
             "cost_price": 50000,
             "quantity": 10,
             "category": "electronics",
