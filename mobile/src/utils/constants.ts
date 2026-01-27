@@ -9,6 +9,7 @@ export const COLORS = {
   secondary: '#10B981',    // Emerald (success)
   accent: '#F59E0B',       // Amber
   danger: '#EF4444',       // Red
+  error: '#EF4444',        // Red (alias for danger)
   
   background: '#F9FAFB',
   surface: '#FFFFFF',
