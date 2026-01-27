@@ -1,4 +1,4 @@
-// AI Scanner Screen - Asosiy funksiya
+// AI Scanner Screen - Raqobatchi Tahlili bilan
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -10,14 +10,14 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { Camera, CameraType, CameraView } from 'expo-camera';
+import { Camera, CameraView } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, SCREENS } from '../utils/constants';
 import { scannerApi, ScanResult } from '../services/api';
-import { formatPrice, calculateSuggestedPrice } from '../utils/helpers';
+import { formatPrice } from '../utils/helpers';
 
 type ScannerStep = 'camera' | 'preview' | 'analyzing' | 'result';
 
@@ -25,7 +25,6 @@ export default function ScannerScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<any>();
   
-  // State
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [step, setStep] = useState<ScannerStep>('camera');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -34,7 +33,6 @@ export default function ScannerScreen() {
   
   const cameraRef = useRef<CameraView>(null);
   
-  // Kamera ruxsati
   useEffect(() => {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
@@ -42,7 +40,6 @@ export default function ScannerScreen() {
     })();
   }, []);
   
-  // Rasm olish
   const takePicture = async () => {
     if (cameraRef.current) {
       try {
@@ -50,46 +47,37 @@ export default function ScannerScreen() {
           base64: true,
           quality: 0.8,
         });
-        
         if (photo) {
           setCapturedImage(photo.uri);
           setStep('preview');
         }
       } catch (error) {
-        console.error('Rasm olishda xato:', error);
-        Alert.alert(t('common.error'), t('scanner.scanFailed'));
+        Alert.alert('Xato', 'Rasm olishda muammo');
       }
     }
   };
   
-  // Galereyadan tanlash
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       base64: true,
       quality: 0.8,
     });
-    
     if (!result.canceled && result.assets[0]) {
       setCapturedImage(result.assets[0].uri);
       setStep('preview');
     }
   };
   
-  // AI Tahlil
   const analyzeImage = async () => {
     if (!capturedImage) return;
-    
     setStep('analyzing');
     
     try {
-      // Base64 ga o'girish (agar URI bo'lsa)
       let base64Image = '';
-      
       if (capturedImage.startsWith('data:')) {
         base64Image = capturedImage.split(',')[1];
       } else {
-        // URI dan base64 olish
         const response = await fetch(capturedImage);
         const blob = await response.blob();
         base64Image = await new Promise((resolve) => {
@@ -108,24 +96,21 @@ export default function ScannerScreen() {
         setScanResult(result.product);
         setStep('result');
       } else {
-        Alert.alert(t('common.error'), result.error || t('scanner.scanFailed'));
+        Alert.alert('Xato', result.error || 'Mahsulot aniqlanmadi');
         setStep('preview');
       }
     } catch (error: any) {
-      console.error('AI tahlilda xato:', error);
-      Alert.alert(t('common.error'), error.message || t('scanner.scanFailed'));
+      Alert.alert('Xato', error.message || 'AI tahlilda xatolik');
       setStep('preview');
     }
   };
   
-  // Qayta boshlash
   const resetScanner = () => {
     setCapturedImage(null);
     setScanResult(null);
     setStep('camera');
   };
   
-  // Natijani ishlatish - Upload sahifasiga o'tish
   const useResult = () => {
     if (scanResult && capturedImage) {
       navigation.navigate(SCREENS.UPLOAD_PRODUCT, {
@@ -135,7 +120,6 @@ export default function ScannerScreen() {
     }
   };
   
-  // Ruxsat yo'q
   if (hasPermission === null) {
     return (
       <View style={styles.centerContainer}>
@@ -147,13 +131,13 @@ export default function ScannerScreen() {
   if (hasPermission === false) {
     return (
       <View style={styles.centerContainer}>
-        <Ionicons name="camera-outline" size={64} color={COLORS.textLight} />
-        <Text style={styles.permissionText}>{t('scanner.cameraPermission')}</Text>
+        <Ionicons name="camera-outline" size={56} color={COLORS.textLight} />
+        <Text style={styles.permissionText}>Kamera ruxsati kerak</Text>
         <TouchableOpacity
           style={styles.permissionButton}
           onPress={() => Camera.requestCameraPermissionsAsync()}
         >
-          <Text style={styles.permissionButtonText}>{t('scanner.grantPermission')}</Text>
+          <Text style={styles.permissionButtonText}>Ruxsat berish</Text>
         </TouchableOpacity>
       </View>
     );
@@ -170,7 +154,6 @@ export default function ScannerScreen() {
             facing="back"
             flash={isFlashOn ? 'on' : 'off'}
           >
-            {/* Overlay frame */}
             <View style={styles.overlay}>
               <View style={styles.scanFrame}>
                 <View style={[styles.corner, styles.topLeft]} />
@@ -182,26 +165,22 @@ export default function ScannerScreen() {
             </View>
           </CameraView>
           
-          {/* Bottom controls */}
           <View style={styles.cameraControls}>
-            {/* Gallery button */}
             <TouchableOpacity style={styles.sideButton} onPress={pickImage}>
-              <Ionicons name="images" size={28} color={COLORS.white} />
+              <Ionicons name="images" size={26} color={COLORS.white} />
             </TouchableOpacity>
             
-            {/* Capture button */}
             <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
               <View style={styles.captureButtonInner} />
             </TouchableOpacity>
             
-            {/* Flash button */}
             <TouchableOpacity
               style={styles.sideButton}
               onPress={() => setIsFlashOn(!isFlashOn)}
             >
               <Ionicons
                 name={isFlashOn ? 'flash' : 'flash-off'}
-                size={28}
+                size={26}
                 color={COLORS.white}
               />
             </TouchableOpacity>
@@ -215,17 +194,17 @@ export default function ScannerScreen() {
           <Image source={{ uri: capturedImage }} style={styles.previewImage} />
           
           <View style={styles.previewControls}>
-            <TouchableOpacity style={styles.previewButton} onPress={resetScanner}>
-              <Ionicons name="refresh" size={24} color={COLORS.white} />
-              <Text style={styles.previewButtonText}>{t('scanner.retake')}</Text>
+            <TouchableOpacity style={styles.previewBtn} onPress={resetScanner}>
+              <Ionicons name="refresh" size={22} color={COLORS.white} />
+              <Text style={styles.previewBtnText}>Qayta</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={[styles.previewButton, styles.analyzeButton]}
+              style={[styles.previewBtn, styles.analyzeBtn]}
               onPress={analyzeImage}
             >
-              <Ionicons name="scan" size={24} color={COLORS.white} />
-              <Text style={styles.previewButtonText}>AI Tahlil</Text>
+              <Ionicons name="scan" size={22} color={COLORS.white} />
+              <Text style={styles.previewBtnText}>AI Tahlil</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -234,72 +213,112 @@ export default function ScannerScreen() {
       {/* ANALYZING */}
       {step === 'analyzing' && (
         <View style={styles.analyzingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.analyzingText}>{t('scanner.analyzing')}</Text>
-          <Text style={styles.analyzingHint}>Gemini AI mahsulotni aniqlayapti...</Text>
+          <View style={styles.analyzingBox}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+            <Text style={styles.analyzingTitle}>AI tahlil qilmoqda...</Text>
+            <Text style={styles.analyzingHint}>Gemini mahsulotni aniqlayapti</Text>
+          </View>
         </View>
       )}
       
       {/* RESULT */}
       {step === 'result' && scanResult && (
         <ScrollView style={styles.resultContainer}>
-          {/* Image */}
           <Image source={{ uri: capturedImage! }} style={styles.resultImage} />
           
-          {/* Success badge */}
+          {/* Success */}
           <View style={styles.successBadge}>
-            <Ionicons name="checkmark-circle" size={20} color={COLORS.secondary} />
-            <Text style={styles.successText}>{t('scanner.scanSuccess')}</Text>
+            <Ionicons name="checkmark-circle" size={18} color={COLORS.secondary} />
+            <Text style={styles.successText}>Mahsulot aniqlandi!</Text>
           </View>
           
-          {/* Product info */}
+          {/* Product Info */}
           <View style={styles.resultCard}>
             <View style={styles.resultRow}>
-              <Text style={styles.resultLabel}>{t('product.brand')}</Text>
-              <Text style={styles.resultValue}>{scanResult.brand}</Text>
+              <Text style={styles.resultLabel}>Brend</Text>
+              <Text style={styles.resultValue}>{scanResult.brand || '-'}</Text>
             </View>
             
             <View style={styles.resultRow}>
-              <Text style={styles.resultLabel}>{t('product.model')}</Text>
-              <Text style={styles.resultValue}>{scanResult.model}</Text>
+              <Text style={styles.resultLabel}>Model</Text>
+              <Text style={styles.resultValue}>{scanResult.model || '-'}</Text>
             </View>
             
             <View style={styles.resultRow}>
-              <Text style={styles.resultLabel}>{t('product.category')}</Text>
-              <Text style={styles.resultValue}>{scanResult.categoryRu || scanResult.category}</Text>
+              <Text style={styles.resultLabel}>Kategoriya</Text>
+              <Text style={styles.resultValue}>{scanResult.categoryRu || scanResult.category || '-'}</Text>
             </View>
+          </View>
+          
+          {/* Price Analysis - Raqobatchi Narxlar */}
+          <View style={styles.priceCard}>
+            <Text style={styles.priceCardTitle}>💰 Narx Tahlili</Text>
             
-            {scanResult.suggestedPrice && (
-              <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>Tavsiya etilgan narx</Text>
-                <Text style={[styles.resultValue, styles.priceValue]}>
-                  {formatPrice(scanResult.suggestedPrice)}
+            {/* Competitor Prices */}
+            <View style={styles.competitorSection}>
+              <Text style={styles.competitorTitle}>Boshqa platformalarda:</Text>
+              
+              <View style={styles.competitorRow}>
+                <Text style={styles.competitorName}>🟡 Yandex Market</Text>
+                <Text style={styles.competitorPrice}>
+                  {scanResult.competitorPrices?.yandex 
+                    ? formatPrice(scanResult.competitorPrices.yandex) 
+                    : 'Ma\'lumot yo\'q'}
                 </Text>
               </View>
-            )}
-            
-            <View style={styles.confidenceRow}>
-              <Text style={styles.confidenceLabel}>AI ishonchi</Text>
-              <View style={styles.confidenceBar}>
-                <View
-                  style={[
-                    styles.confidenceFill,
-                    { width: `${scanResult.confidence}%` },
-                  ]}
-                />
+              
+              <View style={styles.competitorRow}>
+                <Text style={styles.competitorName}>🟣 Uzum Market</Text>
+                <Text style={styles.competitorPrice}>
+                  {scanResult.competitorPrices?.uzum 
+                    ? formatPrice(scanResult.competitorPrices.uzum) 
+                    : 'Ma\'lumot yo\'q'}
+                </Text>
               </View>
-              <Text style={styles.confidenceValue}>{scanResult.confidence}%</Text>
+              
+              <View style={styles.competitorRow}>
+                <Text style={styles.competitorName}>🔵 Ozon</Text>
+                <Text style={styles.competitorPrice}>
+                  {scanResult.competitorPrices?.ozon 
+                    ? formatPrice(scanResult.competitorPrices.ozon) 
+                    : 'Ma\'lumot yo\'q'}
+                </Text>
+              </View>
             </View>
+            
+            {/* Suggested Price */}
+            <View style={styles.suggestedPriceBox}>
+              <Text style={styles.suggestedLabel}>Tavsiya etilgan narx:</Text>
+              <Text style={styles.suggestedPrice}>
+                {scanResult.suggestedPrice 
+                  ? formatPrice(scanResult.suggestedPrice) 
+                  : 'Hisoblanmadi'}
+              </Text>
+              {scanResult.priceReason && (
+                <Text style={styles.priceReason}>{scanResult.priceReason}</Text>
+              )}
+            </View>
+          </View>
+          
+          {/* Confidence */}
+          <View style={styles.confidenceCard}>
+            <Text style={styles.confidenceLabel}>AI ishonchi</Text>
+            <View style={styles.confidenceBar}>
+              <View
+                style={[styles.confidenceFill, { width: `${scanResult.confidence || 0}%` }]}
+              />
+            </View>
+            <Text style={styles.confidenceValue}>{scanResult.confidence || 0}%</Text>
           </View>
           
           {/* Features */}
           {scanResult.features && scanResult.features.length > 0 && (
             <View style={styles.featuresCard}>
               <Text style={styles.featuresTitle}>Xususiyatlar</Text>
-              {scanResult.features.map((feature, index) => (
+              {scanResult.features.slice(0, 5).map((feature, index) => (
                 <View key={index} style={styles.featureRow}>
                   <Ionicons name="checkmark" size={16} color={COLORS.secondary} />
-                  <Text style={styles.featureText}>{feature}</Text>
+                  <Text style={styles.featureText} numberOfLines={1}>{feature}</Text>
                 </View>
               ))}
             </View>
@@ -307,16 +326,18 @@ export default function ScannerScreen() {
           
           {/* Actions */}
           <View style={styles.resultActions}>
-            <TouchableOpacity style={styles.retakeButton} onPress={resetScanner}>
-              <Ionicons name="camera" size={20} color={COLORS.primary} />
-              <Text style={styles.retakeButtonText}>{t('scanner.retake')}</Text>
+            <TouchableOpacity style={styles.retakeBtn} onPress={resetScanner}>
+              <Ionicons name="camera" size={18} color={COLORS.primary} />
+              <Text style={styles.retakeBtnText}>Qayta</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.useButton} onPress={useResult}>
-              <Text style={styles.useButtonText}>{t('scanner.useResult')}</Text>
-              <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+            <TouchableOpacity style={styles.useBtn} onPress={useResult}>
+              <Text style={styles.useBtnText}>Davom etish</Text>
+              <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
             </TouchableOpacity>
           </View>
+          
+          <View style={{ height: 40 }} />
         </ScrollView>
       )}
     </View>
@@ -336,11 +357,11 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   permissionText: {
-    fontSize: 16,
+    fontSize: 15,
     color: COLORS.textSecondary,
     textAlign: 'center',
     marginTop: 16,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   permissionButton: {
     backgroundColor: COLORS.primary,
@@ -350,7 +371,7 @@ const styles = StyleSheet.create({
   },
   permissionButtonText: {
     color: COLORS.white,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   
@@ -367,14 +388,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scanFrame: {
-    width: 280,
-    height: 280,
+    width: 260,
+    height: 260,
     position: 'relative',
   },
   corner: {
     position: 'absolute',
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     borderColor: COLORS.primary,
   },
   topLeft: {
@@ -382,55 +403,55 @@ const styles = StyleSheet.create({
     left: 0,
     borderTopWidth: 4,
     borderLeftWidth: 4,
-    borderTopLeftRadius: 12,
+    borderTopLeftRadius: 10,
   },
   topRight: {
     top: 0,
     right: 0,
     borderTopWidth: 4,
     borderRightWidth: 4,
-    borderTopRightRadius: 12,
+    borderTopRightRadius: 10,
   },
   bottomLeft: {
     bottom: 0,
     left: 0,
     borderBottomWidth: 4,
     borderLeftWidth: 4,
-    borderBottomLeftRadius: 12,
+    borderBottomLeftRadius: 10,
   },
   bottomRight: {
     bottom: 0,
     right: 0,
     borderBottomWidth: 4,
     borderRightWidth: 4,
-    borderBottomRightRadius: 12,
+    borderBottomRightRadius: 10,
   },
   scanHint: {
     color: COLORS.white,
-    fontSize: 14,
-    marginTop: 24,
+    fontSize: 13,
+    marginTop: 20,
     textAlign: 'center',
   },
   cameraControls: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 30,
+    paddingVertical: 28,
     paddingHorizontal: 40,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
   },
   sideButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   captureButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: COLORS.white,
     justifyContent: 'center',
     alignItems: 'center',
@@ -439,7 +460,7 @@ const styles = StyleSheet.create({
   captureButtonInner: {
     width: '100%',
     height: '100%',
-    borderRadius: 36,
+    borderRadius: 32,
     backgroundColor: COLORS.primary,
   },
   
@@ -453,26 +474,27 @@ const styles = StyleSheet.create({
   },
   previewControls: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
+    gap: 16,
     padding: 20,
     backgroundColor: 'rgba(0,0,0,0.8)',
   },
-  previewButton: {
+  previewBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: 10,
     backgroundColor: 'rgba(255,255,255,0.2)',
+    gap: 8,
   },
-  analyzeButton: {
+  analyzeBtn: {
     backgroundColor: COLORS.primary,
   },
-  previewButtonText: {
+  previewBtnText: {
     color: COLORS.white,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    marginLeft: 8,
   },
   
   // Analyzing
@@ -482,16 +504,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.background,
   },
-  analyzingText: {
-    fontSize: 18,
+  analyzingBox: {
+    alignItems: 'center',
+    padding: 32,
+  },
+  analyzingTitle: {
+    fontSize: 17,
     fontWeight: '600',
     color: COLORS.text,
     marginTop: 20,
   },
   analyzingHint: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.textSecondary,
-    marginTop: 8,
+    marginTop: 6,
   },
   
   // Result
@@ -501,60 +527,120 @@ const styles = StyleSheet.create({
   },
   resultImage: {
     width: '100%',
-    height: 250,
+    height: 220,
     resizeMode: 'cover',
   },
   successBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.secondary + '20',
+    backgroundColor: COLORS.secondary + '15',
     paddingVertical: 10,
+    gap: 6,
   },
   successText: {
     color: COLORS.secondary,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    marginLeft: 8,
   },
+  
+  // Result Card
   resultCard: {
     backgroundColor: COLORS.white,
     margin: 16,
     borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    padding: 14,
   },
   resultRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
   resultLabel: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.textSecondary,
   },
   resultValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: COLORS.text,
+    maxWidth: '60%',
+    textAlign: 'right',
   },
-  priceValue: {
+  
+  // Price Card
+  priceCard: {
+    backgroundColor: COLORS.white,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 12,
+    padding: 14,
+  },
+  priceCardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  competitorSection: {
+    marginBottom: 14,
+  },
+  competitorTitle: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginBottom: 8,
+  },
+  competitorRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  competitorName: {
+    fontSize: 13,
+    color: COLORS.text,
+  },
+  competitorPrice: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+  },
+  suggestedPriceBox: {
+    backgroundColor: COLORS.primary + '10',
+    padding: 12,
+    borderRadius: 10,
+  },
+  suggestedLabel: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+  },
+  suggestedPrice: {
+    fontSize: 20,
+    fontWeight: '700',
     color: COLORS.primary,
+    marginTop: 4,
   },
-  confidenceRow: {
+  priceReason: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 6,
+  },
+  
+  // Confidence
+  confidenceCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 12,
+    backgroundColor: COLORS.white,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 14,
+    borderRadius: 12,
   },
   confidenceLabel: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.textSecondary,
     width: 80,
   },
@@ -563,7 +649,7 @@ const styles = StyleSheet.create({
     height: 8,
     backgroundColor: COLORS.surfaceAlt,
     borderRadius: 4,
-    marginHorizontal: 12,
+    marginHorizontal: 10,
     overflow: 'hidden',
   },
   confidenceFill: {
@@ -585,63 +671,61 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 12,
-    padding: 16,
+    padding: 14,
   },
   featuresTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: COLORS.text,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   featureRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
+    paddingVertical: 5,
+    gap: 8,
   },
   featureText: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.textSecondary,
-    marginLeft: 8,
     flex: 1,
   },
   
   // Actions
   resultActions: {
     flexDirection: 'row',
-    padding: 16,
-    paddingBottom: 32,
+    paddingHorizontal: 16,
+    gap: 12,
   },
-  retakeButton: {
+  retakeBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 2,
     borderColor: COLORS.primary,
-    marginRight: 8,
+    gap: 6,
   },
-  retakeButtonText: {
+  retakeBtnText: {
     color: COLORS.primary,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    marginLeft: 8,
   },
-  useButton: {
+  useBtn: {
     flex: 2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: 10,
     backgroundColor: COLORS.primary,
-    marginLeft: 8,
+    gap: 6,
   },
-  useButtonText: {
+  useBtnText: {
     color: COLORS.white,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    marginRight: 8,
   },
 });
