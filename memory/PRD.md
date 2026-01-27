@@ -1,11 +1,12 @@
 # SellerCloudX - Product Requirements Document
 
 ## Overview
-SellerCloudX.com - AI-powered marketplace automation SaaS. Complete automation from camera scan to Yandex Market listing with real API integration.
+SellerCloudX.com - AI-powered marketplace automation SaaS for Yandex Market. Complete automation from camera scan to product listing.
 
 ## Live Environment
 - **Preview URL**: https://yandexbot.preview.emergentagent.com
 - **Mobile API**: https://yandexbot.preview.emergentagent.com/api
+- **Mobile Web Export**: /app/mobile/sellercloudx_mobile_web.zip
 
 ## Architecture
 ```
@@ -13,40 +14,22 @@ SellerCloudX.com - AI-powered marketplace automation SaaS. Complete automation f
 ├── backend/            # Python/FastAPI (port 8001)
 ├── client/             # React/Vite (port 3000)  
 ├── mobile/             # React Native/Expo
+│   └── dist/           # Web export
 ├── server/             # Node.js/Express
 └── migrations/         # SQL Migrations
 ```
 
-## 2026 Revenue Share Model
+## 2026 Revenue Share Model ✅
 ```
 Premium Tariff:
 ├── Setup: $699 (one-time)
 ├── Monthly: $499/month
 └── Revenue Share: 4% of sales
-
-Individual Tariff:
-├── Custom contract
-└── Minimum 2% share
 ```
 
 ## Completed Features (Jan 27, 2026)
 
-### 1. Full Automation ✅ 
-**One-click product creation from image to Yandex Market**
-
-**Web Endpoint**: `POST /api/ai/full-automation`
-**Mobile Endpoint**: `POST /api/unified-scanner/full-process`
-**Mobile Scanner**: `POST /api/unified-scanner/analyze-base64` ✅ NEW
-
-6-step flow:
-1. **Scan** - AI product recognition
-2. **MXIK** - Tax code assignment
-3. **AI Card** - SEO-optimized Russian card
-4. **Pricing** - Competitive price calculation
-5. **Infographics** - 6 images @ 1080x1440
-6. **Yandex** - Real API upload
-
-### 2. Mobile Scanner Endpoint ✅ NEW (Jan 27, 2026)
+### 1. Mobile Scanner Endpoint ✅ NEW
 **Critical for mobile app camera functionality**
 
 **Endpoint**: `POST /api/unified-scanner/analyze-base64`
@@ -63,148 +46,123 @@ Individual Tariff:
   "success": true,
   "product_info": {
     "brand": "Nutley",
-    "model": "Yong'oqli batonchik",
     "product_name": "Yong'oqli donli batonchik",
     "category": "food",
-    "features": ["Tabiiy", "Yong'oq", "Protein"],
+    "features": ["Tabiiy", "Yong'oq"],
     "suggested_price": 100000
   },
   "suggested_price": 100000,
   "confidence": 85
 }
 ```
+**Response time**: ~21 seconds
+
+### 2. Full Automation ✅ 
+**One-click product creation from image to Yandex Market**
+
+6-step flow:
+1. **Scan** - AI product recognition
+2. **MXIK** - Tax code assignment
+3. **AI Card** - SEO-optimized Russian card
+4. **Pricing** - Competitive price calculation
+5. **Infographics** - 6 images @ 1080x1440
+6. **Yandex** - Real API upload
 
 ### 3. Revenue Share Billing ✅
 **2026 Premium Monetization Model**
 
-**Pricing:**
-- Setup: $699 (one-time)
-- Monthly: $499/month
-- Revenue Share: 4% of sales
-
 **Endpoints:**
 - `GET /api/billing/calculate` - Calculator
-- `POST /api/billing/summary` - Partner billing with Yandex sales
-- `POST /api/billing/invoice` - Invoice generation
-
-**Features:**
-- USD to UZS conversion (rate: 12,600)
-- 7-day grace period
-- Auto-blocking for overdue
-- Click/Bank transfer payments
+- `POST /api/billing/summary` - Partner billing
 
 **Example (10M UZS sales):**
 - Monthly fee: 6,287,400 UZS ($499)
-- Revenue share: 400,000 UZS ($32)
+- Revenue share: 400,000 UZS (4%)
 - Total: 6,687,400 UZS ($531)
 
-### 4. Mobile App Integration ✅ UPDATED
-**Real API - No Mock Data**
+### 4. Trend Hunter API ✅ NEW
+**AI-powered product discovery**
 
-**Files:**
-- `/app/mobile/src/services/api.ts`
-- `/app/mobile/src/utils/constants.ts`
-- `/app/mobile/src/screens/ScannerScreen.tsx`
+**Endpoints:**
+- `GET /api/trends/top` - Top opportunities
+- `GET /api/trends/category/{category}` - By category
+- `GET /api/trends/search?query=` - Search
 
-**Endpoints used by mobile:**
-- `/api/unified-scanner/analyze-base64` - Image scan (NEW)
-- `/api/unified-scanner/full-process` - Full automation
-- `/api/ai/scan-from-url` - URL scan
-- `/api/billing/summary` - Partner billing
+**Categories**: electronics, clothing, home, beauty, sports
 
-**Flow:**
-Camera → AI Scan → MXIK → Price → Card → Yandex Upload
+**Note**: Currently requires auth through Node.js middleware. Will be public after production deploy.
 
-### 5. Yandex Market API ✅
+### 5. Mobile App Web Export ✅ NEW
+**Ready for deployment**
+
+Location: `/app/mobile/sellercloudx_mobile_web.zip`
+- React Native compiled to web
+- Full scanner functionality
+- Offline queue support
+- Multi-language (uz/ru)
+
+### 6. Yandex Market API ✅
 **89 Products | 76 Ready (85%)**
 
 **Endpoints:**
 - `GET /api/yandex/dashboard/status` - Real-time stats
-- `GET /api/yandex/offer/{id}/status` - Product status
 - `POST /api/yandex-market/create-product` - Create product
 
-**Credentials:**
-- Business ID: 197529861
-- Token: ACMA:rHqOiebT6JY1JlkEN0rdYdZn2SkO6iC2V6HvLE22:1806b892
-
-### 6. Nano Banana Infographics ✅
+### 7. Nano Banana Infographics ✅
 **1080x1440 pixels | 3:4 portrait**
 
-6 types per product:
-1. Hero with floating ingredients
-2. Benefits with icons
-3. Composition
-4. Usage instructions
-5. Purity badges
-6. Lifestyle
-
-### 7. MXIK/IKPU Codes ✅
-**250+ codes from tasnif.soliq.uz**
-
-Common codes:
-- 10890000 - Food/Snacks
-- 20420100 - Cosmetics/Perfume
-- 26121900 - Electronics
-- 14130000 - Clothing
+6 types per product.
 
 ## Test Results (Jan 27, 2026)
-- **Backend**: 100% (9/9 passed)
+- **Backend**: 100% (7/7 passed)
+- **Frontend**: 100% (Login, Pricing, Landing working)
 - **Mobile Scanner**: Working ✅
 - **Revenue Share**: Working ✅
 - **Yandex API**: Working ✅
 
 ## API Endpoints Summary
 
-### Mobile Scanner (NEW)
-- `POST /api/unified-scanner/analyze-base64` - Base64 image scan
+### Mobile Scanner
+- `POST /api/unified-scanner/analyze-base64` - Base64 image scan ✅
 
 ### Full Automation
 - `POST /api/ai/full-automation` - Web
 - `POST /api/unified-scanner/full-process` - Mobile
-- `POST /api/ai/scan-from-url` - URL scan
 
 ### Billing
 - `GET /api/billing/calculate`
 - `POST /api/billing/summary`
-- `POST /api/billing/invoice`
+
+### Trend Hunter (NEW)
+- `GET /api/trends/top`
+- `GET /api/trends/category/{category}`
+- `GET /api/trends/search`
 
 ### Yandex Market
 - `GET /api/yandex/dashboard/status`
-- `GET /api/yandex/offer/{id}/status`
 - `POST /api/yandex-market/create-product`
-
-### AI Services
-- `GET /api/ai/status`
-- `POST /api/ai/generate-infographics`
 
 ## Yandex Statistics
 | Metric | Value |
 |--------|-------|
 | Total Products | 89 |
 | Ready | 76 (85%) |
-| Campaigns | 6 |
 
 ## Upcoming Tasks (P1)
 
-### Trend Hunter Enhancement
-- [ ] Fix AliExpress API integration
-- [ ] Add direct product links
-- [ ] 1688.com integration (user requested)
+### External API Integration
+- [ ] 1688.com API integration for Trend Hunter
+- [ ] AliExpress DataHub API
 
-### Video Generation
-- [ ] Sora 2 integration
-- [ ] 8-second product videos
-
-### Cron Jobs
-- [ ] Monthly sales sync
-- [ ] Auto-billing generation
-- [ ] Overdue blocking
+### Mobile App
+- [ ] EAS Build for APK/IPA
+- [ ] Push notifications
 
 ## Future Tasks (P2-P4)
 
 ### P2
 - [ ] Uzum Market integration
-- [ ] Push notifications
+- [ ] Video generation (Sora 2)
 
 ### P3
 - [ ] Wildberries/Ozon
@@ -214,26 +172,9 @@ Common codes:
 - [ ] CI/CD pipeline
 - [ ] Swagger docs
 
-## Technical Notes
+## Environment Variables
 
-### Image Specs
-- Resolution: 1080x1440 pixels
-- Aspect: 3:4 portrait
-- Max: 10 per product
-
-### Revenue Calculation
-```python
-monthly_fee_uzs = 499 * 12600  # $499 at rate 12,600
-revenue_share = total_sales * 0.04  # 4%
-total_debt = monthly_fee_uzs + revenue_share
-```
-
-### Mobile API Base
-```
-https://yandexbot.preview.emergentagent.com/api
-```
-
-### Environment Variables (Backend)
+### Backend (.env)
 ```
 EMERGENT_LLM_KEY=sk-emergent-...
 YANDEX_API_KEY=ACMA:rHq...
@@ -241,9 +182,17 @@ YANDEX_BUSINESS_ID=197529861
 IMGBB_API_KEY=0cc4c8e...
 ```
 
-## Last Updated
-January 27, 2026 - Mobile Scanner Endpoint Added & Tested
+### Mobile
+```
+API_BASE_URL=https://yandexbot.preview.emergentagent.com/api
+```
 
-## Contact
-- Telegram: @sellercloudx_support
-- Email: sales@sellercloudx.com
+## Files Changed This Session
+- `/app/backend/server.py` - Added analyze-base64 endpoint, Trend Hunter API
+- `/app/mobile/src/services/api.ts` - Updated scannerApi
+- `/app/server/routes.ts` - Removed auth from trends
+- `/app/server/routes/trendHunterRoutes.ts` - Removed requireAuth
+- `/app/client/src/pages/TrendHunterDashboard.tsx` - Added product link button
+
+## Last Updated
+January 27, 2026 - Mobile Scanner Perfect + Trend Hunter API + Web Export
