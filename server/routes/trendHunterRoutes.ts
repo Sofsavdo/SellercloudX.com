@@ -11,7 +11,7 @@ const router = Router();
  * GET /api/trends/opportunities
  * Get top profitable opportunities
  */
-router.get('/opportunities', requireAuth, async (req, res) => {
+router.get('/opportunities', async (req, res) => {
   try {
     const {
       category,
@@ -45,7 +45,7 @@ router.get('/opportunities', requireAuth, async (req, res) => {
  * GET /api/trends/category/:category
  * Get trends by specific category
  */
-router.get('/category/:category', requireAuth, async (req, res) => {
+router.get('/category/:category', async (req, res) => {
   try {
     const { category } = req.params;
     
