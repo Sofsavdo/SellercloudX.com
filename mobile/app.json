@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "SellerCloudX",
-    "slug": "sellercloudx-22",
+    "slug": "sellercloudx-app",
     "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -9,14 +9,14 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#4F46E5"
+      "backgroundColor": "#0F172A"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sellercloudx.mobile",
+      "bundleIdentifier": "com.sellercloudx.app",
       "infoPlist": {
         "NSCameraUsageDescription": "Mahsulot rasmlarini olish uchun kamera kerak",
         "NSPhotoLibraryUsageDescription": "Galereyadan rasm tanlash uchun ruxsat kerak"
@@ -25,9 +25,9 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#4F46E5"
+        "backgroundColor": "#0F172A"
       },
-      "package": "com.sellercloudx.mobile",
+      "package": "com.sellercloudx.app",
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -37,8 +37,7 @@
     },
     "updates": {
       "enabled": true,
-      "fallbackToCacheTimeout": 0,
-      "url": "https://u.expo.dev/314308c3-1931-45ef-bd5c-bd962b774a07"
+      "fallbackToCacheTimeout": 0
     },
     "runtimeVersion": "1.0.0",
     "plugins": [
@@ -54,22 +53,10 @@
           "photosPermission": "Galereyadan rasm tanlash uchun ruxsat kerak"
         }
       ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/notification-icon.png",
-          "color": "#4F46E5"
-        }
-      ],
       "expo-font",
       "expo-localization",
       "expo-secure-store"
     ],
-    "extra": {
-      "eas": {
-        "projectId": "314308c3-1931-45ef-bd5c-bd962b774a07"
-      }
-    },
     "owner": "medik3636s-organization"
   }
 }
