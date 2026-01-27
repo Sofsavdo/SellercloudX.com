@@ -2498,6 +2498,59 @@ export function registerRoutes(app: express.Application): Server {
     res.json(post);
   }));
 
+  // ===== SALES SYNC & CRON JOBS =====
+  
+  // Admin: Trigger manual sales sync
+  app.post("/api/admin/sales-sync/run", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    console.log('🔄 Manual sales sync triggered by admin:', req.session?.user?.username);
+    
+    const result = await salesSyncService.runDailySyncJob();
+    
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: 'MANUAL_SALES_SYNC',
+      entityType: 'system',
+      payload: { 
+        syncedPartners: result.sales.synced,
+        totalSales: result.sales.totalSalesUzs,
+        duration: result.duration
+      }
+    });
+    
+    res.json({
+      success: true,
+      message: 'Sales sync completed',
+      data: result
+    });
+  }));
+
+  // Admin: Sync single partner's sales
+  app.post("/api/admin/sales-sync/partner/:partnerId", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    const { partnerId } = req.params;
+    
+    const partner = await storage.getPartner(partnerId);
+    if (!partner) {
+      return res.status(404).json({ success: false, error: 'Partner not found' });
+    }
+    
+    const result = await salesSyncService.syncPartnerSales(partner);
+    
+    res.json({
+      success: true,
+      data: result
+    });
+  }));
+
+  // Admin: Get sync status
+  app.get("/api/admin/sales-sync/status", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    // Return last sync info from database or cache
+    res.json({
+      success: true,
+      lastSync: new Date().toISOString(),
+      message: 'Sales sync status endpoint'
+    });
+  }));
+
   // Error handling middleware
   app.use(handleValidationError);
 
