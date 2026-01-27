@@ -45,15 +45,26 @@ SellerCloudX.com - AI-powered marketplace automation SaaS for Uzbekistan sellers
   - Custom OAuth tokens
 - **Frontend**: `/yandex-dashboard` sahifasi
 
-### 3. Nano Banana Infographic Generator ✅ NEW
+### 3. Nano Banana Infographic Generator ✅ UPDATED
 - **Model**: Gemini 3 Pro Image Preview
 - **Endpoint**: `/api/ai/generate-infographics`
-- **Features**:
-  - 6 ta professional rasm generatsiyasi
-  - ~17 sekund per rasm
-  - ImgBB ga yuklash (permanent URLs)
-  - Marketplace-ready infographics
-- **Sample**: https://i.ibb.co/d4ysg7Wr/2fdb71bf8bfb.jpg
+- **Category-based prompts**:
+  - `cosmetics`: Floating vitamins, citrus, plant leaves
+  - `food`: Floating nuts, chocolate, dried fruits
+  - `electronics`: Tech elements, sound waves
+  - `perfume`: Perfume molecules, flower petals
+- **6 infographic types per product**:
+  1. Hero shot with floating ingredients
+  2. Features & benefits with icons
+  3. Ingredient composition visualization
+  4. Usage instructions step-by-step
+  5. "Does NOT contain" / purity badges
+  6. Premium lifestyle shot
+- **Performance**: ~20-25 seconds per image
+- **Storage**: ImgBB (permanent URLs)
+- **Sample images**:
+  - Cosmetics: https://i.ibb.co/cSpMBB0r/ac834c6dbfb3.jpg
+  - Food: https://i.ibb.co/MkqKDcBn/68785868b3db.jpg
 
 ### 4. MXIK/IKPU Code Integration ✅
 - **250+ codes** from tasnif.soliq.uz
