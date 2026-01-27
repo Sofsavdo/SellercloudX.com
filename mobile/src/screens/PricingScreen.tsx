@@ -434,36 +434,80 @@ const styles = StyleSheet.create({
     color: '#3B82F6',
   },
   
-  // Enterprise Card
+  // Enterprise Card - Full
   enterpriseCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: '#FFF',
     borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
-  enterpriseHeader: {
-    flex: 1,
+  enterpriseCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    marginBottom: 16,
   },
   enterpriseIcon: {
-    fontSize: 24,
-  },
-  enterpriseText: {
-    flex: 1,
+    fontSize: 28,
   },
   enterpriseName: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
     color: '#0F172A',
   },
   enterpriseDesc: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#64748B',
     marginTop: 2,
+  },
+  enterprisePricing: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+  },
+  enterprisePriceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+  },
+  enterprisePriceLabel: {
+    fontSize: 14,
+    color: '#64748B',
+  },
+  enterprisePriceValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  enterpriseFeatures: {
+    marginBottom: 16,
+  },
+  enterpriseFeatureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 6,
+  },
+  enterpriseFeatureText: {
+    fontSize: 14,
+    color: '#334155',
+  },
+  enterpriseBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0F172A',
+    paddingVertical: 14,
+    borderRadius: 10,
+    gap: 8,
+  },
+  enterpriseBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFF',
   },
   
   // Contact Button
