@@ -145,6 +145,7 @@ export interface ProductCardOutput {
   categoryId: number;
   categoryName: string;
   mxikCode: string;
+  mxikName?: string;
   
   // Pricing
   suggestedPrice: number;
@@ -159,6 +160,7 @@ export interface ProductCardOutput {
   
   // Images
   uploadedImages: string[];
+  generatedInfographics?: string[];
   
   // Quality
   qualityIndex: number;
