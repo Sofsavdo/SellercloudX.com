@@ -4502,6 +4502,108 @@ async def mxik_validate(code: str):
         return {"success": False, "error": str(e)}
 
 
+# ========================================
+# REVENUE SHARE & BILLING ENDPOINTS
+# ========================================
+
+class BillingSummaryRequest(BaseModel):
+    """Billing summary request"""
+    partner_id: str
+    oauth_token: Optional[str] = None
+    business_id: Optional[str] = None
+
+
+@app.post("/api/billing/summary")
+async def get_billing_summary(request: BillingSummaryRequest):
+    """
+    Hamkor uchun to'liq billing summary
+    
+    Returns:
+    - Joriy oy savdolari
+    - Revenue share hisob (4%)
+    - Oylik to'lov
+    - Jami qarz
+    - Account holati (active/blocked)
+    """
+    try:
+        from revenue_share_service import (
+            revenue_share_service, 
+            sync_sales_and_calculate_share,
+            get_partner_billing_summary
+        )
+        
+        oauth_token = request.oauth_token or os.getenv("YANDEX_API_KEY")
+        business_id = request.business_id or os.getenv("YANDEX_BUSINESS_ID", "197529861")
+        
+        if not oauth_token:
+            return {"success": False, "error": "YANDEX_API_KEY kerak"}
+        
+        # Sync sales and calculate
+        result = await sync_sales_and_calculate_share(
+            partner_id=request.partner_id,
+            oauth_token=oauth_token,
+            business_id=business_id
+        )
+        
+        return result
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/billing/calculate")
+async def calculate_billing(total_sales_uzs: float = 0, monthly_fee_usd: float = 499, revenue_share_percent: float = 4):
+    """
+    Revenue share kalkulyatori
+    
+    Query params:
+    - total_sales_uzs: Jami savdo (UZS)
+    - monthly_fee_usd: Oylik to'lov (USD)
+    - revenue_share_percent: Revenue share % (default 4%)
+    """
+    try:
+        from revenue_share_service import revenue_share_service
+        
+        bill = revenue_share_service.calculate_monthly_bill(
+            total_sales_uzs=total_sales_uzs,
+            monthly_fee_usd=monthly_fee_usd,
+            revenue_share_percent=revenue_share_percent / 100  # Convert to decimal
+        )
+        
+        return {
+            "success": True,
+            **bill
+        }
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.post("/api/billing/invoice")
+async def generate_invoice(
+    partner_id: str,
+    partner_name: str,
+    total_sales_uzs: float
+):
+    """Generate invoice for partner"""
+    try:
+        from revenue_share_service import revenue_share_service
+        
+        invoice = revenue_share_service.generate_invoice(
+            partner_id=partner_id,
+            partner_name=partner_name,
+            total_sales_uzs=total_sales_uzs
+        )
+        
+        return {
+            "success": True,
+            "invoice": invoice
+        }
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
 async def proxy(request: Request, path: str):
     """Proxy all other requests to main Express server"""
