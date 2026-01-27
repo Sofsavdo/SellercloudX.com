@@ -265,7 +265,11 @@ export default function HomeScreen() {
                 key={mp.id} 
                 style={[styles.mpCard, !mp.active && styles.mpCardDim]}
               >
-                <Text style={styles.mpCardIcon}>{mp.icon}</Text>
+                <Image 
+                  source={{ uri: mp.logo }} 
+                  style={styles.mpCardLogo}
+                  resizeMode="contain"
+                />
                 <Text style={styles.mpCardName}>{mp.name.split(' ')[0]}</Text>
                 {mp.active ? (
                   <View style={styles.mpActiveBadge}>
