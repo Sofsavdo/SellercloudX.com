@@ -520,9 +520,9 @@ export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardPr
                 </div>
                 <span className="font-semibold">Yandex Market</span>
               </div>
-              <p className="text-2xl font-black">{formatUzs(salesData?.currentMonth?.totalSales || 0)}</p>
+              <p className="text-2xl font-black">{formatUzs(currentMonthSales)}</p>
               <p className="text-sm text-muted-foreground mt-1">
-                {salesData?.currentMonth?.orders || 0} buyurtma
+                {currentMonthData.orders} buyurtma
               </p>
             </div>
 
