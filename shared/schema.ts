@@ -35,35 +35,53 @@ export const partners = sqliteTable('partners', {
   monthlyRevenue: text('monthly_revenue'),
   approved: integer('approved', { mode: 'boolean' }).default(false),
   isActive: integer('is_active', { mode: 'boolean' }).default(false),
-  pricingTier: text('pricing_tier').default('free_starter'), // Updated to SaaS model
-  billingPeriod: text('billing_period').default('monthly'), // monthly, yearly
+  
+  // ===== 2026 PRICING MODEL =====
+  tariffType: text('tariff_type').default('trial'), // trial, premium, individual
+  setupPaid: integer('setup_paid', { mode: 'boolean' }).default(false), // One-time setup to'landi
+  setupFeeUsd: integer('setup_fee_usd').default(699), // $699 default
+  monthlyFeeUsd: integer('monthly_fee_usd').default(499), // $499/oy default  
+  revenueSharePercent: real('revenue_share_percent').default(0.04), // 4% default
+  totalDebtUzs: integer('total_debt_uzs').default(0), // Jami qarz (UZS)
+  lastDebtCalculatedAt: integer('last_debt_calculated_at', { mode: 'timestamp' }),
+  blockedUntil: integer('blocked_until', { mode: 'timestamp' }), // Bloklangan sana
+  blockReason: text('block_reason'), // Bloklash sababi
+  trialStartDate: integer('trial_start_date', { mode: 'timestamp' }), // 7-kun trial boshi
+  trialEndDate: integer('trial_end_date', { mode: 'timestamp' }), // Trial tugash sanasi
+  guaranteeStartDate: integer('guarantee_start_date', { mode: 'timestamp' }), // 60-kun kafolat boshi
+  salesBeforeUs: integer('sales_before_us').default(0), // Bizdan oldingi oylik savdo (UZS)
+  
+  // Legacy fields (keeping for compatibility)
+  pricingTier: text('pricing_tier').default('free_starter'),
+  billingPeriod: text('billing_period').default('monthly'),
   monthlyFee: integer('monthly_fee'),
   profitSharePercent: integer('profit_share_percent'),
   aiEnabled: integer('ai_enabled', { mode: 'boolean' }).default(false),
-  aiCardsUsed: integer('ai_cards_used').default(0), // Track AI cards used for free tier
-  aiCardsThisMonth: integer('ai_cards_this_month').default(0), // Bu oydagi limit
-  productsCount: integer('products_count').default(0), // Jami mahsulotlar
-  promoCode: text('promo_code').unique(), // Unique promo code for referrals
-  referredBy: text('referred_by'), // Kimning referali
-  walletBalance: integer('wallet_balance').default(0), // Hamjam hisobi
-  marketplaceIntegrations: text('marketplace_integrations'), // JSON - {yandex: {...}, uzum: {...}}
+  aiCardsUsed: integer('ai_cards_used').default(0),
+  aiCardsThisMonth: integer('ai_cards_this_month').default(0),
+  productsCount: integer('products_count').default(0),
+  promoCode: text('promo_code').unique(),
+  referredBy: text('referred_by'),
+  walletBalance: integer('wallet_balance').default(0),
+  marketplaceIntegrations: text('marketplace_integrations'),
   paymentVerified: integer('payment_verified', { mode: 'boolean' }).default(false),
   activatedAt: integer('activated_at', { mode: 'timestamp' }),
   warehouseSpaceKg: integer('warehouse_space_kg'),
   anydeskId: text('anydesk_id'),
   anydeskPassword: text('anydesk_password'),
   notes: text('notes'),
+  
   // Click Payment Fields
-  pendingPaymentId: text('pending_payment_id'), // Kutilayotgan to'lov ID
-  pendingPaymentTier: text('pending_payment_tier'), // Kutilayotgan tarif
-  pendingPaymentAmount: integer('pending_payment_amount'), // Kutilayotgan summa (UZS)
-  pendingPaymentBillingPeriod: text('pending_payment_billing_period'), // monthly/annual
+  pendingPaymentId: text('pending_payment_id'),
+  pendingPaymentTier: text('pending_payment_tier'),
+  pendingPaymentAmount: integer('pending_payment_amount'),
+  pendingPaymentBillingPeriod: text('pending_payment_billing_period'),
   pendingPaymentCreatedAt: integer('pending_payment_created_at', { mode: 'timestamp' }),
-  lastPaymentId: text('last_payment_id'), // Oxirgi to'lov ID
-  lastPaymentAmount: integer('last_payment_amount'), // Oxirgi to'lov summasi
+  lastPaymentId: text('last_payment_id'),
+  lastPaymentAmount: integer('last_payment_amount'),
   lastPaymentDate: integer('last_payment_date', { mode: 'timestamp' }),
-  lastPaymentStatus: text('last_payment_status'), // completed, failed, cancelled
-  clickTransactionId: text('click_transaction_id'), // Click transaction ID
+  lastPaymentStatus: text('last_payment_status'),
+  clickTransactionId: text('click_transaction_id'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }),
   lastActivityAt: integer('last_activity_at', { mode: 'timestamp' }),
