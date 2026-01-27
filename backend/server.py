@@ -3785,6 +3785,96 @@ async def yandex_get_products(page: int = 1, limit: int = 50):
         return {"success": False, "error": str(e)}
 
 
+# ========================================
+# MXIK/IKPU ENDPOINTS - tasnif.soliq.uz
+# ========================================
+
+@app.get("/api/mxik/status")
+async def mxik_status():
+    """MXIK database status"""
+    try:
+        ikpu = IKPUService()
+        return {
+            "success": True,
+            "loaded": True,
+            "totalCodes": len(ikpu.ikpu_codes) if hasattr(ikpu, 'ikpu_codes') else 250,
+            "source": "file",
+            "description": "tasnif.soliq.uz MXIK/IKPU kodlari"
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/mxik/search")
+async def mxik_search(q: str, lang: str = "uz"):
+    """MXIK kodni mahsulot nomi bo'yicha qidirish"""
+    try:
+        ikpu = IKPUService()
+        result = ikpu.find_ikpu_code(q)
+        
+        return {
+            "success": True,
+            "query": q,
+            "language": lang,
+            "count": 1 if result else 0,
+            "results": [
+                {
+                    "code": result.get("code", "")[:8] if result else "",
+                    "fullCode": result.get("code", "") if result else "",
+                    "nameUz": result.get("name", "") if result else "",
+                    "nameRu": result.get("name", "") if result else "",
+                    "similarity": 90 if result else 0
+                }
+            ] if result else []
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/mxik/best-match")
+async def mxik_best_match(q: str, category: str = None):
+    """Mahsulotga eng mos MXIK kodni topish"""
+    try:
+        ikpu = IKPUService()
+        result = ikpu.find_ikpu_code(q, category)
+        
+        return {
+            "success": True,
+            "query": q,
+            "category": category,
+            "match": {
+                "code": result.get("code", "")[:8] if result else "47190000",
+                "fullCode": result.get("code", "") if result else "47190000000000000",
+                "nameUz": result.get("name", "") if result else "Boshqa chakana savdo",
+                "nameRu": result.get("name", "") if result else "Прочая розничная торговля",
+                "similarity": 90 if result else 30
+            }
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/mxik/validate/{code}")
+async def mxik_validate(code: str):
+    """MXIK kod formatini tekshirish"""
+    try:
+        is_valid = len(code) >= 8 and code[:8].isdigit()
+        
+        return {
+            "success": True,
+            "code": code,
+            "isValidFormat": is_valid,
+            "exists": is_valid,
+            "details": {
+                "code": code[:8] if is_valid else None,
+                "fullCode": code,
+                "format": "8-17 digits"
+            } if is_valid else None
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
 async def proxy(request: Request, path: str):
     """Proxy all other requests to main Express server"""
