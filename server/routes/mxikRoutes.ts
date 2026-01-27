@@ -151,4 +151,28 @@ router.get('/status', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * POST /api/mxik/reload
+ * Reload MXIK database from file
+ */
+router.post('/reload', async (req: Request, res: Response) => {
+  try {
+    const filePath = req.body.filePath || '/app/server/data/mxik_codes.json';
+    const success = await mxikService.loadMxikDatabase(filePath);
+    const status = mxikService.getMxikStatus();
+
+    res.json({
+      success,
+      message: success ? 'MXIK database reloaded' : 'Failed to reload',
+      ...status
+    });
+  } catch (error: any) {
+    console.error('MXIK reload error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 export default router;
