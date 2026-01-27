@@ -73,7 +73,7 @@ router.get('/category/:category', async (req, res) => {
  * GET /api/trends/top
  * Get top opportunities (highest profit potential)
  */
-router.get('/top', requireAuth, async (req, res) => {
+router.get('/top', async (req, res) => {
   try {
     const { limit } = req.query;
     
