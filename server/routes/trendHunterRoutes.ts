@@ -99,7 +99,7 @@ router.get('/top', async (req, res) => {
  * GET /api/trends/saved
  * Get previously analyzed trends from database
  */
-router.get('/saved', requireAuth, async (req, res) => {
+router.get('/saved', async (req, res) => {
   try {
     const { limit } = req.query;
     
