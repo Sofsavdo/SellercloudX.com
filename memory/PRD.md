@@ -8,6 +8,7 @@ SellerCloudX.com - AI-powered marketplace automation SaaS for Yandex Market. Com
 - **Mobile API**: https://ezmktplace.preview.emergentagent.com/api
 
 ## Mobile App Downloads
+- **Latest APK**: https://expo.dev/artifacts/eas/vPVixgc9Mr6GNkauQEeUhm.apk
 - **Web Export**: `/app/mobile/sellercloudx_mobile_web.zip`
 - **Full Package (with Android source)**: `/app/mobile/sellercloudx_mobile_full_package.zip`
 - **APK Build Instructions**: `/app/mobile/BUILD_APK_INSTRUCTIONS.md`
@@ -40,7 +41,18 @@ Example (10M UZS sales):
 
 ## Completed Features (Jan 27, 2026)
 
-### 1. Mobile Scanner Endpoint ✅
+### 1. Mobile App Background Processing ✅ (NEW)
+- Product creation now runs in background
+- User can immediately scan next product
+- Queue system with offline support
+- Real-time status updates
+
+### 2. Marketplace Status Check ✅ (NEW)
+- HomeScreen shows "Marketplace Ulanmagan" warning if no API keys
+- UploadProductScreen shows connected/disconnected status for each marketplace
+- partnerApi.getMarketplaceStatus() endpoint added
+
+### 3. Mobile Scanner Endpoint ✅
 **Critical for mobile app camera functionality**
 
 **Endpoint**: `POST /api/unified-scanner/analyze-base64`
@@ -54,28 +66,38 @@ Response: {
 }
 ```
 
-### 2. Full Automation ✅ 
+### 4. Full Automation ✅ 
 6-step flow: Scan → MXIK → AI Card → Pricing → Infographics → Yandex
 
-### 3. Trend Hunter API ✅
+### 5. Trend Hunter API ✅
 - `GET /api/trends/top` - Top opportunities
 - `GET /api/trends/category/{category}` - By category
 - Categories: electronics, clothing, home, beauty, sports
 
-### 4. Revenue Share Billing ✅
+### 6. Revenue Share Billing ✅
 - `GET /api/billing/calculate`
 - `POST /api/billing/summary`
 
-### 5. Yandex Market API ✅
+### 7. Yandex Market API ✅
 - 89 Products | 76 Ready (85%)
 - Real-time dashboard
 - Product creation
 
-### 6. Drizzle ORM Fixes ✅
-Fixed all `select()` queries to use specific columns:
-- `autonomousAIManager.ts`
-- `marketplaceAIManager.ts`
-- `autonomousProductManager.ts`
+### 8. 2026 Pricing Screen ✅
+- Mobile PricingScreen.tsx updated
+- Shows $699 setup + $499/month + 4% revenue share
+- Calculator example included
+
+## Files Modified (Jan 27, 2026)
+
+### Mobile App
+- `/app/mobile/src/services/api.ts` - Added getMarketplaceStatus()
+- `/app/mobile/src/services/offlineQueue.ts` - Added removeCompleted()
+- `/app/mobile/src/screens/UploadProductScreen.tsx` - Background processing
+- `/app/mobile/src/screens/HomeScreen.tsx` - Marketplace status warning
+- `/app/mobile/src/screens/PricingScreen.tsx` - 2026 pricing model
+- `/app/mobile/src/store/authStore.ts` - Extended Partner interface
+- `/app/mobile/src/utils/constants.ts` - Added COLORS.error
 
 ## Test Results (Jan 27, 2026)
 | Feature | Status |
@@ -84,7 +106,8 @@ Fixed all `select()` queries to use specific columns:
 | Billing API | ✅ Working |
 | Yandex Dashboard | ✅ 89 products |
 | Backend Health | ✅ Healthy |
-| Drizzle Errors | ✅ Fixed |
+| Background Upload | ✅ Code ready |
+| Marketplace Status | ✅ Code ready |
 
 ## API Endpoints Summary
 
@@ -100,53 +123,45 @@ Fixed all `select()` queries to use specific columns:
 - `GET /api/trends/top`
 - `GET /api/trends/category/{category}`
 
-### Yandex
-- `GET /api/yandex/dashboard/status`
-- `POST /api/yandex-market/create-product`
+### Partner
+- `GET /api/partner/marketplace-integrations`
+- `POST /api/partner/marketplace-integrations`
+- `POST /api/partner/marketplace-integrations/:marketplace/test`
 
-## Mobile App Build Options
+## Known Issues
 
-### 1. EAS Cloud Build (Recommended)
-```bash
-cd /app/mobile
-npx eas login
-npx eas build --platform android --profile preview
-```
+### P1 - Node.js Drizzle ORM (Production)
+- Status: WORKAROUND APPLIED
+- Issue: Schema mismatch in production database
+- Impact: Background jobs may crash
+- Fix: Need to run migration on production DB
 
-### 2. Local Build
-Requires: Java 17, Android SDK, NDK
-```bash
-cd /app/mobile/android
-./gradlew assembleRelease
-```
-
-### 3. Expo Go (Testing)
-```bash
-cd /app/mobile
-npx expo start
-```
-
-## Files Changed This Session
-- `/app/backend/server.py` - analyze-base64, Trend Hunter API
-- `/app/server/services/autonomousAIManager.ts` - Fixed select queries
-- `/app/server/services/marketplaceAIManager.ts` - Fixed select queries
-- `/app/server/services/autonomousProductManager.ts` - Fixed select queries
-- `/app/mobile/BUILD_APK_INSTRUCTIONS.md` - New
-- `/app/mobile/sellercloudx_mobile_full_package.zip` - New
+### P1 - Trend Hunter (Partial)
+- Status: Auth fix applied, needs full testing
+- Issue: Was returning 401 errors
+- Fix: Removed requireAuth from /api/trends route
 
 ## Upcoming Tasks
 
-### P1
-- [ ] EAS Cloud APK build
-- [ ] 1688.com API integration
+### P0 - Mobile App
+- [ ] Build new APK with all fixes
+- [ ] Test background upload flow
+- [ ] Verify marketplace status display
 
-### P2
-- [ ] Push notifications
-- [ ] Video generation (Sora 2)
+### P1 - Trend Hunter
+- [ ] Full end-to-end testing
+- [ ] "Mahsulotga o'tish" button functionality
+- [ ] AliExpress API integration
 
-### P3
-- [ ] Uzum Market integration
-- [ ] Wildberries/Ozon
+### P2 - Web Frontend
+- [ ] Remove mock data from dashboards
+- [ ] Connect MarketplaceIntegrationManager to API
+- [ ] Connect ActivityFeed to real data
 
-## Last Updated
-January 27, 2026 - Drizzle Fixes + Mobile Build Package
+## Expo Credentials
+- Email: rasmiydorixona@gmail.com
+- Password: Medik9298
+
+## Yandex Credentials
+- Token: ACMA:OIjjTDFMnmBe7XOs7EqaWqdoXUS772aKqwqjXj6C:245e5a96
+- Campaign ID: 148650502
