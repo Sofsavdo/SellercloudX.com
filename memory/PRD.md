@@ -23,6 +23,40 @@ SellerCloudX.com - AI-powered marketplace automation SaaS for Uzbekistan sellers
 └── railway.json        # Railway deployment config
 ```
 
+## 2026 PRICING MODEL ✅ (Jan 27, 2026)
+
+### Premium Tariff (Public)
+- **One-time Setup**: $699
+- **Monthly Fee**: $499/month
+- **Revenue Share**: 4% of total sales
+- **Features**:
+  - 7-day FREE trial
+  - 60-day sales growth guarantee
+  - Unlimited AI card creation
+  - All marketplace integrations
+  - Trend Hunter FULL access
+  - Profit analytics
+  - Priority 24/7 support
+  - API access
+
+### Individual Tariff (Custom, not public)
+- **Setup**: $1,599+
+- **Revenue Share**: 2% or lower (negotiable)
+- **For**: High-volume sellers ($50,000+ monthly sales)
+- **Features**:
+  - All Premium features
+  - Dedicated account manager
+  - Custom integrations
+  - SLA guarantee
+  - On-site training
+
+### Pricing Page
+- New route: `/pricing`
+- Shows Premium tariff in detail
+- Individual tariff with "Contact us" button
+- Revenue calculator
+- FAQ section
+
 ## Core Features Implemented
 
 ### 1. User Authentication & Registration ✅
@@ -31,43 +65,34 @@ SellerCloudX.com - AI-powered marketplace automation SaaS for Uzbekistan sellers
 - Partner login at `/login`
 - Session-based authentication
 
-### 2. Click Payment Integration ✅ (Jan 2026)
-- **Credentials Configured**:
-  - SERVICE_ID: 92585
-  - MERCHANT_ID: 54318
-  - SECRET_KEY: aCcSOJk2t0uHNui
-  - MERCHANT_USER_ID: 74886
-- **Endpoints**:
-  - `GET /api/click/tiers` - Get pricing tiers
-  - `POST /api/click/create-payment` - Create payment link
-  - `POST /api/click/webhook/prepare` - Click prepare webhook
-  - `POST /api/click/webhook/complete` - Click complete webhook
-- **Pricing Tiers (UZS)**:
-  - Free Starter: 0 UZS
-  - Starter Pro: 828,000 UZS/month (20% discount annual)
-  - Professional Plus: 4,188,000 UZS/month
-  - Enterprise Elite: 10,788,000 UZS/month
+### 2. Payment Integrations ✅
 
-### 3. AI Scanner ✅ (Jan 2026)
+#### Click Payment (Jan 2026)
+- SERVICE_ID: 92585
+- MERCHANT_ID: 54318
+- SECRET_KEY: aCcSOJk2t0uHNui
+- Endpoints: `/api/click/*`
+
+#### Revenue Share Billing (Jan 27, 2026) ✅ NEW
+- **Service**: `/app/server/services/revenueShareService.ts`
+- **Routes**: `/app/server/routes/billingRoutes.ts`
+- **Features**:
+  - Monthly sales tracking per marketplace
+  - 4% revenue share calculation
+  - Debt tracking and management
+  - Account blocking for overdue payments (7+ days)
+  - Admin manual payment confirmation
+  - Trial period management (7 days)
+  - 60-day guarantee tracking
+
+### 3. AI Scanner ✅
 - **Web Component**: `DashboardAIScanner.tsx`
 - **Mobile Component**: `ScannerScreen.tsx`
 - **Endpoint**: `POST /api/unified-scanner/analyze-base64`
-- Features:
-  - Camera capture support
-  - File upload support
-  - Product recognition via Google Vision API
-  - Competitor price analysis
-  - Cost price input and profit calculation
 
-### 4. Trend Hunter ✅ (Jan 2026)
+### 4. Trend Hunter ✅
 - **Endpoint**: `GET /api/trends/opportunities`
 - **Service**: RapidAPI AliExpress DataHub
-- **API Key**: Configured in .env
-- Features:
-  - Trending products from China/USA markets
-  - Profit margin calculation
-  - Competition analysis
-  - Opportunity scoring
 
 ### 5. Partner Dashboard ✅
 - Overview with key metrics
@@ -75,99 +100,111 @@ SellerCloudX.com - AI-powered marketplace automation SaaS for Uzbekistan sellers
 - Trend Hunter tab
 - Analytics tab
 - Products management
+- **NEW**: Payments & Debt section component ready
 
-## Mobile Application
-- **Platform**: React Native + Expo
-- **API Base URL**: https://marketbot-30.preview.emergentagent.com/api
-- **Features**:
-  - Login/Register
-  - AI Scanner with camera
-  - Products list
-  - Stats dashboard
-  - Settings
+## Database Schema Updates (Jan 27, 2026)
+
+### Partners Table - New Columns
+```sql
+tariff_type TEXT DEFAULT 'trial'  -- trial, premium, individual
+setup_paid INTEGER DEFAULT 0
+setup_fee_usd INTEGER DEFAULT 699
+monthly_fee_usd INTEGER DEFAULT 499
+revenue_share_percent REAL DEFAULT 0.04
+total_debt_uzs INTEGER DEFAULT 0
+last_debt_calculated_at INTEGER
+blocked_until INTEGER
+block_reason TEXT
+trial_start_date INTEGER
+trial_end_date INTEGER
+guarantee_start_date INTEGER
+sales_before_us INTEGER DEFAULT 0
+```
+
+### New Tables
+- `monthly_sales_tracking` - Monthly sales per marketplace
+- `revenue_share_payments` - Payment history
 
 ## API Endpoints Summary
 
 ### Authentication
-- `POST /api/auth/login` - User login
-- `POST /api/auth/register` - Partner registration
-- `POST /api/auth/logout` - Logout
-- `GET /api/auth/me` - Get current user
+- `POST /api/auth/login`
+- `POST /api/auth/register`
+- `GET /api/auth/me`
+
+### Billing (2026 Model)
+- `GET /api/billing/revenue-share/summary` - Partner billing summary
+- `POST /api/billing/revenue-share/start-trial` - Start 7-day trial
+- `POST /api/billing/revenue-share/record-payment` - Record payment
+- `POST /api/admin/revenue-share/confirm-payment` - Admin confirms manual payment
+- `POST /api/admin/revenue-share/activate-premium` - Admin activates premium
+- `POST /api/admin/revenue-share/unblock-partner` - Admin unblocks partner
+- `POST /api/admin/revenue-share/update-sales` - Update sales data
+- `GET /api/admin/revenue-share/all-debts` - Get all partners with debt
 
 ### Products
-- `GET /api/products` - List products
-- `POST /api/products` - Create product
-- `PUT /api/products/:id` - Update product
-- `DELETE /api/products/:id` - Delete product
+- `GET /api/products`
+- `POST /api/products`
+- `PUT /api/products/:id`
+- `DELETE /api/products/:id`
 
 ### AI Scanner
-- `POST /api/unified-scanner/analyze-base64` - Public image analysis
-- `POST /api/unified-scanner/full-process` - Full product creation
+- `POST /api/unified-scanner/analyze-base64`
 
 ### Trends
-- `GET /api/trends/opportunities` - Get trending products (auth required)
+- `GET /api/trends/opportunities`
 
-### Payments
-- `GET /api/click/tiers` - Get pricing tiers
-- `POST /api/click/create-payment` - Create payment
+### Payments (Click)
+- `GET /api/click/tiers`
+- `POST /api/click/create-payment`
 
-## Environment Variables
+## Mobile Application
+- **Platform**: React Native + Expo
+- **API Base URL**: https://marketbot-30.preview.emergentagent.com/api
 
-### Backend (.env)
-```
-CLICK_SERVICE_ID=92585
-CLICK_MERCHANT_ID=54318
-CLICK_SECRET_KEY=aCcSOJk2t0uHNui
-CLICK_MERCHANT_USER_ID=74886
-RAPIDAPI_KEY=ccd3ae6c91msh55b7206e9ec60a0p12da13jsncb260a5f7642
-```
-
-### Frontend (.env)
-```
-REACT_APP_BACKEND_URL=https://marketbot-30.preview.emergentagent.com
-```
-
-## Test Results (Jan 2026)
-- Backend Tests: 100% (15/15 passed)
-- Frontend Tests: 100% (all pages load correctly)
-- Click Payment: ✅ Working
-- AI Scanner: ✅ Working
-- Trend Hunter: ✅ Working
+## Test Results (Jan 27, 2026)
+- Backend Tests: 100% passed
+- Frontend Tests: All pages load correctly
+- Pricing Page: ✅ Working
+- Revenue Share API: ✅ Working
+- Database Migration: ✅ Completed
 
 ## Upcoming Tasks (P0-P2)
 
 ### P0 - Critical
-- [ ] Complete Yandex Market API integration
+- [ ] Complete Partner Dashboard "To'lovlar" section integration
 - [ ] MXIK code auto-fill from tasnif.soliq.uz
+- [ ] Yandex Market API full integration
 
 ### P1 - High Priority
-- [ ] Mobile app production build (APK/iOS)
+- [ ] Mobile app production build with new API
 - [ ] Push notifications
-- [ ] Real-time chat implementation
+- [ ] Email verification for registration
 
 ### P2 - Medium Priority
+- [ ] Real-time chat implementation
 - [ ] Video generation for product cards
-- [ ] Infographic generation (6 sales-boosting images)
-- [ ] Uzum Market integration
+- [ ] Infographic generation
 
 ## Future Tasks (P3-P4)
 
 ### P3
 - [ ] Biometric login (Face ID / Touch ID)
 - [ ] Barcode scanning
-- [ ] Wildberries integration
+- [ ] Uzum Market integration
 
 ### P4
+- [ ] Wildberries integration
 - [ ] Ozon integration
 - [ ] Advanced analytics dashboard
-- [ ] Multi-language support expansion
 
 ## Known Issues
 - None currently (all critical issues resolved)
 
 ## Last Updated
-January 23, 2026
+January 27, 2026
 
 ## Contact
 - Admin credentials: admin / admin123
-- Support: support@sellercloudx.com
+- Support Telegram: @sellercloudx_support
+- Email: sales@sellercloudx.com
