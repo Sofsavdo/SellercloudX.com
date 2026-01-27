@@ -116,14 +116,14 @@ export default {
     title: 'Statistika',
     revenue: 'Daromad',
     profit: 'Foyda',
-    orders: 'Buyurtmalar',
+    orders: 'Buyurtma',
     views: 'Ko\'rishlar',
     today: 'Bugun',
     thisWeek: 'Bu hafta',
     thisMonth: 'Bu oy',
     allTime: 'Jami',
     topProducts: 'Top mahsulotlar',
-    byMarketplace: 'Marketplace bo\'yicha',
+    byMarketplace: 'Marketplace',
   },
   
   // Settings
