@@ -47,6 +47,7 @@ import {
 } from 'lucide-react';
 import DashboardAIScanner from '../components/DashboardAIScanner';
 import TrendHunterDashboard from './TrendHunterDashboard';
+import PartnerPaymentsDashboard from '../components/PartnerPaymentsDashboard';
 
 interface Product { id: string; name: string; category: string; price: string; costPrice: string; sku: string; isActive: boolean; createdAt: string; }
 interface Analytics { id: string; date: string; revenue: string; orders: number; profit: string; }
