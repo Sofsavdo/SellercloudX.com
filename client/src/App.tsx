@@ -34,6 +34,7 @@ import YandexQuickCreate from "./pages/YandexQuickCreate";
 import InfographicGenerator from "./pages/InfographicGenerator";
 import AIProductCreator from "./pages/AIProductCreator";
 import PricingPage from "./pages/PricingPage";
+import YandexDashboard from "./pages/YandexDashboard";
 
 function Router() {
   return (
