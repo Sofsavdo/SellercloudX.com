@@ -65,35 +65,6 @@ export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardPr
     totalDue: Math.round(currentMonthSales * revenueSharePercent) + monthlyFeeUzs
   };
 
-  // Calculate growth
-  mockSalesData.growth = mockSalesData.beforeUs > 0 
-    ? Math.round(((mockSalesData.currentMonth.totalSales - mockSalesData.beforeUs) / mockSalesData.beforeUs) * 100)
-    : 100;
-
-  useEffect(() => {
-    // Load sales and payment data
-    setSalesData(mockSalesData);
-    setPaymentHistory([
-      {
-        id: '1',
-        date: '2026-01-15',
-        type: 'monthly_fee',
-        amount: monthlyFeeUzs,
-        status: 'completed',
-        method: 'click'
-      },
-      {
-        id: '2',
-        date: '2026-01-15',
-        type: 'revenue_share',
-        amount: 2880000,
-        status: 'completed',
-        method: 'click'
-      }
-    ]);
-    setIsLoading(false);
-  }, []);
-
   const formatUzs = (amount: number) => {
     return new Intl.NumberFormat('uz-UZ').format(amount) + ' so\'m';
   };
@@ -101,6 +72,22 @@ export default function PartnerPaymentsDashboard({ partner }: PaymentDashboardPr
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: 'Nusxalandi!', description: text });
+  };
+
+  // Start trial handler
+  const handleStartTrial = async () => {
+    try {
+      const res = await apiRequest('POST', '/api/billing/revenue-share/start-trial');
+      const data = await res.json();
+      if (data.success) {
+        toast({ title: 'Muvaffaqiyat!', description: '7 kunlik bepul sinov boshlandi!' });
+        refetch();
+      } else {
+        toast({ title: 'Xatolik', description: data.error, variant: 'destructive' });
+      }
+    } catch (error) {
+      toast({ title: 'Xatolik', description: 'Trial boshlanmadi', variant: 'destructive' });
+    }
   };
 
   // Bank details for manual payment
