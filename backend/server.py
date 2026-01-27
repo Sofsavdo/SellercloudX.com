@@ -474,7 +474,7 @@ async def ai_manager_stats():
 # ========================================
 
 from credentials_service import MarketplaceCredentials, get_supported_marketplaces
-from ikpu_service import IKPUService
+from ikpu_service import IKPUService, COMMON_IKPU_CODES
 from uzum_automation_service import UzumProductPreparer
 from yandex_auto_creator import YandexAutoCreator, PartnerSettings, ProductScanResult
 
