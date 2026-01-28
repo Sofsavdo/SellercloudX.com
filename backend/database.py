@@ -26,10 +26,11 @@ if DATABASE_URL:
     print(f"🔧 DATABASE_URL: {DATABASE_URL[:30]}...")
 
 # ==================== PostgreSQL Setup ====================
+# Define pool globally (None for MongoDB mode)
+pool = None
+
 if USE_POSTGRES:
     import asyncpg
-    
-    pool: asyncpg.Pool = None
     
     async def connect_db():
         """Initialize PostgreSQL connection pool"""
