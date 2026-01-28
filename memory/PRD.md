@@ -4,8 +4,8 @@
 SellerCloudX.com - AI-powered marketplace automation SaaS. 4 ta marketplace (Yandex, Uzum, Wildberries, Ozon) uchun to'liq avtomatizatsiya.
 
 ## Live URLs
-- **Preview**: https://ezmktplace.preview.emergentagent.com
-- **Mobile API**: https://ezmktplace.preview.emergentagent.com/api
+- **Preview**: https://autotrader-110.preview.emergentagent.com
+- **Mobile API**: https://autotrader-110.preview.emergentagent.com/api
 
 ## Mobile App v1.0.6 (Jan 28, 2026)
 

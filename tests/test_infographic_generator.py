@@ -13,7 +13,7 @@ import os
 import time
 
 # Get BASE_URL from environment
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://ezmktplace.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://autotrader-110.preview.emergentagent.com').rstrip('/')
 
 
 class TestInfographicTemplates:

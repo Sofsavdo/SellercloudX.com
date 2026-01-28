@@ -1,6 +1,6 @@
 // SellerCloudX Mobile - Asosiy Konstantalar
 // Production API - Preview or Railway
-export const API_BASE_URL = 'https://ezmktplace.preview.emergentagent.com/api';
+export const API_BASE_URL = 'https://autotrader-110.preview.emergentagent.com/api';
 
 // Ranglar - Zamonaviy Professional Palette
 export const COLORS = {

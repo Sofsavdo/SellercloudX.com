@@ -35,7 +35,7 @@
     "frontend": "N/A (backend only testing requested)"
   },
   "test_credentials": {
-    "API_URL": "https://ezmktplace.preview.emergentagent.com",
+    "API_URL": "https://autotrader-110.preview.emergentagent.com",
     "test_image_url": "https://i.ibb.co/MkqKDcBn/68785868b3db.jpg"
   },
   "seed_data_creation": "None - used test image URL for scanning",
@@ -151,7 +151,7 @@
     }
   },
   "mobile_app_integration": {
-    "api_base_url": "https://ezmktplace.preview.emergentagent.com/api",
+    "api_base_url": "https://autotrader-110.preview.emergentagent.com/api",
     "constants_file": "/app/mobile/src/utils/constants.ts",
     "api_service_file": "/app/mobile/src/services/api.ts",
     "unified_scanner_endpoint": "/api/unified-scanner/full-process",
