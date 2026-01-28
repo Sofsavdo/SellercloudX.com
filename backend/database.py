@@ -84,7 +84,7 @@ if USE_POSTGRES:
                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                     """, 
                     user_id, "admin", "admin@sellercloudx.com", 
-                    hashed, "admin", True, "Admin", "User", datetime.utcnow()
+                    hashed, "admin", True, "Admin", "User", datetime.now(timezone.utc)
                     )
                     print("✅ Admin user seeded in PostgreSQL")
                 else:
@@ -148,7 +148,7 @@ else:
                     "is_active": True,
                     "first_name": "Admin",
                     "last_name": "User",
-                    "created_at": datetime.utcnow()
+                    "created_at": datetime.now(timezone.utc)
                 })
                 print("✅ Admin user seeded in MongoDB")
         except Exception as e:
@@ -201,7 +201,7 @@ async def create_user(username: str, email: str, password: str, role: str = "par
                 """,
                 user_id, username, email, hashed, role, True,
                 kwargs.get("first_name", ""), kwargs.get("last_name", ""),
-                kwargs.get("phone", ""), datetime.utcnow()
+                kwargs.get("phone", ""), datetime.now(timezone.utc)
                 )
             except Exception as e:
                 if "duplicate" in str(e).lower():
@@ -222,7 +222,7 @@ async def create_user(username: str, email: str, password: str, role: str = "par
             "first_name": kwargs.get("first_name", ""),
             "last_name": kwargs.get("last_name", ""),
             "phone": kwargs.get("phone", ""),
-            "created_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc)
         }
         result = await db.users.insert_one(user_data)
         user_data["id"] = str(result.inserted_id)
@@ -283,20 +283,20 @@ async def validate_user_password(username: str, password: str) -> Optional[dict]
 async def create_session(user_id: str, user_data: dict) -> str:
     """Create new session token"""
     token = secrets.token_urlsafe(32)
-    expires_at = datetime.utcnow() + timedelta(days=7)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
     
     if USE_POSTGRES:
         async with pool.acquire() as conn:
             await conn.execute("""
                 INSERT INTO user_sessions (token, user_id, user_data, created_at, expires_at)
                 VALUES ($1, $2, $3, $4, $5)
-            """, token, user_id, json.dumps(user_data), datetime.utcnow(), expires_at)
+            """, token, user_id, json.dumps(user_data), datetime.now(timezone.utc), expires_at)
     else:
         await db.sessions.insert_one({
             "token": token,
             "user_id": user_id,
             "user_data": user_data,
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "expires_at": expires_at
         })
     return token
@@ -308,7 +308,7 @@ async def get_session(token: str) -> Optional[dict]:
         async with pool.acquire() as conn:
             row = await conn.fetchrow(
                 "SELECT * FROM user_sessions WHERE token = $1 AND expires_at > $2",
-                token, datetime.utcnow()
+                token, datetime.now(timezone.utc)
             )
             if row:
                 user_data = row["user_data"]
@@ -319,7 +319,7 @@ async def get_session(token: str) -> Optional[dict]:
     else:
         session = await db.sessions.find_one({
             "token": token,
-            "expires_at": {"$gt": datetime.utcnow()}
+            "expires_at": {"$gt": datetime.now(timezone.utc)}
         })
         if session:
             return {"user_data": session.get("user_data", session)}
@@ -353,7 +353,7 @@ async def create_partner(user_id: str, **kwargs) -> dict:
             kwargs.get("business_category", "general"), kwargs.get("business_type", "yatt"),
             kwargs.get("phone", ""), kwargs.get("inn"), kwargs.get("website"),
             kwargs.get("monthly_revenue", "0"), False, False, False, False,
-            "trial", promo_code, datetime.utcnow(), datetime.utcnow()
+            "trial", promo_code, datetime.now(timezone.utc), datetime.now(timezone.utc)
             )
             row = await conn.fetchrow("SELECT * FROM partners WHERE id = $1", partner_id)
             return serialize_pg_row(row)
@@ -372,8 +372,8 @@ async def create_partner(user_id: str, **kwargs) -> dict:
             "ai_enabled": False,
             "tariff_type": "trial",
             "promo_code": f"SCX-{secrets.token_hex(3).upper()}",
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
         }
         result = await db.partners.insert_one(partner_data)
         partner_data["id"] = str(result.inserted_id)
@@ -451,7 +451,7 @@ async def get_all_partners(status: str = "all") -> List[dict]:
 
 async def update_partner(partner_id: str, updates: dict) -> Optional[dict]:
     """Update partner"""
-    updates["updated_at"] = datetime.utcnow()
+    updates["updated_at"] = datetime.now(timezone.utc)
     
     if USE_POSTGRES:
         async with pool.acquire() as conn:
@@ -493,7 +493,7 @@ async def approve_partner(partner_id: str, admin_id: str) -> Optional[dict]:
         "is_approved": True,
         "is_active": True,
         "ai_enabled": True,
-        "approved_at": datetime.utcnow(),
+        "approved_at": datetime.now(timezone.utc),
         "approved_by": admin_id
     })
 
@@ -507,7 +507,7 @@ async def activate_partner_manual(partner_id: str, admin_id: str, tariff: str = 
         "ai_enabled": True,
         "pricing_tier": tariff,
         "tariff_type": tariff,
-        "activated_at": datetime.utcnow()
+        "activated_at": datetime.now(timezone.utc)
     })
 
 
@@ -535,7 +535,7 @@ async def get_or_create_chat_room(partner_id: str) -> dict:
                 await conn.execute("""
                     INSERT INTO chat_rooms (id, name, type, participants, is_active, created_at, updated_at)
                     VALUES ($1, $2, $3, $4, $5, $6, $7)
-                """, room_id, f"partner-{partner_id}", "support", participants, True, datetime.utcnow(), datetime.utcnow())
+                """, room_id, f"partner-{partner_id}", "support", participants, True, datetime.now(timezone.utc), datetime.now(timezone.utc))
                 row = await conn.fetchrow("SELECT * FROM chat_rooms WHERE id = $1", room_id)
             
             result = serialize_pg_row(row)
@@ -548,7 +548,7 @@ async def get_or_create_chat_room(partner_id: str) -> dict:
                 "partner_id": partner_id,
                 "admin_id": None,
                 "status": "active",
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
                 "last_message_at": None
             }
             result = await db.chat_rooms.insert_one(room_data)
@@ -668,12 +668,12 @@ async def create_message(chat_room_id: str, sender_id: str, sender_role: str, co
             await conn.execute("""
                 INSERT INTO chat_messages (id, partner_id, role, content, metadata, created_at)
                 VALUES ($1, $2, $3, $4, $5, $6)
-            """, msg_id, partner_id, sender_role, content, metadata, datetime.utcnow())
+            """, msg_id, partner_id, sender_role, content, metadata, datetime.now(timezone.utc))
             
             # Update chat_rooms last_message_at
             await conn.execute(
                 "UPDATE chat_rooms SET last_message_at = $1, updated_at = $2 WHERE id = $3",
-                datetime.utcnow(), datetime.utcnow(), chat_room_id
+                datetime.now(timezone.utc), datetime.now(timezone.utc), chat_room_id
             )
             
             row = await conn.fetchrow("SELECT * FROM chat_messages WHERE id = $1", msg_id)
@@ -689,7 +689,7 @@ async def create_message(chat_room_id: str, sender_id: str, sender_role: str, co
             "content": content,
             "message_type": kwargs.get("message_type", "text"),
             "attachment_url": kwargs.get("attachment_url"),
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
             "read_at": None
         }
         result = await db.messages.insert_one(message_data)
@@ -697,7 +697,7 @@ async def create_message(chat_room_id: str, sender_id: str, sender_role: str, co
         
         await db.chat_rooms.update_one(
             {"partner_id": chat_room_id},
-            {"$set": {"last_message_at": datetime.utcnow()}}
+            {"$set": {"last_message_at": datetime.now(timezone.utc)}}
         )
         
         return serialize_doc(message_data)
@@ -719,7 +719,7 @@ async def create_product(partner_id: str, **kwargs) -> dict:
             kwargs.get("description", ""), kwargs.get("category", "general"),
             kwargs.get("brand"), kwargs.get("price", 0),
             kwargs.get("cost_price", 0), kwargs.get("stock_quantity", 0),
-            True, datetime.utcnow(), datetime.utcnow()
+            True, datetime.now(timezone.utc), datetime.now(timezone.utc)
             )
             row = await conn.fetchrow("SELECT * FROM products WHERE id = $1", product_id)
             return serialize_pg_row(row)
@@ -736,8 +736,8 @@ async def create_product(partner_id: str, **kwargs) -> dict:
             "cost_price": kwargs.get("cost_price", 0),
             "stock_quantity": kwargs.get("stock_quantity", 0),
             "is_active": True,
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
         }
         result = await db.products.insert_one(product_data)
         product_data["id"] = str(result.inserted_id)
@@ -790,12 +790,12 @@ async def save_marketplace_credentials(partner_id: str, marketplace: str, creden
                     UPDATE marketplace_integrations 
                     SET credentials = $1, is_active = true, updated_at = $2
                     WHERE partner_id = $3 AND marketplace = $4
-                """, json.dumps(credentials), datetime.utcnow(), partner_id, marketplace)
+                """, json.dumps(credentials), datetime.now(timezone.utc), partner_id, marketplace)
             else:
                 await conn.execute("""
                     INSERT INTO marketplace_integrations (id, partner_id, marketplace, credentials, is_active, created_at, updated_at)
                     VALUES ($1, $2, $3, $4, $5, $6, $7)
-                """, secrets.token_hex(12), partner_id, marketplace, json.dumps(credentials), True, datetime.utcnow(), datetime.utcnow())
+                """, secrets.token_hex(12), partner_id, marketplace, json.dumps(credentials), True, datetime.now(timezone.utc), datetime.now(timezone.utc))
             
             return {"marketplace": marketplace, "is_connected": True}
     else:
@@ -804,8 +804,8 @@ async def save_marketplace_credentials(partner_id: str, marketplace: str, creden
             "marketplace": marketplace,
             "credentials": credentials,
             "is_active": True,
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
         }
         await db.marketplace_credentials.update_one(
             {"partner_id": partner_id, "marketplace": marketplace},
@@ -902,7 +902,7 @@ async def create_ai_task(partner_id: str, task_type: str, input_data: dict) -> d
             await conn.execute("""
                 INSERT INTO ai_tasks (id, partner_id, task_type, status, input_data, created_at)
                 VALUES ($1, $2, $3, $4, $5, $6)
-            """, task_id, partner_id, task_type, "pending", json.dumps(input_data), datetime.utcnow())
+            """, task_id, partner_id, task_type, "pending", json.dumps(input_data), datetime.now(timezone.utc))
             row = await conn.fetchrow("SELECT * FROM ai_tasks WHERE id = $1", task_id)
             return serialize_pg_row(row)
     else:
@@ -913,7 +913,7 @@ async def create_ai_task(partner_id: str, task_type: str, input_data: dict) -> d
             "input_data": input_data,
             "output_data": None,
             "error_message": None,
-            "created_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc)
         }
         result = await db.ai_tasks.insert_one(task_data)
         task_data["id"] = str(result.inserted_id)
