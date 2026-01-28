@@ -162,7 +162,9 @@ export default function AdminPanel() {
         const json = await response.json();
         // Handle both {success, data} and direct array formats
         const data = json.data || json;
-        return Array.isArray(data) ? data : [];
+        const arr = Array.isArray(data) ? data : [];
+        // Normalize snake_case to camelCase
+        return arr.map(normalizePartner);
       } catch (err) {
         console.error('Admin partners fetch error:', err);
         return [];
