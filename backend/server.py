@@ -74,7 +74,26 @@ from uzum_api_service import UzumMarketAPI as UzumAPI, test_uzum_api
 
 app = FastAPI(title="SellerCloudX AI API")
 
-# Startup event - connect to MongoDB
+# Global exception handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Handle all unhandled exceptions"""
+    import traceback
+    print(f"❌ Global Exception: {exc}")
+    traceback.print_exc()
+    
+    if isinstance(exc, HTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"error": exc.detail}
+        )
+    
+    return JSONResponse(
+        status_code=500,
+        content={"error": str(exc) if str(exc) else "Server xatosi"}
+    )
+
+# Startup event - connect to MongoDB/PostgreSQL
 @app.on_event("startup")
 async def startup():
     await connect_db()
