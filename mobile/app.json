@@ -53,6 +53,14 @@
           "photosPermission": "Galereyadan rasm tanlash uchun ruxsat kerak"
         }
       ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#0F172A"
+        }
+      ],
       "expo-font",
       "expo-localization",
       "expo-secure-store"
