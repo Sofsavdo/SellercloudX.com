@@ -164,7 +164,7 @@ def get_pool():
 
 def utc_now():
     """Get current UTC time as naive datetime (for PostgreSQL compatibility)"""
-    return utc_now()
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 def serialize_doc(doc: dict) -> dict:
     """Convert document to JSON-serializable dict"""
