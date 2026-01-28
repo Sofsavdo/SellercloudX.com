@@ -1,8 +1,9 @@
 """
 SellerCloudX Backend Server - FastAPI with AI Services
 Real AI functionality using Emergent LLM Key
+Full authentication, chat, admin and partner management
 """
-from fastapi import FastAPI, Request, Response, File, UploadFile, Form, HTTPException
+from fastapi import FastAPI, Request, Response, File, UploadFile, Form, HTTPException, Depends, Cookie
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -16,6 +17,20 @@ from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv('/app/backend/.env')
+
+# Import database service
+from database import (
+    connect_db, 
+    create_user, get_user_by_username, get_user_by_id, validate_user_password,
+    create_session, get_session, delete_session,
+    create_partner, get_partner_by_user_id, get_partner_by_id, get_all_partners,
+    update_partner, approve_partner, activate_partner_manual,
+    get_or_create_chat_room, get_chat_rooms, get_messages, create_message,
+    create_product, get_products_by_partner, get_product_by_id,
+    save_marketplace_credentials, get_marketplace_credentials,
+    get_partner_stats, get_ai_tasks, create_ai_task, update_ai_task,
+    serialize_doc
+)
 
 # Import AI service
 from ai_service import generate_product_card, scan_product_image, optimize_price
