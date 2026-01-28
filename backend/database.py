@@ -512,20 +512,35 @@ async def activate_partner_manual(partner_id: str, admin_id: str, tariff: str = 
 
 
 # ==================== CHAT OPERATIONS ====================
+# PostgreSQL schema uses:
+# - chat_rooms: id, name, type, participants (jsonb), last_message_at, is_active
+# - chat_messages: id, partner_id, role, content, metadata, created_at
 
 async def get_or_create_chat_room(partner_id: str) -> dict:
     """Get or create chat room for partner"""
     if USE_POSTGRES:
         async with pool.acquire() as conn:
-            row = await conn.fetchrow("SELECT * FROM chat_rooms WHERE partner_id = $1", partner_id)
+            # Chat rooms use participants jsonb field, not partner_id
+            # Search for room where partner is in participants
+            row = await conn.fetchrow("""
+                SELECT * FROM chat_rooms 
+                WHERE participants::text LIKE $1 
+                OR name = $2
+                LIMIT 1
+            """, f'%"{partner_id}"%', f"partner-{partner_id}")
+            
             if not row:
                 room_id = f"chat-{secrets.token_hex(8)}"
+                participants = json.dumps([partner_id, "admin"])
                 await conn.execute("""
-                    INSERT INTO chat_rooms (id, partner_id, status, created_at)
-                    VALUES ($1, $2, $3, $4)
-                """, room_id, partner_id, "active", datetime.utcnow())
+                    INSERT INTO chat_rooms (id, name, type, participants, is_active, created_at, updated_at)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7)
+                """, room_id, f"partner-{partner_id}", "support", participants, True, datetime.utcnow(), datetime.utcnow())
                 row = await conn.fetchrow("SELECT * FROM chat_rooms WHERE id = $1", room_id)
-            return serialize_pg_row(row)
+            
+            result = serialize_pg_row(row)
+            result["partner_id"] = partner_id  # Add for compatibility
+            return result
     else:
         room = await db.chat_rooms.find_one({"partner_id": partner_id})
         if not room:
@@ -546,14 +561,28 @@ async def get_chat_rooms() -> List[dict]:
     """Get all chat rooms (admin)"""
     if USE_POSTGRES:
         async with pool.acquire() as conn:
-            rows = await conn.fetch("SELECT * FROM chat_rooms ORDER BY last_message_at DESC NULLS LAST")
+            rows = await conn.fetch("SELECT * FROM chat_rooms WHERE is_active = true ORDER BY last_message_at DESC NULLS LAST")
             rooms = []
             for row in rows:
                 room_dict = serialize_pg_row(row)
-                partner = await get_partner_by_id(row.get("partner_id"))
-                if partner:
-                    room_dict["partnerName"] = partner.get("business_name", "Partner")
-                    room_dict["partnerPhone"] = partner.get("phone", "")
+                # Extract partner_id from participants or name
+                partner_id = None
+                if row.get("participants"):
+                    participants = row["participants"]
+                    if isinstance(participants, str):
+                        participants = json.loads(participants)
+                    if isinstance(participants, list) and len(participants) > 0:
+                        partner_id = participants[0] if participants[0] != "admin" else (participants[1] if len(participants) > 1 else None)
+                
+                if not partner_id and row.get("name", "").startswith("partner-"):
+                    partner_id = row["name"].replace("partner-", "")
+                
+                if partner_id:
+                    partner = await get_partner_by_id(partner_id)
+                    if partner:
+                        room_dict["partnerName"] = partner.get("business_name", "Partner")
+                        room_dict["partnerPhone"] = partner.get("phone", "")
+                        room_dict["partner_id"] = partner_id
                 rooms.append(room_dict)
             return rooms
     else:
@@ -573,11 +602,37 @@ async def get_messages(chat_room_id: str, limit: int = 100) -> List[dict]:
     """Get messages for chat room"""
     if USE_POSTGRES:
         async with pool.acquire() as conn:
-            rows = await conn.fetch(
-                "SELECT * FROM messages WHERE chat_room_id = $1 ORDER BY created_at ASC LIMIT $2",
-                chat_room_id, limit
-            )
-            return [serialize_pg_row(row) for row in rows]
+            # Use chat_messages table which has partner_id
+            # First try to get partner_id from room
+            room = await conn.fetchrow("SELECT * FROM chat_rooms WHERE id = $1", chat_room_id)
+            partner_id = None
+            if room:
+                if room.get("name", "").startswith("partner-"):
+                    partner_id = room["name"].replace("partner-", "")
+                elif room.get("participants"):
+                    participants = room["participants"]
+                    if isinstance(participants, str):
+                        participants = json.loads(participants)
+                    if isinstance(participants, list) and len(participants) > 0:
+                        partner_id = participants[0] if participants[0] != "admin" else (participants[1] if len(participants) > 1 else None)
+            
+            # Get messages from chat_messages table
+            if partner_id:
+                rows = await conn.fetch(
+                    "SELECT * FROM chat_messages WHERE partner_id = $1 ORDER BY created_at ASC LIMIT $2",
+                    partner_id, limit
+                )
+            else:
+                rows = []
+            
+            messages = []
+            for row in rows:
+                msg = serialize_pg_row(row)
+                # Map role to sender_role for compatibility
+                msg["sender_role"] = msg.get("role", "partner")
+                msg["chat_room_id"] = chat_room_id
+                messages.append(msg)
+            return messages
     else:
         cursor = db.messages.find({"chat_room_id": chat_room_id}).sort("created_at", 1).limit(limit)
         messages = []
@@ -590,21 +645,42 @@ async def create_message(chat_room_id: str, sender_id: str, sender_role: str, co
     """Create chat message"""
     if USE_POSTGRES:
         async with pool.acquire() as conn:
+            # Get partner_id from chat room
+            room = await conn.fetchrow("SELECT * FROM chat_rooms WHERE id = $1", chat_room_id)
+            partner_id = None
+            if room:
+                if room.get("name", "").startswith("partner-"):
+                    partner_id = room["name"].replace("partner-", "")
+                elif room.get("participants"):
+                    participants = room["participants"]
+                    if isinstance(participants, str):
+                        participants = json.loads(participants)
+                    if isinstance(participants, list) and len(participants) > 0:
+                        partner_id = participants[0] if participants[0] != "admin" else (participants[1] if len(participants) > 1 else None)
+            
+            if not partner_id:
+                partner_id = sender_id
+            
             msg_id = f"msg-{secrets.token_hex(8)}"
+            metadata = json.dumps({"sender_id": sender_id, "message_type": kwargs.get("message_type", "text")})
+            
+            # Insert into chat_messages table
             await conn.execute("""
-                INSERT INTO messages (id, chat_room_id, sender_id, sender_role, content, message_type, attachment_url, created_at)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            """,
-            msg_id, chat_room_id, sender_id, sender_role, content,
-            kwargs.get("message_type", "text"), kwargs.get("attachment_url"),
-            datetime.utcnow()
-            )
+                INSERT INTO chat_messages (id, partner_id, role, content, metadata, created_at)
+                VALUES ($1, $2, $3, $4, $5, $6)
+            """, msg_id, partner_id, sender_role, content, metadata, datetime.utcnow())
+            
+            # Update chat_rooms last_message_at
             await conn.execute(
-                "UPDATE chat_rooms SET last_message_at = $1 WHERE id = $2",
-                datetime.utcnow(), chat_room_id
+                "UPDATE chat_rooms SET last_message_at = $1, updated_at = $2 WHERE id = $3",
+                datetime.utcnow(), datetime.utcnow(), chat_room_id
             )
-            row = await conn.fetchrow("SELECT * FROM messages WHERE id = $1", msg_id)
-            return serialize_pg_row(row)
+            
+            row = await conn.fetchrow("SELECT * FROM chat_messages WHERE id = $1", msg_id)
+            result = serialize_pg_row(row)
+            result["sender_role"] = sender_role
+            result["chat_room_id"] = chat_room_id
+            return result
     else:
         message_data = {
             "chat_room_id": chat_room_id,
