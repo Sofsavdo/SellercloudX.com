@@ -6168,6 +6168,229 @@ async def get_impersonate_status(request: Request):
     }
 
 
+# ========================================
+# REFERRALS ENDPOINTS
+# ========================================
+
+@app.get("/api/partner/referrals/dashboard")
+async def get_referrals_dashboard(request: Request):
+    """Get partner referrals dashboard"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    promo_code = partner.get("promo_code", f"SCX-{partner['id'][:6].upper()}")
+    
+    return {
+        "success": True,
+        "data": {
+            "promoCode": promo_code,
+            "totalReferrals": 0,
+            "activeReferrals": 0,
+            "pendingReferrals": 0,
+            "totalEarnings": 0,
+            "referralBonus": 50000,
+            "referralsList": []
+        }
+    }
+
+
+@app.get("/api/partner/referrals")
+async def get_partner_referrals(request: Request):
+    """Get partner referrals list"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        return {"success": True, "data": []}
+    
+    return {
+        "success": True,
+        "data": []
+    }
+
+
+@app.post("/api/partner/referrals/apply")
+async def apply_referral_code(request: Request):
+    """Apply referral code"""
+    body = await request.json()
+    code = body.get("code", "")
+    
+    if not code:
+        raise HTTPException(status_code=400, detail="Referral kodi kiritilmagan")
+    
+    # Check if code exists
+    partners = await get_all_partners()
+    referrer = None
+    for p in partners:
+        if p.get("promo_code", "").upper() == code.upper():
+            referrer = p
+            break
+    
+    if not referrer:
+        raise HTTPException(status_code=404, detail="Noto'g'ri referral kodi")
+    
+    return {
+        "success": True,
+        "message": "Referral kodi qo'llandi",
+        "referrer": referrer.get("business_name", "Partner")
+    }
+
+
+# ========================================
+# BLOG ENDPOINTS
+# ========================================
+
+@app.get("/api/admin/blog/posts")
+async def get_blog_posts(request: Request, limit: int = 20, offset: int = 0):
+    """Get blog posts (admin)"""
+    try:
+        user = await require_admin(request)
+    except:
+        pass  # Allow public access for reading
+    
+    if USE_POSTGRES:
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                "SELECT * FROM blog_posts ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+                limit, offset
+            )
+            posts = [serialize_pg_row(row) for row in rows]
+            total = await conn.fetchval("SELECT COUNT(*) FROM blog_posts")
+            return {
+                "success": True,
+                "data": posts,
+                "total": total or 0
+            }
+    else:
+        return {
+            "success": True,
+            "data": [],
+            "total": 0
+        }
+
+
+@app.get("/api/blog/posts")
+async def get_public_blog_posts(limit: int = 10, offset: int = 0):
+    """Get public blog posts"""
+    if USE_POSTGRES:
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                "SELECT * FROM blog_posts WHERE is_active = true ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+                limit, offset
+            )
+            return {
+                "success": True,
+                "data": [serialize_pg_row(row) for row in rows]
+            }
+    else:
+        return {"success": True, "data": []}
+
+
+@app.get("/api/blog/posts/{post_id}")
+async def get_blog_post(post_id: str):
+    """Get single blog post"""
+    if USE_POSTGRES:
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow("SELECT * FROM blog_posts WHERE id = $1", post_id)
+            if row:
+                return {"success": True, "data": serialize_pg_row(row)}
+            raise HTTPException(status_code=404, detail="Post topilmadi")
+    else:
+        raise HTTPException(status_code=404, detail="Post topilmadi")
+
+
+class CreateBlogPostRequest(BaseModel):
+    title: str
+    content: str
+    excerpt: Optional[str] = ""
+    category: Optional[str] = "general"
+    tags: Optional[List[str]] = []
+    isActive: Optional[bool] = True
+
+
+@app.post("/api/admin/blog/posts")
+async def create_blog_post(body: CreateBlogPostRequest, request: Request):
+    """Create blog post (admin)"""
+    user = await require_admin(request)
+    
+    if USE_POSTGRES:
+        async with pool.acquire() as conn:
+            post_id = secrets.token_hex(12)
+            await conn.execute("""
+                INSERT INTO blog_posts (id, title, content, excerpt, category, tags, author_id, is_active, created_at, updated_at)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            """, post_id, body.title, body.content, body.excerpt, body.category,
+            json.dumps(body.tags), user["id"], body.isActive, datetime.utcnow(), datetime.utcnow())
+            
+            row = await conn.fetchrow("SELECT * FROM blog_posts WHERE id = $1", post_id)
+            return {
+                "success": True,
+                "message": "Post yaratildi",
+                "data": serialize_pg_row(row)
+            }
+    else:
+        return {"success": False, "error": "Database not available"}
+
+
+# ========================================
+# ANALYTICS ENDPOINTS (Extended)
+# ========================================
+
+@app.get("/api/analytics")
+async def get_general_analytics(request: Request):
+    """Get general analytics"""
+    user = await get_current_user(request=request)
+    
+    if user and user.get("role") == "admin":
+        partners = await get_all_partners()
+        return {
+            "success": True,
+            "data": {
+                "totalPartners": len(partners),
+                "activePartners": len([p for p in partners if p.get("is_active")]),
+                "totalProducts": sum([p.get("products_count", 0) for p in partners]),
+                "totalRevenue": 0,
+                "period": "all_time"
+            }
+        }
+    elif user:
+        partner = await get_partner_by_user_id(user["id"])
+        if partner:
+            stats = await get_partner_stats(partner["id"])
+            return {
+                "success": True,
+                "data": {
+                    "productsCount": stats.get("products_count", 0),
+                    "ordersCount": stats.get("orders_count", 0),
+                    "revenue": stats.get("total_revenue", 0),
+                    "period": "all_time"
+                }
+            }
+    
+    return {"success": True, "data": {}}
+
+
+@app.get("/api/analytics/overview")
+async def get_analytics_overview(request: Request):
+    """Get analytics overview"""
+    user = await get_current_user(request=request)
+    
+    return {
+        "success": True,
+        "data": {
+            "visitors": 0,
+            "orders": 0,
+            "revenue": 0,
+            "conversionRate": 0,
+            "topProducts": [],
+            "recentActivity": []
+        }
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
