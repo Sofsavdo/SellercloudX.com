@@ -158,6 +158,10 @@ else:
 
 # ==================== Helper Functions ====================
 
+def get_pool():
+    """Get the database pool (for direct access in server.py)"""
+    return pool
+
 def serialize_doc(doc: dict) -> dict:
     """Convert document to JSON-serializable dict"""
     if doc is None:
