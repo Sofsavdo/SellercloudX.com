@@ -18,7 +18,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 // Store
 import { useAuthStore } from './src/store/authStore';
 
-// Prevent auto-hiding expo splash
+// Keep expo splash visible while we load
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
 // Query client
@@ -33,40 +33,38 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   const { checkAuth } = useAuthStore();
-  const [appState, setAppState] = useState<'splash' | 'loading' | 'ready'>('splash');
+  const [showCustomSplash, setShowCustomSplash] = useState(true);
+  const [isReady, setIsReady] = useState(false);
   
   useEffect(() => {
-    // Hide expo splash immediately
-    ExpoSplashScreen.hideAsync().catch(() => {});
-    
-    // Start auth check
-    initializeApp();
+    prepareApp();
   }, []);
   
-  const initializeApp = async () => {
+  const prepareApp = async () => {
     try {
+      // Check authentication
       await checkAuth();
     } catch (error) {
       console.log('Auth check error:', error);
+    } finally {
+      // App is ready, hide expo splash
+      await ExpoSplashScreen.hideAsync().catch(() => {});
+      setIsReady(true);
     }
   };
   
   const handleSplashFinish = useCallback(() => {
-    setAppState('ready');
+    setShowCustomSplash(false);
   }, []);
   
-  // Show custom splash screen
-  if (appState === 'splash') {
-    return <SplashScreen onFinish={handleSplashFinish} />;
+  // Wait until app is ready
+  if (!isReady) {
+    return null;
   }
   
-  // Show loading if needed
-  if (appState === 'loading') {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3B82F6" />
-      </View>
-    );
+  // Show custom splash screen with animation
+  if (showCustomSplash) {
+    return <SplashScreen onFinish={handleSplashFinish} />;
   }
   
   // Main app
