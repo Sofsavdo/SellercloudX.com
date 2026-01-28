@@ -57,26 +57,40 @@ import {
 interface Partner {
   id: string;
   userId: string;
+  user_id?: string;
   businessName: string;
+  business_name?: string;
   businessCategory: string;
+  business_category?: string;
   monthlyRevenue: string;
+  monthly_revenue?: string;
   pricingTier: string;
+  tariff_type?: string;
   commissionRate: string;
   approved: boolean;
   approvedAt: string | null;
+  approved_at?: string | null;
   approvedBy: string | null;
+  approved_by?: string | null;
   notes: string | null;
   createdAt: string;
+  created_at?: string;
   updatedAt: string;
+  updated_at?: string;
+  is_active?: boolean;
+  ai_enabled?: boolean;
   userData?: {
     id: string;
     username: string;
     email: string;
-    firstName: string;
-    lastName: string;
+    firstName?: string;
+    first_name?: string;
+    lastName?: string;
+    last_name?: string;
     phone: string;
     role: string;
-    isActive: boolean;
+    isActive?: boolean;
+    is_active?: boolean;
   };
 }
 
