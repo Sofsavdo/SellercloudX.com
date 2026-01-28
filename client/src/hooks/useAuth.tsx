@@ -1,6 +1,7 @@
 // Real Backend Auth Hook for SellerCloudX
+// Token-based authentication with Python backend
 import React, { createContext, useContext, useState, useMemo, useCallback, ReactNode, useEffect } from 'react';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, setAuthToken, getAuthToken } from '@/lib/queryClient';
 
 interface User {
   id: string;
@@ -8,22 +9,32 @@ interface User {
   email?: string;
   firstName?: string;
   lastName?: string;
+  first_name?: string;
+  last_name?: string;
   role: 'admin' | 'partner' | 'customer';
   isActive?: boolean;
+  is_active?: boolean;
 }
 
 interface Partner {
   id: string;
-  userId: string;
+  userId?: string;
+  user_id?: string;
   businessName?: string;
-  businessCategory: string;
-  pricingTier: string;
-  isApproved: boolean;
+  business_name?: string;
+  businessCategory?: string;
+  business_category?: string;
+  pricingTier?: string;
+  tariff_type?: string;
+  isApproved?: boolean;
+  approved?: boolean;
+  is_active?: boolean;
   monthlyRevenue?: string;
   commissionRate?: string;
   telegramConnected?: boolean;
   marketplaces?: string[];
   aiEnabled?: boolean;
+  ai_enabled?: boolean;
 }
 
 interface AuthContextType {
@@ -40,33 +51,50 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Normalize user data from Python backend (snake_case to camelCase)
+function normalizeUser(data: any): User | null {
+  if (!data) return null;
+  return {
+    id: data.id,
+    username: data.username,
+    email: data.email,
+    firstName: data.firstName || data.first_name,
+    lastName: data.lastName || data.last_name,
+    role: data.role,
+    isActive: data.isActive ?? data.is_active ?? true,
+  };
+}
+
+// Normalize partner data from Python backend
+function normalizePartner(data: any): Partner | null {
+  if (!data) return null;
+  return {
+    id: data.id,
+    userId: data.userId || data.user_id,
+    businessName: data.businessName || data.business_name,
+    businessCategory: data.businessCategory || data.business_category,
+    pricingTier: data.pricingTier || data.tariff_type || 'trial',
+    isApproved: data.isApproved ?? data.approved ?? false,
+    monthlyRevenue: data.monthlyRevenue || data.monthly_revenue,
+    aiEnabled: data.aiEnabled ?? data.ai_enabled ?? false,
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [partner, setPartner] = useState<Partner | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Start with true for initial auth check
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Real backend login with enhanced error handling
+  // Token-based login
   const login = useCallback(async (username: string, password: string) => {
     setIsLoading(true);
     
     try {
       console.log('🔐 Attempting login:', { username });
       
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include', // Critical for cookies
-        body: JSON.stringify({ username, password })
-      });
+      const response = await apiRequest('POST', '/api/auth/login', { username, password });
       
-      console.log('📡 Login response:', { 
-        status: response.status, 
-        ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries())
-      });
+      console.log('📡 Login response:', { status: response.status, ok: response.ok });
       
       if (!response.ok) {
         const error = await response.json();
@@ -79,14 +107,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userId: data.user?.id, 
         role: data.user?.role,
         hasPartner: !!data.partner,
-        sessionId: data.sessionId
+        hasToken: !!data.token
       });
       
-      setUser(data.user);
-      setPartner(data.partner || null);
+      // Save token
+      if (data.token) {
+        setAuthToken(data.token);
+      }
+      
+      const normalizedUser = normalizeUser(data.user);
+      const normalizedPartner = normalizePartner(data.partner);
+      
+      setUser(normalizedUser);
+      setPartner(normalizedPartner);
       setIsLoading(false);
       
-      return { user: data.user, partner: data.partner };
+      return { user: normalizedUser!, partner: normalizedPartner };
     } catch (error: any) {
       console.error('❌ Login error:', error);
       setIsLoading(false);
@@ -98,33 +134,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       console.log('👋 Logging out...');
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
+      await apiRequest('POST', '/api/auth/logout');
       console.log('✅ Logout successful');
     } catch (error) {
       console.error('❌ Logout error:', error);
     }
+    setAuthToken(null);
     setUser(null);
     setPartner(null);
     setIsLoading(false);
   }, []);
 
   const refetch = useCallback(async () => {
+    const token = getAuthToken();
+    if (!token) {
+      setUser(null);
+      setPartner(null);
+      setIsLoading(false);
+      return;
+    }
+    
     try {
       console.log('🔄 Refetching auth state...');
-      const response = await fetch('/api/auth/me', {
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json'
-        }
-      });
+      const response = await apiRequest('GET', '/api/auth/me');
       
-      console.log('📡 Auth check response:', { 
-        status: response.status, 
-        ok: response.ok 
-      });
+      console.log('📡 Auth check response:', { status: response.status, ok: response.ok });
       
       if (response.ok) {
         const data = await response.json();
@@ -133,15 +167,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: data.user?.role,
           hasPartner: !!data.partner
         });
-        setUser(data.user);
-        setPartner(data.partner || null);
+        setUser(normalizeUser(data.user));
+        setPartner(normalizePartner(data.partner));
       } else {
         console.log('⚠️ Not authenticated');
+        setAuthToken(null);
         setUser(null);
         setPartner(null);
       }
     } catch (error) {
       console.error('❌ Refetch error:', error);
+      setAuthToken(null);
       setUser(null);
       setPartner(null);
     } finally {
