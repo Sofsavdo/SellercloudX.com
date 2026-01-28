@@ -114,7 +114,9 @@ export default function AdminPanel() {
           console.error('Admin partners API error:', response.status);
           return [];
         }
-        const data = await response.json();
+        const json = await response.json();
+        // Handle both {success, data} and direct array formats
+        const data = json.data || json;
         return Array.isArray(data) ? data : [];
       } catch (err) {
         console.error('Admin partners fetch error:', err);
