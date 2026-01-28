@@ -283,21 +283,23 @@ async def validate_user_password(username: str, password: str) -> Optional[dict]
 async def create_session(user_id: str, user_data: dict) -> str:
     """Create new session token"""
     token = secrets.token_urlsafe(32)
-    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    # Use naive datetime for PostgreSQL (no timezone info)
+    now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
+    expires_at = now_naive + timedelta(days=7)
     
     if USE_POSTGRES:
         async with pool.acquire() as conn:
             await conn.execute("""
                 INSERT INTO user_sessions (token, user_id, user_data, created_at, expires_at)
                 VALUES ($1, $2, $3, $4, $5)
-            """, token, user_id, json.dumps(user_data), datetime.now(timezone.utc), expires_at)
+            """, token, user_id, json.dumps(user_data), now_naive, expires_at)
     else:
         await db.sessions.insert_one({
             "token": token,
             "user_id": user_id,
             "user_data": user_data,
             "created_at": datetime.now(timezone.utc),
-            "expires_at": expires_at
+            "expires_at": datetime.now(timezone.utc) + timedelta(days=7)
         })
     return token
 
