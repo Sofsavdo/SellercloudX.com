@@ -2324,7 +2324,7 @@ async def unified_scan_image(file: UploadFile = File(...)):
 
 
 # ========================================
-# UNIFIED SCANNER - BASE64 ANALYZE (MOBILE APP UCHUN)
+# UNIFIED SCANNER - BASE64 ANALYZE (MOBILE APP UCHUN - LEGACY ENDPOINT)
 # ========================================
 
 class AnalyzeBase64Request(BaseModel):
@@ -2333,8 +2333,8 @@ class AnalyzeBase64Request(BaseModel):
     language: Optional[str] = "uz"
 
 
-@app.post("/api/unified-scanner/analyze-base64")
-async def unified_scanner_analyze_base64(request: AnalyzeBase64Request):
+@app.post("/api/mobile/scanner/analyze-base64")
+async def mobile_scanner_analyze_base64(request: AnalyzeBase64Request):
     """
     MOBILE APP UCHUN - Base64 rasmni AI bilan tahlil qilish
     
