@@ -162,6 +162,10 @@ def get_pool():
     """Get the database pool (for direct access in server.py)"""
     return pool
 
+def utc_now():
+    """Get current UTC time as naive datetime (for PostgreSQL compatibility)"""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
 def serialize_doc(doc: dict) -> dict:
     """Convert document to JSON-serializable dict"""
     if doc is None:
