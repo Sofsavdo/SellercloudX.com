@@ -17,12 +17,14 @@ distro==1.9.0
 dnspython==2.8.0
 ecdsa==0.19.1
 email-validator==2.3.0
+emergentintegrations==0.1.0
 fastapi==0.110.1
 fastuuid==0.14.0
 filelock==3.20.2
 flake8==7.3.0
 frozenlist==1.8.0
 fsspec==2025.12.0
+git-filter-repo==2.47.0
 google-ai-generativelanguage==0.6.15
 google-api-core==2.29.0
 google-api-python-client==2.187.0
@@ -67,6 +69,7 @@ packaging==25.0
 pandas==2.3.3
 passlib==1.7.4
 pathspec==0.12.1
+pexpect==4.9.0
 pillow==12.1.0
 platformdirs==4.5.1
 playwright==1.57.0
@@ -74,6 +77,7 @@ pluggy==1.6.0
 propcache==0.4.1
 proto-plus==1.27.0
 protobuf==5.29.5
+ptyprocess==0.7.0
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
 pycodestyle==2.14.0
@@ -94,6 +98,7 @@ python-multipart==0.0.21
 pytokens==0.3.0
 pytz==2025.2
 PyYAML==6.0.3
+qrcode==8.2
 referencing==0.37.0
 regex==2025.11.3
 requests==2.32.5
