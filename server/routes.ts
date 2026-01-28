@@ -286,23 +286,16 @@ export function registerRoutes(app: express.Application): Server {
   // Uzum Market Direct API Routes
   app.use('/api/uzum-market', uzumMarketRoutes);
 
-  // Python Backend Proxy - KO'P API'larni Python'ga yo'naltiramiz
-  // Chat, Admin, Partner, Scanner, Auth va boshqa API'lar Python backend orqali ishlaydi
+  // Python Backend Proxy - BIRINCHI NAVBATDA!
+  // Auth, Chat, Admin, Partner, Scanner va boshqa API'lar Python backend orqali ishlaydi
   app.use('/api/yandex', pythonBackendProxy);
   app.use('/api/uzum-auto', pythonBackendProxy);
   app.use('/api/python', pythonBackendProxy);
-  app.use('/api/auth', pythonBackendProxy);  // Auth endpoints
-  app.use('/api/chat', pythonBackendProxy);  // Chat endpoints
-  app.use('/api/admin', pythonBackendProxy); // Admin endpoints
-  app.use('/api/partner', pythonBackendProxy); // Partner endpoints
-  app.use('/api/ai-manager', pythonBackendProxy); // AI Manager endpoints
-  app.use('/api/products', pythonBackendProxy); // Products endpoints
-  app.use('/api/marketplaces', pythonBackendProxy); // Marketplaces endpoints
 
   // Click Payment Routes - webhook lar autentifikatsiyasiz
   app.use('/api/click', clickPaymentRoutes);
 
-  // Unified Scanner - public endpoint (autentifikatsiyasiz demo uchun)
+  // Unified Scanner - both Node.js and Python backends handle this
   app.use('/api/unified-scanner', unifiedScannerRoutes);
 
   // MXIK Code Search - public endpoint for tax code lookup
