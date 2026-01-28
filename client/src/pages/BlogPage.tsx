@@ -57,16 +57,25 @@ export default function BlogPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // Fetch blog posts
-  const { data: posts = [], isLoading } = useQuery({
+  const { data: postsData = [], isLoading } = useQuery({
     queryKey: ['/api/blog/posts', selectedCategory],
     queryFn: async () => {
       const url = selectedCategory 
         ? `/api/blog/posts?category=${selectedCategory}&status=published`
         : '/api/blog/posts?status=published';
       const response = await apiRequest('GET', url);
-      return response.json();
+      const data = await response.json();
+      // Handle error response gracefully
+      if (data && data.error) {
+        console.warn('Blog API error:', data.error);
+        return [];
+      }
+      return Array.isArray(data) ? data : [];
     },
   });
+  
+  // Ensure posts is always an array
+  const posts = Array.isArray(postsData) ? postsData : [];
 
   // Fetch categories
   const { data: categories = [] } = useQuery({
