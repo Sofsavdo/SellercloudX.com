@@ -6276,15 +6276,27 @@ async def get_blog_posts(request: Request, limit: int = 20, offset: int = 0):
 async def get_public_blog_posts(limit: int = 10, offset: int = 0):
     """Get public blog posts"""
     if USE_POSTGRES and get_pool():
-        async with get_pool().acquire() as conn:
-            rows = await conn.fetch(
-                "SELECT * FROM blog_posts WHERE is_active = true ORDER BY created_at DESC LIMIT $1 OFFSET $2",
-                limit, offset
-            )
-            return {
-                "success": True,
-                "data": [serialize_pg_row(row) for row in rows]
-            }
+        try:
+            async with get_pool().acquire() as conn:
+                # Try with is_active filter first, fallback to all posts if column doesn't exist
+                try:
+                    rows = await conn.fetch(
+                        "SELECT * FROM blog_posts WHERE is_active = true ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+                        limit, offset
+                    )
+                except Exception:
+                    # Fallback: column might not exist
+                    rows = await conn.fetch(
+                        "SELECT * FROM blog_posts ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+                        limit, offset
+                    )
+                return {
+                    "success": True,
+                    "data": [serialize_pg_row(row) for row in rows]
+                }
+        except Exception as e:
+            # Table might not exist
+            return {"success": True, "data": [], "note": str(e)}
     else:
         return {"success": True, "data": []}
 
