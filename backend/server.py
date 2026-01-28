@@ -841,35 +841,65 @@ async def create_ai_manager_task(body: CreateAITaskRequest, request: Request):
 # ========================================
 
 class ScannerAnalyzeRequest(BaseModel):
-    image: str
+    image: Optional[str] = None
+    image_base64: Optional[str] = None  # Frontend format
+    language: Optional[str] = "uz"
     marketplace: Optional[str] = "yandex"
 
 
 @app.post("/api/unified-scanner/analyze-base64")
 async def unified_scanner_analyze(body: ScannerAnalyzeRequest, request: Request):
-    """AI Scanner - Analyze product from image"""
+    """AI Scanner - Analyze product from image (supports both image and image_base64)"""
     try:
+        # Support both field names (image or image_base64)
+        image_data = body.image_base64 or body.image
+        
+        if not image_data:
+            return {
+                "success": False,
+                "error": "Rasm taqdim etilmagan",
+                "data": None
+            }
+        
         # Remove data URL prefix if present
-        image_data = body.image
         if "base64," in image_data:
             image_data = image_data.split("base64,")[1]
+        if image_data.startswith('data:'):
+            image_data = image_data.split(',')[1]
         
         # Call AI service
         result = await scan_product_image(image_data)
         
         if result.get("success"):
+            product = result.get("product", {})
+            
+            # Return in format that supports both old and new frontend
             return {
                 "success": True,
                 "data": {
-                    "productName": result.get("product_name", "Mahsulot"),
-                    "category": result.get("category", "general"),
-                    "description": result.get("description", ""),
-                    "suggestedPrice": result.get("suggested_price", 100000),
-                    "brand": result.get("brand", ""),
-                    "confidence": result.get("confidence", 0.8),
-                    "keywords": result.get("keywords", []),
+                    "productName": product.get("name", result.get("product_name", "Mahsulot")),
+                    "category": product.get("category", result.get("category", "general")),
+                    "description": product.get("description", result.get("description", "")),
+                    "suggestedPrice": product.get("estimatedPrice", result.get("suggested_price", 100000)),
+                    "brand": product.get("brand", result.get("brand", "")),
+                    "confidence": product.get("confidence", result.get("confidence", 0.8)),
+                    "keywords": product.get("keywords", result.get("keywords", [])),
                     "marketplace": body.marketplace
-                }
+                },
+                # Also include product_info for mobile format compatibility
+                "product_info": {
+                    "brand": product.get("brand", "Unknown"),
+                    "model": product.get("name", ""),
+                    "product_name": product.get("name", "Mahsulot"),
+                    "name": product.get("name", "Mahsulot"),
+                    "category": product.get("category", "general"),
+                    "description": product.get("description", ""),
+                    "features": product.get("keywords", []),
+                    "suggested_price": product.get("estimatedPrice", 100000),
+                },
+                "suggested_price": product.get("estimatedPrice", 100000),
+                "confidence": product.get("confidence", 85),
+                "language": body.language,
             }
         else:
             return {
