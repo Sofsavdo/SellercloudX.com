@@ -6292,8 +6292,8 @@ async def get_public_blog_posts(limit: int = 10, offset: int = 0):
 @app.get("/api/blog/posts/{post_id}")
 async def get_blog_post(post_id: str):
     """Get single blog post"""
-    if USE_POSTGRES:
-        async with pool.acquire() as conn:
+    if USE_POSTGRES and get_pool():
+        async with get_pool().acquire() as conn:
             row = await conn.fetchrow("SELECT * FROM blog_posts WHERE id = $1", post_id)
             if row:
                 return {"success": True, "data": serialize_pg_row(row)}
@@ -6316,14 +6316,15 @@ async def create_blog_post(body: CreateBlogPostRequest, request: Request):
     """Create blog post (admin)"""
     user = await require_admin(request)
     
-    if USE_POSTGRES:
-        async with pool.acquire() as conn:
+    if USE_POSTGRES and get_pool():
+        async with get_pool().acquire() as conn:
             post_id = secrets.token_hex(12)
+            now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
             await conn.execute("""
                 INSERT INTO blog_posts (id, title, content, excerpt, category, tags, author_id, is_active, created_at, updated_at)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             """, post_id, body.title, body.content, body.excerpt, body.category,
-            json.dumps(body.tags), user["id"], body.isActive, datetime.now(timezone.utc), datetime.now(timezone.utc))
+            json.dumps(body.tags), user["id"], body.isActive, now_naive, now_naive)
             
             row = await conn.fetchrow("SELECT * FROM blog_posts WHERE id = $1", post_id)
             return {
