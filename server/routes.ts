@@ -286,10 +286,18 @@ export function registerRoutes(app: express.Application): Server {
   // Uzum Market Direct API Routes
   app.use('/api/uzum-market', uzumMarketRoutes);
 
-  // Python Backend Proxy - faqat Yandex va Uzum Automation uchun
+  // Python Backend Proxy - KO'P API'larni Python'ga yo'naltiramiz
+  // Chat, Admin, Partner, Scanner, Auth va boshqa API'lar Python backend orqali ishlaydi
   app.use('/api/yandex', pythonBackendProxy);
   app.use('/api/uzum-auto', pythonBackendProxy);
   app.use('/api/python', pythonBackendProxy);
+  app.use('/api/auth', pythonBackendProxy);  // Auth endpoints
+  app.use('/api/chat', pythonBackendProxy);  // Chat endpoints
+  app.use('/api/admin', pythonBackendProxy); // Admin endpoints
+  app.use('/api/partner', pythonBackendProxy); // Partner endpoints
+  app.use('/api/ai-manager', pythonBackendProxy); // AI Manager endpoints
+  app.use('/api/products', pythonBackendProxy); // Products endpoints
+  app.use('/api/marketplaces', pythonBackendProxy); // Marketplaces endpoints
 
   // Click Payment Routes - webhook lar autentifikatsiyasiz
   app.use('/api/click', clickPaymentRoutes);
