@@ -293,8 +293,14 @@ export function registerRoutes(app: express.Application): Server {
   app.use('/api/admin', pythonBackendProxy);
   app.use('/api/partner', pythonBackendProxy);
   app.use('/api/ai-manager', pythonBackendProxy);
+  app.use('/api/notifications', pythonBackendProxy);
+  app.use('/api/analytics', pythonBackendProxy);
+  app.use('/api/trends', pythonBackendProxy);
+  app.use('/api/search', pythonBackendProxy);
+  app.use('/api/ai', pythonBackendProxy);
   app.use('/api/yandex', pythonBackendProxy);
   app.use('/api/uzum-auto', pythonBackendProxy);
+  app.use('/api/uzum-automation', pythonBackendProxy);
   app.use('/api/python', pythonBackendProxy);
 
   // Click Payment Routes - webhook lar autentifikatsiyasiz
