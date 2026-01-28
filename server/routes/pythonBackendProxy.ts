@@ -21,14 +21,22 @@ router.all('*', async (req: Request, res: Response) => {
     const targetUrl = `${PYTHON_BACKEND_URL}${req.originalUrl}`;
     console.log(`🔄 Proxying: ${req.method} ${req.originalUrl} -> ${targetUrl}`);
     
+    // Pass through important headers including Authorization
+    const proxyHeaders: Record<string, string> = {
+      'Content-Type': req.headers['content-type'] as string || 'application/json',
+      'Accept': 'application/json'
+    };
+    
+    // Pass Authorization header if present
+    if (req.headers.authorization) {
+      proxyHeaders['Authorization'] = req.headers.authorization as string;
+    }
+    
     const response = await axios({
       method: req.method as any,
       url: targetUrl,
       data: req.body,
-      headers: {
-        'Content-Type': req.headers['content-type'] || 'application/json',
-        'Accept': 'application/json'
-      },
+      headers: proxyHeaders,
       timeout: 120000, // 2 daqiqa timeout
       validateStatus: () => true // Barcha status kodlarini qabul qilish
     });
