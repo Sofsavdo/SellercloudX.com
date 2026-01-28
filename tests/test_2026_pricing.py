@@ -8,7 +8,7 @@ import requests
 import os
 import json
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://selltech-1.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://cloudmarket-4.preview.emergentagent.com').rstrip('/')
 
 class TestHealthAndBasics:
     """Basic health checks"""

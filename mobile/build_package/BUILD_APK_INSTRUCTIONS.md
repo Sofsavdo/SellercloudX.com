@@ -44,7 +44,7 @@ Keyin Expo Go ilovasida QR kodni skanerlang.
 
 ## API URL
 \`\`\`
-https://selltech-1.preview.emergentagent.com/api
+https://cloudmarket-4.preview.emergentagent.com/api
 \`\`\`
 
 ## Web Versiya

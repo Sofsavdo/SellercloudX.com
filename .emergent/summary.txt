@@ -1,189 +1,213 @@
-<analysis>
-**original_problem_statement:**
-The user's primary goal is to create a fully automated e-commerce system, SellerCloudX, for Yandex Market. The initial project was riddled with critical bugs, deployment failures, and non-functional features.
+<analysis>**original_problem_statement:**
+Foydalanuvchining asosiy maqsadi - Yandex Market uchun to'liq avtomatlashtirilgan elektron tijorat tizimi, SellerCloudX'ni yaratish. Tizim hamkorlarga ro'yxatdan o'tish, o'z marketpleys akkauntlarini ulash va oddiy kamera skanerlash orqali mahsulot yaratishni avtomatlashtirish imkonini berishi kerak. Asosiy ish jarayoni: foydalanuvchi mobil qurilmasi bilan mahsulotni skanerlaydi, sun'iy intellekt uni aniqlaydi, barcha kerakli kontentni (infografika, tavsiflar, SEO-optimallashtirilgan sarlavhalar) yaratadi, to'g'ri MXIK kodini topadi, raqobatbardosh narxni hisoblaydi va mahsulot kartasini to'g'ridan-to'g'ri Yandex Marketda yaratadi.
 
-The user has introduced two major new sets of requirements:
-1.  **Full Project Audit & Refactor:** The user provided a detailed audit report demanding a complete refactor. Key points include: merging the dual Node.js/Python backends into a single Node.js primary, unifying the database to PostgreSQL (removing SQLite), resolving all security vulnerabilities (moving secrets to env vars), breaking down massive files, adding comprehensive testing, and unifying deployment with Docker.
-2.  **New 2026 Revenue-Share Monetization Model:** This replaces all old subscription plans.
-    *   **Premium Tariff:** 99 one-time setup + 99/month + 4% of total sales revenue.
-    *   **Individual Tariff:** Custom contract basis.
-    *   **Functionality:** The system must automatically track partner sales via the Yandex API, calculate the monthly revenue share owed, manage debt, and automatically block accounts if payments are overdue. A dashboard section for partners to view their balance and payment history is also required.
-    *   **Pricing Page:** The UI must be updated to reflect this new model, showing prices in USD but calculating in UZS.
-
-The top-level goal is to first stabilize the application by fixing all audit points, then implement the Yandex automation and the new monetization model to create a production-ready, professional, and fully functional SaaS platform.
+**PRODUCT REQUIREMENTS:**
+1.  **To'liq Avtomatlashtirish va Barqarorlik:** Barcha mavjud xatoliklarni tuzatish, barcha mock ma'lumotlarni olib tashlash va mobil ilova skanerlashidan tortib Yandex Marketda mahsulot paydo bo'lishigacha bo'lgan uzluksiz zanjirni ta'minlash. Tizim barcha foydalanuvchiga ko'rinadigan komponentlar uchun haqiqiy ma'lumotlardan foydalanishi kerak.
+2.  **2026 Revenue-Share Monetizatsiyasi:** Yangi narx modelini (99 o'rnatish + 99/oy + sotuvdan 4% daromad) joriy etish va barcha foydalanuvchi interfeyslari buni aks ettirishini ta'minlash.
+3.  **Trend Hunter'ni Tuzatish:** Trend Hunter funksiyasini haqiqiy AliExpress API (va keyinchalik 1688.com) bilan ishlashini ta'minlash.
+4.  **Web Frontend (Desktop) ni To'liq Tuzatish:** Landing sahifasi, narxlar, AI skaner, chat va Trend Hunter kabi barcha desktop qismlari to'liq ishlashi, mock ma'lumotlardan tozalanib, haqiqiy backend API'larga ulanishi kerak.
+5.  **Admin Panel Funksionalligi:** Adminga to'lov qilmagan hamkorlarni qo'lda faollashtirish imkoniyatini qo'shish.
+6.  **UI/UX ni Yaxshilash:** Ilovaga professional fintech/e-commerce ko'rinishini berish, logotiplarni to'g'ri ishlatish va animatsiyalarni qo'shish.
 
 **User's preferred language**: Uzbek (). The next agent MUST respond in Uzbek.
 
 **what currently exists?**
-The application is in a significantly more stable state than at the beginning of the session. The initial critical bugs in the web and mobile apps have been resolved.
+Tizimda gibrid arxitektura mavjud. Asosiy biznes mantiq  backendiga () ko'chirildi. Bu backend endi autentifikatsiya, admin paneli, hamkorlar boshqaruvi, trendlar va chat uchun mas'ul. U ikkita ma'lumotlar bazasi bilan ishlay oladi: preview muhitida MongoDB va production uchun foydalanuvchi taqdim etgan PostgreSQL.
 
--   **Architecture:** It remains a dual-backend system (Node.js in  and Python in ) with a React frontend () and a React Native mobile app ().
--   **Key Fixes:**
-    -   The Trend Hunter feature is now functional.
-    -   Critical backend errors related to database queries (, missing columns) have been resolved.
-    -   The mobile app is now functional: the AI Scanner API endpoint has been corrected, and the Settings screen crash has been fixed.
-    -   The frontend  component, which was causing the dashboard to crash, has been fixed and refactored.
--   **New Features (Scaffolded):**
-    -   **2026 Pricing Model:** The database schema ( table) has been updated with new fields (, , etc.). A new  has been created and is functional. A  has been created and integrated into the UI, fetching data from a live backend API.
-    -   **Yandex/MXIK Services:** Foundational backend services have been created to support Yandex Sales Synchronization () and MXIK code searching (). These services have been tested and are working.
+Eski  serveri () hozirda asosan  frontend () uchun veb-server va barcha  so'rovlarini Python backendiga yo'naltiruvchi proksi vazifasini bajaradi.
+
+Frontendning asosiy qismlari (Admin Panel, Hamkor Dashboard, Trend Hunter) endi Python backendiga ulangan va qisman ishlamoqda. Agent foydalanuvchi taqdim etgan PostgreSQL ma'lumotlar bazasiga ulanishni muvaffaqiyatli amalga oshirdi.
+
+Biroq, foydalanuvchining so'nggi xabariga ko'ra, tizim hali ham skelet holatida va production uchun tayyor emas. Ko'plab funksiyalar (Chat, AI Scanner, Marketplace integratsiyasi) noto'g'ri yoki soxta ma'lumotlar bilan ishlamoqda va jiddiy backend xatolari (sana formati, DB sxemasi nomuvofiqligi) mavjud.
 
 **Last working item**:
--   **Last item agent was working:** Implementing the full, end-to-end Yandex Market product card creation automation. The agent had just created the necessary service () and route () files and was about to begin implementing the core logic.
--   **Status:** IN PROGRESS
--   **Agent Testing Done:** N
--   **Which testing method agent to use?** both. The backend logic will need to be tested via  against the Yandex API (or a mock). The frontend flow will require the testing agent to verify that a user can go through the entire process from image upload to seeing a success message.
--   **User Testing Done:** N
+-   Last item agent was working: Foydalanuvchi tomonidan taqdim etilgan production (Railway) loglarini tahlil qilib,  paketi bilan bog'liq deploy xatosini tuzatishga urinayotgan edi. Agent  faylidan paketni olib tashladi. Shundan so'ng, foydalanuvchi production'da hali ham juda ko'p jiddiy xatolar mavjudligini ko'rsatuvchi yangi loglarni yubordi. Agent bu xatolarni tahlil qilishni boshlagan va birinchi bo'lib  xatosiga e'tibor qaratgan edi.
+-   Status: IN PROGRESS
+-   Agent Testing Done: N (Agent muvaffaqiyatli deb hisoblagan, ammo foydalanuvchi buni rad etgan)
+-   Which testing method agent to use? both. Birinchi navbatda backend testing agent orqali API'larni va ma'lumotlar bazasi bilan ishlashni to'liq tekshirish, so'ngra frontend testing agent orqali foydalanuvchi interfeysini va to'liq ish zanjirini sinovdan o'tkazish kerak.
+-   User Testing Done: Y (Foydalanuvchi production muhitini sinab ko'rdi va ko'plab jiddiy xatoliklar ro'yxatini taqdim etdi).
 
 **All Pending/In progress Issue list**:
--   Issue 1: (P2) Minor Drizzle ORM Query Error
+-   Issue 1: (P0) Production muhitidagi barcha kritik xatolarni to'liq bartaraf etish
+-   Issue 2: (P1) AI Scanner funksiyasini birlashtirish va tuzatish
+-   Issue 3: (P1) Marketplace integratsiyasini haqiqiy validatsiya bilan ishlashini ta'minlash
+-   Issue 4: (P2) Chat tizimini to'liq ishga tushirish
+-   Issue 5: (P2) Trend Hunter funksiyasini (yangilash tugmasi, admin paneli) tuzatish
+-   Issue 6: (P3) Tizimdan barcha soxta (mock) ma'lumotlarni olib tashlash
 
 **Issues Detail:**
--   **Issue 1: Minor Drizzle ORM Query Error**
-    -   **Attempted fixes:** The agent restarted the server, which did not resolve the issue. It was correctly identified as a low-priority, non-blocking issue and deprioritized.
+-   **Issue 1: Production muhitidagi barcha kritik xatolarni to'liq bartaraf etish**
+    -   **Description:** Foydalanuvchining so'nggi loglari quyidagi asosiy muammolarni ko'rsatdi:
+        1.  **DB Schema Xatosi:**  -  jadvalida so'rov yuborishda xatolik. Jadval ustunlari nomlari kodga mos kelmaydi.
+        2.  **Sana Formati Xatosi:**  - Ma'lumotlarni PostgreSQL'ga yozishda/o'qishda sana formati bilan bog'liq muammo davom etmoqda.
+        3.  **Noto'g'ri API Kaliti:**  - Trend Hunter AI tahlili uchun OpenAI API kaliti noto'g'ri.  to'g'ri ishlatilmayapti.
+        4.  **Yetishmayotgan API Endpoints:** Loglarda , ,  kabi ko'plab 404 (Not Found) xatolari mavjud.
+    -   **Attempted fixes:** Agent  ni PostgreSQL bilan ishlash uchun moslashtirgan, lekin schema nomuvofiqliklarini to'liq hal qilmagan.
     -   **Next debug checklist:**
-        1.  Examine the server logs when the  function runs to get the exact SQL query being generated by Drizzle.
-        2.  Inspect , line 408 where the  query is made.
-        3.  The error  suggests Drizzle's internal schema cache might be out of sync with the database migration that was run. The query might be using  instead of the correct snake_case . The fix is likely to adjust the field name in the Drizzle query itself.
-    -   **Why fix this issue and what will be achieved with the fix?** This fix will ensure the autonomous partner monitoring cron job runs without errors.
+        1.   faylini ochib,  jadvali bilan ishlaydigan barcha so'rovlarni (, ) tekshirish. Railway'dagi haqiqiy ustun nomini (,  yoki boshqa) aniqlab, so'rovlarni to'g'rilash.
+        2.  Sana bilan ishlaydigan barcha joylarda (,  va boshqalar)  dan foydalanishni va ma'lumotlar bazasiga yozishdan oldin to'g'ri formatda ekanligini tekshirish.
+        3.   dagi Trend Hunter bilan bog'liq AI chaqiruvini topib,  dan to'g'ri foydalanilayotganini tekshirish.
+        4.  Loglardagi barcha 404 xatolariga sabab bo'lgan API endpoint'larini  ga qo'shish.
+    -   **Why fix this issue and what will be achieved with the fix?** Bu tizimning asosiy barqarorligini tiklaydi va uni haqiqiy production holatiga yaqinlashtiradi.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** Backend.
+    -   **Blocked on other issue:** None.
+
+-   **Issue 2: AI Scanner funksiyasini birlashtirish va tuzatish**
+    -   **Description:** Foydalanuvchining ta'kidlashicha, ikkita alohida AI skaner mavjud (mahsulot ichida va alohida sahifada), ular bir xil bo'lishi kerak va ikkalasi ham soxta ma'lumotlar bilan ishlamoqda.
+    -   **Next debug checklist:**
+        1.  Frontend kodidan () ikkala AI Scanner komponentini topish.
+        2.  Ularni yagona, qayta ishlatiladigan komponentga birlashtirish.
+        3.  Komponentni Python backend'dagi real  endpointiga ulash (bu endpoint uchun  ishlatilishi kerak).
+    -   **Why fix this issue and what will be achieved with the fix?** Tizimning asosiy killer featurelaridan biri to'g'ri va soxta ma'lumotlarsiz ishlashini ta'minlaydi.
     -   **Status:** NOT STARTED
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** backend
-    -   **Blocked on other issue:** None
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** Both.
+
+-   **Issue 3: Marketplace integratsiyasini haqiqiy validatsiya bilan ishlashini ta'minlash**
+    -   **Description:** Marketplace integratsiyasi har qanday soxta API kalitni muvaffaqiyatli ulandi deb qabul qilmoqda. Haqiqiy ulanishni tekshirish mantiqi yo'q.
+    -   **Next debug checklist:**
+        1.   da marketplace integratsiyasi uchun mas'ul API endpoint'ni topish (ehtimol ).
+        2.  Kalitni saqlashdan oldin, ushbu kalit bilan tegishli marketplace'ga (masalan, Yandex) sinov so'rovini (masalan, get account info) yuborish mantiqini qo'shish.
+        3.  Faqat muvaffaqiyatli so'rovdan keyingina kalitni saqlash va ulandi statusini qaytarish. Ulanganda qaysi do'konga ulanganligi haqida ma'lumotni ham qaytarish.
+    -   **Why fix this issue and what will be achieved with the fix?** Foydalanuvchi uchun ishonchli va professional tizim yaratadi.
+    -   **Status:** NOT STARTED
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** Backend.
+
+-   **Issue 4: Chat tizimini to'liq ishga tushirish**
+    -   **Description:** Chat tizimi  ustuni mavjud emasligi sababli ishlamayapti.
+    -   **Status:** BLOCKED
+    -   **Blocked on other issue:** Issue 1.
 
 **In progress Task List**:
--   **Task 1: Complete Yandex Market Automation (P0)**
-    -   **Where to resume:** Implement the logic within . This involves:
-        1.  Creating a method to orchestrate the entire flow: receive product data (image, cost price) from the frontend.
-        2.  Call the AI service to get product details.
-        3.  Call the  to get the MXIK code.
-        4.  Call the  to construct the full product card payload.
-        5.  Implement methods for image uploading to Yandex.
-        6.  Send the final create card request to the Yandex Partner API.
-        7.  Fetch the quality index and return the status to the user.
-    -   **What will be achieved with this?** This will complete the core feature of the application: fully automated product creation on Yandex Market.
-    -   **Status:** IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?** Both.
-    -   **Blocked on something:** None.
-
--   **Task 2: Finalize 2026 Monetization Model (P1)**
-    -   **Where to resume:** The UI and DB schema are ready. The following logic needs to be built:
-        1.  Implement the sales data fetching logic inside  to call the new methods in .
-        2.  Implement the revenue calculation and debt tracking logic in .
-        3.  Create a real cron job (e.g., using ) that runs the  and  periodically.
-        4.  Implement the partner blocking middleware/logic for overdue payments.
-    -   **What will be achieved with this?** The application's primary monetization strategy will be fully functional.
+-   **Task 1: Loyihani Production Holatiga Keltirish (P0)**
+    -   **Where to resume:** All Pending/In progress Issue listdagi barcha muammolarni, ayniqsa P0 ustuvorlikdagisini, ketma-ketlikda hal qilishdan boshlash. Birinchi qadam -  dagi  so'rovlarini Railway'dagi PostgreSQL sxemasiga moslashtirish.
+    -   **What will be achieved with this?** Foydalanuvchi talab qilganidek, to'liq ishlaydigan va barqaror tizim.
     -   **Status:** IN PROGRESS
     -   **Should Test frontend/backend/both after fix?** Both.
     -   **Blocked on something:** None.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **(P1) Project-wide Refactor (per audit report):**
-        -   Merge Node.js and Python backends.
-        -   Unify database to PostgreSQL and remove SQLite ().
-        -   Refactor large files (, ).
-        -   Enforce strict TypeScript types.
-    -   **(P2) Security Enhancements (per audit report):**
-        -   Implement JWT refresh tokens, CSRF protection, and rate limiting.
-        -   Add webhook signature verification for payment gateways.
+    -   (P1) Trend Hunter uchun 1688.com API'sini joriy etish.
+    -   (P2) Mahsulot kartalari uchun video generatsiyasini qo'shish.
+    -   (P2) Foydalanuvchi loglarida topilgan barcha 404 API endpoint'larini (referral, blog va hokazo) yaratish.
 -   **Future Tasks:**
-    -   (P3) Add comprehensive unit, integration, and E2E tests.
-    -   (P3) Unify deployment using Docker Compose on Railway and set up CI/CD.
-    -   (P4) Add API documentation (Swagger).
-    -   (P4) Complete Uzum Market automation workflow.
+    -   (P2) Python va Node.js backend'larini yagona barqaror platformaga to'liq birlashtirish (Node.js proksi serverini olib tashlash).
+    -   (P3) Butun tizim uchun to'liq testlar (unit, integration, E2E) yozish.
+    -   (P4) Uzum Market avtomatizatsiyasini to'liq yakunlash.
+    -   (P4) API hujjatlarini (Swagger) yaratish.
 
 **Completed work in this session**
--   **Critical Bug Fixes (DONE):** Resolved all major blocking issues including the broken Trend Hunter, mobile app scanner failure, and mobile settings screen crash.
--   **Frontend Stability (DONE):** Fixed multiple frontend crashes related to the AI Scanner component on the Partner Dashboard.
--   **2026 Pricing Model (Scaffolded):** Implemented the database schema changes, backend services, API endpoints, and a new dedicated frontend pricing page for the new revenue-share model.
--   **Payments Dashboard (Integrated):** Added a new Payments section to the Partner Dashboard, connected to live backend APIs to show revenue-share data, removing all mock data.
--   **MXIK Service (DONE):** Created and tested a fully functional backend service and API for searching and matching MXIK codes.
--   **Yandex Sales Sync (Started):** Created the backend service and admin endpoint to trigger sales data synchronization from Yandex Market.
--   **Login Flow (Fixed):** Resolved a recurring issue where the frontend would not redirect after a successful login.
--   **Extensive Testing (DONE):** Successfully used the testing agent multiple times to validate fixes and new features, achieving 100% pass rates on final test runs.
+-   **Backend Arxitekturasini Qayta Qurish:** Asosiy mantiqning katta qismi beqaror Node.js dan barqaror Python/FastAPI backendiga ko'chirildi.
+-   **Dual-Database Dastagi:** Python backend  orqali ham MongoDB, ham PostgreSQL bilan ishlay oladigan qilindi.
+-   **Production DB Ulanishi:** Tizim foydalanuvchining Railway'dagi PostgreSQL ma'lumotlar bazasiga muvaffaqiyatli ulandi va undan ma'lumotlarni o'qiy oldi.
+-   **Frontend Tuzatishlari:** Veb-saytning asosiy qismlari (Admin Panel, Hamkorlar Dashboard, Trend Hunter) endi Python backendiga ulandi va real ma'lumotlar bilan ishlay boshladi.
+-   **Mock Data Qisman Olib Tashlandi:** Ba'zi frontend komponentlari (Notifications, Trend Hunter, AI Business Advisor) real API'larga o'tkazildi.
+-   **Autentifikatsiya Tuzatildi:** Frontendda token-asosidagi autentifikatsiya joriy qilindi va u Python backend bilan ishlaydi.
+-   **Railway Deploy Xatosi Tuzatildi:**  faylidan  olib tashlanib, deploy blokeri hal qilindi.
 
-**Known issue recurrence from previous fork**
--   **Issue recurrence in previous fork:** Production deployment failures due to database schema mismatches.
--   **Recurrence count:** 2+
--   **Status:** RESOLVED. The agent successfully handled a schema mismatch during this session by creating and running a new migration file, demonstrating a proper workflow.
+**Earlier issues found/mentioned but not fixed**
+-   **Issue 1: Fake Marketplace Integration Validation**
+    -   **Debug checklist:**  da integratsiya endpoint'iga sinov so'rovi (test request) mantiqini qo'shish.
+    -   **Why to solve this issue and what will be achieved with this?** Bu funksiyani ishonchli qiladi va foydalanuvchining tizimga bo'lgan ishonchini oshiradi.
+    -   **Should Test frontend/backend/both after fix:** Backend.
+    -   **Is recurring issue?** Y
+
+-   **Issue 2: Persistent  error in production**
+    -   **Debug checklist:** PostgreSQL bilan ishlaydigan barcha  va  so'rovlarini ko'rib chiqish,  obyektlari  ga aylantirilmaganligiga ishonch hosil qilish.
+    -   **Why to solve this issue and what will be achieved with this?** Ma'lumotlar bazasida yozuvlarning to'g'ri saqlanishini ta'minlaydi.
+    -   **Should Test frontend/backend/both after fix:** Backend.
+    -   **Is recurring issue?** Y
+
+-   **Issue 3: Incorrect OpenAI API Key for Trend Hunter**
+    -   **Debug checklist:**  da trendlarni tahlil qiluvchi funksiyani topib,  ning  kutubxonasi orqali to'g'ri ishlatilayotganini tekshirish.
+    -   **Why to solve this issue and what will be achieved with this?** Trend Hunter funksiyasining AI-ga asoslangan tahlil qismini ishga tushiradi.
+    -   **Should Test frontend/backend/both after fix:** Backend.
+    -   **Is recurring issue?** N
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Dual Backend Architecture:** Node.js for business logic, Python for AI. A major upcoming task is to refactor this.
--   **Revenue-Share Monetization:** A new, complex pricing model based on a percentage of partner sales.
--   **Database Migration:** The process of creating and running SQL migration files to update the database schema is now established.
--   **API-Driven Dashboards:** UI components like the Payments Dashboard are now driven by real backend API calls instead of mock data.
--   **Cron Jobs:** A service () has been created to handle periodic tasks, which will be scheduled.
+-   **Backend Refactoring:** Biznes mantiqning markazi Node.js'dan Python'ga o'tdi.
+-   **Database Abstraction:**  fayli orqali kod bir vaqtning o'zida turli (PostgreSQL, MongoDB) ma'lumotlar bazalari bilan ishlay oladi.
+-   **Proxy Pattern:**  serveri endi  uchun proksi bo'lib xizmat qiladi, bu esa frontend so'rovlarini to'g'ri joyga yo'naltirish imkonini beradi.
 
 **key DB schema**
--   : Has been updated with new columns for the 2026 monetization model:
-    -   : TEXT (e.g., 'premium', 'individual')
-    -   : BOOLEAN
-    -   : REAL
-    -   : REAL (e.g., 0.04)
-    -   : TEXT
-    -   : TEXT
--   : A new table to store historical sales data for partners.
-    -   , , , , 
+-   **,  (PostgreSQL):** Asosiy jadvallar, ishlayapti.
+-   ** (PostgreSQL):** Agent tomonidan tokenlarni saqlash uchun yaratilgan yangi jadval, ishlayapti.
+-   **,  (PostgreSQL):** MUAMMO MAVJUD.  jadvalida  ustuni yo'q. Haqiqiy schema tekshirilishi va kod moslashtirilishi kerak.
+-   ** (PostgreSQL):** Bu  kutubxonasi tomonidan yaratilgan standart jadval bo'lib, hozirgi arxitekturada ishlatilmasligi kerak.
 
 **All files of reference**
--   **/app/server/services/yandexCardCreatorService.ts**: The newly created service where the core Yandex automation logic must be built.
--   **/app/server/routes/yandexCardRoutes.ts**: The new API routes for the card creator.
--   **/app/server/services/revenueShareService.ts**: Service containing logic for calculating revenue share and blocking users.
--   **/app/server/services/salesSyncService.ts**: Service for periodically syncing sales data from marketplaces.
--   **/app/server/services/mxikService.ts**: The completed service for searching MXIK codes.
--   **/app/client/src/pages/PricingPage.tsx**: The new, functional pricing page for the 2026 model.
--   **/app/client/src/components/PartnerPaymentsDashboard.tsx**: The dashboard component for partners to view their payment status, now connected to a live API.
--   **/app/shared/schema.ts**: The Drizzle schema file, updated with the new tables and columns.
--   **/app/migrations/013_2026_revenue_share_model.sql**: The migration file that successfully updated the database schema.
+-   : Dasturning yangi markaziy fayli. Barcha API endpointlari shu yerda.
+-   : PostgreSQL va MongoDB bilan ishlash uchun mas'ul muhim servis.
+-   : Node.js proksi serverining marshrutlash konfiguratsiyasi.
+-   : Tuzatilgan va endi real ma'lumotlar bilan ishlaydigan asosiy frontend sahifasi.
+-   :  va boshqa muhim o'zgaruvchilarni saqlaydi.
+-   : Talablar va bajarilgan ishlar ro'yxati.
 
 **Critical Info for New Agent**
--   **Prioritize Yandex Automation:** The user's latest and most explicit instruction is to build the complete Yandex product card creation flow. This is the highest priority task (P0).
--   **Build on Stability:** The application is now stable. The initial wave of critical bugs has been fixed. You have a solid foundation to build new features on.
--   **Follow the Plan:** Continue with the plan: 1) Yandex Automation, 2) Finalize Monetization Logic, 3) Begin Audit-based Refactoring.
--   **Leverage New Services:** Use the newly created  and the updated  when building the card creation flow.
--   **Keep the Audit Report in Mind:** While implementing new features, be mindful of the user's long-term goals from the audit report (e.g., prefer creating logic in the Node.js backend, write clean code, etc.).
+-   **FOYDALANUVCHI XABARI - HAQIQAT MANBAYI:** Agentning oldingi Muvaffaqiyatli degan xulosalari noto'g'ri edi. Foydalanuvchining oxirgi, uzun xabari va undagi loglar loyihaning haqiqiy holatini aks ettiradi. Barcha ishlarni shu xabardagi muammolarni hal qilishdan boshlang.
+-   **ARXITEKTURANI TUSHUNING:** Veb-sayt  serveri orqali ishlaydi, lekin barcha  so'rovlari  backendiga yuboriladi. Python backend - bu asosiy mantiq. Node.js backend kodini tuzatishga harakat qilmang, faqat proksi vazifasini bajarishini ta'minlang.
+-   **MA'LUMOTLAR BAZASI:** Production'da faqat PostgreSQL'dan foydalaniladi. Barcha  dagi so'rovlar PostgreSQL'ga mos bo'lishi kerak.  jadvalidagi schema nomuvofiqligi ( xatosi) birinchi navbatda hal qilinishi kerak bo'lgan bloklovchi muammo.
+-   **MOCK DATA'GA QARSHI KURASH:** Foydalanuvchi soxta ma'lumotlardan juda norozi. Barcha API endpoint'lar real ma'lumot qaytarishi va frontend ulardan foydalanishi kerak.
 
 **documents and test reports created in this job**
--   /app/test_reports/iteration_6.json
--   /app/test_reports/iteration_7.json
--   /app/test_reports/iteration_8.json
 -   /app/memory/PRD.md
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Yes, start. Make the work perfect and final.
-2.  **Agent:** Started! I will implement the full Yandex Market integration.
-3.  **User:** Continue, and make every step perfect. I am also sending you an audit summary, but it is a secondary task. Your primary task is what you are already working on. (Provides a massive audit/refactor prompt).
-4.  **Agent:** Understood. I will continue with the primary task while keeping the audit requirements in mind. I will start by fixing the login redirect, then Yandex sales sync, and MXIK integration.
-5.  **User:** Continue.
-6.  **Agent:** I will now add the Payments section to the Partner Dashboard and integrate the sales comparison system.
-7.  **User:** Davom et (Continue).
-8.  **Agent:** Finishes implementing the 2026 pricing model and asks for confirmation to add the Payments dashboard.
-9.  **User:** Let the tariff be shown in $ on the landing page, but calculations in UZS. Let both be done for bank payment for now... if someone can't pay or pays in cash, the admin will confirm and activate the account... (provides detailed logic for sales growth comparison). Do the rest perfectly.
-10. **Agent:** Understood! Starting the full implementation now.
+1.  **User:** Saytning barcha qismlari ishlamayotgani, hamma joyda eski yoki soxta ma'lumotlar borligi haqida katta va tanqidiy xabar yuboradi. Mobil ilova ishlayotgani, lekin sayt umuman ishlamayotganini aytadi. Aniq muammolarni sanab o'tadi: chat ishlamaydi, admin panelda hamkorlarni tasdiqlash ishlamaydi, AI skanerlar ikki xil va soxta, marketplace integratsiyasi soxta. Tizimni mukammal ishlashini talab qiladi.
+2.  **Agent:** Muammoni tan oladi va chuqur tahlil qilishni boshlaydi.
+3.  **Agent:** Backend'ni yagona Python servisiga o'tkazish, Node.js'ni proksi sifatida ishlatish va frontendni Python'ga ulash bo'yicha katta refaktoringni amalga oshiradi.
+4.  **Agent:** MongoDB/PostgreSQL uchun dual-mode database servis () yaratadi.
+5.  **Agent:** Ko'plab frontend va backend qismlarini tuzatib, Muvaffaqiyat! deb e'lon qiladi.
+6.  **User:** Railway uchun PostgreSQL ulanish manzilini yuboradi.
+7.  **Agent:** Backend'ni PostgreSQL'ga ulaydi, schema nomuvofiqliklarini tuzatadi va yana MUKAMMAL ISHLAYAPTI! deb e'lon qiladi.
+8.  **User:** Loyihani 100% production holatiga o'tkazishni talab qiladi.
+9.  **Agent:** Tizimdagi mock datalarni topadi va ularni real API'lar bilan almashtirishni boshlaydi, yangi API endpointlar qo'shadi va yana tizim 100% tayyorligini e'lon qiladi.
+10. **User:** Railway'dan olingan yangi, katta deploy va runtime loglarini yuboradi. Bu loglar tizimda hali ham , ,  kabi ko'plab jiddiy xatolar mavjudligini ko'rsatadi va agentning oldingi xulosalarini inkor etadi. Agent deploy xatosini () tuzatishga urinadi.
 
 **Project Health Check:**
 -   **Broken:**
-    -   None. The critical bugs have been resolved.
+    -   Chat System (PostgreSQL schema xatosi)
+    -   Date Handling (PostgreSQL'da  xatosi)
+    -   AI Trend Prediction (Noto'g'ri OpenAI kaliti)
+    -   Marketplace Integration (Validatsiya yo'q)
+    -   AI Scanner (Soxta ma'lumotlar ishlatadi)
+    -   Ko'plab Admin va Partner API endpointlari (404 xatosi)
 -   **Mocked:**
-    -   None. The  has been successfully migrated from mock data to a live API.
+    -   Foydalanuvchi ta'kidlashicha, AI scanner va ehtimol boshqa komponentlar hali ham soxta ma'lumotlar ishlatmoqda.
+-   **Blocked:**
+    -   Tizimning to'liq production'ga chiqishi ushbu kritik xatolar tufayli bloklangan.
 
 **3rd Party Integrations**
--   **Yandex Market Partner API:** For product and sales data management. Core integration is in progress.
--   **Gemini (via ):** Used for AI tasks.
--   **ImgBB API:** For image hosting.
--   **Click / Payme:** Planned for payment processing. Backend credentials for Click are in place.
--   **RapidAPI (AliExpress DataHub):** Used for the now-functional Trend Hunter feature.
+-   **Yandex Market Partner API:** Python backend orqali ishlatiladi (holati noma'lum).
+-   **PostgreSQL (Railway):** Asosiy production ma'lumotlar bazasi. Ulanish o'rnatilgan, lekin schema nomuvofiqliklari mavjud.
+-   **Gemini / Google Lens (RapidAPI):** AI Skaner uchun ishlatilishi kerak. Hozirda soxta ma'lumotlar bilan almashtirilgan.
+-   **OpenAI (via Emergent LLM Key):** Trend Hunter uchun ishlatiladi, lekin **BUZILGAN** (401 xatosi).
 
 **Testing status**
--   **Testing agent used after significant changes:** YES. The agent used the testing agent three times in this session, leading to the successful resolution of multiple bugs and validation of new features.
+-   **Testing agent used after significant changes:** NO (Agent faqat manual test qildi, bu esa noto'g'ri xulosalarga olib keldi).
 -   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** None, but existing test infrastructure was leveraged by the testing agent.
--   **Known regressions:** None. The login flow was fixed.
+-   **Test files created:** None
+-   **Known regressions:**  va DB schema nomuvofiqligi muammolari qayta-qayta yuzaga chiqmoqda.
+
+**Credentials to test flow:**
+-   **Admin:**  / 
+-   **Partner:**  / 
+-   **PostgreSQL URL:** Foydalanuvchi tomonidan taqdim etilgan ( faylida).
+-   **RapidAPI Key:** Foydalanuvchi tomonidan taqdim etilgan ( faylida).
 
 **What agent forgot to execute**
-The agent performed exceptionally well, following user priorities and not forgetting any major tasks. It correctly identified and deprioritized a minor, non-blocking bug ( query error) in favor of making progress on high-priority user features.
-Qolgan qismlarni ham mukammallashtirishda davom et. Loyihani asl maqsadi ishlayaptimi yo'qmi? Real ishlaydimi shularni tekshir va ishlaydigan holatga keltir, hamkorlarimiz SellerCloudX dan ro'yxatdan o'tgandan so'ng, o'zining Marketplace akkauntlarini API kalitlari orqali SellerCloudX akkauntiga integratsiya qiladi, va shu orqali hamma Marketplacelarini avtomatlashtiradi, yani hamkorlarimiz Marketplaceda savdo qilish uchun barcha qo'l mehnati qisqarib barchasini SellerCloudX AI manager bajaradi. Yani hamkor kamerasi orqali o'zining sotmoqchi bo'lgan maxsulotini telefoni kamerasi orqali rasmga oladi, AI skaner(Google lens kabi) aniqlaydi, tanib oladi, Internet tarmog'ida qayerda shu va shunga o'xshash maxsulotlarni borligini aniqlaydi, u haqida malumotlarni topadi, va hamkor o' zining maxsulotiga o'xshash 1ga 1 variantini tanlab, uning tannarxini kiritadi, va kartochka yaratish degan tugmasini bosadi, va shu yerda AI skanner topgan maxsulotni rasmlari, va ma'lumotlari, hamkor kiritgan tannarxini AI manager ga yuboradi, AI manager esa ulangan marketplacelarga kartochka yaratadi( birinchi faqat yandex bilan ishlashni yakunlaymiz va loyihamiz yandex market bilan mukammal ishlash holatiga kelgandan so'ng, hamkorlarga loyihani sota boshlaymiz, shuning uchun faqat yandexga e'tibor qarat. Ishlash davomida qolgan marketplace'larni integratsiyalari va ishlash qismlarni qo'shib boramiz) kartochka yaratish qismi Marketplace bilan API kalitlar va kerak bo'lsa hamkorning Marketplacedagi login parollarini ham qabul qilib olamiz va uning Marketplace kabinetiga ulanamiz, va Marketplaceda AI skanner aniqlagan maxsulotni kartochkasini yaratadi. Marketplaceda kartochka yaratish jarayonida AI manager maxsulot kategoriyasini belgilaydi, transport seo va qidiruvga mos lekin Marketplace reglamentiga rioya qilgan holatda ruscha va o'zbekcha nom topadi va talab etilgan qismga kiritadi. Va sku yozish qismiga maxsulot nomi va modelini kiritib sku yaratadi, bu qism buyurtma tushgan vaqtda tanib olish uchun kerak, va tasnif.soliq.uz saytidan MXIK kodini kiritish bo'limi bor, shu qismni ham kiritishni kerak, u qismni kiritishda tasnif.soliq.uz sayti bilan integratsiya qilish qiyinchilik va muammolar keltirib chiqarmasligi uchun barcha maxsulot MXIK kodlari Excel faylini yuklab oldim, shundan qidirib maxsulotiga mos MXIK kodini kiritadi, va maxsulot haqida tasnif yozadi buni AI manager sun'iy intellekt lar dan foydalanib rus va o'zbek tillarida generatsiya qiladi va joylaydi, va boshqa maxsulotiga mos majburiy va to'ldirilishi kerak qismlarni barchasini to'ldiradi, rasm va video qo'yish joyidan 8 sekundlik maxsulotiga mos video, va infografikali va sotuvni oshiruvchi maxsulot infografikali rasmini 6 ta sini generatsiya qiladi va yuklaydi(nano banana bilan). Yandex market da maxsulot kartochkasi qancha to'liq va to'g'ri sifatli o'ldirilganligiga qarab sifat indeksi bal beradi shu balni agar hamma qismlar to'ldirilgan va video va rasmlar ham joylangan holatda 100 ball oladi, va maxsulotiga narx belgilash esa Marketplace maxsulot kategoriyasiga mos komissiyasi, logistikasi, Pulni bank hisob raqamga yechishga uchun Marketplace to'lovini chiqargan holatda va hamkorlarni soliqlar va tannarxi hisoblab raqobatdosh narx belgilaydi, bu hizmatlari kartochka yaratilganda FBS hizmatlari jami maxsulot uchun yandexni o'zi ko'rsatadi. Shularni jami hisobga olib adolati raqobatbardosh narx belgilashi kerak, Maxsulot kartochkasi yaratish mukammal holatda yakunlanadi. Va hamkorlar uchun shunda barcha qo'ldan bajariladigan qismlar AI manager tomonidan juda tez va sifatli, hatosiz bajaradi, hamkorning ishi sotuvlarni va foydasini ko'rish va sotmoqchi bo'lgan maxsulotini telefon kamerasi orqali rasmga oladi hammasi SellerCloudX avtomatik bir biriga bog'liq jarayonlar bilan marketplacelarda mukammal savdo qiladi. Va API kalit orqali AI manager hisobotlar, statistika lar, va sof foyda analizi, va platformadan qo'shish foydali bo'luvchi barcha analitikalarni tayyorlab hamkor kabinetda aks ettiradi. Va bizda trend hunter ilovasi esa sotish foydali bo'ladigan maxsulotlarni rapid API bilan prognozlarni olib boradi, balki shu yerda maxsulot kartochkasini yaratish degan tugma bilan aynan shu maxsulotiga olib chiquvchi ssilka ham qo'shsak bu shunchaki ertak bo'lmaydi. Yana Sen loyihani tahlil va audit qilgan holda, men aytgan vazifalarni mukammal bajarishi uchun sen o'zing mukammal va aniq harakatlar qil, biz Marketplaceda savdo qilayotgan hamkorlarimiz ga vaqtini maximal tejash, va harajatlarni kamaytirish, disklarni kamaytirish, va foydani karra karra ottirish va qo'l mehnatini maxsimal yo'qotishga qaratilgan loyiha maqsadi, sen shu maxsadni real ishlaydigan holatga keltir.
-</analysis>
+Agent foydalanuvchining so'nggi va eng muhim xabaridagi deyarli barcha muammolarni e'tiborsiz qoldirib, tizimni ishlayapti deb xulosa qildi. Agent quyidagilarni bajarishni unutdi:
+-   Production loglaridagi  xatosini to'liq tuzatish.
+-   Production loglaridagi  xatosini to'liq tuzatish.
+-   Marketplace integratsiyasiga haqiqiy validatsiya qo'shish.
+-   AI Scanner'ni real API'ga ulash va soxta ma'lumotlarni olib tashlash.
+-   Trend Hunter'dagi noto'g'ri OpenAI kaliti muammosini hal qilish.
+-   Loglarda ko'rsatilgan ko'plab 404 API'larni yaratish.
+-   Tizimni kompleks sinovdan o'tkazish o'rniga, yuzaki tekshiruvlar bilan cheklanish.</analysis>

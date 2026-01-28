@@ -45,7 +45,7 @@
     "frontend": "90% (6/7 features working, Blog page has error)"
   },
   "test_credentials": {
-    "API_URL": "https://selltech-1.preview.emergentagent.com"
+    "API_URL": "https://cloudmarket-4.preview.emergentagent.com"
   },
   "seed_data_creation": "None",
   "retest_needed": false,
