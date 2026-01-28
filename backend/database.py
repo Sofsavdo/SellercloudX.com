@@ -803,14 +803,14 @@ async def save_marketplace_credentials(partner_id: str, marketplace: str, creden
             if existing:
                 await conn.execute("""
                     UPDATE marketplace_integrations 
-                    SET credentials = $1, is_active = true, updated_at = $2
+                    SET api_credentials = $1, is_active = true, active = true, updated_at = $2
                     WHERE partner_id = $3 AND marketplace = $4
                 """, json.dumps(credentials), utc_now(), partner_id, marketplace)
             else:
                 await conn.execute("""
-                    INSERT INTO marketplace_integrations (id, partner_id, marketplace, credentials, is_active, created_at, updated_at)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7)
-                """, secrets.token_hex(12), partner_id, marketplace, json.dumps(credentials), True, utc_now(), utc_now())
+                    INSERT INTO marketplace_integrations (id, partner_id, marketplace, api_credentials, is_active, active, created_at, updated_at)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                """, secrets.token_hex(12), partner_id, marketplace, json.dumps(credentials), True, True, utc_now(), utc_now())
             
             return {"marketplace": marketplace, "is_connected": True}
     else:
