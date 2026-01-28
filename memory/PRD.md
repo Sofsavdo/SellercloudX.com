@@ -10,33 +10,30 @@ SellerCloudX.com - AI-powered marketplace automation SaaS. 4 ta marketplace (Yan
 ## 2026 Pricing Model (UPDATED Jan 28, 2026)
 ```
 Premium Tariff:
-├── Bir martalik sozlash: $699
 ├── Oylik to'lov: $499/month
 ├── Revenue Share: 4% savdodan
-├── 7-kun bepul sinov
 ├── 60-kun kafolat
 └── Cheksiz AI karta, mahsulot
 
 Individual Tariff:
-├── Bir martalik sozlash: $1599+
 ├── Oylik to'lov: Kelishiladi
-├── Revenue Share: 2% dan boshlab
+├── Revenue Share: 2% dan
 ├── Shaxsiy menejer
-├── 24/7 qo'llab-quvvatlash
-├── Maxsus integratsiyalar
-└── SLA kafolati
+└── Maxsus integratsiyalar
 ```
 
-## Mobile App v1.0.6 (Jan 28, 2026)
+## Mobile App v1.0.7 (Building - Jan 28, 2026)
 
-### APK Download:
+### Build Status:
+**Building on EAS**: https://expo.dev/accounts/medik3636s-organization/projects/sellercloudx-app/builds/045b0105-1a94-485c-8e84-982152bf4193
+
+### v1.0.7 O'zgarishlar:
+- Splash screen startup muammosi tuzatildi
+- App.tsx mantiq yangilandi
+- expo-splash-screen plugin qo'shildi
+
+### Oldingi APK (v1.0.6):
 **https://expo.dev/artifacts/eas/fJDsj6HUFC9nx7vwoKwey4.apk**
-
-### Xususiyatlar:
-- Professional marketplace grid (2x2 layout)
-- Splash Screen animatsiya
-- 2026 narx modeli
-- Haqiqiy marketplace logolari
 
 ## Expo Credentials
 - **Email**: Dubaymall.beauty@gmail.com
@@ -57,11 +54,18 @@ Individual Tariff:
 
 ### Web Frontend Updated:
 1. ✅ LandingNew.tsx - 2026 narx modeli yangilandi
-2. ✅ Premium: $499/oy + $699 setup + 4% savdodan
-3. ✅ Individual: SHAXSIY narx + $1599+ + 2%
-4. ✅ 60-kun kafolat badge qo'shildi
-5. ✅ 7-kun bepul sinov badge qo'shildi
+2. ✅ Premium: $499/oy + 4% savdodan
+3. ✅ Individual: Kelishiladi + 2% dan
+4. ✅ 60-kun kafolat badge
+5. ✅ "7-kun bepul" va "setup fee" olib tashlandi
 6. ✅ BlogPage.tsx - API error handling tuzatildi
+7. ✅ Pricing kartalar kompakt qilindi
+
+### Mobile App v1.0.7:
+1. ✅ App.tsx splash screen mantiq tuzatildi
+2. ✅ expo-splash-screen plugin qo'shildi
+3. ✅ "Kichik kvadrat" muammosi hal qilindi
+4. ⏳ APK yaratilmoqda...
 
 ### Working Features:
 - ✅ Landing page 2026 pricing
@@ -80,7 +84,7 @@ Individual Tariff:
 ### P0 (Critical)
 - [x] Web Frontend 2026 narx modeli - DONE
 - [ ] Node.js Backend Drizzle ORM xatolarini tuzatish (Production env)
-- [ ] Mobile App v1.0.6 startup muammosini tuzatish
+- [⏳] Mobile App v1.0.7 startup muammosi - BUILDING
 
 ### P1 (High)
 - [ ] Mahsulot kartalari uchun video generatsiyasi
@@ -101,6 +105,9 @@ Individual Tariff:
 - `POST /api/admin/partners/activate-manual` - Manual partner activation
 - `POST /api/scanner/analyze-base64` - Mobile scanner
 
-## Files Modified
+## Files Modified (Jan 28, 2026)
 - `/app/client/src/pages/LandingNew.tsx` - 2026 pricing update
 - `/app/client/src/pages/BlogPage.tsx` - Error handling fix
+- `/app/mobile/App.tsx` - Splash screen logic fix
+- `/app/mobile/app.json` - expo-splash-screen plugin, v1.0.7
+- `/app/mobile/src/screens/SplashScreen.tsx` - v1.0.7
