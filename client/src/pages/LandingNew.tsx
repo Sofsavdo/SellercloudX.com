@@ -44,7 +44,6 @@ export default function LandingNew() {
   const [showLoginMenu, setShowLoginMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   // Stats with counter animation
