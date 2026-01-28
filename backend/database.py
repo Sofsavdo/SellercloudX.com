@@ -678,12 +678,13 @@ async def create_message(chat_room_id: str, sender_id: str, sender_role: str, co
             await conn.execute("""
                 INSERT INTO chat_messages (id, partner_id, role, content, metadata, created_at)
                 VALUES ($1, $2, $3, $4, $5, $6)
-            """, msg_id, partner_id, sender_role, content, metadata, datetime.now(timezone.utc))
+            """, msg_id, partner_id, sender_role, content, metadata, datetime.now(timezone.utc).replace(tzinfo=None))
             
             # Update chat_rooms last_message_at
+            now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
             await conn.execute(
                 "UPDATE chat_rooms SET last_message_at = $1, updated_at = $2 WHERE id = $3",
-                datetime.now(timezone.utc), datetime.now(timezone.utc), chat_room_id
+                now_naive, now_naive, chat_room_id
             )
             
             row = await conn.fetchrow("SELECT * FROM chat_messages WHERE id = $1", msg_id)
