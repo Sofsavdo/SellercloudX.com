@@ -1,4 +1,4 @@
-# SellerCloudX - Production Ready
+# SellerCloudX - Production Requirements Document
 
 ## Overview
 SellerCloudX.com - AI-powered marketplace automation SaaS for Yandex Market, Uzum, Wildberries, Ozon.
@@ -7,18 +7,24 @@ SellerCloudX.com - AI-powered marketplace automation SaaS for Yandex Market, Uzu
 - **Preview**: https://cloudmarket-4.preview.emergentagent.com
 - **Production**: https://sellercloudx.com (Railway)
 
-## Production Status: ✅ 100% READY
+## Production Status: ✅ P0 FIXES COMPLETED (28-01-2026)
 
-### Working Features (Tested)
+### P0 Critical Fixes Applied
+1. ✅ **Chat System Schema Fix** - PostgreSQL `chat_rooms` jadvalida `partner_id` ustuni yo'q edi. `participants` (jsonb) va `name` field orqali ishlashga o'tkazildi
+2. ✅ **Invalid Date Fix** - `utc_now()` helper funksiyasi yaratildi - PostgreSQL uchun naive datetime qaytaradi
+3. ✅ **get_pool() Function** - Server.py da pool'ga to'g'ri kirish uchun funksiya qo'shildi
+4. ✅ **Blog/Referrals Endpoints** - 404 xatolar hal qilindi - yangi endpoint'lar qo'shildi
+5. ✅ **Blog is_active Column** - Fallback query qo'shildi
+
+### Working Features (Tested 100%)
 - ✅ **Authentication** - Login/Register (Admin & Partner)
 - ✅ **Admin Panel** - Partners list, statistics, approve/activate
 - ✅ **Partner Dashboard** - Full dashboard with all metrics
-- ✅ **AI Scanner** - Image upload and camera scan
-- ✅ **AI Manager** - 24/7 AI automation status
+- ✅ **Chat System** - Chat rooms and messaging (P0 fixed)
+- ✅ **Referrals Dashboard** - Partner referral system
+- ✅ **Blog System** - Blog posts CRUD
+- ✅ **Analytics** - General and partner analytics
 - ✅ **Trend Hunter** - Real trending products from API
-- ✅ **Chat System** - Chat rooms and messaging
-- ✅ **Notifications** - Real-time notifications from API
-- ✅ **Analytics** - Partner statistics and metrics
 - ✅ **Business Metrics** - Admin dashboard metrics
 
 ### API Endpoints (Python Backend)
@@ -35,6 +41,7 @@ SellerCloudX.com - AI-powered marketplace automation SaaS for Yandex Market, Uzu
 - `POST /api/admin/partners/:id/activate` ✅
 - `GET /api/admin/business-metrics` ✅
 - `GET /api/admin/tier-upgrade-requests` ✅
+- `GET /api/admin/blog/posts` ✅
 
 #### Partner
 - `GET /api/partner/profile` ✅
@@ -42,31 +49,46 @@ SellerCloudX.com - AI-powered marketplace automation SaaS for Yandex Market, Uzu
 - `GET /api/partner/tariff` ✅
 - `POST /api/partner/marketplaces/connect` ✅
 - `GET /api/partner/products` ✅
+- `GET /api/partner/referrals/dashboard` ✅ (NEW)
+- `GET /api/partner/referrals` ✅ (NEW)
 
-#### Trends & Analytics
-- `GET /api/trends/hunter` ✅
-- `GET /api/trends/opportunities` ✅
-- `GET /api/trends/forecasts` ✅
-- `GET /api/analytics/partner/:id` ✅
-- `GET /api/notifications` ✅
-
-#### Chat
+#### Chat (P0 Fixed)
 - `GET /api/chat/room` ✅
 - `GET /api/chat/rooms` ✅
 - `GET /api/chat/messages` ✅
 - `POST /api/chat/send` ✅
 
+#### Blog (NEW)
+- `GET /api/blog/posts` ✅
+- `GET /api/blog/posts/:id` ✅
+- `POST /api/admin/blog/posts` ✅
+
+#### Trends & Analytics
+- `GET /api/trends/hunter` ✅
+- `GET /api/trends/top` ✅
+- `GET /api/trends/opportunities` ✅
+- `GET /api/trends/forecasts` ✅
+- `GET /api/analytics` ✅ (NEW)
+- `GET /api/analytics/overview` ✅ (NEW)
+- `GET /api/analytics/partner/:id` ✅
+
 ## Database Configuration
 - **Production (Railway)**: PostgreSQL via `DATABASE_URL`
-- **Preview/Development**: MongoDB via `MONGO_URL`
-- **Auto-detection**: database.py automatically detects which DB to use
+- **Preview/Development**: PostgreSQL (same DATABASE_URL)
+- **Auto-detection**: database.py automatically uses PostgreSQL when DATABASE_URL set
+
+### PostgreSQL Schema Notes
+- `chat_rooms`: Uses `participants` (jsonb) and `name` fields instead of `partner_id`
+- `chat_messages`: Has `partner_id`, `role`, `content`, `metadata`, `created_at`
+- DateTime: Use `utc_now()` helper for naive datetime (PostgreSQL compatibility)
 
 ## Architecture
 ```
 /app
 ├── backend/            # Python/FastAPI (port 8001) - PRIMARY
-│   ├── server.py       # 6000+ lines - All API endpoints
-│   └── database.py     # PostgreSQL/MongoDB dual mode
+│   ├── server.py       # 6300+ lines - All API endpoints
+│   ├── database.py     # PostgreSQL dual mode with utc_now() helper
+│   └── tests/          # Pytest tests
 ├── client/             # React/Vite - Web Frontend
 ├── server/             # Node.js - Proxy to Python backend
 └── mobile/             # React Native/Expo
@@ -74,37 +96,53 @@ SellerCloudX.com - AI-powered marketplace automation SaaS for Yandex Market, Uzu
 
 ## 2026 Pricing Model
 ```
-Premium: $499/month + 4% revenue share + 60-day guarantee
+Premium: $699 setup + $499/month + 4% revenue share + 60-day guarantee
 Individual: Custom pricing + 2% from + Personal manager
 ```
 
 ## Test Credentials
 - **Admin**: admin / admin123
-- **Partner**: testpartner / test123
+- **Partner**: partner / partner123
 
 ## Mobile App v1.0.7
 **APK**: https://expo.dev/artifacts/eas/xcgPHV3rXDKUu7f8R1guP.apk
 
-## Key Files Modified (Production Ready)
-1. `/app/backend/server.py` - Full API with 6000+ lines
-2. `/app/backend/database.py` - PostgreSQL/MongoDB dual mode
-3. `/app/server/routes.ts` - Node.js proxy configuration
-4. `/app/server/routes/pythonBackendProxy.ts` - Auth header forwarding
-5. `/app/client/src/lib/queryClient.ts` - Token-based auth
-6. `/app/client/src/hooks/useAuth.tsx` - Token-based auth hook
-7. `/app/client/src/pages/AdminPanel.tsx` - Data normalization
-8. `/app/client/src/components/NotificationCenter.tsx` - Real API
-9. `/app/client/src/components/AdvancedTrendHunter.tsx` - Real API
-10. `/app/client/src/components/partner/AIBusinessAdvisor.tsx` - Real API
+## Key Files Modified (P0 Fixes)
+1. `/app/backend/server.py` - Blog endpoints, blog is_active fallback
+2. `/app/backend/database.py` - utc_now() helper, get_pool(), chat_rooms schema fix
 
-## Deploy to Production
-1. Push code to GitHub
-2. Railway auto-deploys from main branch
-3. Set `DATABASE_URL` environment variable in Railway
-4. Backend automatically uses PostgreSQL in production
+## Test Reports
+- `/app/test_reports/iteration_17.json` - 100% pass rate (19/19 tests)
 
-## Backlog (Optional Enhancements)
-- P2: Video generation for product cards
-- P2: 1688.com API for China products
-- P3: API documentation (Swagger)
-- P3: Unit/Integration tests
+---
+
+## Backlog (P1-P3)
+
+### P1 - High Priority
+- [ ] AI Scanner - Real API integration (currently uses mock)
+- [ ] Marketplace Integration - Real validation (test API calls)
+- [ ] OpenAI API Key - EMERGENT_LLM_KEY integration for Trend Hunter AI
+
+### P2 - Medium Priority
+- [ ] 1688.com API for China products
+- [ ] Video generation for product cards
+- [ ] Full Node.js to Python migration
+
+### P3 - Low Priority
+- [ ] API documentation (Swagger)
+- [ ] Unit/Integration tests coverage
+- [ ] Uzum Market full automation
+
+---
+
+## Changelog
+
+### 28-01-2026 - P0 Fixes
+- Fixed chat_rooms PostgreSQL schema compatibility
+- Added utc_now() helper for naive datetime
+- Added get_pool() function for server.py pool access
+- Added /api/partner/referrals/dashboard endpoint
+- Added /api/analytics endpoint
+- Added /api/blog/posts endpoints
+- Fixed blog is_active column fallback
+- All 19 backend tests passing (100%)
