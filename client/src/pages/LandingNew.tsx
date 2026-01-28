@@ -554,13 +554,13 @@ export default function LandingNew() {
           <div className="text-center mb-12">
             <Badge className="mb-4 bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] text-black px-6 py-2.5 shadow-lg">
               <Crown className="w-4 h-4 mr-2" />
-              2026 PREMIUM MODEL
+              2026 MODEL
             </Badge>
             <h2 className="text-3xl sm:text-section font-bold mb-4">
               <span className="text-gradient-primary">Faqat Natija Uchun To'lov</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-              Savdolaringizdan 4% olamiz. Savdo bo'lmasa - to'lov yo'q.
+              Savdolaringizdan faqat 4% olamiz. Savdo bo'lmasa - to'lov yo'q.
             </p>
             
             {/* Guarantee badges */}
@@ -568,10 +568,6 @@ export default function LandingNew() {
               <div className="flex items-center gap-2 bg-success/10 text-success px-4 py-2 rounded-full">
                 <Shield className="w-5 h-5" />
                 <span className="font-semibold">60-kun kafolat</span>
-              </div>
-              <div className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full">
-                <Zap className="w-5 h-5" />
-                <span className="font-semibold">7-kun bepul sinov</span>
               </div>
               <div className="flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full">
                 <TrendingUp className="w-5 h-5" />
@@ -586,17 +582,17 @@ export default function LandingNew() {
               <div
                 key={i}
                 className={cn(
-                  'relative animate-fade-in p-8',
-                  plan.popular ? 'card-pricing-popular border-accent shadow-xl shadow-accent/20' : 'card-pricing hover:border-primary/50'
+                  'relative animate-fade-in p-6 rounded-2xl border bg-card',
+                  plan.popular ? 'border-accent shadow-xl shadow-accent/20' : 'border-border hover:border-primary/50'
                 )}
                 style={{ animationDelay: `${i * 100}ms` }}
               >
                 {/* Popular marker */}
                 {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] text-black px-6 py-2 font-bold shadow-lg">
-                      <Star className="w-4 h-4 mr-2" />
-                      TAVSIYA ETILADI
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <Badge className="bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] text-black px-4 py-1 font-bold shadow-lg text-sm">
+                      <Star className="w-3 h-3 mr-1" />
+                      TAVSIYA
                     </Badge>
                   </div>
                 )}
