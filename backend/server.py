@@ -5395,51 +5395,8 @@ async def generate_invoice(
         return {"success": False, "error": str(e)}
 
 
-@app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
-async def proxy(request: Request, path: str):
-    """Proxy all other requests to main Express server"""
-    
-    # Skip AI routes (already handled above)
-    if path.startswith("api/ai/"):
-        raise HTTPException(status_code=404, detail="AI endpoint not found")
-    
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        try:
-            url = f"{MAIN_SERVER}/{path}"
-            
-            # Forward headers
-            headers = dict(request.headers)
-            headers.pop("host", None)
-            
-            # Get body
-            body = await request.body()
-            
-            # Make request
-            response = await client.request(
-                method=request.method,
-                url=url,
-                headers=headers,
-                content=body,
-                params=request.query_params,
-            )
-            
-            # Return response
-            return Response(
-                content=response.content,
-                status_code=response.status_code,
-                headers=dict(response.headers),
-            )
-            
-        except httpx.ConnectError:
-            return JSONResponse(
-                content={"error": "Main server not available"},
-                status_code=503
-            )
-        except Exception as e:
-            return JSONResponse(
-                content={"error": str(e)},
-                status_code=500
-            )
+# Note: Catch-all proxy removed - Node.js already proxies to Python backend
+# All API routes should be defined explicitly above
 
 
 # ========================================
