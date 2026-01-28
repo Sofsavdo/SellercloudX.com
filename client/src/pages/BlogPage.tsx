@@ -78,13 +78,22 @@ export default function BlogPage() {
   const posts = Array.isArray(postsData) ? postsData : [];
 
   // Fetch categories
-  const { data: categories = [] } = useQuery({
+  const { data: categoriesData = [] } = useQuery({
     queryKey: ['/api/blog/categories'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/blog/categories');
-      return response.json();
+      const data = await response.json();
+      // Handle error response gracefully
+      if (data && data.error) {
+        console.warn('Categories API error:', data.error);
+        return [];
+      }
+      return Array.isArray(data) ? data : [];
     },
   });
+  
+  // Ensure categories is always an array
+  const categories = Array.isArray(categoriesData) ? categoriesData : [];
 
   const filteredPosts = posts.filter((post: BlogPost) =>
     post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
