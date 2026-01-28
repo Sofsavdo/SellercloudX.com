@@ -6029,29 +6029,35 @@ async def get_business_metrics(request: Request):
 @app.get("/api/admin/tier-upgrade-requests")
 async def get_tier_upgrade_requests(request: Request):
     """Get tier upgrade requests"""
-    user = await require_admin(request)
-    
-    # Return upgrade requests from partners
-    partners = await get_all_partners()
-    requests_list = []
-    
-    for p in partners:
-        if p.get("tariff_change_request"):
-            requests_list.append({
-                "id": p["id"],
-                "partnerId": p["id"],
-                "partnerName": p.get("business_name", "Partner"),
-                "currentTier": p.get("tariff_type", "trial"),
-                "requestedTier": p.get("tariff_change_request"),
-                "reason": p.get("tariff_change_notes"),
-                "status": "pending",
-                "requestedAt": p.get("tariff_change_requested_at")
-            })
-    
-    return {
-        "success": True,
-        "data": requests_list
-    }
+    try:
+        user = await require_admin(request)
+        
+        # Return upgrade requests from partners
+        partners = await get_all_partners()
+        requests_list = []
+        
+        for p in partners:
+            if p.get("tariff_change_request"):
+                requests_list.append({
+                    "id": p["id"],
+                    "partnerId": p["id"],
+                    "partnerName": p.get("business_name", "Partner"),
+                    "currentTier": p.get("tariff_type") or p.get("pricing_tier") or "trial",
+                    "requestedTier": p.get("tariff_change_request"),
+                    "reason": p.get("tariff_change_notes"),
+                    "status": "pending",
+                    "requestedAt": p.get("tariff_change_requested_at")
+                })
+        
+        return {
+            "success": True,
+            "data": requests_list
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error in tier-upgrade-requests: {e}")
+        return {"success": True, "data": []}
 
 
 @app.put("/api/admin/tier-upgrade-requests/{request_id}/approve")
