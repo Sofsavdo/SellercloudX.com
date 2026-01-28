@@ -181,7 +181,7 @@ class AutonomousAIManager {
       try {
         activePartners = await db.select({
           id: partners.id,
-          name: partners.name,
+          businessName: partners.businessName,
           aiEnabled: partners.aiEnabled,
           approved: partners.approved
         })
@@ -440,8 +440,8 @@ JSON formatda javob bering:
       try {
         activePartners = await db.select({
           id: partners.id,
-          name: partners.name,
-          email: partners.email,
+          businessName: partners.businessName,
+          phone: partners.phone,
           aiEnabled: partners.aiEnabled,
           approved: partners.approved
         })
