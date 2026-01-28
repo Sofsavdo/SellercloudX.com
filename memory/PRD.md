@@ -7,33 +7,31 @@ SellerCloudX.com - AI-powered marketplace automation SaaS. 4 ta marketplace (Yan
 - **Preview**: https://ezmktplace.preview.emergentagent.com
 - **Mobile API**: https://ezmktplace.preview.emergentagent.com/api
 
-## Mobile App v1.0.5 (Jan 27, 2026)
+## Mobile App v1.0.6 (Jan 28, 2026)
 
 ### 📱 APK Download:
-**https://expo.dev/artifacts/eas/nFn95tydsEA7qG1LjTmLZs.apk**
+**https://expo.dev/artifacts/eas/fJDsj6HUFC9nx7vwoKwey4.apk**
 
-### Yangiliklar (v1.0.5):
-1. ✅ **Real Logolar** - Yandex, Uzum, Wildberries, Ozon haqiqiy logolari
-2. ✅ **SellerCloudX Logo** - Raketa va O'zbekiston bayrog'i
-3. ✅ **SplashScreen Tuzatildi** - To'g'ri animatsiya bilan ishlaydi
-4. ✅ **HomeScreen Real Logolar** - Marketplace grid da real logolar
-5. ✅ **SettingsScreen Real Logolar** - Sozlamalar sahifasida real logolar
+### Yangiliklar (v1.0.6):
+1. ✅ **Logo almashish tuzatildi** - Yandex va Uzum to'g'ri joylarda
+2. ✅ **Professional Marketplace Grid** - 2x2 layout, nomlar to'g'ri
+3. ✅ **Splash Screen yaxshilandi** - Ketma-ket logo animatsiya
+4. ✅ **Dumaloq burchaklar** - Logolarda borderRadius: 14
+5. ✅ **Individual Tarif to'liq** - Barcha imkoniyatlar ko'rsatiladi:
+   - Shaxsiy menejer
+   - 24/7 qo'llab-quvvatlash
+   - Maxsus integratsiyalar
+   - API prioritet kirish
+   - SLA kafolati
+6. ✅ **Kvadrat yo'qotildi** - Splash to'g'ridan-to'g'ri boshlanadi
 
-### v1.0.4 dan:
-- Fintech Splash Screen
-- Dark Theme Header
-- Account Activation System
-- $699 setup fee olib tashlandi
-- "7 kunlik bepul sinov" olib tashlandi
-- Admin Activation Endpoint
-
-## Real Marketplace Logos
+## Real Marketplace Logos (TO'G'RILANGAN)
 ```
-Yandex: https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/s5t4wghe_market.png
-Uzum: https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/fn5a7tjm_images.png
-Wildberries: https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/5bdfsh1w_6f50bf7b-9f31-41a5-b13b-332697a792c1.jpg
-Ozon: https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/rttfl7ms_ozon-icon-logo.png
-SellerCloudX: https://customer-assets.emergentagent.com/job_ezmktplace/artifacts/4ztx60fi_-76rizc_edit_75534802065091.jpg
+Yandex: fn5a7tjm_images.png (megamarket style)
+Uzum: s5t4wghe_market.png (purple M)
+Wildberries: 5bdfsh1w...jpg
+Ozon: ozon-icon-logo.png
+SellerCloudX: 4ztx60fi...jpg (rocket with UZ flag)
 ```
 
 ## Expo Credentials
@@ -47,6 +45,14 @@ Premium Tariff:
 ├── Oylik to'lov: $499/month
 ├── Revenue Share: 4%
 └── Cheksiz AI karta, mahsulot
+
+Individual Tariff:
+├── Oylik to'lov: Kelishiladi
+├── Revenue Share: 2% dan boshlab
+├── Shaxsiy menejer
+├── 24/7 qo'llab-quvvatlash
+├── Maxsus integratsiyalar
+└── SLA kafolati
 ```
 
 ## Admin Panel Endpoints
@@ -63,15 +69,11 @@ Premium Tariff:
 └── migrations/         # SQL Migrations
 ```
 
-## Files Modified (v1.0.5)
-- `/app/mobile/src/screens/SplashScreen.tsx` - Real logos, fixed animation
-- `/app/mobile/src/screens/HomeScreen.tsx` - Real marketplace logos
-- `/app/mobile/src/screens/SettingsScreen.tsx` - Real logos
-- `/app/mobile/src/utils/constants.ts` - MARKETPLACE_LOGOS object
-- `/app/mobile/App.tsx` - Simplified splash logic
-
-## Test Credentials
-- **Yandex**: token: ACMA:OIjjTDFMnmBe7XOs7EqaWqdoXUS772aKqwqjXj6C:245e5a96
+## Files Modified (v1.0.6)
+- `/app/mobile/src/screens/SplashScreen.tsx` - Sequential animation
+- `/app/mobile/src/screens/HomeScreen.tsx` - Professional 2x2 grid
+- `/app/mobile/src/screens/PricingScreen.tsx` - Individual tarif full
+- `/app/mobile/src/utils/constants.ts` - Fixed logo URLs
 
 ## Backlog
 
