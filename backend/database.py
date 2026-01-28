@@ -270,14 +270,20 @@ async def get_session(token: str) -> Optional[dict]:
             )
             if row:
                 import ast
-                return {"user_data": ast.literal_eval(row["user_data"])}
+                try:
+                    user_data = ast.literal_eval(row["user_data"])
+                except:
+                    user_data = row["user_data"]
+                return {"user_data": user_data}
             return None
     else:
         session = await db.sessions.find_one({
             "token": token,
             "expires_at": {"$gt": datetime.utcnow()}
         })
-        return session
+        if session:
+            # MongoDB stores user_data directly as dict
+            return {"user_data": session.get("user_data", session)}
 
 
 async def delete_session(token: str):
