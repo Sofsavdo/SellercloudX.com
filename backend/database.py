@@ -73,7 +73,14 @@ else:
         """Initialize MongoDB connection"""
         global client, db
         try:
-            client = AsyncIOMotorClient(MONGO_URL)
+            # Use connection pooling with limits
+            client = AsyncIOMotorClient(
+                MONGO_URL,
+                maxPoolSize=10,
+                minPoolSize=1,
+                maxIdleTimeMS=30000,
+                serverSelectionTimeoutMS=5000
+            )
             db = client.sellercloudx
             await client.admin.command('ping')
             print("✅ MongoDB connected successfully")
