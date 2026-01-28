@@ -562,34 +562,31 @@ export default function LandingNew() {
       <section id="pricing" className="py-24 px-4 scroll-mt-24">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
-              <Crown className="w-4 h-4 mr-2" /> Tariflar
+            <Badge className="mb-4 bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] text-black px-6 py-2.5 shadow-lg">
+              <Crown className="w-4 h-4 mr-2" />
+              2026 PREMIUM MODEL
             </Badge>
-            <h2 className="text-3xl sm:text-section font-bold mb-4">O'zingizga mos tarifni tanlang</h2>
+            <h2 className="text-3xl sm:text-section font-bold mb-4">
+              <span className="text-gradient-primary">Faqat Natija Uchun To'lov</span>
+            </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-              Har qanday biznes o'lchami uchun moslashuvchan tariflar. Istalgan vaqt o'zgartiring yoki bekor qiling.
+              Savdolaringizdan 4% olamiz. Savdo bo'lmasa - to'lov yo'q.
             </p>
-
-            {/* Billing Toggle */}
-            <div className="flex items-center justify-center gap-4 mt-8">
-              <button
-                onClick={() => setBillingPeriod('monthly')}
-                className={cn(
-                  'px-4 py-2 rounded-lg font-medium transition-all',
-                  billingPeriod === 'monthly' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                Oylik
-              </button>
-              <button
-                onClick={() => setBillingPeriod('yearly')}
-                className={cn(
-                  'px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2',
-                  billingPeriod === 'yearly' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                Yillik <Badge className="bg-success text-success-foreground text-xs">20% chegirma</Badge>
-              </button>
+            
+            {/* Guarantee badges */}
+            <div className="flex flex-wrap justify-center gap-4 mt-6">
+              <div className="flex items-center gap-2 bg-success/10 text-success px-4 py-2 rounded-full">
+                <Shield className="w-5 h-5" />
+                <span className="font-semibold">60-kun kafolat</span>
+              </div>
+              <div className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full">
+                <Zap className="w-5 h-5" />
+                <span className="font-semibold">7-kun bepul sinov</span>
+              </div>
+              <div className="flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full">
+                <TrendingUp className="w-5 h-5" />
+                <span className="font-semibold">4% savdodan</span>
+              </div>
             </div>
           </div>
 
