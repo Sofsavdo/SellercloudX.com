@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Bell, Check, X, TrendingUp, Package, User, Brain, 
@@ -13,10 +13,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Notification {
   id: string;
-  type: "revenue" | "stock" | "partner" | "ai" | "system";
+  type: "revenue" | "stock" | "partner" | "ai" | "system" | "success" | "warning" | "info";
   title: string;
   message: string;
   timestamp: string;
