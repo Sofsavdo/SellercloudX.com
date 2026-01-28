@@ -687,18 +687,12 @@ export default function LandingNew() {
                 </div>
 
                 {/* Features */}
-                <p className="text-xs font-semibold text-muted-foreground uppercase mb-3">Xususiyatlar</p>
-                <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Xususiyatlar</p>
+                <div className="space-y-1.5">
                   {plan.features.map((feature, j) => (
-                    <div key={j} className="flex items-start gap-2 text-sm">
-                      <CheckCircle className="w-4 h-4 text-success shrink-0 mt-0.5" />
-                      <span>{feature}</span>
-                    </div>
-                  ))}
-                  {plan.excluded.map((feature, j) => (
-                    <div key={j} className="flex items-start gap-2 text-sm text-muted-foreground">
-                      <X className="w-4 h-4 shrink-0 mt-0.5" />
-                      <span>{feature}</span>
+                    <div key={j} className="flex items-start gap-2 text-xs">
+                      <CheckCircle className="w-3.5 h-3.5 text-success shrink-0 mt-0.5" />
+                      <span className="truncate">{feature}</span>
                     </div>
                   ))}
                 </div>
