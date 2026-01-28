@@ -6,7 +6,7 @@ import os
 import bcrypt
 import secrets
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 from dotenv import load_dotenv
