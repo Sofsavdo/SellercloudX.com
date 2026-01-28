@@ -598,58 +598,48 @@ export default function LandingNew() {
                 )}
 
                 {/* Badges */}
-                <div className="flex items-center gap-2 mb-4 pt-2">
+                <div className="flex items-center gap-2 mb-3 pt-2">
                   <Badge className={plan.badgeColor}>{plan.badge}</Badge>
                 </div>
 
                 {/* Tier Name */}
-                <h3 className="text-3xl font-black mb-2">{plan.name}</h3>
+                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
 
                 {/* Price */}
-                <div className="mb-2">
+                <div className="mb-1">
                   <span className={cn(
-                    'text-5xl font-black',
+                    'text-4xl font-black',
                     plan.popular ? 'text-gradient-primary' : ''
                   )}>
                     {plan.price}
                   </span>
-                  <span className="text-muted-foreground">{plan.period}</span>
+                  <span className="text-muted-foreground text-sm">{plan.period}</span>
                 </div>
                 
                 {/* So'm narxi */}
-                <p className="text-sm text-muted-foreground mb-2">{plan.priceSom}</p>
-
-                {/* Setup Fee (2026 model) */}
-                {plan.setupFee && (
-                  <p className="text-sm font-semibold text-primary mb-2">+ {plan.setupFee}</p>
-                )}
+                <p className="text-xs text-muted-foreground mb-2">{plan.priceSom}</p>
 
                 {/* Commission Badge */}
-                <Badge className={cn('mb-4', plan.commissionColor)}>{plan.commission}</Badge>
+                <Badge className={cn('mb-3', plan.commissionColor)}>{plan.commission}</Badge>
 
                 {/* Description */}
-                <p className="text-sm text-muted-foreground mb-6">{plan.description}</p>
+                <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
 
                 {/* 60-day guarantee badge for Premium */}
                 {plan.guarantee && (
-                  <div className="p-4 bg-success/10 rounded-xl border border-success/30 mb-6">
-                    <div className="flex items-center gap-3">
-                      <Shield className="w-8 h-8 text-success flex-shrink-0" />
-                      <div>
-                        <p className="font-bold text-success">60-KUN KAFOLAT</p>
-                        <p className="text-xs text-muted-foreground">
-                          Savdo o'smasa, oylik to'lovning bir qismini qaytaramiz
-                        </p>
-                      </div>
+                  <div className="p-3 bg-success/10 rounded-lg border border-success/30 mb-4">
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-5 h-5 text-success flex-shrink-0" />
+                      <p className="font-semibold text-success text-sm">60-kun kafolat</p>
                     </div>
                   </div>
                 )}
 
                 {/* Who is this for - Individual */}
                 {plan.whoFor && (
-                  <div className="p-4 bg-muted/30 rounded-xl mb-6">
-                    <p className="font-semibold mb-2 text-sm">Kimlar uchun:</p>
-                    <ul className="text-xs text-muted-foreground space-y-1">
+                  <div className="p-3 bg-muted/30 rounded-lg mb-4">
+                    <p className="font-semibold mb-1 text-xs">Kimlar uchun:</p>
+                    <ul className="text-xs text-muted-foreground space-y-0.5">
                       {plan.whoFor.map((item, j) => (
                         <li key={j}>• {item}</li>
                       ))}
@@ -660,7 +650,7 @@ export default function LandingNew() {
                 {/* CTA Button */}
                 <Button
                   className={cn(
-                    'w-full mb-6 py-6 text-lg font-bold',
+                    'w-full mb-4 py-5 font-bold',
                     plan.popular ? 'bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] text-black hover:from-[hsl(45,93%,50%)] hover:to-[hsl(38,92%,58%)]' : ''
                   )}
                   variant={plan.ctaVariant}
@@ -675,24 +665,23 @@ export default function LandingNew() {
                       price: plan.priceNum,
                       priceSom: plan.priceSom,
                       commission: plan.commission,
-                      setupFee: plan.setupFee,
                     }));
                     setLocation('/partner-registration?tariff=premium');
                   }}
                 >
-                  {plan.name === 'Individual' ? <MessageCircle className="w-5 h-5 mr-2" /> : <Zap className="w-5 h-5 mr-2" />}
+                  {plan.name === 'Individual' ? <MessageCircle className="w-4 h-4 mr-2" /> : <Zap className="w-4 h-4 mr-2" />}
                   {plan.cta}
                 </Button>
 
                 {/* Divider */}
-                <div className="border-t mb-6" />
+                <div className="border-t mb-4" />
 
                 {/* Limits */}
-                <div className="space-y-3 mb-6">
+                <div className="space-y-2 mb-4">
                   {plan.limits.map((limit, j) => (
-                    <div key={j} className="flex items-center gap-3 text-sm">
+                    <div key={j} className="flex items-center gap-2 text-sm">
                       <limit.icon className="w-4 h-4 text-primary shrink-0" />
-                      <span>{limit.text}</span>
+                      <span className="truncate">{limit.text}</span>
                     </div>
                   ))}
                 </div>
