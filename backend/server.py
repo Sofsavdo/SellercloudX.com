@@ -74,6 +74,11 @@ from uzum_api_service import UzumMarketAPI as UzumAPI, test_uzum_api
 
 app = FastAPI(title="SellerCloudX AI API")
 
+# Startup event - connect to MongoDB
+@app.on_event("startup")
+async def startup():
+    await connect_db()
+
 # CORS
 app.add_middleware(
     CORSMiddleware,
