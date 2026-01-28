@@ -306,9 +306,11 @@ async def get_session(token: str) -> Optional[dict]:
     """Get session by token"""
     if USE_POSTGRES:
         async with pool.acquire() as conn:
+            # Use naive datetime for PostgreSQL comparison (DB stores naive timestamps)
+            now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
             row = await conn.fetchrow(
                 "SELECT * FROM user_sessions WHERE token = $1 AND expires_at > $2",
-                token, datetime.now(timezone.utc)
+                token, now_naive
             )
             if row:
                 user_data = row["user_data"]
