@@ -37,7 +37,7 @@ export async function apiRequest(
       ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...options?.headers,
     },
-    credentials: 'include',
+    // Don't include credentials for cross-origin, use token instead
     ...options,
   };
 
@@ -45,10 +45,8 @@ export async function apiRequest(
     fetchOptions.body = JSON.stringify(data);
   }
 
-  // Build full URL
-  const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
-  
-  const response = await fetch(fullUrl, fetchOptions);
+  // Always use relative URL for API calls (works with both localhost and production)
+  const response = await fetch(url, fetchOptions);
   
   // Handle 401 - clear token and redirect to login
   if (response.status === 401) {
