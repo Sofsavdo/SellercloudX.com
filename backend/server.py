@@ -121,6 +121,679 @@ async def health():
 
 
 # ========================================
+# AUTHENTICATION ENDPOINTS
+# ========================================
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+class RegisterRequest(BaseModel):
+    username: str
+    email: str
+    password: str
+    phone: Optional[str] = ""
+    businessName: Optional[str] = ""
+    businessCategory: Optional[str] = "general"
+
+async def get_current_user(authorization: str = None, request: Request = None):
+    """Get current user from Authorization header"""
+    if not authorization and request:
+        authorization = request.headers.get("Authorization")
+    
+    if not authorization:
+        return None
+    
+    token = authorization.replace("Bearer ", "")
+    session = await get_session(token)
+    if not session:
+        return None
+    
+    return session.get("user_data")
+
+async def require_auth(request: Request):
+    """Require authentication"""
+    user = await get_current_user(request=request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Avtorizatsiya talab qilinadi")
+    return user
+
+async def require_admin(request: Request):
+    """Require admin role"""
+    user = await require_auth(request)
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin huquqi talab qilinadi")
+    return user
+
+
+@app.post("/api/auth/login")
+async def login(request: LoginRequest):
+    """User login"""
+    user = await validate_user_password(request.username, request.password)
+    if not user:
+        return JSONResponse(
+            content={"message": "Noto'g'ri login yoki parol"},
+            status_code=401
+        )
+    
+    # Create session
+    token = await create_session(user["id"], user)
+    
+    # Get partner info if exists
+    partner = await get_partner_by_user_id(user["id"])
+    
+    return {
+        "token": token,
+        "user": user,
+        "partner": partner
+    }
+
+
+@app.post("/api/auth/register")
+async def register(request: RegisterRequest):
+    """Register new partner"""
+    try:
+        # Check if username exists
+        existing = await get_user_by_username(request.username)
+        if existing:
+            return JSONResponse(
+                content={"message": "Bu username allaqachon mavjud"},
+                status_code=400
+            )
+        
+        # Create user
+        user = await create_user(
+            username=request.username,
+            email=request.email,
+            password=request.password,
+            role="partner",
+            phone=request.phone
+        )
+        
+        # Create partner profile
+        partner = await create_partner(
+            user_id=user["id"],
+            business_name=request.businessName or request.username,
+            business_category=request.businessCategory,
+            phone=request.phone
+        )
+        
+        # Create session
+        token = await create_session(user["id"], user)
+        
+        return {
+            "token": token,
+            "user": user,
+            "partner": partner
+        }
+        
+    except Exception as e:
+        return JSONResponse(
+            content={"message": f"Ro'yxatdan o'tishda xatolik: {str(e)}"},
+            status_code=500
+        )
+
+
+@app.get("/api/auth/me")
+async def get_me(request: Request):
+    """Get current user info"""
+    user = await get_current_user(request=request)
+    if not user:
+        return JSONResponse(
+            content={"message": "Avtorizatsiya talab qilinadi"},
+            status_code=401
+        )
+    
+    partner = await get_partner_by_user_id(user["id"])
+    
+    return {
+        "user": user,
+        "partner": partner
+    }
+
+
+@app.post("/api/auth/logout")
+async def logout(request: Request):
+    """Logout user"""
+    auth = request.headers.get("Authorization")
+    if auth:
+        token = auth.replace("Bearer ", "")
+        await delete_session(token)
+    return {"message": "Chiqish muvaffaqiyatli"}
+
+
+# ========================================
+# CHAT ENDPOINTS
+# ========================================
+
+@app.get("/api/chat/room")
+async def get_chat_room(request: Request):
+    """Get or create chat room for current partner"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    room = await get_or_create_chat_room(partner["id"])
+    return room
+
+
+@app.get("/api/chat/rooms")
+async def list_chat_rooms(request: Request):
+    """Get all chat rooms (admin only)"""
+    user = await require_admin(request)
+    rooms = await get_chat_rooms()
+    return rooms
+
+
+@app.get("/api/chat/messages")
+async def get_partner_messages(request: Request):
+    """Get messages for current partner's chat room"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        return []
+    
+    room = await get_or_create_chat_room(partner["id"])
+    messages = await get_messages(room["id"])
+    return messages
+
+
+@app.get("/api/chat/messages/{room_id}")
+async def get_room_messages(room_id: str, request: Request):
+    """Get messages for specific chat room (admin)"""
+    user = await require_auth(request)
+    messages = await get_messages(room_id)
+    return messages
+
+
+class SendMessageRequest(BaseModel):
+    content: str
+    messageType: Optional[str] = "text"
+    attachmentUrl: Optional[str] = None
+    roomId: Optional[str] = None
+
+
+@app.post("/api/chat/send")
+async def send_message(msg: SendMessageRequest, request: Request):
+    """Send chat message"""
+    user = await require_auth(request)
+    
+    # Get room ID
+    room_id = msg.roomId
+    if not room_id:
+        partner = await get_partner_by_user_id(user["id"])
+        if partner:
+            room = await get_or_create_chat_room(partner["id"])
+            room_id = room["id"]
+    
+    if not room_id:
+        raise HTTPException(status_code=400, detail="Chat xonasi topilmadi")
+    
+    # Create message
+    message = await create_message(
+        chat_room_id=room_id,
+        sender_id=user["id"],
+        sender_role=user.get("role", "partner"),
+        content=msg.content,
+        message_type=msg.messageType,
+        attachment_url=msg.attachmentUrl
+    )
+    
+    return message
+
+
+# ========================================
+# ADMIN ENDPOINTS (Extended)
+# ========================================
+
+@app.get("/api/admin/partners")
+async def admin_list_partners(request: Request, status: str = "all"):
+    """List all partners (admin)"""
+    user = await require_admin(request)
+    partners = await get_all_partners(status)
+    return {
+        "success": True,
+        "data": partners,
+        "total": len(partners)
+    }
+
+
+@app.put("/api/admin/partners/{partner_id}/approve")
+async def admin_approve_partner(partner_id: str, request: Request):
+    """Approve partner (admin)"""
+    user = await require_admin(request)
+    partner = await approve_partner(partner_id, user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    return {
+        "success": True,
+        "message": "Partner tasdiqlandi",
+        "data": partner
+    }
+
+
+class ActivatePartnerRequest(BaseModel):
+    tariff: Optional[str] = "premium"
+    note: Optional[str] = None
+
+
+@app.post("/api/admin/partners/{partner_id}/activate")
+async def admin_activate_partner_endpoint(partner_id: str, body: ActivatePartnerRequest, request: Request):
+    """Manually activate partner without payment (admin)"""
+    user = await require_admin(request)
+    partner = await activate_partner_manual(partner_id, user["id"], body.tariff)
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    return {
+        "success": True,
+        "message": "Partner faollashtirildi (to'lovsiz)",
+        "data": partner
+    }
+
+
+@app.put("/api/admin/partners/{partner_id}/deactivate")
+async def admin_deactivate_partner(partner_id: str, request: Request):
+    """Deactivate partner (admin)"""
+    user = await require_admin(request)
+    partner = await update_partner(partner_id, {
+        "is_active": False,
+        "deactivated_at": datetime.utcnow(),
+        "deactivated_by": user["id"]
+    })
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    return {
+        "success": True,
+        "message": "Partner deaktiv qilindi",
+        "data": partner
+    }
+
+
+# ========================================
+# PARTNER DASHBOARD ENDPOINTS
+# ========================================
+
+@app.get("/api/partner/profile")
+async def get_partner_profile(request: Request):
+    """Get current partner profile"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    stats = await get_partner_stats(partner["id"])
+    
+    return {
+        "partner": partner,
+        "stats": stats
+    }
+
+
+class UpdatePartnerRequest(BaseModel):
+    businessName: Optional[str] = None
+    businessCategory: Optional[str] = None
+    phone: Optional[str] = None
+    website: Optional[str] = None
+    inn: Optional[str] = None
+
+
+@app.put("/api/partner/profile")
+async def update_partner_profile(body: UpdatePartnerRequest, request: Request):
+    """Update partner profile"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    updates = {}
+    if body.businessName:
+        updates["business_name"] = body.businessName
+    if body.businessCategory:
+        updates["business_category"] = body.businessCategory
+    if body.phone:
+        updates["phone"] = body.phone
+    if body.website:
+        updates["website"] = body.website
+    if body.inn:
+        updates["inn"] = body.inn
+    
+    updated = await update_partner(partner["id"], updates)
+    return {"success": True, "data": updated}
+
+
+# ========================================
+# TARIFF ENDPOINTS
+# ========================================
+
+@app.get("/api/partner/tariff")
+async def get_partner_tariff(request: Request):
+    """Get current partner's tariff info"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    tariff_info = {
+        "tariff_type": partner.get("tariff_type", "trial"),
+        "is_active": partner.get("is_active", False),
+        "setup_paid": partner.get("setup_paid", False),
+        "monthly_fee_usd": partner.get("monthly_fee_usd", 499),
+        "revenue_share_percent": partner.get("revenue_share_percent", 0.04),
+        "features": {
+            "ai_cards": partner.get("ai_enabled", False),
+            "auto_publish": partner.get("is_active", False),
+            "marketplaces": ["yandex", "uzum"],
+            "support_chat": True,
+            "analytics": partner.get("is_active", False)
+        },
+        "pricing_2026": {
+            "premium": {
+                "monthly_usd": 499,
+                "revenue_share": "4%",
+                "guarantee_days": 60,
+                "features": ["Cheksiz AI karta", "Barcha marketplacelar", "24/7 qo'llab-quvvatlash"]
+            },
+            "individual": {
+                "monthly_usd": "Kelishiladi",
+                "revenue_share": "2% dan",
+                "features": ["Shaxsiy menejer", "Maxsus integratsiya", "API cheksiz"]
+            }
+        }
+    }
+    
+    return tariff_info
+
+
+class ChangeTariffRequest(BaseModel):
+    tariffType: str
+    notes: Optional[str] = None
+
+
+@app.post("/api/partner/tariff/change")
+async def change_tariff(body: ChangeTariffRequest, request: Request):
+    """Request tariff change"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    # Create tariff change request (in real system would need approval)
+    updated = await update_partner(partner["id"], {
+        "tariff_change_request": body.tariffType,
+        "tariff_change_notes": body.notes,
+        "tariff_change_requested_at": datetime.utcnow()
+    })
+    
+    return {
+        "success": True,
+        "message": f"Tarif o'zgartirish so'rovi yuborildi: {body.tariffType}",
+        "data": updated
+    }
+
+
+# ========================================
+# MARKETPLACE INTEGRATION ENDPOINTS
+# ========================================
+
+class MarketplaceCredentials(BaseModel):
+    marketplace: str  # yandex, uzum, wildberries, ozon
+    apiKey: Optional[str] = None
+    clientId: Optional[str] = None
+    campaignId: Optional[str] = None
+    token: Optional[str] = None
+
+
+@app.post("/api/partner/marketplaces/connect")
+async def connect_marketplace(body: MarketplaceCredentials, request: Request):
+    """Connect marketplace API"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    credentials = {
+        "api_key": body.apiKey,
+        "client_id": body.clientId,
+        "campaign_id": body.campaignId,
+        "token": body.token
+    }
+    
+    saved = await save_marketplace_credentials(partner["id"], body.marketplace, credentials)
+    
+    return {
+        "success": True,
+        "message": f"{body.marketplace.capitalize()} ulandi",
+        "data": {
+            "marketplace": body.marketplace,
+            "is_connected": True
+        }
+    }
+
+
+@app.get("/api/partner/marketplaces")
+async def get_connected_marketplaces(request: Request):
+    """Get connected marketplaces"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    creds = await get_marketplace_credentials(partner["id"])
+    
+    marketplaces = {
+        "yandex": {"connected": False, "name": "Yandex Market"},
+        "uzum": {"connected": False, "name": "Uzum Market"},
+        "wildberries": {"connected": False, "name": "Wildberries"},
+        "ozon": {"connected": False, "name": "Ozon"}
+    }
+    
+    for cred in creds:
+        mp = cred.get("marketplace")
+        if mp in marketplaces:
+            marketplaces[mp]["connected"] = True
+    
+    return {
+        "success": True,
+        "data": marketplaces
+    }
+
+
+# ========================================
+# PRODUCTS ENDPOINTS
+# ========================================
+
+@app.get("/api/partner/products")
+async def get_partner_products(request: Request):
+    """Get partner's products"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    products = await get_products_by_partner(partner["id"])
+    return {
+        "success": True,
+        "data": products,
+        "total": len(products)
+    }
+
+
+class CreateProductRequest(BaseModel):
+    name: str
+    sku: Optional[str] = None
+    barcode: Optional[str] = None
+    description: Optional[str] = ""
+    category: Optional[str] = "general"
+    brand: Optional[str] = None
+    price: Optional[float] = 0
+    costPrice: Optional[float] = 0
+    stockQuantity: Optional[int] = 0
+
+
+@app.post("/api/partner/products")
+async def create_partner_product(body: CreateProductRequest, request: Request):
+    """Create new product"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    product = await create_product(
+        partner_id=partner["id"],
+        name=body.name,
+        sku=body.sku,
+        barcode=body.barcode,
+        description=body.description,
+        category=body.category,
+        brand=body.brand,
+        price=body.price,
+        cost_price=body.costPrice,
+        stock_quantity=body.stockQuantity
+    )
+    
+    return {
+        "success": True,
+        "message": "Mahsulot yaratildi",
+        "data": product
+    }
+
+
+# ========================================
+# AI MANAGER ENDPOINTS
+# ========================================
+
+@app.get("/api/ai-manager/tasks")
+async def get_ai_manager_tasks(request: Request, status: str = None):
+    """Get AI tasks for current partner"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        return {"success": True, "data": [], "total": 0}
+    
+    tasks = await get_ai_tasks(partner["id"], status)
+    return {
+        "success": True,
+        "data": tasks,
+        "total": len(tasks)
+    }
+
+
+@app.get("/api/ai-manager/status")
+async def get_ai_manager_status(request: Request):
+    """Get AI manager status"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    ai_enabled = partner.get("ai_enabled", False) if partner else False
+    
+    return {
+        "success": True,
+        "ai_enabled": ai_enabled,
+        "status": "active" if ai_enabled else "inactive",
+        "capabilities": {
+            "product_cards": True,
+            "price_optimization": True,
+            "infographics": True,
+            "auto_publish": ai_enabled
+        }
+    }
+
+
+class CreateAITaskRequest(BaseModel):
+    taskType: str  # generate_card, optimize_price, create_infographic
+    inputData: dict
+
+
+@app.post("/api/ai-manager/tasks")
+async def create_ai_manager_task(body: CreateAITaskRequest, request: Request):
+    """Create new AI task"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    if not partner.get("ai_enabled"):
+        raise HTTPException(status_code=403, detail="AI xizmati faol emas. Tarifni yangilang.")
+    
+    task = await create_ai_task(partner["id"], body.taskType, body.inputData)
+    
+    return {
+        "success": True,
+        "message": "AI vazifa yaratildi",
+        "data": task
+    }
+
+
+# ========================================
+# UNIFIED SCANNER ENDPOINTS
+# ========================================
+
+class ScannerAnalyzeRequest(BaseModel):
+    image: str
+    marketplace: Optional[str] = "yandex"
+
+
+@app.post("/api/unified-scanner/analyze-base64")
+async def unified_scanner_analyze(body: ScannerAnalyzeRequest, request: Request):
+    """AI Scanner - Analyze product from image"""
+    try:
+        # Remove data URL prefix if present
+        image_data = body.image
+        if "base64," in image_data:
+            image_data = image_data.split("base64,")[1]
+        
+        # Call AI service
+        result = await scan_product_image(image_data)
+        
+        if result.get("success"):
+            return {
+                "success": True,
+                "data": {
+                    "productName": result.get("product_name", "Mahsulot"),
+                    "category": result.get("category", "general"),
+                    "description": result.get("description", ""),
+                    "suggestedPrice": result.get("suggested_price", 100000),
+                    "brand": result.get("brand", ""),
+                    "confidence": result.get("confidence", 0.8),
+                    "keywords": result.get("keywords", []),
+                    "marketplace": body.marketplace
+                }
+            }
+        else:
+            return {
+                "success": False,
+                "error": result.get("error", "Skanerlashda xatolik"),
+                "data": None
+            }
+            
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "data": None
+        }
+
+
+# ========================================
 # AI ENDPOINTS
 # ========================================
 
