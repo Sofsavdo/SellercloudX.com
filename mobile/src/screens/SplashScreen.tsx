@@ -200,7 +200,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>E-Commerce • Fintech • AI</Text>
-        <Text style={styles.versionText}>v1.0.6</Text>
+        <Text style={styles.versionText}>v1.0.7</Text>
       </View>
     </View>
   );
