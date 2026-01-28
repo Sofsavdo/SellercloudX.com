@@ -106,8 +106,35 @@ const typeConfig = {
 };
 
 export function NotificationCenter() {
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  
+  // Fetch notifications from API
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await apiRequest('GET', '/api/notifications');
+        if (response.ok) {
+          const data = await response.json();
+          // Map API response to component format
+          const mapped = (Array.isArray(data) ? data : []).map((n: any) => ({
+            id: n.id,
+            type: n.type || 'system',
+            title: n.title,
+            message: n.message,
+            timestamp: n.timestamp ? new Date(n.timestamp).toLocaleString('uz-UZ') : 'Hozir',
+            read: n.read || false,
+            action: n.action
+          }));
+          setNotifications(mapped);
+        }
+      } catch (error) {
+        console.error('Failed to fetch notifications:', error);
+      }
+    };
+    
+    fetchNotifications();
+  }, [isOpen]);
   
   const unreadCount = notifications.filter(n => !n.read).length;
 
