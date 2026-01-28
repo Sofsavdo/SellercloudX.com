@@ -9,7 +9,7 @@ import os
 import time
 
 # API URL from environment
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://autotrader-110.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://selltech-1.preview.emergentagent.com').rstrip('/')
 
 # Test image URL
 TEST_IMAGE_URL = "https://i.ibb.co/MkqKDcBn/68785868b3db.jpg"

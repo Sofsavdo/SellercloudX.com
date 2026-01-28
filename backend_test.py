@@ -12,7 +12,7 @@ import base64
 from typing import Dict, Any, Optional
 
 # Configuration - Using the external URL from frontend/.env
-BASE_URL = "https://autotrader-110.preview.emergentagent.com"
+BASE_URL = "https://selltech-1.preview.emergentagent.com"
 # Test credentials from review request
 ADMIN_CREDENTIALS = {"username": "admin", "password": "admin123"}
 

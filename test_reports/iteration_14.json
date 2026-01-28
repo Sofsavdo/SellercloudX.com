@@ -33,7 +33,7 @@
     "frontend": "100% (Landing page and pricing display working)"
   },
   "test_credentials": {
-    "API_URL": "https://autotrader-110.preview.emergentagent.com",
+    "API_URL": "https://selltech-1.preview.emergentagent.com",
     "test_image_url": "https://i.ibb.co/MkqKDcBn/68785868b3db.jpg"
   },
   "seed_data_creation": "None - used test image URL for scanning",

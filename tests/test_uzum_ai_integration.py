@@ -8,7 +8,7 @@ import os
 import base64
 
 # API Base URL from environment
-BASE_URL = os.environ.get('VITE_API_URL', 'https://autotrader-110.preview.emergentagent.com')
+BASE_URL = os.environ.get('VITE_API_URL', 'https://selltech-1.preview.emergentagent.com')
 
 class TestUzumMarketAPI:
     """Uzum Market API endpoint tests"""
