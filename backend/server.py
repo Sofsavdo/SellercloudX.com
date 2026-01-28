@@ -29,7 +29,7 @@ from database import (
     create_product, get_products_by_partner, get_product_by_id,
     save_marketplace_credentials, get_marketplace_credentials,
     get_partner_stats, get_ai_tasks, create_ai_task, update_ai_task,
-    serialize_doc, serialize_pg_row, USE_POSTGRES, pool
+    serialize_doc, serialize_pg_row, USE_POSTGRES, get_pool
 )
 
 # Import AI service
