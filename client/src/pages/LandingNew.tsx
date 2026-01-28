@@ -593,67 +593,52 @@ export default function LandingNew() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
+          {/* 2026 PRICING - 2 ta tarif */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {pricing.map((plan, i) => (
               <div
                 key={i}
                 className={cn(
-                  'relative animate-fade-in',
-                  plan.popular ? 'card-pricing-popular' : 'card-pricing hover:border-primary/50'
+                  'relative animate-fade-in p-8',
+                  plan.popular ? 'card-pricing-popular border-accent shadow-xl shadow-accent/20' : 'card-pricing hover:border-primary/50'
                 )}
                 style={{ animationDelay: `${i * 100}ms` }}
               >
+                {/* Popular marker */}
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                    <Badge className="bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] text-black px-6 py-2 font-bold shadow-lg">
+                      <Star className="w-4 h-4 mr-2" />
+                      TAVSIYA ETILADI
+                    </Badge>
+                  </div>
+                )}
+
                 {/* Badges */}
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-2 mb-4 pt-2">
                   <Badge className={plan.badgeColor}>{plan.badge}</Badge>
-                  {plan.extraBadge && (
-                    <Badge variant="outline" className="text-xs">{plan.extraBadge}</Badge>
-                  )}
                 </div>
 
                 {/* Tier Name */}
-                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                <h3 className="text-3xl font-black mb-2">{plan.name}</h3>
 
                 {/* Price */}
-                <div className="mb-1">
-                  {billingPeriod === 'yearly' && plan.priceNum > 0 ? (
-                    <>
-                      <span className="text-2xl line-through text-muted-foreground mr-2">
-                        ${plan.priceNum}
-                      </span>
-                      <span className={cn(
-                        'text-5xl font-black',
-                        plan.popular ? 'text-gradient-primary' : ''
-                      )}>
-                        ${Math.round(plan.priceNum * 0.8)}
-                      </span>
-                    </>
-                  ) : (
-                    <span className={cn(
-                      'text-5xl font-black',
-                      plan.popular ? 'text-gradient-primary' : ''
-                    )}>
-                      ${plan.priceNum}
-                    </span>
-                  )}
+                <div className="mb-2">
+                  <span className={cn(
+                    'text-5xl font-black',
+                    plan.popular ? 'text-gradient-primary' : ''
+                  )}>
+                    {plan.price}
+                  </span>
                   <span className="text-muted-foreground">{plan.period}</span>
                 </div>
                 
                 {/* So'm narxi */}
-                {billingPeriod === 'yearly' && plan.priceNum > 0 ? (
-                  <div className="mb-2">
-                    <p className="text-sm text-muted-foreground line-through">
-                      {plan.priceSom} × 12 = {(parseInt(plan.priceSom.replace(/[^\d]/g, '')) * 12 / 1000000).toFixed(1)}M so'm
-                    </p>
-                    <p className="text-sm font-semibold text-primary">
-                      {(parseInt(plan.priceSom.replace(/[^\d]/g, '')) * 12 * 0.8 / 1000000).toFixed(1)}M so'm/yil
-                    </p>
-                    <Badge className="bg-success/10 text-success mt-1">
-                      💰 {(parseInt(plan.priceSom.replace(/[^\d]/g, '')) * 12 * 0.2 / 1000000).toFixed(1)}M so'm tejaysiz!
-                    </Badge>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground mb-2">{plan.priceSom}</p>
+                <p className="text-sm text-muted-foreground mb-2">{plan.priceSom}</p>
+
+                {/* Setup Fee (2026 model) */}
+                {plan.setupFee && (
+                  <p className="text-sm font-semibold text-primary mb-2">+ {plan.setupFee}</p>
                 )}
 
                 {/* Commission Badge */}
@@ -662,39 +647,58 @@ export default function LandingNew() {
                 {/* Description */}
                 <p className="text-sm text-muted-foreground mb-6">{plan.description}</p>
 
+                {/* 60-day guarantee badge for Premium */}
+                {plan.guarantee && (
+                  <div className="p-4 bg-success/10 rounded-xl border border-success/30 mb-6">
+                    <div className="flex items-center gap-3">
+                      <Shield className="w-8 h-8 text-success flex-shrink-0" />
+                      <div>
+                        <p className="font-bold text-success">60-KUN KAFOLAT</p>
+                        <p className="text-xs text-muted-foreground">
+                          Savdo o'smasa, oylik to'lovning bir qismini qaytaramiz
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Who is this for - Individual */}
+                {plan.whoFor && (
+                  <div className="p-4 bg-muted/30 rounded-xl mb-6">
+                    <p className="font-semibold mb-2 text-sm">Kimlar uchun:</p>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      {plan.whoFor.map((item, j) => (
+                        <li key={j}>• {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 {/* CTA Button */}
                 <Button
                   className={cn(
-                    'w-full mb-6',
-                    plan.popular && 'gradient-primary border-0 shadow-glow btn-glow'
+                    'w-full mb-6 py-6 text-lg font-bold',
+                    plan.popular ? 'bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] text-black hover:from-[hsl(45,93%,50%)] hover:to-[hsl(38,92%,58%)]' : ''
                   )}
                   variant={plan.ctaVariant}
                   onClick={() => {
-                    const yearlyDiscount = billingPeriod === 'yearly' ? 0.8 : 1;
-                    const monthlyPrice = parseInt(plan.priceSom.replace(/[^\d]/g, ''));
-                    const totalPrice = billingPeriod === 'yearly' 
-                      ? monthlyPrice * 12 * yearlyDiscount 
-                      : monthlyPrice;
-                    const savings = billingPeriod === 'yearly' 
-                      ? monthlyPrice * 12 * 0.2 
-                      : 0;
-                    
+                    if (plan.name === 'Individual') {
+                      window.open('https://t.me/sellercloudx_support', '_blank');
+                      return;
+                    }
                     sessionStorage.setItem('selectedTier', JSON.stringify({
                       id: plan.name.toLowerCase().replace(/\s+/g, '_'),
                       name: plan.name,
                       price: plan.priceNum,
                       priceSom: plan.priceSom,
                       commission: plan.commission,
-                      billingPeriod: billingPeriod,
-                      totalPrice: totalPrice,
-                      savings: savings,
-                      discountPercent: billingPeriod === 'yearly' ? 20 : 0
+                      setupFee: plan.setupFee,
                     }));
-                    setLocation('/partner-registration');
+                    setLocation('/partner-registration?tariff=premium');
                   }}
                 >
+                  {plan.name === 'Individual' ? <MessageCircle className="w-5 h-5 mr-2" /> : <Zap className="w-5 h-5 mr-2" />}
                   {plan.cta}
-                  {plan.popular ? <Star className="w-4 h-4 ml-2" /> : <ArrowRight className="w-4 h-4 ml-2" />}
                 </Button>
 
                 {/* Divider */}
