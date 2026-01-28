@@ -6251,8 +6251,8 @@ async def get_blog_posts(request: Request, limit: int = 20, offset: int = 0):
     except:
         pass  # Allow public access for reading
     
-    if USE_POSTGRES:
-        async with pool.acquire() as conn:
+    if USE_POSTGRES and get_pool():
+        async with get_pool().acquire() as conn:
             rows = await conn.fetch(
                 "SELECT * FROM blog_posts ORDER BY created_at DESC LIMIT $1 OFFSET $2",
                 limit, offset
@@ -6275,8 +6275,8 @@ async def get_blog_posts(request: Request, limit: int = 20, offset: int = 0):
 @app.get("/api/blog/posts")
 async def get_public_blog_posts(limit: int = 10, offset: int = 0):
     """Get public blog posts"""
-    if USE_POSTGRES:
-        async with pool.acquire() as conn:
+    if USE_POSTGRES and get_pool():
+        async with get_pool().acquire() as conn:
             rows = await conn.fetch(
                 "SELECT * FROM blog_posts WHERE is_active = true ORDER BY created_at DESC LIMIT $1 OFFSET $2",
                 limit, offset
