@@ -8,6 +8,10 @@ import secrets
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv('/app/backend/.env')
 
 # Determine database type from environment
 DATABASE_URL = os.getenv("DATABASE_URL", "")
@@ -17,6 +21,7 @@ MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017/sellercloudx")
 USE_POSTGRES = DATABASE_URL.startswith("postgres")
 
 print(f"🔧 Database Mode: {'PostgreSQL' if USE_POSTGRES else 'MongoDB'}")
+print(f"🔧 DATABASE_URL: {DATABASE_URL[:30]}..." if DATABASE_URL else "🔧 DATABASE_URL: Not set")
 
 # ==================== PostgreSQL Setup ====================
 if USE_POSTGRES:
