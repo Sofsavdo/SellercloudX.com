@@ -577,30 +577,104 @@ class MarketplaceCredentials(BaseModel):
 
 @app.post("/api/partner/marketplaces/connect")
 async def connect_marketplace(body: MarketplaceCredentials, request: Request):
-    """Connect marketplace API"""
+    """Connect marketplace API with REAL validation"""
     user = await require_auth(request)
     partner = await get_partner_by_user_id(user["id"])
     
     if not partner:
         raise HTTPException(status_code=404, detail="Partner topilmadi")
     
-    credentials = {
-        "api_key": body.apiKey,
-        "client_id": body.clientId,
-        "campaign_id": body.campaignId,
-        "token": body.token
-    }
-    
-    saved = await save_marketplace_credentials(partner["id"], body.marketplace, credentials)
-    
-    return {
-        "success": True,
-        "message": f"{body.marketplace.capitalize()} ulandi",
-        "data": {
-            "marketplace": body.marketplace,
-            "is_connected": True
+    # REAL API VALIDATION - Test connection before saving
+    if body.marketplace == "yandex":
+        if not body.apiKey:
+            raise HTTPException(status_code=400, detail="Yandex uchun API Key talab qilinadi")
+        
+        # Test Yandex API connection
+        api = YandexMarketAPI(
+            oauth_token=body.apiKey,
+            campaign_id=body.campaignId
+        )
+        test_result = await api.test_connection()
+        
+        if not test_result.get("success"):
+            return {
+                "success": False,
+                "message": "Yandex Market ulanish xatosi",
+                "error": test_result.get("error", "API kaliti noto'g'ri yoki muddati o'tgan"),
+                "help": test_result.get("help", "")
+            }
+        
+        # Get business_id and campaigns from successful connection
+        campaigns = test_result.get("campaigns", [])
+        business_id = test_result.get("business_id", "")
+        
+        credentials = {
+            "api_key": body.apiKey,
+            "client_id": body.clientId,
+            "campaign_id": body.campaignId or (campaigns[0]["id"] if campaigns else ""),
+            "business_id": business_id,
+            "token": body.token,
+            "verified": True,
+            "verified_at": datetime.now(timezone.utc).isoformat(),
+            "campaigns": campaigns
         }
-    }
+        
+        await save_marketplace_credentials(partner["id"], body.marketplace, credentials)
+        
+        return {
+            "success": True,
+            "message": f"Yandex Market muvaffaqiyatli ulandi!",
+            "data": {
+                "marketplace": body.marketplace,
+                "is_connected": True,
+                "campaign_count": len(campaigns),
+                "business_id": business_id,
+                "shops": [{"id": c["id"], "name": c.get("clientName", c.get("domain", "Do'kon"))} for c in campaigns[:5]]
+            }
+        }
+    
+    elif body.marketplace == "uzum":
+        # Uzum uses seller cabinet - no direct API validation available
+        credentials = {
+            "api_key": body.apiKey,
+            "client_id": body.clientId,
+            "seller_id": body.campaignId,
+            "token": body.token,
+            "verified": False,  # Uzum doesn't have public API for validation
+            "note": "Uzum Market assisted automation - manual verification required"
+        }
+        
+        await save_marketplace_credentials(partner["id"], body.marketplace, credentials)
+        
+        return {
+            "success": True,
+            "message": "Uzum Market ma'lumotlari saqlandi (qo'lda tekshirish talab etiladi)",
+            "data": {
+                "marketplace": body.marketplace,
+                "is_connected": True,
+                "note": "Uzum Market to'liq API qo'llab-quvvatlamaydi"
+            }
+        }
+    
+    else:
+        # Other marketplaces - save without validation
+        credentials = {
+            "api_key": body.apiKey,
+            "client_id": body.clientId,
+            "campaign_id": body.campaignId,
+            "token": body.token
+        }
+        
+        await save_marketplace_credentials(partner["id"], body.marketplace, credentials)
+        
+        return {
+            "success": True,
+            "message": f"{body.marketplace.capitalize()} ma'lumotlari saqlandi",
+            "data": {
+                "marketplace": body.marketplace,
+                "is_connected": True
+            }
+        }
 
 
 @app.get("/api/partner/marketplaces")
