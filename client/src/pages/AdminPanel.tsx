@@ -107,6 +107,37 @@ interface TierUpgradeRequest {
   adminNotes: string | null;
 }
 
+// Normalize partner data from Python backend (snake_case to camelCase)
+function normalizePartner(p: any): Partner {
+  return {
+    id: p.id,
+    userId: p.userId || p.user_id,
+    businessName: p.businessName || p.business_name || 'N/A',
+    businessCategory: p.businessCategory || p.business_category || 'general',
+    monthlyRevenue: p.monthlyRevenue || p.monthly_revenue || '0',
+    pricingTier: p.pricingTier || p.tariff_type || 'trial',
+    commissionRate: p.commissionRate || p.commission_rate || '0.04',
+    approved: p.approved ?? false,
+    approvedAt: p.approvedAt || p.approved_at,
+    approvedBy: p.approvedBy || p.approved_by,
+    notes: p.notes || null,
+    createdAt: p.createdAt || p.created_at || new Date().toISOString(),
+    updatedAt: p.updatedAt || p.updated_at || new Date().toISOString(),
+    is_active: p.is_active,
+    ai_enabled: p.ai_enabled,
+    userData: p.userData ? {
+      id: p.userData.id,
+      username: p.userData.username,
+      email: p.userData.email,
+      firstName: p.userData.firstName || p.userData.first_name || '',
+      lastName: p.userData.lastName || p.userData.last_name || '',
+      phone: p.userData.phone || '',
+      role: p.userData.role,
+      isActive: p.userData.isActive ?? p.userData.is_active ?? true,
+    } : undefined,
+  };
+}
+
 export default function AdminPanel() {
   const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
