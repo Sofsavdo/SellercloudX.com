@@ -12,7 +12,7 @@ import httpx
 import os
 import base64
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -423,7 +423,7 @@ async def admin_deactivate_partner(partner_id: str, request: Request):
     user = await require_admin(request)
     partner = await update_partner(partner_id, {
         "is_active": False,
-        "deactivated_at": datetime.utcnow(),
+        "deactivated_at": datetime.now(timezone.utc),
         "deactivated_by": user["id"]
     })
     
@@ -553,7 +553,7 @@ async def change_tariff(body: ChangeTariffRequest, request: Request):
     updated = await update_partner(partner["id"], {
         "tariff_change_request": body.tariffType,
         "tariff_change_notes": body.notes,
-        "tariff_change_requested_at": datetime.utcnow()
+        "tariff_change_requested_at": datetime.now(timezone.utc)
     })
     
     return {
@@ -2133,7 +2133,7 @@ async def unified_scanner_full_process(request: UnifiedScanRequest):
                         api = YandexMarketAPI(oauth_token=oauth_token, business_id=business_id)
                         
                         # Generate offer ID
-                        offer_id = f"SCX-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                        offer_id = f"SCX-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
                         
                         # Get card data or fallback
                         card_data = result_data.get("product_card", {})
@@ -4908,7 +4908,7 @@ async def ai_full_automation(request: FullAutomationRequest):
                 else:
                     # Create product
                     create_result = await api.create_product(
-                        offer_id=f"SCX-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                        offer_id=f"SCX-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
                         name=card_data.get("name", product_name),
                         description=card_data.get("description", ""),
                         vendor=brand,
@@ -5691,7 +5691,7 @@ async def admin_activate_partner(request: AdminActivatePartnerRequest):
                 "is_active": request.is_active,
                 "pricing_tier": request.pricing_tier,
                 "admin_note": request.admin_note,
-                "activated_at": datetime.now().isoformat() if request.is_active else None
+                "activated_at": datetime.now(timezone.utc).isoformat() if request.is_active else None
             }
         }
     except Exception as e:
@@ -5737,7 +5737,7 @@ async def admin_set_partner_status(partner_id: str, status: str):
             "data": {
                 "partner_id": partner_id,
                 "new_status": status,
-                "updated_at": datetime.now().isoformat()
+                "updated_at": datetime.now(timezone.utc).isoformat()
             }
         }
     except Exception as e:
@@ -5763,7 +5763,7 @@ async def get_notifications(request: Request):
             "type": "success",
             "title": "Xush kelibsiz!",
             "message": f"SellerCloudX platformasiga xush kelibsiz, {user.get('username', 'Foydalanuvchi')}!",
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "read": False
         }
     ]
@@ -5777,7 +5777,7 @@ async def get_notifications(request: Request):
                 "type": "warning",
                 "title": "Tasdiqlash kutilmoqda",
                 "message": "Sizning hamkorlik arizangiz ko'rib chiqilmoqda.",
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "read": False
             })
         if partner.get("ai_enabled"):
@@ -5786,7 +5786,7 @@ async def get_notifications(request: Request):
                 "type": "info",
                 "title": "AI xizmatlari faol",
                 "message": "AI Manager va Scanner xizmatlari sizga ochiq.",
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "read": False
             })
     
@@ -6045,7 +6045,7 @@ async def approve_tier_upgrade(request_id: str, request: Request):
         "tariff_type": "premium",
         "tariff_change_request": None,
         "tariff_change_notes": None,
-        "tariff_approved_at": datetime.now(),
+        "tariff_approved_at": datetime.now(timezone.utc),
         "tariff_approved_by": user["id"]
     })
     
@@ -6323,7 +6323,7 @@ async def create_blog_post(body: CreateBlogPostRequest, request: Request):
                 INSERT INTO blog_posts (id, title, content, excerpt, category, tags, author_id, is_active, created_at, updated_at)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             """, post_id, body.title, body.content, body.excerpt, body.category,
-            json.dumps(body.tags), user["id"], body.isActive, datetime.utcnow(), datetime.utcnow())
+            json.dumps(body.tags), user["id"], body.isActive, datetime.now(timezone.utc), datetime.now(timezone.utc))
             
             row = await conn.fetchrow("SELECT * FROM blog_posts WHERE id = $1", post_id)
             return {
