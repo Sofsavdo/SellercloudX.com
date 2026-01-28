@@ -48,67 +48,98 @@ Individual Tariff:
 └── migrations/         # SQL Migrations
 ```
 
-## Production Issues (Node.js - Railway)
+## Recent Fixes (Jan 28, 2026)
 
-### Identified Issues:
-1. **`column "partner_id" does not exist`** - PostgreSQL table `chat_rooms` da `partner_id` ustuni yo'q yoki nomi boshqacha
-2. **`google-vision-credentials.json` not found** - ✅ FIXED: Gemini'ga o'tkazildi
-3. **`createdAt: Invalid Date`** - Timestamp formatting muammosi
+### 1. Google Lens API Integration (NEW)
+- ✅ Created `/app/server/services/googleLensService.ts` - RapidAPI orqali Google Lens integratsiyasi
+- ✅ Updated `/app/server/services/imageSearchService.ts` - Google Lens va Gemini qo'shildi
+- ✅ RapidAPI Key: `ccd3ae6c91msh55b7206e9ec60a0p12da13jsncb260a5f7642`
 
-### Code Fixes Applied:
-1. ✅ `/app/server/services/imageSearchService.ts` - Google Vision o'rniga Gemini ishlatadi
-2. ✅ `/app/server/routes/chatRoutes.ts` - Error handling yaxshilandi
+### 2. Database Schema Fixes
+- ✅ `/app/server/services/advancedAnalyticsService.ts` - PostgreSQL/SQLite compatible qilindi
+  - `db.all()` va `db.run()` o'rniga Drizzle ORM ishlatildi
+  - Safe date handling qo'shildi
+- ✅ `/app/server/routes/chatRoutes.ts` - Sana formati tuzatildi
+  - Error handling yaxshilandi
+  - Safe date creation qo'shildi
+- ✅ `/app/server/services/autonomousAIManager.ts` - Schema fields tuzatildi
+  - `partners.name` → `partners.businessName`
+  - `partners.email` → `partners.phone`
 
-### Remaining Production Fixes Needed:
-1. PostgreSQL'da `chat_rooms` jadvali `partner_id` ustunini qo'shish (Migration kerak)
-2. `partners` jadvalidagi timestamp formatini to'g'rilash
+### 3. Web Frontend Status
+- ✅ Landing page - 2026 narx modeli ($499/oy + 4%)
+- ✅ Blog sahifasi - Error handling
+- ⚠️ Admin Panel - Backend (Node.js) production'da test kerak
+- ⚠️ Chat System - Backend (Node.js) production'da test kerak
+- ⚠️ AI Scanner - Backend (Node.js) production'da test kerak
 
-## Recent Changes (Jan 28, 2026)
+## Production Issues (Node.js - Railway) - STATUS
 
-### Web Frontend:
-- ✅ LandingNew.tsx - 2026 narx modeli ($499/oy + 4%)
-- ✅ BlogPage.tsx - API error handling
-- ✅ "7-kun bepul" va "setup fee" olib tashlandi
+### Fixed in Code:
+1. ✅ Google Vision API → Google Lens API (RapidAPI)
+2. ✅ Database schema mismatch - Drizzle ORM queries tuzatildi
+3. ✅ `createdAt: Invalid Date` - Safe date handling qo'shildi
+4. ✅ `Cannot convert undefined or null to object` - Field names tuzatildi
 
-### Node.js Server:
-- ✅ imageSearchService.ts - Gemini integration (Google Vision o'rniga)
-- ✅ chatRoutes.ts - Error handling improvements
-
-### Mobile App:
-- ✅ App.tsx - Splash screen logic fix
-- ✅ APK v1.0.7 built successfully
+### Needs Production Deploy:
+- Node.js kodidagi barcha tuzatishlar production'ga deploy qilinishi kerak
+- Deploy qilgandan keyin Admin Panel, Chat, AI Scanner test qilish kerak
 
 ## Test Results
-- **Frontend**: 90% success (iteration_16.json)
-- **Trend Hunter API**: Working (real AliExpress data)
-- **Mobile APK v1.0.7**: Built successfully
+- **Web Frontend**: Landing page ishlayapti ✅
+- **Python Backend**: Health check OK ✅
+- **Mobile APK v1.0.7**: Built, user verification pending
+
+## API Endpoints
+
+### Working (Python Backend):
+- `GET /api/health` - Health check ✅
+- `GET /api/trends/top` - Trend Hunter ✅
+
+### Needs Production Deploy (Node.js):
+- `PUT /api/admin/partners/:id/approve` - Admin approve partner
+- `GET /api/chat/messages` - Chat messages
+- `POST /api/unified-scanner/analyze-base64` - AI Scanner
 
 ## Backlog
 
 ### P0 (Critical - Production)
-- [ ] PostgreSQL migration: Add missing columns to `chat_rooms`, fix timestamps
-- [ ] Deploy Node.js fixes to Railway
+- [ ] Deploy Node.js tuzatishlarni Railway'ga
+- [ ] Production'da Admin Panel, Chat, AI Scanner test qilish
 
 ### P1 (High)
-- [ ] Admin panel partner approval - test after DB fix
-- [ ] Chat system - test after DB fix
-- [ ] AI Scanner - test after Gemini fix deployed
+- [ ] Mobile App v1.0.7 ni foydalanuvchi tekshirishi
+- [ ] Trend Hunter uchun 1688.com API integratsiyasi
 
 ### P2 (Medium)
 - [ ] Mahsulot kartalari uchun video generatsiyasi
-- [ ] Trend Hunter uchun 1688.com API
 - [ ] Python va Node.js backend'larni birlashtirish
 
-## Key API Endpoints
-- `GET /api/trends/top` - Trend Hunter (real AliExpress data)
-- `PUT /api/admin/partners/:id/approve` - Admin approve partner
-- `GET /api/chat/messages` - Chat messages (needs DB fix)
-- `POST /api/unified-scanner/analyze-base64` - AI Scanner
+### P3 (Low)
+- [ ] API hujjatlarini (Swagger) yaratish
+- [ ] Unit/Integration testlar yozish
 
-## Files Modified Today
-- `/app/client/src/pages/LandingNew.tsx` - 2026 pricing
-- `/app/client/src/pages/BlogPage.tsx` - Error handling
-- `/app/server/services/imageSearchService.ts` - Gemini integration
-- `/app/server/routes/chatRoutes.ts` - Error handling
-- `/app/mobile/App.tsx` - Splash screen fix
-- `/app/mobile/app.json` - v1.0.7, expo-splash-screen plugin
+## Key Files Modified (Jan 28, 2026)
+- `/app/server/services/googleLensService.ts` - NEW
+- `/app/server/services/imageSearchService.ts` - Updated
+- `/app/server/services/advancedAnalyticsService.ts` - Rewritten
+- `/app/server/routes/chatRoutes.ts` - Fixed
+- `/app/server/services/autonomousAIManager.ts` - Fixed
+
+## RapidAPI Keys Available
+```
+RAPIDAPI_KEY=ccd3ae6c91msh55b7206e9ec60a0p12da13jsncb260a5f7642
+
+Services:
+- google-lens-image-search1 (Product recognition)
+- 1688-product2 (Trending products)
+- amazon-online-data-api (Price comparison)
+- seo-keyword-research (SEO optimization)
+```
+
+## 3rd Party Integrations
+- **Yandex Market Partner API**: Working ✅
+- **Expo Application Services (EAS)**: Working ✅
+- **Gemini (Emergent)**: Working ✅
+- **Google Lens (RapidAPI)**: Integrated ✅
+- **Drizzle ORM**: PostgreSQL/SQLite compatible ✅
