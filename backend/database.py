@@ -541,10 +541,11 @@ async def get_or_create_chat_room(partner_id: str) -> dict:
             if not row:
                 room_id = f"chat-{secrets.token_hex(8)}"
                 participants = json.dumps([partner_id, "admin"])
+                now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
                 await conn.execute("""
                     INSERT INTO chat_rooms (id, name, type, participants, is_active, created_at, updated_at)
                     VALUES ($1, $2, $3, $4, $5, $6, $7)
-                """, room_id, f"partner-{partner_id}", "support", participants, True, datetime.now(timezone.utc), datetime.now(timezone.utc))
+                """, room_id, f"partner-{partner_id}", "support", participants, True, now_naive, now_naive)
                 row = await conn.fetchrow("SELECT * FROM chat_rooms WHERE id = $1", room_id)
             
             result = serialize_pg_row(row)
