@@ -1,10 +1,11 @@
 """
 SellerCloudX Database Service
-PostgreSQL (Production - Railway) or MongoDB (Development)
+PostgreSQL (Production - Railway) with existing schema
 """
 import os
 import bcrypt
 import secrets
+import json
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
@@ -21,7 +22,8 @@ MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017/sellercloudx")
 USE_POSTGRES = DATABASE_URL.startswith("postgres")
 
 print(f"🔧 Database Mode: {'PostgreSQL' if USE_POSTGRES else 'MongoDB'}")
-print(f"🔧 DATABASE_URL: {DATABASE_URL[:30]}..." if DATABASE_URL else "🔧 DATABASE_URL: Not set")
+if DATABASE_URL:
+    print(f"🔧 DATABASE_URL: {DATABASE_URL[:30]}...")
 
 # ==================== PostgreSQL Setup ====================
 if USE_POSTGRES:
@@ -36,15 +38,36 @@ if USE_POSTGRES:
             pool = await asyncpg.create_pool(
                 DATABASE_URL,
                 min_size=2,
-                max_size=20,
+                max_size=10,
                 command_timeout=60
             )
             print("✅ PostgreSQL connected successfully")
+            await ensure_tables()
             await seed_admin_pg()
             return True
         except Exception as e:
             print(f"❌ PostgreSQL connection error: {e}")
             return False
+    
+    async def ensure_tables():
+        """Ensure required tables exist"""
+        async with pool.acquire() as conn:
+            # Create user_sessions table if not exists
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS user_sessions (
+                    id SERIAL PRIMARY KEY,
+                    token VARCHAR(255) UNIQUE NOT NULL,
+                    user_id VARCHAR(255) NOT NULL,
+                    user_data JSONB NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    expires_at TIMESTAMP NOT NULL
+                )
+            """)
+            # Create index on token
+            await conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(token)
+            """)
+            print("✅ Tables ensured")
     
     async def seed_admin_pg():
         """Seed admin user in PostgreSQL"""
@@ -55,14 +78,17 @@ if USE_POSTGRES:
                 )
                 if not existing:
                     hashed = bcrypt.hashpw("admin123".encode(), bcrypt.gensalt()).decode()
+                    user_id = secrets.token_hex(12)
                     await conn.execute("""
                         INSERT INTO users (id, username, email, password, role, is_active, first_name, last_name, created_at)
                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                     """, 
-                    secrets.token_hex(12), "admin", "admin@sellercloudx.com", 
+                    user_id, "admin", "admin@sellercloudx.com", 
                     hashed, "admin", True, "Admin", "User", datetime.utcnow()
                     )
                     print("✅ Admin user seeded in PostgreSQL")
+                else:
+                    print("✅ Admin user exists in PostgreSQL")
         except Exception as e:
             print(f"⚠️ Admin seed warning: {e}")
 
@@ -78,12 +104,10 @@ else:
         """Initialize MongoDB connection"""
         global client, db
         try:
-            # Use connection pooling with limits
             client = AsyncIOMotorClient(
                 MONGO_URL,
                 maxPoolSize=10,
                 minPoolSize=1,
-                maxIdleTimeMS=30000,
                 serverSelectionTimeoutMS=5000
             )
             db = client.sellercloudx
@@ -170,17 +194,23 @@ async def create_user(username: str, email: str, password: str, role: str = "par
     if USE_POSTGRES:
         async with pool.acquire() as conn:
             user_id = secrets.token_hex(12)
-            await conn.execute("""
-                INSERT INTO users (id, username, email, password, role, is_active, first_name, last_name, phone, created_at)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-            """,
-            user_id, username, email, hashed, role, True,
-            kwargs.get("first_name", ""), kwargs.get("last_name", ""),
-            kwargs.get("phone", ""), datetime.utcnow()
-            )
+            try:
+                await conn.execute("""
+                    INSERT INTO users (id, username, email, password, role, is_active, first_name, last_name, phone, created_at)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                """,
+                user_id, username, email, hashed, role, True,
+                kwargs.get("first_name", ""), kwargs.get("last_name", ""),
+                kwargs.get("phone", ""), datetime.utcnow()
+                )
+            except Exception as e:
+                if "duplicate" in str(e).lower():
+                    raise ValueError("Username allaqachon mavjud")
+                raise
             row = await conn.fetchrow("SELECT * FROM users WHERE id = $1", user_id)
             result = serialize_pg_row(row)
-            del result["password"]
+            if "password" in result:
+                del result["password"]
             return result
     else:
         user_data = {
@@ -258,9 +288,9 @@ async def create_session(user_id: str, user_data: dict) -> str:
     if USE_POSTGRES:
         async with pool.acquire() as conn:
             await conn.execute("""
-                INSERT INTO sessions (token, user_id, user_data, created_at, expires_at)
+                INSERT INTO user_sessions (token, user_id, user_data, created_at, expires_at)
                 VALUES ($1, $2, $3, $4, $5)
-            """, token, user_id, str(user_data), datetime.utcnow(), expires_at)
+            """, token, user_id, json.dumps(user_data), datetime.utcnow(), expires_at)
     else:
         await db.sessions.insert_one({
             "token": token,
@@ -277,15 +307,13 @@ async def get_session(token: str) -> Optional[dict]:
     if USE_POSTGRES:
         async with pool.acquire() as conn:
             row = await conn.fetchrow(
-                "SELECT * FROM sessions WHERE token = $1 AND expires_at > $2",
+                "SELECT * FROM user_sessions WHERE token = $1 AND expires_at > $2",
                 token, datetime.utcnow()
             )
             if row:
-                import ast
-                try:
-                    user_data = ast.literal_eval(row["user_data"])
-                except:
-                    user_data = row["user_data"]
+                user_data = row["user_data"]
+                if isinstance(user_data, str):
+                    user_data = json.loads(user_data)
                 return {"user_data": user_data}
             return None
     else:
@@ -294,15 +322,15 @@ async def get_session(token: str) -> Optional[dict]:
             "expires_at": {"$gt": datetime.utcnow()}
         })
         if session:
-            # MongoDB stores user_data directly as dict
             return {"user_data": session.get("user_data", session)}
+        return None
 
 
 async def delete_session(token: str):
     """Delete session"""
     if USE_POSTGRES:
         async with pool.acquire() as conn:
-            await conn.execute("DELETE FROM sessions WHERE token = $1", token)
+            await conn.execute("DELETE FROM user_sessions WHERE token = $1", token)
     else:
         await db.sessions.delete_one({"token": token})
 
@@ -311,46 +339,42 @@ async def delete_session(token: str):
 
 async def create_partner(user_id: str, **kwargs) -> dict:
     """Create partner profile"""
-    partner_data = {
-        "user_id": user_id,
-        "business_name": kwargs.get("business_name", "Yangi Biznes"),
-        "business_category": kwargs.get("business_category", "general"),
-        "business_type": kwargs.get("business_type", "yatt"),
-        "phone": kwargs.get("phone", ""),
-        "inn": kwargs.get("inn"),
-        "website": kwargs.get("website"),
-        "monthly_revenue": kwargs.get("monthly_revenue", "0"),
-        "approved": False,
-        "is_active": False,
-        "ai_enabled": False,
-        "tariff_type": "trial",
-        "setup_paid": False,
-        "monthly_fee_usd": 499,
-        "revenue_share_percent": 0.04,
-        "promo_code": f"SCX-{secrets.token_hex(3).upper()}",
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow()
-    }
-    
     if USE_POSTGRES:
         async with pool.acquire() as conn:
             partner_id = secrets.token_hex(12)
+            promo_code = f"SCX-{secrets.token_hex(3).upper()}"
             await conn.execute("""
                 INSERT INTO partners (id, user_id, business_name, business_category, business_type,
-                    phone, inn, website, monthly_revenue, approved, is_active, ai_enabled,
-                    pricing_tier, setup_paid, monthly_fee_usd, revenue_share_percent, promo_code, created_at, updated_at)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+                    phone, inn, website, monthly_revenue, is_approved, approved, is_active, ai_enabled,
+                    pricing_tier, promo_code, created_at, updated_at)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
             """,
-            partner_id, user_id, partner_data["business_name"], partner_data["business_category"],
-            partner_data["business_type"], partner_data["phone"], partner_data["inn"],
-            partner_data["website"], partner_data["monthly_revenue"], partner_data["approved"],
-            partner_data["is_active"], partner_data["ai_enabled"], partner_data["tariff_type"],
-            partner_data["setup_paid"], partner_data["monthly_fee_usd"], partner_data["revenue_share_percent"],
-            partner_data["promo_code"], partner_data["created_at"], partner_data["updated_at"]
+            partner_id, user_id, kwargs.get("business_name", "Yangi Biznes"),
+            kwargs.get("business_category", "general"), kwargs.get("business_type", "yatt"),
+            kwargs.get("phone", ""), kwargs.get("inn"), kwargs.get("website"),
+            kwargs.get("monthly_revenue", "0"), False, False, False, False,
+            "trial", promo_code, datetime.utcnow(), datetime.utcnow()
             )
             row = await conn.fetchrow("SELECT * FROM partners WHERE id = $1", partner_id)
             return serialize_pg_row(row)
     else:
+        partner_data = {
+            "user_id": user_id,
+            "business_name": kwargs.get("business_name", "Yangi Biznes"),
+            "business_category": kwargs.get("business_category", "general"),
+            "business_type": kwargs.get("business_type", "yatt"),
+            "phone": kwargs.get("phone", ""),
+            "inn": kwargs.get("inn"),
+            "website": kwargs.get("website"),
+            "monthly_revenue": kwargs.get("monthly_revenue", "0"),
+            "approved": False,
+            "is_active": False,
+            "ai_enabled": False,
+            "tariff_type": "trial",
+            "promo_code": f"SCX-{secrets.token_hex(3).upper()}",
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
         result = await db.partners.insert_one(partner_data)
         partner_data["id"] = str(result.inserted_id)
         return serialize_doc(partner_data)
@@ -390,7 +414,7 @@ async def get_all_partners(status: str = "all") -> List[dict]:
             elif status == "inactive":
                 rows = await conn.fetch("SELECT * FROM partners WHERE is_active = false ORDER BY created_at DESC")
             elif status == "pending":
-                rows = await conn.fetch("SELECT * FROM partners WHERE approved = false ORDER BY created_at DESC")
+                rows = await conn.fetch("SELECT * FROM partners WHERE (approved = false OR approved IS NULL) ORDER BY created_at DESC")
             else:
                 rows = await conn.fetch("SELECT * FROM partners ORDER BY created_at DESC")
             
@@ -435,15 +459,21 @@ async def update_partner(partner_id: str, updates: dict) -> Optional[dict]:
             values = []
             i = 1
             for key, value in updates.items():
+                # Convert datetime to string for JSON fields
+                if isinstance(value, datetime):
+                    value = value.isoformat()
                 set_clauses.append(f"{key} = ${i}")
                 values.append(value)
                 i += 1
             values.append(partner_id)
             
-            await conn.execute(
-                f"UPDATE partners SET {', '.join(set_clauses)} WHERE id = ${i}",
-                *values
-            )
+            try:
+                await conn.execute(
+                    f"UPDATE partners SET {', '.join(set_clauses)} WHERE id = ${i}",
+                    *values
+                )
+            except Exception as e:
+                print(f"Update error: {e}")
             return await get_partner_by_id(partner_id)
     else:
         try:
@@ -460,6 +490,7 @@ async def approve_partner(partner_id: str, admin_id: str) -> Optional[dict]:
     """Approve partner"""
     return await update_partner(partner_id, {
         "approved": True,
+        "is_approved": True,
         "is_active": True,
         "ai_enabled": True,
         "approved_at": datetime.utcnow(),
@@ -469,26 +500,15 @@ async def approve_partner(partner_id: str, admin_id: str) -> Optional[dict]:
 
 async def activate_partner_manual(partner_id: str, admin_id: str, tariff: str = "premium") -> Optional[dict]:
     """Manually activate partner without payment"""
-    if USE_POSTGRES:
-        return await update_partner(partner_id, {
-            "approved": True,
-            "is_active": True,
-            "ai_enabled": True,
-            "pricing_tier": tariff,
-            "setup_paid": True,
-            "activated_at": datetime.utcnow(),
-            "activated_by": admin_id
-        })
-    else:
-        return await update_partner(partner_id, {
-            "approved": True,
-            "is_active": True,
-            "ai_enabled": True,
-            "tariff_type": tariff,
-            "setup_paid": True,
-            "activated_at": datetime.utcnow(),
-            "activated_by": admin_id
-        })
+    return await update_partner(partner_id, {
+        "approved": True,
+        "is_approved": True,
+        "is_active": True,
+        "ai_enabled": True,
+        "pricing_tier": tariff,
+        "tariff_type": tariff,
+        "activated_at": datetime.utcnow()
+    })
 
 
 # ==================== CHAT OPERATIONS ====================
@@ -501,9 +521,9 @@ async def get_or_create_chat_room(partner_id: str) -> dict:
             if not row:
                 room_id = f"chat-{secrets.token_hex(8)}"
                 await conn.execute("""
-                    INSERT INTO chat_rooms (id, partner_id, admin_id, status, created_at)
-                    VALUES ($1, $2, $3, $4, $5)
-                """, room_id, partner_id, None, "active", datetime.utcnow())
+                    INSERT INTO chat_rooms (id, partner_id, status, created_at)
+                    VALUES ($1, $2, $3, $4)
+                """, room_id, partner_id, "active", datetime.utcnow())
                 row = await conn.fetchrow("SELECT * FROM chat_rooms WHERE id = $1", room_id)
             return serialize_pg_row(row)
     else:
@@ -600,7 +620,7 @@ async def create_message(chat_room_id: str, sender_id: str, sender_role: str, co
         message_data["id"] = str(result.inserted_id)
         
         await db.chat_rooms.update_one(
-            {"_id": ObjectId(chat_room_id) if len(chat_room_id) == 24 else chat_room_id},
+            {"partner_id": chat_room_id},
             {"$set": {"last_message_at": datetime.utcnow()}}
         )
         
@@ -694,12 +714,12 @@ async def save_marketplace_credentials(partner_id: str, marketplace: str, creden
                     UPDATE marketplace_integrations 
                     SET credentials = $1, is_active = true, updated_at = $2
                     WHERE partner_id = $3 AND marketplace = $4
-                """, str(credentials), datetime.utcnow(), partner_id, marketplace)
+                """, json.dumps(credentials), datetime.utcnow(), partner_id, marketplace)
             else:
                 await conn.execute("""
                     INSERT INTO marketplace_integrations (id, partner_id, marketplace, credentials, is_active, created_at, updated_at)
                     VALUES ($1, $2, $3, $4, $5, $6, $7)
-                """, secrets.token_hex(12), partner_id, marketplace, str(credentials), True, datetime.utcnow(), datetime.utcnow())
+                """, secrets.token_hex(12), partner_id, marketplace, json.dumps(credentials), True, datetime.utcnow(), datetime.utcnow())
             
             return {"marketplace": marketplace, "is_connected": True}
     else:
@@ -806,7 +826,7 @@ async def create_ai_task(partner_id: str, task_type: str, input_data: dict) -> d
             await conn.execute("""
                 INSERT INTO ai_tasks (id, partner_id, task_type, status, input_data, created_at)
                 VALUES ($1, $2, $3, $4, $5, $6)
-            """, task_id, partner_id, task_type, "pending", str(input_data), datetime.utcnow())
+            """, task_id, partner_id, task_type, "pending", json.dumps(input_data), datetime.utcnow())
             row = await conn.fetchrow("SELECT * FROM ai_tasks WHERE id = $1", task_id)
             return serialize_pg_row(row)
     else:
@@ -817,9 +837,7 @@ async def create_ai_task(partner_id: str, task_type: str, input_data: dict) -> d
             "input_data": input_data,
             "output_data": None,
             "error_message": None,
-            "created_at": datetime.utcnow(),
-            "started_at": None,
-            "completed_at": None
+            "created_at": datetime.utcnow()
         }
         result = await db.ai_tasks.insert_one(task_data)
         task_data["id"] = str(result.inserted_id)
