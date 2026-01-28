@@ -1,12 +1,11 @@
 # SellerCloudX - Product Requirements Document
 
 ## Overview
-SellerCloudX.com - AI-powered marketplace automation SaaS. 4 ta marketplace (Yandex, Uzum, Wildberries, Ozon) uchun to'liq avtomatizatsiya.
+SellerCloudX.com - AI-powered marketplace automation SaaS for Yandex Market, Uzum, Wildberries, Ozon.
 
 ## Live URLs
 - **Preview**: https://selltech-1.preview.emergentagent.com
 - **Production**: https://sellercloudx.com (Railway)
-- **Mobile API**: /api
 
 ## 2026 Pricing Model
 ```
@@ -23,123 +22,153 @@ Individual Tariff:
 └── Maxsus integratsiyalar
 ```
 
-## Mobile App v1.0.7 (READY - Jan 28, 2026)
-
-### APK Download:
-**https://expo.dev/artifacts/eas/xcgPHV3rXDKUu7f8R1guP.apk**
-
-### v1.0.7 O'zgarishlar:
-- ✅ Splash screen startup muammosi tuzatildi
-- ✅ App.tsx mantiq yangilandi  
-- ✅ expo-splash-screen plugin qo'shildi
-
-## Expo Credentials
-- **Email**: Dubaymall.beauty@gmail.com
-- **Username**: medik3636
-- **Password**: Medik9298
+## Mobile App v1.0.7
+**APK**: https://expo.dev/artifacts/eas/xcgPHV3rXDKUu7f8R1guP.apk
 
 ## Architecture
 ```
 /app
-├── backend/            # Python/FastAPI (port 8001) - Preview
-├── client/             # React/Vite (port 3000) - Preview
+├── backend/            # Python/FastAPI (port 8001) - PRIMARY BACKEND
+├── client/             # React/Vite (port 3000) - Web Frontend
 ├── mobile/             # React Native/Expo
-├── server/             # Node.js/Express - Production (Railway)
-└── migrations/         # SQL Migrations
+├── server/             # Node.js/Express - Proxy to Python backend
+└── shared/             # Drizzle schema
 ```
 
-## Recent Fixes (Jan 28, 2026)
+## FIXED - January 28, 2026
 
-### 1. Google Lens API Integration (NEW)
-- ✅ Created `/app/server/services/googleLensService.ts` - RapidAPI orqali Google Lens integratsiyasi
-- ✅ Updated `/app/server/services/imageSearchService.ts` - Google Lens va Gemini qo'shildi
-- ✅ RapidAPI Key: `ccd3ae6c91msh55b7206e9ec60a0p12da13jsncb260a5f7642`
+### Critical Architecture Fix
+Node.js server now proxies ALL API requests to Python backend:
+- `/api/auth/*` → Python backend (MongoDB)
+- `/api/admin/*` → Python backend (MongoDB)
+- `/api/partner/*` → Python backend (MongoDB)
+- `/api/chat/*` → Python backend (MongoDB)
+- `/api/ai-manager/*` → Python backend (MongoDB)
 
-### 2. Database Schema Fixes
-- ✅ `/app/server/services/advancedAnalyticsService.ts` - PostgreSQL/SQLite compatible qilindi
-  - `db.all()` va `db.run()` o'rniga Drizzle ORM ishlatildi
-  - Safe date handling qo'shildi
-- ✅ `/app/server/routes/chatRoutes.ts` - Sana formati tuzatildi
-  - Error handling yaxshilandi
-  - Safe date creation qo'shildi
-- ✅ `/app/server/services/autonomousAIManager.ts` - Schema fields tuzatildi
-  - `partners.name` → `partners.businessName`
-  - `partners.email` → `partners.phone`
+### Files Modified
+1. **`/app/backend/database.py`** - NEW: MongoDB service with Motor
+   - User authentication (bcrypt)
+   - Session management (token-based)
+   - Partner management
+   - Chat rooms & messages
+   - Products & marketplaces
 
-### 3. Web Frontend Status
-- ✅ Landing page - 2026 narx modeli ($499/oy + 4%)
-- ✅ Blog sahifasi - Error handling
-- ⚠️ Admin Panel - Backend (Node.js) production'da test kerak
-- ⚠️ Chat System - Backend (Node.js) production'da test kerak
-- ⚠️ AI Scanner - Backend (Node.js) production'da test kerak
+2. **`/app/backend/server.py`** - MAJOR UPDATE
+   - Added 30+ new API endpoints
+   - Token-based authentication
+   - Admin/Partner/Chat routes
+   - AI Manager routes
+   - Marketplace integration routes
 
-## Production Issues (Node.js - Railway) - STATUS
+3. **`/app/server/routes.ts`** - Updated proxy routes
+   - All `/api/auth`, `/api/admin`, `/api/partner`, `/api/chat` go to Python
 
-### Fixed in Code:
-1. ✅ Google Vision API → Google Lens API (RapidAPI)
-2. ✅ Database schema mismatch - Drizzle ORM queries tuzatildi
-3. ✅ `createdAt: Invalid Date` - Safe date handling qo'shildi
-4. ✅ `Cannot convert undefined or null to object` - Field names tuzatildi
+4. **`/app/server/routes/pythonBackendProxy.ts`** - Fixed Authorization header forwarding
 
-### Needs Production Deploy:
-- Node.js kodidagi barcha tuzatishlar production'ga deploy qilinishi kerak
-- Deploy qilgandan keyin Admin Panel, Chat, AI Scanner test qilish kerak
+5. **`/app/client/src/lib/queryClient.ts`** - Token-based auth
+   - Removed credentials:include (CORS fix)
+   - Added token storage in localStorage
 
-## Test Results
-- **Web Frontend**: Landing page ishlayapti ✅
-- **Python Backend**: Health check OK ✅
-- **Mobile APK v1.0.7**: Built, user verification pending
+6. **`/app/client/src/hooks/useAuth.tsx`** - Token-based auth
+   - Normalized snake_case/camelCase data
 
-## API Endpoints
+7. **`/app/client/src/pages/AdminPanel.tsx`** - Data normalization
+   - Handle Python backend response format
+   - snake_case to camelCase conversion
 
-### Working (Python Backend):
-- `GET /api/health` - Health check ✅
-- `GET /api/trends/top` - Trend Hunter ✅
+## Working Features ✅
 
-### Needs Production Deploy (Node.js):
-- `PUT /api/admin/partners/:id/approve` - Admin approve partner
-- `GET /api/chat/messages` - Chat messages
-- `POST /api/unified-scanner/analyze-base64` - AI Scanner
+### Authentication
+- ✅ Login (admin/partner)
+- ✅ Register
+- ✅ Token-based sessions
+- ✅ Role-based access
+
+### Admin Panel
+- ✅ Partners list with statistics
+- ✅ Partner approval
+- ✅ Partner activation (manual, without payment)
+- ✅ Partner deactivation
+- ✅ Dashboard with metrics
+
+### Partner Dashboard
+- ✅ Login as partner
+- ✅ Dashboard with statistics
+- ✅ Menu navigation
+- ✅ Tariff management
+- ✅ Marketplace connections
+- ✅ AI Manager access (PRO)
+- ✅ AI Scanner access (PRO)
+- ✅ Trend Hunter access (PRO)
+
+### Chat System
+- ✅ Chat room creation
+- ✅ Message sending
+- ✅ Admin/Partner communication
+
+## Test Credentials
+- **Admin**: admin / admin123
+- **Partner**: testpartner / test123
+
+## API Endpoints (Python Backend)
+
+### Authentication
+- `POST /api/auth/login` - Login
+- `POST /api/auth/register` - Register
+- `GET /api/auth/me` - Current user
+- `POST /api/auth/logout` - Logout
+
+### Admin
+- `GET /api/admin/partners` - List partners
+- `PUT /api/admin/partners/:id/approve` - Approve partner
+- `POST /api/admin/partners/:id/activate` - Activate (manual)
+- `PUT /api/admin/partners/:id/deactivate` - Deactivate
+
+### Partner
+- `GET /api/partner/profile` - Get profile
+- `PUT /api/partner/profile` - Update profile
+- `GET /api/partner/tariff` - Get tariff
+- `POST /api/partner/marketplaces/connect` - Connect marketplace
+- `GET /api/partner/products` - Get products
+
+### Chat
+- `GET /api/chat/room` - Get/create chat room
+- `GET /api/chat/rooms` - List rooms (admin)
+- `GET /api/chat/messages` - Get messages
+- `POST /api/chat/send` - Send message
+
+### AI Manager
+- `GET /api/ai-manager/status` - AI status
+- `GET /api/ai-manager/tasks` - Get tasks
+- `POST /api/ai-manager/tasks` - Create task
 
 ## Backlog
 
-### P0 (Critical - Production)
-- [ ] Deploy Node.js tuzatishlarni Railway'ga
-- [ ] Production'da Admin Panel, Chat, AI Scanner test qilish
+### P0 - Critical
+- [ ] Deploy fixes to Railway production
+- [ ] Test all features on production
 
-### P1 (High)
-- [ ] Mobile App v1.0.7 ni foydalanuvchi tekshirishi
-- [ ] Trend Hunter uchun 1688.com API integratsiyasi
+### P1 - High
+- [ ] Mobile App v1.0.7 verification
+- [ ] Trend Hunter 1688.com API integration
+- [ ] AI Scanner with real image analysis
 
-### P2 (Medium)
-- [ ] Mahsulot kartalari uchun video generatsiyasi
-- [ ] Python va Node.js backend'larni birlashtirish
+### P2 - Medium
+- [ ] Video generation for product cards
+- [ ] Consolidate Python and Node.js backends
 
-### P3 (Low)
-- [ ] API hujjatlarini (Swagger) yaratish
-- [ ] Unit/Integration testlar yozish
-
-## Key Files Modified (Jan 28, 2026)
-- `/app/server/services/googleLensService.ts` - NEW
-- `/app/server/services/imageSearchService.ts` - Updated
-- `/app/server/services/advancedAnalyticsService.ts` - Rewritten
-- `/app/server/routes/chatRoutes.ts` - Fixed
-- `/app/server/services/autonomousAIManager.ts` - Fixed
-
-## RapidAPI Keys Available
-```
-RAPIDAPI_KEY=ccd3ae6c91msh55b7206e9ec60a0p12da13jsncb260a5f7642
-
-Services:
-- google-lens-image-search1 (Product recognition)
-- 1688-product2 (Trending products)
-- amazon-online-data-api (Price comparison)
-- seo-keyword-research (SEO optimization)
-```
+### P3 - Low
+- [ ] API documentation (Swagger)
+- [ ] Unit/Integration tests
 
 ## 3rd Party Integrations
-- **Yandex Market Partner API**: Working ✅
-- **Expo Application Services (EAS)**: Working ✅
-- **Gemini (Emergent)**: Working ✅
-- **Google Lens (RapidAPI)**: Integrated ✅
-- **Drizzle ORM**: PostgreSQL/SQLite compatible ✅
+- ✅ MongoDB (database)
+- ✅ Yandex Market Partner API
+- ✅ Expo Application Services
+- ✅ Gemini (Emergent LLM)
+- ✅ Google Lens API (RapidAPI)
+
+## RapidAPI Keys
+```
+RAPIDAPI_KEY=ccd3ae6c91msh55b7206e9ec60a0p12da13jsncb260a5f7642
+```
