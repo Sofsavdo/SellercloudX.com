@@ -29,11 +29,17 @@ Individual Tariff:
 ```
 /app
 ├── backend/            # Python/FastAPI (port 8001) - PRIMARY BACKEND
+│   └── database.py     # PostgreSQL (Railway) / MongoDB (dev) - DUAL MODE
 ├── client/             # React/Vite (port 3000) - Web Frontend
 ├── mobile/             # React Native/Expo
 ├── server/             # Node.js/Express - Proxy to Python backend
-└── shared/             # Drizzle schema
+└── shared/             # Drizzle schema (Node.js only)
 ```
+
+## Database Configuration
+- **Production (Railway)**: PostgreSQL via `DATABASE_URL` environment variable
+- **Preview/Development**: MongoDB via `MONGO_URL` environment variable
+- **Auto-detection**: `database.py` automatically detects which DB to use
 
 ## FIXED - January 28, 2026
 
