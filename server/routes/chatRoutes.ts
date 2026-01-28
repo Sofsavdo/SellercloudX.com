@@ -89,54 +89,83 @@ router.get('/messages/:chatRoomId?', asyncHandler(async (req: Request, res: Resp
   
   let roomId = chatRoomId;
 
-  // If partner, get their chat room
-  if (user.role === 'partner' && !chatRoomId) {
-    const room = await db.select()
-      .from(chatRooms)
-      .where(eq(chatRooms.partnerId, partner.id))
-      .limit(1);
-    
-    if (room.length === 0) {
-      return res.json([]);
+  try {
+    // If partner, get their chat room
+    if (user?.role === 'partner' && !chatRoomId) {
+      if (!partner?.id) {
+        return res.json([]);
+      }
+      
+      try {
+        const room = await db.select()
+          .from(chatRooms)
+          .where(eq(chatRooms.partnerId, partner.id))
+          .limit(1);
+        
+        if (room.length === 0) {
+          return res.json([]);
+        }
+        roomId = room[0].id;
+      } catch (dbError: any) {
+        console.error('[CHAT] Error getting chat room:', dbError.message);
+        return res.json([]);
+      }
+    } else if (user?.role === 'partner' && chatRoomId) {
+      // SECURITY: partners can only read their own room
+      if (!partner?.id) {
+        return res.status(403).json({ message: 'Partner not found' });
+      }
+      
+      try {
+        const room = await db
+          .select({ id: chatRooms.id })
+          .from(chatRooms)
+          .where(and(eq(chatRooms.id, chatRoomId), eq(chatRooms.partnerId, partner.id)))
+          .limit(1);
+        if (room.length === 0) {
+          return res.status(403).json({ message: 'Access denied' });
+        }
+      } catch (dbError: any) {
+        console.error('[CHAT] Error verifying chat room:', dbError.message);
+        return res.status(403).json({ message: 'Access denied' });
+      }
     }
-    roomId = room[0].id;
-  } else if (user.role === 'partner' && chatRoomId) {
-    // SECURITY: partners can only read their own room
-    const room = await db
-      .select({ id: chatRooms.id })
-      .from(chatRooms)
-      .where(and(eq(chatRooms.id, chatRoomId), eq(chatRooms.partnerId, partner.id)))
-      .limit(1);
-    if (room.length === 0) {
-      return res.status(403).json({ message: 'Access denied' });
+
+    if (!roomId) {
+      return res.status(400).json({ message: 'Chat room ID required' });
     }
+
+    // Get messages with sender info
+    try {
+      const chatMessages = await db.select({
+        id: messages.id,
+        chatRoomId: messages.chatRoomId,
+        senderId: messages.senderId,
+        senderRole: messages.senderRole,
+        content: messages.content,
+        messageType: messages.messageType,
+        attachmentUrl: messages.attachmentUrl,
+        createdAt: messages.createdAt,
+        readAt: messages.readAt,
+        senderName: users.username,
+        senderFirstName: users.firstName,
+        senderLastName: users.lastName
+      })
+      .from(messages)
+      .leftJoin(users, eq(messages.senderId, users.id))
+      .where(eq(messages.chatRoomId, roomId))
+      .orderBy(messages.createdAt);
+
+      res.json(chatMessages);
+    } catch (dbError: any) {
+      console.error('[CHAT] Error getting messages:', dbError.message);
+      // Return empty array instead of error for better UX
+      res.json([]);
+    }
+  } catch (error: any) {
+    console.error('[CHAT] Unexpected error:', error.message);
+    res.json([]);
   }
-
-  if (!roomId) {
-    return res.status(400).json({ message: 'Chat room ID required' });
-  }
-
-  // Get messages with sender info
-  const chatMessages = await db.select({
-    id: messages.id,
-    chatRoomId: messages.chatRoomId,
-    senderId: messages.senderId,
-    senderRole: messages.senderRole,
-    content: messages.content,
-    messageType: messages.messageType,
-    attachmentUrl: messages.attachmentUrl,
-    createdAt: messages.createdAt,
-    readAt: messages.readAt,
-    senderName: users.username,
-    senderFirstName: users.firstName,
-    senderLastName: users.lastName
-  })
-  .from(messages)
-  .leftJoin(users, eq(messages.senderId, users.id))
-  .where(eq(messages.chatRoomId, roomId))
-  .orderBy(messages.createdAt);
-
-  res.json(chatMessages);
 }));
 
 // Send message
