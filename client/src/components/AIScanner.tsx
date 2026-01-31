@@ -76,18 +76,19 @@ export function AIScanner({ onProductFound, isOpen, onClose }: AIScannerProps) {
   const processImage = async (imageData: string) => {
     setIsProcessing(true);
     try {
-      // Convert base64 to blob
-      const response = await fetch(imageData);
-      const blob = await response.blob();
+      // Extract base64 from data URL
+      const base64 = imageData.includes('base64,') 
+        ? imageData.split('base64,')[1] 
+        : imageData;
       
-      // Create FormData
-      const formData = new FormData();
-      formData.append('image', blob, 'product.jpg');
-      
-      // Send to AI Scanner API
-      const result = await fetch('/api/ai/scanner/recognize', {
+      // Send to Unified Scanner API (same as mobile app)
+      const result = await fetch('/api/unified-scanner/analyze-base64', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image_base64: base64,
+          language: 'uz'
+        }),
         credentials: 'include'
       });
 
@@ -95,7 +96,20 @@ export function AIScanner({ onProductFound, isOpen, onClose }: AIScannerProps) {
         throw new Error('AI Scanner xatosi');
       }
 
-      const data = await result.json();
+      const responseData = await result.json();
+      
+      // Transform unified scanner response to expected format
+      const data = responseData.success && responseData.product_info ? {
+        name: responseData.product_info.product_name || responseData.product_info.name || 'Mahsulot',
+        brand: responseData.product_info.brand || 'Unknown',
+        model: responseData.product_info.model || '',
+        category: responseData.product_info.category || 'general',
+        description: responseData.product_info.description || '',
+        features: responseData.product_info.features || [],
+        suggestedPrice: responseData.suggested_price || responseData.product_info.suggested_price || 100000,
+        confidence: responseData.confidence || 85
+      } : responseData;
+      
       setProductData(data);
       
       toast({

@@ -122,22 +122,23 @@ export function AIProductScanner({ onProductFound, isOpen, onClose }: AIProductS
       setScanProgress(20);
       await new Promise(r => setTimeout(r, 800));
       
-      // Convert base64 to blob
-      const response = await fetch(imageData);
-      const blob = await response.blob();
-      
-      // Create FormData
-      const formData = new FormData();
-      formData.append('image', blob, 'product.jpg');
+      // Extract base64 from data URL
+      const base64 = imageData.includes('base64,') 
+        ? imageData.split('base64,')[1] 
+        : imageData;
       
       // Stage 2: AI Processing
       setScanStage('AI model ishlamoqda');
       setScanProgress(40);
       
-      // Send to AI Scanner API
-      const result = await fetch('/api/ai/scanner/recognize', {
+      // Send to Unified Scanner API (same as mobile app)
+      const result = await fetch('/api/unified-scanner/analyze-base64', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image_base64: base64,
+          language: 'uz'
+        }),
         credentials: 'include'
       });
 
@@ -150,7 +151,21 @@ export function AIProductScanner({ onProductFound, isOpen, onClose }: AIProductS
         throw new Error('AI Scanner xatosi');
       }
 
-      const data = await result.json();
+      const responseData = await result.json();
+      
+      // Transform unified scanner response to expected format
+      const data = responseData.success && responseData.product_info ? {
+        name: responseData.product_info.product_name || responseData.product_info.name || 'Noma\'lum mahsulot',
+        brand: responseData.product_info.brand || 'Unknown',
+        model: responseData.product_info.model || '',
+        category: responseData.product_info.category || 'general',
+        categoryRu: responseData.product_info.category_ru || responseData.product_info.category,
+        description: responseData.product_info.description || '',
+        features: responseData.product_info.features || [],
+        suggestedPrice: responseData.suggested_price || responseData.product_info.suggested_price || 100000,
+        confidence: responseData.confidence || 85,
+        competitors: responseData.competitors || []
+      } : responseData;
       
       // Stage 4: Price Analysis
       setScanStage('Narx tahlili');
