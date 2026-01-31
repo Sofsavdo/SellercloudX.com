@@ -1,12 +1,14 @@
 // Autonomous AI Manager - Avtomatik ishlaydigan AI Manager
 // Hamkor buyruq bermaydi - marketplace reglamentidan kelib chiqib hammasini avtomatik bajara
 
-import { db } from '../db';
+import { db, getDbType } from '../db';
 import { partners, marketplaceIntegrations, products } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { generateProductCard, optimizePrice, monitorPartnerProducts, autoUploadToMarketplace } from './aiManagerService';
 import { wsManager } from '../websocket';
-import OpenAI from 'openai';
+import { geminiService } from './geminiService';
+import emergentAI from './emergentAI';
+import { storage } from '../storage';
 
 // ================================================================
 // AUTONOMOUS AI MANAGER - Background Worker
@@ -173,25 +175,68 @@ class AutonomousAIManager {
     console.log('🔍 Checking for products without marketplace cards...');
     
     try {
+      // SAFE: Only try if database is available
       // Get all active partners with AI enabled
-      const activePartners = await db.select()
-        .from(partners)
-        .where(eq(partners.aiEnabled, true))
-        .where(eq(partners.approved, true));
+      let activePartners: any[] = [];
+      
+      try {
+        activePartners = await db.select({
+          id: partners.id,
+          businessName: partners.businessName,
+          aiEnabled: partners.aiEnabled,
+          approved: partners.approved
+        })
+          .from(partners)
+          .where(eq(partners.aiEnabled, true))
+          .where(eq(partners.approved, true));
+      } catch (dbError) {
+        console.log('⚠️ Database query skipped in createMissingCards:', (dbError as Error).message);
+        return; // Exit gracefully
+      }
+      
+      if (!activePartners || activePartners.length === 0) {
+        console.log('ℹ️ No active partners to process');
+        return;
+      }
 
       for (const partner of activePartners) {
         try {
           // Get partner's products
-          const partnerProducts = await db.select()
-            .from(products)
-            .where(eq(products.partnerId, partner.id))
-            .where(eq(products.isActive, true));
+          let partnerProducts: any[] = [];
+          try {
+            partnerProducts = await db.select({
+              id: products.id,
+              name: products.name,
+              category: products.category,
+              description: products.description,
+              price: products.price,
+              isActive: products.isActive,
+              partnerId: products.partnerId
+            })
+              .from(products)
+              .where(eq(products.partnerId, partner.id))
+              .where(eq(products.isActive, true));
+          } catch (e) {
+            console.log(`⚠️ Products query skipped for partner ${partner.id}`);
+            continue;
+          }
 
           // Get active marketplace integrations
-          const integrations = await db.select()
-            .from(marketplaceIntegrations)
-            .where(eq(marketplaceIntegrations.partnerId, partner.id))
-            .where(eq(marketplaceIntegrations.active, true));
+          let integrations: any[] = [];
+          try {
+            integrations = await db.select({
+              id: marketplaceIntegrations.id,
+              marketplace: marketplaceIntegrations.marketplace,
+              partnerId: marketplaceIntegrations.partnerId,
+              active: marketplaceIntegrations.active
+            })
+              .from(marketplaceIntegrations)
+              .where(eq(marketplaceIntegrations.partnerId, partner.id))
+              .where(eq(marketplaceIntegrations.active, true));
+          } catch (e) {
+            console.log(`⚠️ Integrations query skipped for partner ${partner.id}`);
+            continue;
+          }
 
           for (const product of partnerProducts) {
             for (const integration of integrations) {
@@ -199,11 +244,15 @@ class AutonomousAIManager {
               const { sqlite } = await import('../db');
               let existingCard = null;
               if (sqlite) {
-                const stmt = sqlite.prepare(
-                  `SELECT id FROM ai_generated_products 
-                   WHERE partner_id = ? AND marketplace = ? LIMIT 1`
-                );
-                existingCard = stmt.get(partner.id, integration.marketplace);
+                try {
+                  const stmt = sqlite.prepare(
+                    `SELECT id FROM ai_generated_products 
+                     WHERE partner_id = ? AND marketplace = ? LIMIT 1`
+                  );
+                  existingCard = stmt.get(partner.id, integration.marketplace);
+                } catch (e) {
+                  continue;
+                }
               } else {
                 // Fallback: skip if SQLite not available
                 existingCard = null;
@@ -217,10 +266,10 @@ class AutonomousAIManager {
                     name: product.name,
                     category: product.category || 'general',
                     description: product.description || '',
-                    price: parseFloat(product.price.toString()),
+                    price: parseFloat(product.price?.toString() || '0') || 0,
                     images: [],
                     targetMarketplace: integration.marketplace as any
-                  }, parseInt(partner.id));
+                  }, partner.id);
                   
                   console.log(`✅ Card created for ${product.name}`);
                 } catch (error) {
@@ -280,15 +329,13 @@ class AutonomousAIManager {
 
   // Fix individual product card
   private async fixProductCard(product: any) {
-    // Use AI to analyze error and create fixed version
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
+    // Use AI to analyze error and create fixed version using Emergent AI
     const prompt = `
 Marketplace mahsulot kartochkasi bloklangan yoki xatoga ega.
 
 XATO: ${product.error_message || 'Noma\'lum'}
-MAHSULOT: ${product.raw_product_name}
-MARKETPLACE: ${product.marketplace_type}
+MAHSULOT: ${product.raw_product_name || 'Noma\'lum'}
+MARKETPLACE: ${product.marketplace_type || 'general'}
 
 Quyidagilarni tahlil qiling va tuzatilgan versiyani yarating:
 1. Xatoning sababini aniqlang
@@ -307,17 +354,11 @@ JSON formatda javob bering:
 `;
 
     try {
-      const response = await openai.chat.completions.create({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: prompt }],
-        response_format: { type: 'json_object' }
-      });
-
-      const fixData = JSON.parse(response.choices[0].message.content || '{}');
+      const fixData = await emergentAI.generateJSON(prompt, 'ProductCardFix');
       
       // Update product with fixed data (using raw SQL for SQLite)
       const { sqlite } = await import('../db');
-      if (sqlite) {
+      if (sqlite && fixData && fixData.fixedTitle) {
         const stmt = sqlite.prepare(
           `UPDATE ai_generated_products 
            SET generated_title = ?, 
@@ -329,7 +370,13 @@ JSON formatda javob bering:
                updated_at = unixepoch()
            WHERE id = ?`
         );
-        stmt.run(fixData.fixedTitle, fixData.fixedDescription, fixData.fixedTitle, fixData.fixedDescription, product.id);
+        stmt.run(
+          fixData.fixedTitle || '', 
+          fixData.fixedDescription || '', 
+          fixData.fixedTitle || '', 
+          fixData.fixedDescription || '', 
+          product.id
+        );
       }
 
       return fixData;
@@ -361,11 +408,18 @@ JSON formatda javob bering:
       }
 
       for (const product of productsToOptimize) {
+        // Validate product data before processing
+        if (!product || !product.partner_id || !product.id) {
+          console.warn('⚠️ Skipping product with invalid data');
+          continue;
+        }
+
         try {
+          // Pass IDs as strings (UUIDs), NOT parseInt!
           await optimizePrice(
-            parseInt(product.partner_id),
-            parseInt(product.id),
-            product.marketplace_type
+            product.partner_id,
+            product.id,
+            product.marketplace_type || 'general'
           );
         } catch (error) {
           console.error(`Error optimizing price for product ${product.id}:`, error);
@@ -381,16 +435,43 @@ JSON formatda javob bering:
     console.log('👁️ Monitoring partners...');
     
     try {
-      const activePartners = await db.select()
-        .from(partners)
-        .where(eq(partners.aiEnabled, true))
-        .where(eq(partners.approved, true));
+      // SAFE: Use storage layer which works with both SQLite and PostgreSQL
+      let activePartners: any[] = [];
+      
+      try {
+        // Use storage.getAllPartners() which handles both SQLite and PostgreSQL
+        const allPartners = await storage.getAllPartners();
+        
+        // Filter for active partners with AI enabled and approved
+        activePartners = allPartners.filter((partner: any) => {
+          const aiEnabled = partner.aiEnabled === true || partner.ai_enabled === true;
+          const approved = partner.approved === true || partner.is_approved === true;
+          return aiEnabled && approved;
+        });
+      } catch (dbError) {
+        console.log('⚠️ Database query skipped in monitorAllPartners:', (dbError as Error).message);
+        return; // Exit gracefully
+      }
+
+      // Validate we have partners to monitor
+      if (!activePartners || activePartners.length === 0) {
+        console.log('ℹ️ No active partners with AI enabled to monitor');
+        return;
+      }
 
       for (const partner of activePartners) {
+        // CRITICAL: Validate partner ID is a valid string (UUID), not NaN
+        const partnerId = partner.id || partner.userId;
+        if (!partnerId || typeof partnerId !== 'string' || partnerId.trim() === '') {
+          console.warn('⚠️ Skipping partner with invalid ID:', partner?.id);
+          continue;
+        }
+
         try {
-          await monitorPartnerProducts(parseInt(partner.id));
+          // Pass partner.id as STRING (UUID), NOT parseInt which causes NaN!
+          await monitorPartnerProducts(partnerId);
         } catch (error) {
-          console.error(`Error monitoring partner ${partner.id}:`, error);
+          console.error(`Error monitoring partner ${partnerId}:`, error);
         }
       }
     } catch (error) {
