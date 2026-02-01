@@ -135,13 +135,7 @@ async function requireAuth(req: Request, res: Response, next: NextFunction) {
     message: "Avtorizatsiya yo'q",
     code: "UNAUTHORIZED",
     timestamp: new Date().toISOString()
-    });
-  }
-  
-  // Attach user to req for controllers
-  (req as any).user = req.session.user;
-  
-  next();
+  });
 }
 
 async function requireAdmin(req: Request, res: Response, next: NextFunction) {
