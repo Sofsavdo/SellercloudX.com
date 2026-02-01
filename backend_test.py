@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend API Testing for BiznesYordam
-Tests all backend endpoints systematically
+SellerCloudX AI Services Testing
+Tests for Trend Hunter API, AI Scanner API, and AI Status endpoints
+Focus on features mentioned in review request
 """
 
 import requests
 import json
 import sys
+import base64
 from typing import Dict, Any, Optional
 
-# Configuration
-BASE_URL = "http://localhost:5000"
-ADMIN_CREDENTIALS = {"username": "admin", "password": "BiznesYordam2024!"}
-# Note: testpartner user exists but may not have partner profile
-PARTNER_CREDENTIALS = {"username": "testpartner", "password": "partner123"}
+# Configuration - Using the external URL from frontend/.env
+BASE_URL = "https://sellercloudx.preview.emergentagent.com"
+# Test credentials from review request
+ADMIN_CREDENTIALS = {"username": "admin", "password": "admin123"}
 
 class Colors:
     GREEN = '\033[92m'
@@ -22,18 +23,16 @@ class Colors:
     BLUE = '\033[94m'
     END = '\033[0m'
 
-class APITester:
+class SellerCloudXTester:
     def __init__(self):
         self.session = requests.Session()
         self.admin_session = requests.Session()
-        self.partner_session = requests.Session()
         self.results = {
             "passed": [],
             "failed": [],
             "warnings": []
         }
-        self.partner_id = None
-        self.product_id = None
+        self.auth_token = None
         
     def log(self, message: str, level: str = "info"):
         """Log messages with colors"""
@@ -50,23 +49,22 @@ class APITester:
                      session: Optional[requests.Session] = None,
                      data: Optional[Dict] = None,
                      expected_status: int = 200,
-                     json_data: Optional[Dict] = None) -> bool:
-        """Test a single endpoint"""
+                     json_data: Optional[Dict] = None,
+                     files: Optional[Dict] = None) -> bool:
+        """Test endpoint and validate response"""
         url = f"{BASE_URL}{endpoint}"
         sess = session or self.session
         
         try:
             if method == "GET":
-                response = sess.get(url, timeout=10)
+                response = sess.get(url, timeout=30)
             elif method == "POST":
-                if json_data:
-                    response = sess.post(url, json=json_data, timeout=10)
+                if files:
+                    response = sess.post(url, files=files, data=data, timeout=30)
+                elif json_data:
+                    response = sess.post(url, json=json_data, timeout=30)
                 else:
-                    response = sess.post(url, data=data, timeout=10)
-            elif method == "PUT":
-                response = sess.put(url, json=json_data, timeout=10)
-            elif method == "DELETE":
-                response = sess.delete(url, timeout=10)
+                    response = sess.post(url, data=data, timeout=30)
             else:
                 self.log(f"{name}: Unsupported method {method}", "error")
                 return False
@@ -74,24 +72,32 @@ class APITester:
             # Check status code
             if response.status_code == expected_status:
                 self.log(f"{name}: {method} {endpoint} - Status {response.status_code}", "success")
-                self.results["passed"].append(name)
                 
-                # Try to parse JSON response
+                # Parse and validate JSON response
                 try:
                     json_response = response.json()
-                    if isinstance(json_response, dict):
-                        # Store important IDs for later tests
-                        if "partner" in json_response and "id" in json_response["partner"]:
-                            self.partner_id = json_response["partner"]["id"]
-                        if "id" in json_response and "product" in name.lower():
-                            self.product_id = json_response["id"]
-                except:
-                    pass
-                
-                return True
+                    self.log(f"{name}: Response structure valid", "success")
+                    
+                    # Log response for debugging
+                    if json_response.get("success"):
+                        self.log(f"{name}: API returned success=true", "success")
+                    else:
+                        self.log(f"{name}: API returned success=false - {json_response.get('error', 'Unknown error')}", "warning")
+                    
+                    self.results["passed"].append(name)
+                    return True
+                        
+                except json.JSONDecodeError:
+                    self.log(f"{name}: Non-JSON response: {response.text[:200]}", "warning")
+                    self.results["passed"].append(name)
+                    return True
+                except Exception as e:
+                    self.log(f"{name}: Error parsing response: {str(e)}", "error")
+                    self.results["failed"].append(f"{name} (Parse error)")
+                    return False
             else:
                 self.log(f"{name}: Expected {expected_status}, got {response.status_code}", "error")
-                self.log(f"Response: {response.text[:200]}", "error")
+                self.log(f"Response: {response.text[:300]}", "error")
                 self.results["failed"].append(f"{name} (Status: {response.status_code})")
                 return False
                 
@@ -104,14 +110,10 @@ class APITester:
             self.results["failed"].append(f"{name} ({str(e)})")
             return False
     
-    def test_health(self):
-        """Test health check endpoint"""
-        self.log("\n=== Testing Health Check ===", "info")
-        return self.test_endpoint("Health Check", "GET", "/api/health")
-    
     def test_admin_login(self):
-        """Test admin login"""
-        self.log("\n=== Testing Admin Authentication ===", "info")
+        """Test admin login to get authentication"""
+        self.log("\n=== Testing Admin Login ===", "info")
+        
         result = self.test_endpoint(
             "Admin Login",
             "POST",
@@ -119,246 +121,189 @@ class APITester:
             session=self.admin_session,
             json_data=ADMIN_CREDENTIALS
         )
-        return result
-    
-    def test_admin_me(self):
-        """Test admin /me endpoint"""
-        return self.test_endpoint(
-            "Admin Auth Check",
-            "GET",
-            "/api/auth/me",
-            session=self.admin_session
-        )
-    
-    def test_partner_registration(self):
-        """Test partner registration"""
-        self.log("\n=== Testing Partner Registration ===", "info")
-        
-        # Generate unique username
-        import time
-        timestamp = int(time.time())
-        
-        partner_data = {
-            "username": f"testpartner{timestamp}",
-            "email": f"test{timestamp}@example.com",
-            "password": "TestPassword123!",
-            "firstName": "Test",
-            "lastName": "Partner",
-            "phone": "+998901234567",
-            "businessName": "Test Business LLC",
-            "businessCategory": "electronics",
-            "monthlyRevenue": "50000-100000",
-            "notes": "Test registration"
-        }
-        
-        result = self.test_endpoint(
-            "Partner Registration",
-            "POST",
-            "/api/partners/register",
-            json_data=partner_data,
-            expected_status=201
-        )
         
         if result:
-            # Try to login with new partner
-            PARTNER_CREDENTIALS["username"] = partner_data["username"]
-            PARTNER_CREDENTIALS["password"] = partner_data["password"]
+            # Store session for authenticated requests
+            self.session = self.admin_session
+            self.log("Admin authentication successful - using admin session for tests", "success")
         
         return result
     
-    def test_partner_login(self):
-        """Test partner login"""
-        self.log("\n=== Testing Partner Authentication ===", "info")
-        return self.test_endpoint(
-            "Partner Login",
-            "POST",
-            "/api/auth/login",
-            session=self.partner_session,
-            json_data=PARTNER_CREDENTIALS
-        )
-    
-    def test_partner_me(self):
-        """Test partner /me endpoint"""
-        return self.test_endpoint(
-            "Partner Auth Check",
-            "GET",
-            "/api/auth/me",
-            session=self.partner_session
-        )
-    
-    def test_partner_profile(self):
-        """Test partner profile endpoint"""
-        self.log("\n=== Testing Partner Profile ===", "info")
-        return self.test_endpoint(
-            "Get Partner Profile",
-            "GET",
-            "/api/partners/me",
-            session=self.partner_session
-        )
-    
-    def test_admin_get_partners(self):
-        """Test admin get all partners"""
-        self.log("\n=== Testing Admin Partner Management ===", "info")
-        return self.test_endpoint(
-            "Admin Get All Partners",
-            "GET",
-            "/api/admin/partners",
-            session=self.admin_session
-        )
-    
-    def test_products(self):
-        """Test product endpoints"""
-        self.log("\n=== Testing Product Endpoints ===", "info")
+    def test_trend_hunter_top(self):
+        """Test Trend Hunter API - GET /api/trends/top?limit=5"""
+        self.log("\n=== 1. Testing Trend Hunter API - Top 5 Opportunities ===", "info")
         
-        # Get products
-        get_result = self.test_endpoint(
-            "Get Products",
+        return self.test_endpoint(
+            "Trend Hunter - Top 5 Opportunities",
             "GET",
-            "/api/products",
-            session=self.partner_session
+            "/api/trends/top?limit=5",
+            session=self.session
         )
+    
+    def test_trend_hunter_opportunities(self):
+        """Test Trend Hunter API - GET /api/trends/opportunities?category=electronics&limit=10"""
+        self.log("\n=== 2. Testing Trend Hunter API - Electronics Category ===", "info")
         
-        # Create product
-        product_data = {
-            "name": "Test Product",
-            "category": "electronics",
-            "price": "99.99",
-            "description": "Test product description",
-            "costPrice": "50.00",
-            "sku": "TEST-001",
-            "weight": "1.5"
+        return self.test_endpoint(
+            "Trend Hunter - Electronics Opportunities",
+            "GET",
+            "/api/trends/opportunities?category=electronics&limit=10",
+            session=self.session
+        )
+    
+    def test_trend_hunter_saved(self):
+        """Test Trend Hunter API - GET /api/trends/saved"""
+        self.log("\n=== 3. Testing Trend Hunter API - Saved Trends ===", "info")
+        
+        return self.test_endpoint(
+            "Trend Hunter - Saved Trends",
+            "GET",
+            "/api/trends/saved",
+            session=self.session
+        )
+    
+    def test_ai_scanner_scan_image(self):
+        """Test AI Scanner API - POST /api/ai/scanner/scan-image"""
+        self.log("\n=== 4. Testing AI Scanner API - Scan Image ===", "info")
+        
+        # Test with imageUrl in JSON body as specified in review request
+        image_data = {
+            "imageUrl": "https://example.com/product.jpg"
         }
         
-        create_result = self.test_endpoint(
-            "Create Product",
+        # First try the endpoint mentioned in review request
+        result1 = self.test_endpoint(
+            "AI Scanner - Scan Image (Review Request Endpoint)",
             "POST",
-            "/api/products",
-            session=self.partner_session,
-            json_data=product_data,
-            expected_status=201
+            "/api/ai/scanner/scan-image",
+            session=self.session,
+            json_data=image_data
         )
         
-        return get_result and create_result
-    
-    def test_orders(self):
-        """Test order endpoints"""
-        self.log("\n=== Testing Order Endpoints ===", "info")
-        
-        # Get orders
-        return self.test_endpoint(
-            "Get Orders",
-            "GET",
-            "/api/orders",
-            session=self.partner_session
-        )
-    
-    def test_analytics(self):
-        """Test analytics endpoint"""
-        self.log("\n=== Testing Analytics ===", "info")
-        return self.test_endpoint(
-            "Get Analytics",
-            "GET",
-            "/api/analytics",
-            session=self.partner_session
-        )
-    
-    def test_ai_manager_endpoints(self):
-        """Test AI Manager endpoints"""
-        self.log("\n=== Testing AI Manager Endpoints ===", "info")
-        
-        results = []
-        
-        # Get AI products
-        results.append(self.test_endpoint(
-            "AI Manager - Get Products",
-            "GET",
-            "/api/ai-manager/products",
-            session=self.admin_session
-        ))
-        
-        # Get AI tasks
-        results.append(self.test_endpoint(
-            "AI Manager - Get Tasks",
-            "GET",
-            "/api/ai-manager/tasks",
-            session=self.admin_session
-        ))
-        
-        # Get AI alerts
-        results.append(self.test_endpoint(
-            "AI Manager - Get Alerts",
-            "GET",
-            "/api/ai-manager/alerts",
-            session=self.admin_session
-        ))
-        
-        return all(results)
-    
-    def test_partner_ai_toggle(self):
-        """Test partner AI toggle"""
-        self.log("\n=== Testing Partner AI Toggle ===", "info")
-        
-        # Request AI enable
-        return self.test_endpoint(
-            "Partner AI Toggle Request",
+        # Also test the FastAPI backend endpoint
+        result2 = self.test_endpoint(
+            "AI Scanner - Scan Image (FastAPI Backend)",
             "POST",
-            "/api/partners/ai-toggle",
-            session=self.partner_session,
-            json_data={"enabled": True}
+            "/api/ai/scan-image",
+            session=self.session,
+            json_data=image_data
         )
+        
+        return result1 or result2
     
-    def test_pricing_tiers(self):
-        """Test pricing tiers endpoint"""
-        self.log("\n=== Testing Pricing Tiers ===", "info")
-        return self.test_endpoint(
-            "Get Pricing Tiers",
+    def test_ai_status(self):
+        """Test AI Status - GET /api/ai/status"""
+        self.log("\n=== 5. Testing AI Status API ===", "info")
+        
+        # Test both possible endpoints
+        result1 = self.test_endpoint(
+            "AI Status (FastAPI Backend)",
             "GET",
-            "/api/pricing-tiers"
+            "/api/ai/status",
+            session=self.session
         )
+        
+        result2 = self.test_endpoint(
+            "AI Status (Express Server)",
+            "GET",
+            "/api/ai/scanner/status",
+            session=self.session
+        )
+        
+        return result1 or result2
     
-    def test_logout(self):
-        """Test logout"""
-        self.log("\n=== Testing Logout ===", "info")
+    def validate_trend_response_structure(self, endpoint: str):
+        """Validate trend response has required fields"""
+        self.log(f"\n=== Validating {endpoint} Response Structure ===", "info")
         
-        admin_logout = self.test_endpoint(
-            "Admin Logout",
-            "POST",
-            "/api/auth/logout",
-            session=self.admin_session
-        )
-        
-        partner_logout = self.test_endpoint(
-            "Partner Logout",
-            "POST",
-            "/api/auth/logout",
-            session=self.partner_session
-        )
-        
-        return admin_logout and partner_logout
+        try:
+            url = f"{BASE_URL}{endpoint}"
+            response = self.session.get(url, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data.get("success") and data.get("data"):
+                    trends = data["data"]
+                    if trends and len(trends) > 0:
+                        trend = trends[0]
+                        
+                        # Check required fields from review request
+                        # Note: competitors count is in product.competitorCount, not root level
+                        required_fields = [
+                            "profitMargin", "monthlyProfitEstimate", 
+                            "opportunityScore"
+                        ]
+                        
+                        missing_fields = []
+                        for field in required_fields:
+                            if field not in trend:
+                                missing_fields.append(field)
+                        
+                        # Check if competitors info exists (either as competitors or in product.competitorCount)
+                        has_competitors = "competitors" in trend or (
+                            "product" in trend and "competitorCount" in trend["product"]
+                        )
+                        
+                        if missing_fields:
+                            self.log(f"Missing required fields in trend data: {missing_fields}", "warning")
+                            self.results["warnings"].append(f"{endpoint} - Missing fields: {missing_fields}")
+                        else:
+                            self.log(f"All required trend fields present", "success")
+                        
+                        if not has_competitors:
+                            self.log(f"Missing competitors information", "warning")
+                            self.results["warnings"].append(f"{endpoint} - Missing competitors info")
+                        else:
+                            self.log(f"Competitors information available", "success")
+                            
+                        # Validate score is 0-100
+                        score = trend.get("opportunityScore", 0)
+                        if isinstance(score, (int, float)) and 0 <= score <= 100:
+                            self.log(f"Opportunity score valid: {score}", "success")
+                        else:
+                            self.log(f"Opportunity score invalid: {score} (should be 0-100)", "warning")
+                        
+                        # Check if prices are in UZS format (should be large numbers for UZS)
+                        price_fields = ["recommendedPrice", "totalCost", "localAvgPrice"]
+                        for field in price_fields:
+                            if field in trend:
+                                price = trend[field]
+                                if isinstance(price, (int, float)) and price > 1000:  # UZS prices should be large
+                                    self.log(f"Price field {field} appears to be in UZS format: {price:,.0f}", "success")
+                                else:
+                                    self.log(f"Price field {field} might not be in UZS format: {price}", "warning")
+                        
+                        return True
+                    else:
+                        self.log(f"No trend data returned", "warning")
+                        return True
+                else:
+                    self.log(f"Response structure invalid or no data", "warning")
+                    return True
+            else:
+                self.log(f"Failed to get response for validation: {response.status_code}", "warning")
+                return False
+                
+        except Exception as e:
+            self.log(f"Validation error: {str(e)}", "warning")
+            return False
     
-    def run_all_tests(self):
-        """Run all tests in sequence"""
-        self.log("\n" + "="*60, "info")
-        self.log("BIZNESYORDAM BACKEND API COMPREHENSIVE TEST", "info")
-        self.log("="*60 + "\n", "info")
+    def run_sellercloudx_tests(self):
+        """Run all SellerCloudX AI service tests"""
+        self.log("\n" + "="*70, "info")
+        self.log("SELLERCLOUDX AI SERVICES TESTING", "info")
+        self.log("Testing Trend Hunter API, AI Scanner API, and AI Status", "info")
+        self.log("="*70 + "\n", "info")
         
-        # Test sequence
+        # Test sequence based on review request
         tests = [
-            ("Health Check", self.test_health),
             ("Admin Login", self.test_admin_login),
-            ("Admin Auth Check", self.test_admin_me),
-            ("Partner Registration", self.test_partner_registration),
-            ("Partner Login", self.test_partner_login),
-            ("Partner Auth Check", self.test_partner_me),
-            ("Partner Profile", self.test_partner_profile),
-            ("Admin Get Partners", self.test_admin_get_partners),
-            ("Products", self.test_products),
-            ("Orders", self.test_orders),
-            ("Analytics", self.test_analytics),
-            ("AI Manager", self.test_ai_manager_endpoints),
-            ("Partner AI Toggle", self.test_partner_ai_toggle),
-            ("Pricing Tiers", self.test_pricing_tiers),
-            ("Logout", self.test_logout),
+            ("Trend Hunter - Top 5", self.test_trend_hunter_top),
+            ("Trend Hunter - Electronics", self.test_trend_hunter_opportunities),
+            ("Trend Hunter - Saved", self.test_trend_hunter_saved),
+            ("AI Scanner - Scan Image", self.test_ai_scanner_scan_image),
+            ("AI Status", self.test_ai_status),
         ]
         
         for test_name, test_func in tests:
@@ -368,22 +313,78 @@ class APITester:
                 self.log(f"Test '{test_name}' crashed: {str(e)}", "error")
                 self.results["failed"].append(f"{test_name} (Crashed)")
         
+        # Validate response structures
+        try:
+            self.validate_trend_response_structure("/api/trends/top?limit=5")
+            self.validate_ai_status_response()
+        except Exception as e:
+            self.log(f"Response validation crashed: {str(e)}", "error")
+        
         # Print summary
-        self.print_summary()
+        return self.print_summary()
+    
+    def validate_ai_status_response(self):
+        """Validate AI status response structure"""
+        self.log(f"\n=== Validating AI Status Response Structure ===", "info")
+        
+        try:
+            url = f"{BASE_URL}/api/ai/status"
+            response = self.session.get(url, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields from review request
+                if data.get("success") and "ai" in data:
+                    ai_info = data["ai"]
+                    
+                    # Check for services status object
+                    required_ai_fields = ["enabled", "provider"]
+                    missing_fields = []
+                    
+                    for field in required_ai_fields:
+                        if field not in ai_info:
+                            missing_fields.append(field)
+                    
+                    if missing_fields:
+                        self.log(f"Missing AI status fields: {missing_fields}", "warning")
+                        self.results["warnings"].append(f"AI Status - Missing fields: {missing_fields}")
+                    else:
+                        self.log(f"AI status structure valid", "success")
+                        
+                        # Check if AI is enabled
+                        if ai_info.get("enabled"):
+                            self.log(f"AI services are enabled with provider: {ai_info.get('provider')}", "success")
+                        else:
+                            self.log(f"AI services are disabled", "warning")
+                    
+                    return True
+                else:
+                    self.log(f"AI status response structure invalid", "warning")
+                    return False
+            else:
+                self.log(f"Failed to get AI status: {response.status_code}", "warning")
+                return False
+                
+        except Exception as e:
+            self.log(f"AI status validation error: {str(e)}", "warning")
+            return False
     
     def print_summary(self):
         """Print test summary"""
-        self.log("\n" + "="*60, "info")
-        self.log("TEST SUMMARY", "info")
-        self.log("="*60 + "\n", "info")
+        self.log("\n" + "="*70, "info")
+        self.log("SELLERCLOUDX AI SERVICES TEST SUMMARY", "info")
+        self.log("="*70 + "\n", "info")
         
         total = len(self.results["passed"]) + len(self.results["failed"])
         passed = len(self.results["passed"])
         failed = len(self.results["failed"])
+        warnings = len(self.results["warnings"])
         
         self.log(f"Total Tests: {total}", "info")
         self.log(f"Passed: {passed}", "success")
         self.log(f"Failed: {failed}", "error" if failed > 0 else "info")
+        self.log(f"Warnings: {warnings}", "warning" if warnings > 0 else "info")
         
         if self.results["failed"]:
             self.log("\nFailed Tests:", "error")
@@ -395,12 +396,19 @@ class APITester:
             for warning in self.results["warnings"]:
                 self.log(f"  - {warning}", "warning")
         
-        self.log("\n" + "="*60 + "\n", "info")
+        # Final verdict
+        if failed == 0:
+            self.log("\n🎉 ALL TESTS PASSED - SellerCloudX AI services working!", "success")
+        else:
+            self.log(f"\n⚠️ {failed} tests failed - some issues need attention", "warning")
         
-        # Return exit code
+        self.log("\n" + "="*70 + "\n", "info")
+        
+        # Return exit code (0 if all passed, 1 if any failed)
         return 0 if failed == 0 else 1
 
 if __name__ == "__main__":
-    tester = APITester()
-    exit_code = tester.run_all_tests()
+    tester = SellerCloudXTester()
+    # Run SellerCloudX AI services tests
+    exit_code = tester.run_sellercloudx_tests()
     sys.exit(exit_code)

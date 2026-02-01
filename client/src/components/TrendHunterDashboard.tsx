@@ -3,324 +3,284 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, Lightbulb, Target, Sparkles, RefreshCw } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  TrendingUp, Lightbulb, Target, Sparkles, RefreshCw, 
+  DollarSign, Package, Star, Clock, Users, ArrowUp, ArrowRight,
+  Truck, Calculator, BarChart3, Zap
+} from 'lucide-react';
+
+interface TrendProduct {
+  id: string;
+  name: string;
+  category: string;
+  categoryUz: string;
+  trend: string;
+  growthPercent: number;
+  demandScore: number;
+  rating: number;
+  sourcePrice: number;
+  sourcePriceUzs: number;
+  shippingCost: number;
+  customsCost: number;
+  totalCost: number;
+  recommendedPrice: number;
+  profitMargin: number;
+  monthlyProfit: number;
+  competition: string;
+  source: string;
+  deliveryDays: string;
+  minOrder: number;
+}
 
 export default function TrendHunterDashboard() {
-  const [trends, setTrends] = useState<any[]>([]);
-  const [opportunities, setOpportunities] = useState<any[]>([]);
-  const [recommendations, setRecommendations] = useState<any>(null);
+  const [trends, setTrends] = useState<TrendProduct[]>([]);
   const [loading, setLoading] = useState(false);
+  const [category, setCategory] = useState('all');
+  const [usdRate, setUsdRate] = useState(12800);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [category]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch trends
-      const trendsRes = await fetch('/api/smart-ai/trends', {
+      const response = await fetch(`/api/trends/hunter?category=${category}`, {
         credentials: 'include'
       });
-      if (trendsRes.ok) {
-        const data = await trendsRes.json();
+      if (response.ok) {
+        const data = await response.json();
         setTrends(data.data || []);
-      }
-
-      // Fetch opportunities
-      const oppsRes = await fetch('/api/smart-ai/opportunities', {
-        credentials: 'include'
-      });
-      if (oppsRes.ok) {
-        const data = await oppsRes.json();
-        setOpportunities(data.data || []);
-      }
-
-      // Fetch recommendations
-      const recsRes = await fetch('/api/smart-ai/recommendations', {
-        credentials: 'include'
-      });
-      if (recsRes.ok) {
-        const data = await recsRes.json();
-        setRecommendations(data.data || null);
+        setUsdRate(data.usdRate || 12800);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching trends:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('uz-UZ', {
-      style: 'currency',
-      currency: 'UZS',
-      minimumFractionDigits: 0
-    }).format(amount);
+    return new Intl.NumberFormat('uz-UZ').format(amount) + ' UZS';
   };
 
-  const getTrendColor = (score: number) => {
-    if (score >= 80) return 'bg-green-500';
-    if (score >= 60) return 'bg-yellow-500';
-    return 'bg-red-500';
+  const formatUSD = (amount: number) => {
+    return '$' + amount.toFixed(2);
   };
 
-  const getOpportunityColor = (level: string) => {
-    if (level === 'high') return 'bg-green-500';
-    if (level === 'medium') return 'bg-yellow-500';
-    return 'bg-gray-500';
+  const getTrendBadge = (trend: string, growth: number) => {
+    if (trend === 'rising') {
+      return <Badge className="bg-green-500 text-white"><ArrowUp className="w-3 h-3 mr-1" />+{growth}%</Badge>;
+    }
+    return <Badge className="bg-blue-500 text-white">Barqaror</Badge>;
   };
+
+  const getCompetitionBadge = (level: string) => {
+    const colors: Record<string, string> = {
+      high: 'bg-red-500',
+      medium: 'bg-yellow-500',
+      low: 'bg-green-500'
+    };
+    const labels: Record<string, string> = {
+      high: 'Yuqori',
+      medium: "O'rta",
+      low: 'Past'
+    };
+    return <Badge className={`${colors[level]} text-white`}>{labels[level]}</Badge>;
+  };
+
+  const categories = [
+    { value: 'all', label: 'Barcha kategoriyalar' },
+    { value: 'electronics', label: 'Elektronika' },
+    { value: 'clothing', label: 'Kiyim' },
+    { value: 'home', label: 'Uy jihozlari' },
+    { value: 'beauty', label: "Go'zallik" },
+    { value: 'sports', label: 'Sport' }
+  ];
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Trend Hunter
           </h1>
-          <p className="text-gray-600 mt-1">AI-powered market intelligence</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            Xitoydan import qilinadigan eng foydali mahsulotlar
+          </p>
         </div>
-        <Button
-          onClick={fetchData}
-          disabled={loading}
-          variant="outline"
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Yangilash
-        </Button>
+        <div className="flex items-center gap-2">
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Kategoriya" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map(cat => (
+                <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
       </div>
 
-      <Tabs defaultValue="trends" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="trends">
-            <TrendingUp className="w-4 h-4 mr-2" />
-            Trendlar
-          </TabsTrigger>
-          <TabsTrigger value="opportunities">
-            <Lightbulb className="w-4 h-4 mr-2" />
-            Imkoniyatlar
-          </TabsTrigger>
-          <TabsTrigger value="recommendations">
-            <Target className="w-4 h-4 mr-2" />
-            Tavsiyalar
-          </TabsTrigger>
-        </TabsList>
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-green-500" />
+              <div>
+                <p className="text-2xl font-bold">{trends.length}</p>
+                <p className="text-xs text-muted-foreground">Trend mahsulotlar</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-amber-500" />
+              <div>
+                <p className="text-2xl font-bold">{formatUSD(usdRate)}</p>
+                <p className="text-xs text-muted-foreground">USD kursi</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-purple-500" />
+              <div>
+                <p className="text-2xl font-bold">35-45%</p>
+                <p className="text-xs text-muted-foreground">O'rtacha margin</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Truck className="w-5 h-5 text-blue-500" />
+              <div>
+                <p className="text-2xl font-bold">15-25</p>
+                <p className="text-xs text-muted-foreground">Yetkazib berish (kun)</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Trends Tab */}
-        <TabsContent value="trends" className="space-y-4">
-          {trends.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Sparkles className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600">Trendlar yuklanmoqda...</p>
-              </CardContent>
-            </Card>
-          ) : (
-            trends.map((trend, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
+      {/* Products */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Zap className="w-5 h-5 text-amber-500" />
+          Eng foydali mahsulotlar
+        </h2>
+        
+        {loading ? (
+          <div className="text-center py-8">
+            <RefreshCw className="w-8 h-8 animate-spin mx-auto text-muted-foreground" />
+            <p className="text-muted-foreground mt-2">Yuklanmoqda...</p>
+          </div>
+        ) : trends.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center text-muted-foreground">
+              Mahsulotlar topilmadi
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {trends.map((product) => (
+              <Card key={product.id} className="overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                    {/* Product Info */}
                     <div className="flex-1">
-                      <CardTitle className="text-xl">{trend.productName}</CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">{trend.category}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${getTrendColor(trend.trendScore)}`} />
-                      <span className="font-bold text-lg">{trend.trendScore}</span>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Stats */}
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                      <p className="text-xs text-gray-600">O'sish</p>
-                      <p className="text-lg font-bold text-green-600">+{trend.growthRate}%</p>
-                    </div>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <p className="text-xs text-gray-600">Qidiruv</p>
-                      <p className="text-lg font-bold text-blue-600">{trend.searchVolume.toLocaleString()}</p>
-                    </div>
-                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                      <p className="text-xs text-gray-600">Raqobat</p>
-                      <p className="text-lg font-bold text-purple-600 capitalize">{trend.competition}</p>
-                    </div>
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                      <p className="text-xs text-gray-600">Mavsumiylik</p>
-                      <p className="text-sm font-semibold text-orange-600">{trend.seasonality}</p>
-                    </div>
-                  </div>
-
-                  {/* Price Range */}
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <p className="text-sm font-semibold mb-2">Narx Oralig'i:</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">{formatCurrency(trend.priceRange.min)}</span>
-                      <div className="flex-1 mx-4 h-2 bg-gradient-to-r from-red-400 via-yellow-400 to-green-400 rounded-full" />
-                      <span className="text-sm">{formatCurrency(trend.priceRange.max)}</span>
-                    </div>
-                    <p className="text-center text-sm font-bold mt-2">
-                      O'rtacha: {formatCurrency(trend.priceRange.average)}
-                    </p>
-                  </div>
-
-                  {/* Marketplaces */}
-                  <div>
-                    <p className="text-sm font-semibold mb-2">Eng Yaxshi Marketplace'lar:</p>
-                    <div className="flex gap-2">
-                      {trend.topMarketplaces.map((mp: string) => (
-                        <Badge key={mp} variant="outline" className="capitalize">
-                          {mp}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Recommendations */}
-                  {trend.recommendations && trend.recommendations.length > 0 && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <p className="text-sm font-semibold mb-2">💡 Tavsiyalar:</p>
-                      <ul className="text-sm space-y-1">
-                        {trend.recommendations.map((rec: string, i: number) => (
-                          <li key={i}>• {rec}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </TabsContent>
-
-        {/* Opportunities Tab */}
-        <TabsContent value="opportunities" className="space-y-4">
-          {opportunities.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Lightbulb className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600">Imkoniyatlar yuklanmoqda...</p>
-              </CardContent>
-            </Card>
-          ) : (
-            opportunities.map((opp, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-xl">{opp.niche}</CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">{opp.reason}</p>
-                    </div>
-                    <Badge className={`${getOpportunityColor(opp.opportunity)} text-white`}>
-                      {opp.opportunity}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                      <p className="text-xs text-gray-600">Daromad</p>
-                      <p className="text-sm font-bold text-green-600">
-                        {formatCurrency(opp.estimatedRevenue)}
-                      </p>
-                    </div>
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                      <p className="text-xs text-gray-600">Qiyinlik</p>
-                      <p className="text-sm font-bold text-orange-600 capitalize">{opp.difficulty}</p>
-                    </div>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <p className="text-xs text-gray-600">Vaqt</p>
-                      <p className="text-sm font-bold text-blue-600">{opp.timeToMarket}</p>
-                    </div>
-                  </div>
-
-                  {/* Investment */}
-                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                    <p className="text-sm font-semibold">Kerakli Investitsiya:</p>
-                    <p className="text-xl font-bold text-purple-600">
-                      {formatCurrency(opp.requiredInvestment)}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </TabsContent>
-
-        {/* Recommendations Tab */}
-        <TabsContent value="recommendations" className="space-y-4">
-          {!recommendations ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Target className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600">Tavsiyalar yuklanmoqda...</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              {/* Top Trending */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>🔥 Top Trending Mahsulotlar</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {recommendations.trending?.map((trend: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-semibold">{trend.productName}</p>
-                        <p className="text-sm text-gray-600">{trend.category}</p>
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div>
+                          <h3 className="font-semibold text-lg">{product.name}</h3>
+                          <p className="text-sm text-muted-foreground">{product.categoryUz}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {getTrendBadge(product.trend, product.growthPercent)}
+                          {getCompetitionBadge(product.competition)}
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-green-600">{trend.trendScore}</p>
-                        <p className="text-xs text-gray-600">Trend Score</p>
+                      
+                      <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-amber-400" />
+                          {product.rating}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Target className="w-4 h-4" />
+                          Talab: {product.demandScore}%
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Package className="w-4 h-4" />
+                          Min: {product.minOrder} dona
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          {product.deliveryDays}
+                        </span>
                       </div>
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
 
-              {/* Top Opportunities */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>💡 Top Imkoniyatlar</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {recommendations.opportunities?.map((opp: any, index: number) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="font-semibold">{opp.niche}</p>
-                        <Badge className={`${getOpportunityColor(opp.opportunity)} text-white`}>
-                          {opp.opportunity}
-                        </Badge>
+                    {/* Pricing */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4">
+                      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 text-center">
+                        <p className="text-xs text-muted-foreground mb-1">Xitoy narxi</p>
+                        <p className="font-bold text-blue-600">{formatUSD(product.sourcePrice)}</p>
+                        <p className="text-xs text-muted-foreground">{formatCurrency(product.sourcePriceUzs)}</p>
                       </div>
-                      <p className="text-sm text-gray-600">{opp.reason}</p>
+                      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 text-center">
+                        <p className="text-xs text-muted-foreground mb-1">Umumiy xarajat</p>
+                        <p className="font-bold text-orange-600">{formatCurrency(product.totalCost)}</p>
+                        <p className="text-xs text-muted-foreground">+yetkazish, bojxona</p>
+                      </div>
+                      <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-center">
+                        <p className="text-xs text-muted-foreground mb-1">Tavsiya narx</p>
+                        <p className="font-bold text-green-600">{formatCurrency(product.recommendedPrice)}</p>
+                        <p className="text-xs text-green-600">+{product.profitMargin}% margin</p>
+                      </div>
+                      <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 text-center">
+                        <p className="text-xs text-muted-foreground mb-1">Oylik foyda</p>
+                        <p className="font-bold text-purple-600">{formatCurrency(product.monthlyProfit)}</p>
+                        <p className="text-xs text-muted-foreground">100 dona sotganda</p>
+                      </div>
                     </div>
-                  ))}
+                  </div>
                 </CardContent>
               </Card>
+            ))}
+          </div>
+        )}
+      </div>
 
-              {/* Suggestions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>🎯 Shaxsiy Tavsiyalar</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {recommendations.suggestions?.map((suggestion: string, index: number) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <span className="text-blue-600 mt-1">•</span>
-                        <span className="text-sm">{suggestion}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            </>
-          )}
-        </TabsContent>
-      </Tabs>
+      {/* Tips */}
+      <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <Lightbulb className="w-5 h-5 text-purple-600 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-purple-800 dark:text-purple-200">Import bo'yicha maslahat</h3>
+              <ul className="text-sm text-purple-700 dark:text-purple-300 mt-2 space-y-1">
+                <li>• Birinchi buyurtmada kichik partiyadan (10-20 dona) boshlang</li>
+                <li>• Yetkazib berish vaqtini hisobga oling (15-25 kun)</li>
+                <li>• Bojxona xarajatlarini narxga qo'shing (12-15%)</li>
+                <li>• Sifatni tekshirish uchun namuna buyurtma qiling</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -2,9 +2,15 @@
 // Payment Integration Routes - Click, Payme, Uzcard
 import { Router } from 'express';
 import crypto from 'crypto';
-import { db } from '../db';
+import { db, getDbType } from '../db';
 import { payments, invoices, subscriptions } from '../../shared/schema';
 import { eq, and } from 'drizzle-orm';
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 const router = Router();
 
@@ -114,7 +120,7 @@ router.post('/click/prepare', async (req, res) => {
       transactionId: click_trans_id.toString(),
       status: 'pending',
       metadata: JSON.stringify(req.body),
-      createdAt: new Date(),
+      createdAt: formatTimestamp(),
     });
 
     return res.json({
@@ -557,7 +563,7 @@ router.post('/manual', async (req, res) => {
       paymentMethod: paymentMethod || 'manual',
       status: 'completed',
       metadata: JSON.stringify({ notes, recorded_by: req.user.id }),
-      createdAt: new Date(),
+      createdAt: formatTimestamp(),
       completedAt: new Date(),
     });
 

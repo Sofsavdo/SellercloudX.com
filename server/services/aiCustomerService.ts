@@ -2,7 +2,13 @@
 // Chatbot, avtomatik javoblar, ticket management
 
 import OpenAI from 'openai';
-import { db } from '../db';
+import { db, getDbType } from '../db';
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || '' });
 
@@ -110,7 +116,7 @@ export async function createTicket(
       status: 'open',
       priority,
       category,
-      createdAt: new Date()
+      createdAt: formatTimestamp()
     };
     
     // Save ticket

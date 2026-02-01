@@ -1,6 +1,6 @@
 // @ts-nocheck
 // Billing Service - Automated billing, invoicing, and subscription management
-import { db } from '../db';
+import { db, getDbType } from '../db';
 import { 
   subscriptions, 
   invoices, 
@@ -12,6 +12,12 @@ import {
 import { eq, and, gte, lte } from 'drizzle-orm';
 import { SAAS_PRICING_TIERS } from '../../SAAS_PRICING_CONFIG';
 import emailService from './emailService';
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 // ==================== TIER MANAGEMENT ====================
 
@@ -59,7 +65,7 @@ export async function createSubscription(partnerId: string, tierId: string) {
     startDate,
     endDate,
     autoRenew: true,
-    createdAt: new Date(),
+    createdAt: formatTimestamp(),
   });
 
   // Create first invoice if not free tier
@@ -157,7 +163,7 @@ export async function createInvoice(
     currency: 'USD',
     status: 'pending',
     dueDate,
-    createdAt: new Date(),
+    createdAt: formatTimestamp(),
   });
 
   // Send email notification
@@ -218,7 +224,7 @@ export async function createUpgradeInvoice(
       newTier: newTierId,
       prorated: true,
     }),
-    createdAt: new Date(),
+    createdAt: formatTimestamp(),
   });
 
   return invoiceId;
@@ -255,7 +261,7 @@ export async function recordCommission(
     status: 'pending',
     periodStart,
     periodEnd,
-    createdAt: new Date(),
+    createdAt: formatTimestamp(),
   });
 
   // Update sales limits
@@ -297,7 +303,7 @@ export async function initializeSalesLimits(partnerId: string, tierId: string) {
     skuCount: 0,
     skuLimit: tier.limits.sku,
     status: 'ok',
-    createdAt: new Date(),
+    createdAt: formatTimestamp(),
   });
 
   return limitId;

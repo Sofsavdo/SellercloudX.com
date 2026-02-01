@@ -4,6 +4,13 @@
 
 import emergentAI from './emergentAI';
 import { storage } from '../storage';
+import { getDbType } from '../db';
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 interface ErrorEvent {
   id: string;
@@ -399,7 +406,7 @@ Alternative selectors taklif qil (3 ta):
       subject: `Auto-recovery failed: ${errorEvent.errorType}`,
       description: JSON.stringify({ errorEvent, attemptedActions }, null, 2),
       status: 'open',
-      createdAt: new Date(),
+      createdAt: formatTimestamp(),
     });
 
     console.log(`🚨 Admin notified: ${errorEvent.id}`);

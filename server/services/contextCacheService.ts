@@ -3,6 +3,13 @@
 // Marketplace qoidalarini cache qilish - 50-70% token kamayishi
 
 import { geminiService } from './geminiService';
+import { getDbType } from '../db';
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 interface CachedContext {
   id: string;
@@ -80,7 +87,7 @@ OZON MARKETPLACE QOIDALARI:
         type: 'marketplace_rules',
         content: uzumRules,
         tokens: Math.ceil(uzumRules.length / 4),
-        createdAt: new Date(),
+        createdAt: formatTimestamp(),
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
       });
 
@@ -89,7 +96,7 @@ OZON MARKETPLACE QOIDALARI:
         type: 'marketplace_rules',
         content: wildberriesRules,
         tokens: Math.ceil(wildberriesRules.length / 4),
-        createdAt: new Date(),
+        createdAt: formatTimestamp(),
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       });
 
@@ -98,7 +105,7 @@ OZON MARKETPLACE QOIDALARI:
         type: 'marketplace_rules',
         content: yandexRules,
         tokens: Math.ceil(yandexRules.length / 4),
-        createdAt: new Date(),
+        createdAt: formatTimestamp(),
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       });
 
@@ -107,7 +114,7 @@ OZON MARKETPLACE QOIDALARI:
         type: 'marketplace_rules',
         content: ozonRules,
         tokens: Math.ceil(ozonRules.length / 4),
-        createdAt: new Date(),
+        createdAt: formatTimestamp(),
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       });
 
@@ -154,7 +161,7 @@ OZON MARKETPLACE QOIDALARI:
       type: 'marketplace_rules',
       content,
       tokens,
-      createdAt: new Date(),
+      createdAt: formatTimestamp(),
       expiresAt: new Date(Date.now() + ttl * 1000),
     });
   }

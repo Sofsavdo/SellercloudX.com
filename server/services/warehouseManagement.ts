@@ -4,6 +4,13 @@
 
 import { storage } from '../storage';
 import { nanoid } from 'nanoid';
+import { getDbType } from '../db';
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 export interface BarcodeData {
   productId: string;
@@ -168,7 +175,7 @@ class WarehouseManagement {
         orderNumber: order.orderNumber,
         items: pickListItems,
         status: 'pending',
-        createdAt: new Date()
+        createdAt: formatTimestamp()
       };
 
       console.log(`📋 Pick list generated for order ${order.orderNumber}`);
@@ -266,7 +273,7 @@ class WarehouseManagement {
         totalWeight,
         shippingMethod: 'Standard', // Default shipping method
         trackingNumber: order.trackingNumber,
-        createdAt: new Date()
+        createdAt: formatTimestamp()
       };
 
       console.log(`📦 Packing slip generated for order ${order.orderNumber}`);
@@ -305,7 +312,7 @@ class WarehouseManagement {
         items: order.items,
         totalWeight,
         shippingMethod: order.shippingMethod,
-        createdAt: new Date()
+        createdAt: formatTimestamp()
       };
 
       console.log(`📦 Packing slip generated for order ${order.orderNumber}`);

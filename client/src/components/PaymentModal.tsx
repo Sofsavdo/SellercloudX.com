@@ -52,24 +52,24 @@ export default function PaymentModal({
     setIsProcessing(true);
 
     try {
-      const response = await fetch('/api/payment/create-payment', {
+      // Click API endpoint
+      const response = await fetch('/api/click/create-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify({
-          amount,
-          pricingTier,
+          tier: pricingTier,
           billingPeriod,
-          provider: selectedProvider
+          returnUrl: window.location.origin + '/payment/success'
         })
       });
 
       const data = await response.json();
 
       if (data.success && data.paymentUrl) {
-        // Redirect to payment gateway
+        // Redirect to Click payment gateway
         window.location.href = data.paymentUrl;
       } else {
         toast({

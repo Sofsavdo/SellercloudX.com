@@ -1,8 +1,14 @@
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
-import { db } from '../db';
+import { db, getDbType } from '../db';
 import { products, aiTasks } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 // Smart AI Manager with Image Recognition and Cost Optimization
 // Google Lens-like functionality for product scanning
@@ -444,7 +450,7 @@ Focus on Uzbekistan market and local search terms.`
         sku: `AUTO-${Date.now()}`,
         barcode: '',
         imageUrl: params.imageUrl,
-        createdAt: new Date()
+        createdAt: formatTimestamp()
       });
 
       console.log('💾 Product saved to database');

@@ -1,9 +1,15 @@
-import { db } from "./db";
+import { db, getDbType } from "./db";
 import { users, partners, pricingTiers, sptCosts, commissionSettings, marketplaceApiConfigs, fulfillmentRequests } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { seedSystemSettings } from "./storage";
 import { nanoid } from "nanoid";
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 async function seedData() {
   try {
@@ -32,8 +38,8 @@ async function seedData() {
         phone: "+998901234567",
         role: "admin",
         isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: formatTimestamp(),
+        updatedAt: formatTimestamp()
       }).returning();
       console.log("✅ [DEVELOPMENT] Admin user created successfully!");
       console.log("🔑 [DEVELOPMENT] Admin Login Credentials:");
@@ -64,8 +70,8 @@ async function seedData() {
         phone: "+998901234567",
         role: "partner",
         isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: formatTimestamp(),
+        updatedAt: formatTimestamp()
       }).returning();
       console.log("✅ [DEVELOPMENT] Partner user created successfully!");
       console.log("🔑 [DEVELOPMENT] Partner Login Credentials:");
@@ -96,8 +102,8 @@ async function seedData() {
         isApproved: true,
         approvedBy: admin.id,
         approvedAt: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: formatTimestamp(),
+        updatedAt: formatTimestamp(),
       }).returning();
       console.log("Partner profile created");
     } else {

@@ -10,6 +10,12 @@ import { geminiService } from './geminiService';
 import emergentAI from './emergentAI';
 import { storage } from '../storage';
 
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
+
 // ================================================================
 // AUTONOMOUS AI MANAGER - Background Worker
 // ================================================================
@@ -119,7 +125,7 @@ class AutonomousAIManager {
         price,
         stockQuantity: input.stockQuantity,
         partnerId: input.partnerId,
-        createdAt: new Date()
+        createdAt: formatTimestamp()
       };
 
       return {

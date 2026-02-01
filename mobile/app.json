@@ -1,0 +1,77 @@
+{
+  "expo": {
+    "name": "SellerCloudX",
+    "slug": "sellercloudx-app",
+    "version": "1.2.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F172A"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sellercloudx.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Mahsulot rasmlarini olish uchun kamera kerak",
+        "NSPhotoLibraryUsageDescription": "Galereyadan rasm tanlash uchun ruxsat kerak"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F172A"
+      },
+      "package": "com.sellercloudx.app",
+      "versionCode": 12,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.INTERNET"
+      ]
+    },
+    "updates": {
+      "enabled": true,
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": "1.0.0",
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Mahsulot rasmlarini olish uchun kamera kerak"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Galereyadan rasm tanlash uchun ruxsat kerak"
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#0F172A"
+        }
+      ],
+      "expo-font",
+      "expo-localization",
+      "expo-secure-store"
+    ],
+    "owner": "medik3636s-organization",
+    "extra": {
+      "eas": {
+        "projectId": "1596dffc-11fc-4efe-aa78-aa7c0ecbb421"
+      }
+    }
+  }
+}

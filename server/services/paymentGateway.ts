@@ -1,9 +1,15 @@
 // @ts-nocheck
 import crypto from 'crypto';
 import axios from 'axios';
-import { db } from '../db';
+import { db, getDbType } from '../db';
 import { partners, subscriptionPayments } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 // Payment Gateway Configuration
 interface PaymentConfig {
@@ -434,7 +440,7 @@ class PaymentGatewayService {
         provider,
         status: PaymentStatus.PENDING,
         metadata: { pricingTier, billingPeriod },
-        createdAt: new Date()
+        createdAt: formatTimestamp()
       });
 
       return {
@@ -575,7 +581,7 @@ class PaymentGatewayService {
           description,
           type: 'premium_feature'
         },
-        createdAt: new Date()
+        createdAt: formatTimestamp()
       });
 
       return {

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { formatCurrency } from '@/lib/currency';
+import { ImpersonationButton } from '@/components/ImpersonationButton';
 import {
   Users, MessageSquare, Bell, Ban, TrendingUp, DollarSign, Package, Eye, Send,
   CheckCircle, AlertTriangle, BarChart3, Mail, Phone, Building, MapPin, Calendar,
@@ -58,6 +59,22 @@ const getAIPlanInfo = (partner: Partner): string | null => {
   const plan = AI_MANAGER_PLANS[partner.aiPlanCode as keyof typeof AI_MANAGER_PLANS];
   if (!plan) return partner.aiPlanCode;
   return `${plan.name} - $${plan.monthlyFee}/oy`;
+};
+
+// Safe date formatting helper
+const formatDate = (dateStr: string | null | undefined): string => {
+  if (!dateStr) return '-';
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '-';
+    return date.toLocaleDateString('uz-UZ', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  } catch {
+    return '-';
+  }
 };
 
 export function AdminPartnersManagement() {
@@ -235,8 +252,20 @@ export function AdminPartnersManagement() {
                     <div>
                       <h3 className="text-xl font-bold flex items-center gap-2">
                         {p.businessName}
-                        {!p.approved && <Badge variant="secondary">Kutilmoqda</Badge>}
-                        {!p.isActive && <Badge variant="destructive">Bloklangan</Badge>}
+                        {p.approved ? (
+                          <Badge className="bg-green-100 text-green-800 border-green-200">
+                            <CheckCircle className="w-3 h-3 mr-1" />Faol
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">
+                            <AlertTriangle className="w-3 h-3 mr-1" />Kutilmoqda
+                          </Badge>
+                        )}
+                        {p.isActive === false && (
+                          <Badge variant="destructive">
+                            <Ban className="w-3 h-3 mr-1" />Bloklangan
+                          </Badge>
+                        )}
                       </h3>
                       <p className="text-sm text-muted-foreground flex items-center gap-1">
                         <Building className="w-3 h-3" />
@@ -262,7 +291,7 @@ export function AdminPartnersManagement() {
                     <div className="flex items-center gap-2"><Mail className="w-4 h-4" />{p.email}</div>
                     <div className="flex items-center gap-2"><Phone className="w-4 h-4" />{p.phone}</div>
                     <div className="flex items-center gap-2 col-span-2"><MapPin className="w-4 h-4" />{p.address}</div>
-                    <div className="flex items-center gap-2"><Calendar className="w-4 h-4" />{new Date(p.joinedAt).toLocaleDateString('uz-UZ')}</div>
+                    <div className="flex items-center gap-2"><Calendar className="w-4 h-4" />{formatDate(p.joinedAt)}</div>
                   </div>
                 </div>
 
@@ -279,6 +308,11 @@ export function AdminPartnersManagement() {
                 </div>
 
                 <div className="lg:col-span-3 flex flex-col gap-2">
+                  <ImpersonationButton 
+                    partnerId={p.id}
+                    partnerName={p.businessName}
+                    partnerUsername={p.ownerName}
+                  />
                   <Button 
                     onClick={() => { setSelectedPartner(p); setShowDetailsModal(true); }} 
                     variant="outline" 

@@ -1,8 +1,14 @@
 // @ts-nocheck
-import { db } from '../db';
+import { db, getDbType } from '../db';
 import { partners, referrals, referralBonuses } from '@shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import crypto from 'crypto';
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 interface AffiliateStats {
   totalReferrals: number;
@@ -125,7 +131,7 @@ class AffiliateProgramService {
         promoCode: params.referrerCode,
         contractType: params.contractType,
         status: 'registered',
-        createdAt: new Date()
+        createdAt: formatTimestamp()
       });
 
       return { success: true, referralId };
@@ -223,7 +229,7 @@ class AffiliateProgramService {
         bonusRate: rate,
         tierMultiplier: 1,
         status: 'pending',
-        createdAt: new Date()
+        createdAt: formatTimestamp()
       });
 
       // Update referral total earnings

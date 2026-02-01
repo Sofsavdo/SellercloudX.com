@@ -1,0 +1,202 @@
+<analysis>
+**original_problem_statement:**
+Foydalanuvchining asosiy maqsadi - Yandex Market uchun to'liq avtomatlashtirilgan elektron tijorat tizimi, SellerCloudX'ni yaratish. Tizim hamkorlarga ro'yxatdan o'tish, o'z marketpleys akkauntlarini ulash va oddiy kamera skanerlash orqali mahsulot yaratishni avtomatlashtirish imkonini berishi kerak. Asosiy ish jarayoni: foydalanuvchi mobil qurilmasi bilan mahsulotni skanerlaydi, sun'iy intellekt uni aniqlaydi, barcha kerakli kontentni (infografika, tavsiflar, SEO-optimallashtirilgan sarlavhalar) yaratadi, to'g'ri MXIK kodini topadi, raqobatbardosh narxni hisoblaydi va mahsulot kartasini to'g'ridan-to'g'ri Yandex Marketda yaratadi.
+
+**PRODUCT REQUIREMENTS:**
+1.  **To'liq Avtomatlashtirish va Barqarorlik:** Barcha mavjud xatoliklarni tuzatish va mobil ilova skanerlashidan tortib Yandex Marketda mahsulot paydo bo'lishigacha bo'lgan uzluksiz zanjirni ta'minlash.
+2.  **2026 Revenue-Share Monetizatsiyasi:** Yangi narx modelini (99 o'rnatish + 99/oy + sotuvdan 4% daromad) joriy etish.
+3.  **Trend Hunter'ni Tuzatish:** Trend Hunter funksiyasini haqiqiy API bilan ishlashini ta'minlash.
+4.  **Web Frontend (Desktop) ni To'liq Tuzatish:** Barcha desktop qismlari to'liq ishlashi va haqiqiy backend API'larga ulanishi kerak.
+5.  **Admin Panel Funksionalligi:** Adminga to'lov qilmagan hamkorlarni qo'lda faollashtirish imkoniyatini qo'shish.
+6.  **UI/UX ni Yaxshilash:** Ilovaga professional fintech/e-commerce ko'rinishini berish.
+7.  **Marketing Landing Sahifasi:** Instagram reklamalaridan keladigan, investitsiya qiymatiga e'tibor qaratadigan, FOMO (Fear of Missing Out) psixologik usullarini qo'llaydigan, mobil uchun optimallashtirilgan maxsus sahifa yaratish.
+
+**User's preferred language**: Uzbek (). The next agent MUST respond in Uzbek.
+
+**what currently exists?**
+Tizimning asosiy biznes mantiqi Python/FastAPI backendiga ko'chirilgan va production muhitidagi (Railway) PostgreSQL ma'lumotlar bazasi bilan ishlaydi. Oldingi sessiyada foydalanuvchi loglarida aniqlangan barcha P0 darajadagi kritik xatolar (ma'lumotlar bazasi sxemasi nomuvofiqligi, sana formati, API kalitlari) muvaffaqiyatli tuzatildi.
+
+**Eng muhimi:** Yandex Market bilan to'liq ish zanjiri (skanerlash → AI tahlili → narx hisoblash → AI kartochka yaratish → Yandex'ga HAQIQIY yuklash) yaratildi va to'liq testdan o'tkazildi. Marketplace'ga ulanish endi haqiqiy validatsiyadan o'tadi.
+
+Foydalanuvchining iltimosiga binoan,  manzilida Instagram reklamalari uchun mo'ljallangan, professional, mobil uchun optimallashtirilgan va investitsiya qiymatiga (ROI) e'tibor qaratadigan yangi reklama sahifasi yaratildi. Mobil ilovaning (v1.1.0) Yandex integratsiyasini o'z ichiga olgan APK fayli yaratilib, foydalanuvchiga taqdim etildi.
+
+Sessiya oxirida foydalanuvchi tomonidan kiritilgan o'zgarishlar tufayli yuzaga kelgan  bilan bog'liq production build xatoligi agent tomonidan  kutubxonasiga moslashtirish orqali tuzatildi.
+
+**Last working item**:
+-   Last item agent was working: Agent foydalanuvchining so'nggi va aniq ko'rsatmalariga binoan  manzilidagi reklama sahifasini yangilayotgan edi. Asosiy maqsad – bepul boshlash yoki chegirma kabi tushunchalarni olib tashlab, sahifani pul topadigan, investitsiya nimaligini tushunadigan premium segmentdagi mijozlarga moslashtirish edi. Yangi matnlar va dizayn vaqtni tejash, bir nechta xodimning ishini AI bajarishi va biznesni masshtablashtirish imkoniyatlariga urg'u berishi kerak edi.
+-   Status: IN PROGRESS
+-   Agent Testing Done: Y (Agent yangi sahifa versiyasini yaratgandan so'ng skrinshotlar orqali vizual tekshiruv o'tkazgan).
+-   Which testing method agent to use? Frontend testing agent. Sahifadagi barcha matnlar, narxlar va xabarlar foydalanuvchining premium segment talablariga mos kelishini, shuningdek, barcha tugmalar va havolalar to'g'ri ishlashini tekshirish kerak.
+-   User Testing Done: N
+
+**All Pending/In progress Issue list**:
+-   Issue 1: (P0) Reklama sahifasini premium segment talablariga to'liq moslashtirish.
+-   Issue 2: (P1) Admin panelida hamkorlar ro'yxatida Invalid Date xatosini tuzatish.
+-   Issue 3: (P1) Hamkor (partner) login oqimidagi xatolikni tuzatish.
+-   Issue 4: (P2) AI Scanner funksiyasini frontend orqali to'liq sinovdan o'tkazish.
+
+**Issues Detail:**
+-   **Issue 1: Reklama sahifasini premium segment talablariga to'liq moslashtirish**
+    -   **Attempted fixes:** Agent mobil-optimallashtirilgan, haqiqiy rasmlar va FOMO elementlariga ega yangi sahifa yaratdi. Ammo uning mazmuni (bepul boshlash) foydalanuvchining so'nggi talabiga mos kelmadi.
+    -   **Next debug checklist:**
+        1.   faylini ochish.
+        2.  Bepul, chegirma kabi so'zlarni butunlay olib tashlash.
+        3.  Matnlarni qayta yozish: asosiy urg'uni ROI (investitsiya qaytimi), nechta xodim ishini tejashi, xatosiz ishlash va masshtablashtirishga qaratish.
+        4.  Haqiqiy 2026 narxlarini aniq ko'rsatish:
+            -   **Premium Plan:** 99 (o'rnatish) + 99/oy + 4% (sotuvdan). Bu yangi boshlayotganlar uchun ekanligini tushuntirish.
+            -   **Individual Plan:** Katta bizneslar uchun (masalan, oylik 0,000+ aylanma). Narx shaxsiy suhbatda kelishilishini aytib, Suhbat Belgilash tugmasini qo'shish.
+Fomo uchun chegirma emas balki bir martalik o'rnatib berish hizmatini bepul qilishlik, bu joylar tugasa o'rnatib berish ham joriy narxda yani pullik bo'lishini aks ettir.
+    -   **Why fix this issue and what will be achieved with the fix?** Marketing xabari mahsulotning haqiqiy narxi va maqsadli auditoriyasiga mos keladi, bu esa sifatli mijozlar konversiyasini oshiradi.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** Frontend.
+-   **Issue 2: Admin panelida Invalid Date xatosini tuzatish**
+    -   **Attempted fixes:** Backend'da sana formati tuzatilgan, ammo frontendda muammo saqlanib qolgan.
+    -   **Next debug checklist:**
+        1.   faylida hamkorlar ro'yxatini ko'rsatuvchi komponentni topish.
+        2.   maydoni qanday formatlanayotganini tekshirish.
+        3.  Sana matnini to'g'ri formatlash uchun  kutubxonasi yoki oddiy funksiyadan foydalanish.
+    -   **Why fix this issue and what will be achieved with the fix?** Foydalanuvchi interfeysini professional ko'rinishga keltiradi.
+    -   **Status:** NOT STARTED
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** Frontend.
+-   **Issue 3: Hamkor (partner) login oqimidagi xatolikni tuzatish**
+    -   **Attempted fixes:** Yo'q. Muammo sessiya davomida aniqlandi.
+    -   **Next debug checklist:**
+        1.   faylini va  funksiyasini tekshirish.
+        2.  Login muvaffaqiyatli bo'lgandan so'ng chaqiriladigan  funksiyasida  chaqiruvi to'g'ri ishlayotganini tekshirish.
+        3.  Login paytida brauzer konsolida xatoliklar bor-yo'qligini tekshirish.
+    -   **Why fix this issue and what will be achieved with the fix?** Hamkorlar uchun asosiy funksionallikni tiklaydi.
+    -   **Status:** NOT STARTED
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** Frontend.
+
+**In progress Task List**:
+-   **Task 1: Mobil ilovani yakunlash va sozlash (P1)**
+    -   **Where to resume:** v1.1.0 APK allaqachon yaratilgan. Endi mobil ilovadagi marketing matnlari va narxlarni yangi, premium reklama sahifasi () falsafasiga moslashtirish kerak.
+    -   **What will be achieved with this?** Foydalanuvchi talablariga to'liq javob beradigan, premium brendingga ega va barqaror ishlaydigan mobil ilova.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** Both.
+    -   **Blocked on something:** Issue 1 (Reklama sahifasidagi yakuniy matnlar).
+
+**Upcoming and Future Tasks**
+-   **Upcoming Tasks:**
+    -   (P1) Trend Hunter funksiyasini haqiqiy AliExpress/1688.com API bilan integratsiya qilish.
+    -   (P2) To'liq Referrals va Blog funksionallarini yaratish (hozirda faqat bo'sh API'lar mavjud).
+    -   (P2) Mahsulot kartalari uchun video generatsiya funksiyasini qo'shish.
+-   **Future Tasks:**
+    -   (P3) Node.js proksi serverini olib tashlab, arxitekturani yagona Python backendiga o'tkazish.
+    -   (P3) Loyiha uchun to'liq testlar (unit, integration, E2E) yozish.
+    -   (P4) Uzum Market avtomatizatsiyasini yakunlash.
+    -   (P4) API hujjatlarini (Swagger) yaratish.
+
+**Completed work in this session**
+-   **Kritik Backend Xatolarini Tuzatish:** Production loglaridagi barcha asosiy (P0) muammolar hal qilindi: ma'lumotlar bazasi sxemasi, sana formati ( backend'da tuzatildi) va API'larning barqaror ishlashi ta'minlandi.
+-   **Yandex Market Integratsiyasini Yakunlash:**
+    -   **Ulanishni tekshirish:** Marketplace'ga ulanish endi haqiqiy Yandex API orqali tekshiriladi.
+    -   **To'liq Ish Zanjiri:** Mahsulotni skanerlashdan tortib, Yandex Market'ga **HAQIQIY** yuklashgacha bo'lgan to'liq avtomatlashtirilgan zanjir yaratildi va sinovdan o'tkazildi.
+-   **Mobil Ilova (v1.1.0) Chiqarilishi:** Mobil ilova yangilandi, Yandex zanjiri qo'shildi va tayyor APK fayli uchun havola yaratildi.
+-   **Production Build Xatosini Tuzatish:** Foydalanuvchi tomonidan qo'shilgan yangi sahifa sababli yuzaga kelgan build xatosi ( vs ) tuzatildi.
+-   **Yangi Reklama Sahifasi Yaratilishi:**  manzilida professional, mobil-optimallashtirilgan, FOMO elementlari va ROI kalkulyatoriga ega reklama sahifasi yaratildi va foydalanuvchi fikrlariga asosan bir necha bor takomillashtirildi.
+-   **Tizim Barqarorligi:** Backend API'lari testing agent yordamida ikki marta (19 ta va 14 ta test) to'liq sinovdan o'tkazilib, 100% muvaffaqiyatli natija ko'rsatdi.
+
+**Earlier issues found/mentioned but not fixed**
+-   Yuqoridagi All Pending/In progress Issue list ro'yxatiga kiritilgan.
+
+**Known issue recurrence from previous fork**
+-   ** xatosi:** Bu muammo qayta-qayta yuzaga chiqmoqda. Backend qismi tuzatilgan bo'lsa-da, frontendda (Admin Panel) hali ham mavjud.
+-   **DB Schema Mismatch:** Kod va production'dagi ma'lumotlar bazasi sxemasi o'rtasidagi nomuvofiqlik. Bu tuzatildi, ammo kelajakda production sxemasini tekshirmasdan kod yozish xavfi borligini ko'rsatadi.
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+-   **Backend Refactoring:** Biznes mantiqning markazi Node.js'dan Python'ga o'tgan.
+-   **Database Abstraction:**  fayli orqali kod bir vaqtning o'zida turli (PostgreSQL, MongoDB) ma'lumotlar bazalari bilan ishlay oladi.
+-   **Proxy Pattern:**  serveri endi  uchun proksi bo'lib xizmat qiladi.
+-   **End-to-End API Testing:**  yordamida backend to'liq sinovdan o'tkazildi.
+-   **Mobile App Deployment:** React Native ilovasi  yordamida build qilindi.
+
+**key DB schema**
+-   **,  (PostgreSQL):** Asosiy jadvallar, barqaror ishlamoqda.
+-   **:**  o'rniga  (jsonb) ustunidan foydalanadi. Kod bunga moslashtirilgan.
+-   **:** Xabarlar uchun asosiy jadval.
+-   **:**  o'rniga  (jsonb) ustunidan foydalanadi. Kod bunga moslashtirilgan.
+
+**All files of reference**
+-   : Barcha API'lar joylashgan markaziy backend fayli. Ko'plab tuzatishlar va yangi endpoint'lar (Yandex, blog, chat) qo'shilgan.
+-   : Ma'lumotlar bazasi bilan ishlash uchun asosiy servis. Chat, sana formati va marketplace'ga ulanish mantig'i tuzatilgan.
+-   : **YANGI FAYL.** Sessiya davomida yaratilgan va takomillashtirilgan professional reklama sahifasi.
+-   : Yangi  sahifasi uchun marshrut (route) qo'shilgan.
+-   : Asosiy sahifaga yangi reklama sahifasiga o'tish uchun havolalar qo'shilgan.
+-   : Mobil ilovada to'liq Yandex zanjirini amalga oshirish uchun yangilangan.
+-   : Bajarilgan vazifalar bilan yangilangan.
+
+**Areas that need refactoring**:
+-    dagi ikkita o'xshash  endpoint'larini yagona, yanada mustahkam endpoint'ga birlashtirish orqali kod takrorlanishini kamaytirish mumkin.
+
+**key api endpoints**
+-   : Marketplace'ni ulaydi va tekshiradi (haqiqiy Yandex validatsiyasi bilan).
+-   : Mahsulot yaratishning to'liq avtomatlashtirilgan zanjiri.
+-   : Ishlayapti.
+-   : Ishlayapti.
+-   : Yangi, professional reklama sahifasi.
+
+**Critical Info for New Agent**
+-   **USTUVORLIK - REKLAMA SAHIFASI:** Foydalanuvchining eng so'nggi va eng muhim talabi -  sahifasini premium, investitsiya qiymatiga yo'naltirilgan mijozlar uchun qayta ishlash. Barcha bepul va chegirma kabi g'oyalarni olib tashlab, haqiqiy narxlarni va biznes qiymatini ko'rsatish kerak.
+-   **FRONTEND XATOLARI MAVJUD:** Barcha asosiy backend xatolari tuzatilgan bo'lsa-da, frontendda hali ham muammolar bor: admin panelida Invalid Date va buzilgan hamkor (partner) login oqimi.
+-   **MOBIL ILOVA:** Foydalanuvchi mobil ilovaga alohida e'tibor qaratmoqda. APK yaratilgan, ammo uning marketing xabarlari ham yangi premium reklama sahifasi falsafasiga moslashtirilishi kerak.
+-   **GIT MUHITI CHEKLOVI:** Agent muhiti foydalanuvchining masofaviy GitHub omboriga to'g'ridan-to'g'ri kira olmaydi. Foydalanuvchi tomonidan kiritilgan o'zgarishlar faqat build xatosiga sabab bo'lganda ko'rinadi. Bunday holda, faylni qayta yaratish yoki mazmunini foydalanuvchidan so'rash kerak.
+
+**documents and test reports created in this job**
+-   /app/test_reports/iteration_17.json
+-   /app/test_reports/iteration_18.json
+-   /app/mobile/BUILD_APK_INSTRUCTIONS.md
+-   /app/memory/PRD.md (updated)
+-   /app/mobile/sellercloudx_v1.1.0.zip
+-   Yangi APK uchun yuklab olish havolasi (build artefakti)
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User:** Tayyor APK'ni so'radi.
+2.  **Agent:** APK yaratish jarayonini boshladi va build ID'sini taqdim etdi.
+3.  **Agent:** APK muvaffaqiyatli yaratilganini e'lon qildi va yuklab olish uchun havola berdi.
+4.  **User:** O'zi yangi sahifa qo'shganini va production'ga deploy qilishda xatolik yuzaga kelganini aytib, tuzatishni so'radi. Production loglarini yubordi.
+5.  **Agent:** Build xatosini tahlil qildi ( import xatosi) va muammoni hal qilish uchun yangi  faylini to'g'ri  routeri bilan yaratdi.
+6.  **Agent:** Build muvaffaqiyatli o'tganini va yangi sahifa  manzilida ishlashini tasdiqladi.
+7.  **User:** Agent eski landing sahifasini almashtirib qo'yganini so'radi, chunki bu alohida reklama sahifasi bo'lishi kerak edi.
+8.  **Agent:** Yo'q, almashtirilmaganini, ikkala sahifa ( va ) alohida ishlashini isbotlab berdi.
+9.  **User:** Yaratilgan reklama sahifasi ko'rinmayotganini va unga o'tish tugmalari yo'qligini aytdi. Sahifaning maqsadi (Instagram'dan kelgan mijozlarni hamkorga aylantirish, FOMO effekti) haqida batafsil tushuntirish berdi.
+10. **User:** Yaratilgan sahifaning mazmuni (bepul boshlash, arzon tariflar) noto'g'ri ekanligini ta'kidladi. Haqiqiy 2026 tariflarini ishlatishni, chegirmalarni olib tashlashni va sahifani investitsiya qiymatini tushunadigan premium segmentga moslashtirishni talab qildi.
+
+**Project Health Check:**
+-   **Broken:**
+    -   Partner login redirection flow ( sahifasidan).
+    -   Frontend date display in Admin Panel ().
+-   **Mocked:**
+    -   Yo'q. Asosiy soxta (mock) komponentlar haqiqiy API'larga almashtirilgan.
+-   **Blocked:**
+    -   Hech narsa kritik bloklanmagan.
+
+**3rd Party Integrations**
+-   **Yandex Market Partner API:** To'liq integratsiya qilingan va ishlaydi (Ulanishni tekshirish, mahsulot yaratish).
+-   **PostgreSQL (Railway):** Asosiy production ma'lumotlar bazasi. Ulanish barqaror, sxema muammolari tuzatilgan.
+-   **Gemini / Google Lens:** AI Skaner uchun ishlatiladi (backend tayyor, E2E test talab qilinadi).
+-   **OpenAI (via Emergent LLM Key):** Trend Hunter uchun ishlatiladi (kalit bilan bog'liq xato tuzatilgan).
+
+**Testing status**
+-   **Testing agent used after significant changes:** YES. Agent backend'dagi barcha kritik xatolarni va yangi Yandex integratsiyasini to'liq tekshirish uchun testing agentni ikki marta muvaffaqiyatli ishlatdi.
+-   **Troubleshoot agent used after agent stuck in loop:** NO
+-   **Test files created:** None
+-   **Known regressions:** Admin panelidagi  frontend xatosi.
+
+**Credentials to test flow:**
+-   **Admin:**  / 
+-   **Partner:**  /  (*Eslatma:  foydalanuvchisi mavjud emas.*)
+
+**What agent forgot to execute**
+Agent foydalanuvchining ustuvor vazifalariga (build xatosini tuzatish, reklama sahifasini yaratish) e'tibor qaratgani uchun to'g'ri ish tutdi. Ammo, quyidagi asl vazifalar hali ham kutmoqda:
+-   Referrals va Blog funksionallarini to'liq amalga oshirish.
+-   Trend Hunter ni haqiqiy API'ga ulashni yakunlash.
+
+
+</analysis>

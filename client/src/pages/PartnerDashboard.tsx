@@ -28,11 +28,12 @@ import { InventoryManagement } from '@/components/InventoryManagement';
 import { OrderManagement } from '@/components/OrderManagement';
 import { MarketplaceIntegrationManager } from '@/components/MarketplaceIntegrationManager';
 import { ChatSystem } from '@/components/ChatSystem';
-// import { EnhancedReferralDashboard } from '@/components/EnhancedReferralDashboard'; // Temporarily disabled
-// import { PartnerReferralCampaigns } from '@/components/PartnerReferralCampaigns'; // Temporarily disabled
-// import { AchievementSystem } from '@/components/AchievementSystem'; // Temporarily disabled
-// import { LegalEntityForm } from '@/components/LegalEntityForm'; // Temporarily disabled
-// import { PaymentHistory } from '@/components/PaymentHistory'; // Temporarily disabled
+import { PartnerWallet } from '@/components/PartnerWallet';
+import { PartnerPaymentHistory } from '@/components/PartnerPaymentHistory';
+import { PartnerPromoCodeSystem } from '@/components/PartnerPromoCodeSystem';
+import { DirectTierUpgrade } from '@/components/DirectTierUpgrade';
+import { PartnerMarketplaceSetup } from '@/components/PartnerMarketplaceSetup';
+import { ImpersonationBanner } from '@/components/ImpersonationButton';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
@@ -42,8 +43,11 @@ import {
   Package, Settings, Crown, BarChart3, DollarSign, Target, Zap,
   Clock, AlertTriangle, Brain, MessageCircle, Gift,
   LayoutDashboard, Sparkles, ShoppingCart, Wallet, ArrowRight,
-  TrendingUp, CheckCircle
+  TrendingUp, CheckCircle, Building, XCircle, Globe, Scan, CreditCard
 } from 'lucide-react';
+import DashboardAIScanner from '../components/DashboardAIScanner';
+import TrendHunterDashboard from './TrendHunterDashboard';
+import PartnerPaymentsDashboard from '../components/PartnerPaymentsDashboard';
 
 interface Product { id: string; name: string; category: string; price: string; costPrice: string; sku: string; isActive: boolean; createdAt: string; }
 interface Analytics { id: string; date: string; revenue: string; orders: number; profit: string; }
@@ -59,13 +63,29 @@ export default function PartnerDashboard() {
 
   const { data: products = [] } = useQuery<Product[]>({
     queryKey: ['/api/products'],
-    queryFn: async () => { const res = await apiRequest('GET', '/api/products'); return res.json(); },
+    queryFn: async () => { 
+      try {
+        const res = await apiRequest('GET', '/api/products'); 
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    },
     enabled: isPartner,
   });
 
   const { data: analytics = [] } = useQuery<Analytics[]>({
     queryKey: ['/api/analytics'],
-    queryFn: async () => { const res = await apiRequest('GET', '/api/analytics'); return res.json(); },
+    queryFn: async () => { 
+      try {
+        const res = await apiRequest('GET', '/api/analytics'); 
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    },
     enabled: isPartner,
   });
 
@@ -95,11 +115,15 @@ export default function PartnerDashboard() {
     return <div className="min-h-screen bg-background flex items-center justify-center"><LoginForm /></div>;
   }
 
+  // Ensure arrays are valid before reduce operations
+  const safeProducts = Array.isArray(products) ? products : [];
+  const safeAnalytics = Array.isArray(analytics) ? analytics : [];
+  
   const stats = {
-    totalRevenue: analytics.reduce((sum, item) => sum + parseFloat(item.revenue || '0'), 0),
-    totalOrders: analytics.reduce((sum, item) => sum + (item.orders || 0), 0),
-    totalProfit: analytics.reduce((sum, item) => sum + parseFloat(item.profit || '0'), 0),
-    activeProducts: products.filter(p => p.isActive).length,
+    totalRevenue: safeAnalytics.reduce((sum, item) => sum + parseFloat(item?.revenue || '0'), 0),
+    totalOrders: safeAnalytics.reduce((sum, item) => sum + (item?.orders || 0), 0),
+    totalProfit: safeAnalytics.reduce((sum, item) => sum + parseFloat(item?.profit || '0'), 0),
+    activeProducts: safeProducts.filter(p => p?.isActive).length,
   };
 
   const getTierName = (tier: string) => {
@@ -112,6 +136,9 @@ export default function PartnerDashboard() {
 
   return (
     <div className="dashboard-layout flex w-full">
+      {/* Impersonation Banner */}
+      <ImpersonationBanner />
+      
       <DashboardSidebar
         items={partnerNavItems}
         activeTab={selectedTab}
@@ -284,6 +311,32 @@ export default function PartnerDashboard() {
             </div>
           )}
 
+          {/* AI Scanner */}
+          {selectedTab === 'ai-scanner' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader 
+                title="AI Scanner" 
+                subtitle="Mahsulot rasmini skanerlang va raqobatchilarni aniqlang" 
+                icon={Scan} 
+                badge={{ text: 'NEW', icon: Sparkles }} 
+              />
+              <DashboardAIScanner />
+            </div>
+          )}
+
+          {/* Trend Hunter */}
+          {selectedTab === 'trend-hunter' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader 
+                title="Trend Hunter" 
+                subtitle="Xitoy va Amerika bozoridan trending mahsulotlar" 
+                icon={TrendingUp} 
+                badge={{ text: 'NEW', icon: Sparkles }} 
+              />
+              <TrendHunterDashboard />
+            </div>
+          )}
+
           {/* Analytics - Fintech Charts */}
           {selectedTab === 'analytics' && (
             <div className="space-y-6 mt-6">
@@ -404,17 +457,28 @@ export default function PartnerDashboard() {
           {selectedTab === 'wallet' && (
             <div className="space-y-6 mt-6">
               <DashboardHeader title="Hamyon" subtitle="Moliyaviy hisobotlar" icon={Wallet} />
-              <PartnerTierInfo />
+              <PartnerWallet />
             </div>
           )}
 
-          {/* Referrals */}
+          {/* Payments - 2026 Revenue Share Model */}
+          {selectedTab === 'payments' && (
+            <div className="space-y-6 mt-6">
+              <DashboardHeader 
+                title="To'lovlar va Qarz" 
+                subtitle="Revenue share, oylik to'lov va savdo taqqoslash" 
+                icon={CreditCard}
+                badge={{ text: 'YANGI', icon: Sparkles }}
+              />
+              <PartnerPaymentsDashboard partner={partner} />
+            </div>
+          )}
+
+          {/* Referrals - Promo Code System */}
           {selectedTab === 'referrals' && (
             <div className="space-y-6 mt-6">
-              <DashboardHeader title="Referrallar" subtitle="Taklif dasturi" icon={Gift} />
-              <EnhancedReferralDashboard />
-              <PartnerReferralCampaigns />
-              <AchievementSystem />
+              <DashboardHeader title="Referrallar" subtitle="Promo kod bilan taklif qiling" icon={Gift} />
+              <PartnerPromoCodeSystem />
             </div>
           )}
 
@@ -426,7 +490,7 @@ export default function PartnerDashboard() {
             </div>
           )}
 
-          {/* Settings */}
+          {/* Settings - Marketplace Setup */}
           {selectedTab === 'settings' && (
             <div className="space-y-6 mt-6">
               <DashboardHeader title="Sozlamalar" subtitle="Profil va sozlamalar" icon={Settings} />
@@ -434,20 +498,35 @@ export default function PartnerDashboard() {
               <Tabs defaultValue="marketplace" className="space-y-6">
                 <TabsList className="bg-muted/50 p-1">
                   <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
+                  <TabsTrigger value="tier">Tarif</TabsTrigger>
                   <TabsTrigger value="legal">Yuridik ma'lumotlar</TabsTrigger>
                   <TabsTrigger value="payments">To'lov tarixi</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="marketplace">
-                  <MarketplaceIntegrationManager isPartnerView={true} />
+                  <PartnerMarketplaceSetup />
+                </TabsContent>
+
+                <TabsContent value="tier">
+                  <DirectTierUpgrade 
+                    currentTier={partner?.pricingTier || 'free'} 
+                    partnerId={partner?.id}
+                    aiCardsUsed={(partner as any)?.aiCardsUsed || 0}
+                  />
                 </TabsContent>
                 
                 <TabsContent value="legal">
-                  <LegalEntityForm />
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <Building className="w-16 h-16 mx-auto mb-4 text-slate-400" />
+                      <h3 className="text-xl font-semibold mb-2">Yuridik Ma'lumotlar</h3>
+                      <p className="text-slate-600">Tez orada qo'shiladi...</p>
+                    </CardContent>
+                  </Card>
                 </TabsContent>
                 
                 <TabsContent value="payments">
-                  <PaymentHistory />
+                  <PartnerPaymentHistory />
                 </TabsContent>
               </Tabs>
             </div>
@@ -455,12 +534,24 @@ export default function PartnerDashboard() {
         </div>
       </main>
 
-      <SelfServiceTierUpgrade
-        isOpen={showTierModal}
-        onClose={() => setShowTierModal(false)}
-        currentTier={partner?.pricingTier || 'free_starter'}
-        onUpgradeComplete={() => { queryClient.invalidateQueries({ queryKey: ['/api/partners/me'] }); setShowTierModal(false); }}
-      />
+      {/* Tier Upgrade Modal - Direct Payment */}
+      {showTierModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-background rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Tarifni O'zgartirish</h2>
+              <Button variant="ghost" size="icon" onClick={() => setShowTierModal(false)}>
+                <XCircle className="w-6 h-6" />
+              </Button>
+            </div>
+            <DirectTierUpgrade 
+              currentTier={partner?.pricingTier || 'free'} 
+              partnerId={partner?.id}
+              aiCardsUsed={(partner as any)?.aiCardsUsed || 0}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

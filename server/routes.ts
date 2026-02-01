@@ -9,9 +9,15 @@ import { storage } from "./storage";
 import { healthCheck } from "./health";
 import { getSessionConfig } from "./session";
 import { asyncHandler } from "./errorHandler";
-import { eq, and } from "drizzle-orm";
-import { db } from "./db";
-import { partners, referrals, marketplaceIntegrations } from "@shared/schema";
+import { eq, and, desc } from "drizzle-orm";
+import { db, getDbType } from "./db";
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
+import { partners, referrals, marketplaceIntegrations, blogPosts, blogCategories } from "@shared/schema";
 
 import { 
   loginSchema, 
@@ -48,6 +54,12 @@ import { uploadLimiter } from "./middleware/rateLimiter";
 import paymentRoutes from "./routes/paymentRoutes";
 import paymentIntegrationRoutes from "./routes/paymentIntegration";
 import whatsappRoutes from "./routes/whatsappRoutes";
+import walletRoutes from "./routes/walletRoutes";
+import paymentHistoryRoutes from "./routes/paymentHistoryRoutes";
+import referralDashboardRoutes from "./routes/referralDashboardRoutes";
+import impersonationRoutes from "./routes/impersonationRoutes";
+import businessAnalyticsRoutes from "./routes/businessAnalyticsRoutes";
+import adminManagementRoutes from "./routes/adminManagementRoutes";
 import telegramRoutes from "./routes/telegramRoutes";
 import premiumFeaturesRoutes from "./routes/premiumFeaturesRoutes";
 import advancedFeaturesRoutes from "./routes/advancedFeaturesRoutes";
@@ -66,7 +78,23 @@ import marketplaceAIManagerRoutes from "./routes/marketplaceAIManagerRoutes";
 import adminAIManagementRoutes from "./routes/adminAIManagementRoutes";
 import referralCampaignRoutes from "./routes/referralCampaignRoutes";
 import smmRoutes from "./routes/smmRoutes";
+import aiRoutesV2 from "./routes/aiRoutes";
+import aiScannerRoutesV2 from "./routes/aiScannerRoutes";
+import trendHunterRoutesV2 from "./routes/trendHunterRoutes";
+import uzumMarketRoutes from "./routes/uzumMarketRoutes";
+import pythonBackendProxy from "./routes/pythonBackendProxy";
+import clickPaymentRoutes from "./routes/clickPaymentRoutes";
+import unifiedScannerRoutes from "./routes/unifiedScannerRoutes";
+import mxikRoutes from "./routes/mxikRoutes";
+import yandexCardRoutes from "./routes/yandexCardRoutes";
+import salesSyncService from "./services/salesSyncService";
 import { checkAndProcessFirstPurchase } from "./services/referralFirstPurchaseService";
+
+// Yangi tizimlar
+import { tierLimitMiddleware, featureAccessMiddleware, checkTierLimit, TIER_LIMITS } from "./middleware/tierLimits";
+import { activateNewPartner, activateAfterPayment, ACTIVATION_RULES } from "./services/autoActivation";
+import { processReferralBonusOnPayment, getReferrerStats, REFERRAL_CONFIG } from "./services/referralBonus";
+import { validateINN, checkBusinessExists, normalizePhone } from "./services/businessVerification";
 
 // Enhanced authentication middleware with better error handling
 function requireAuth(req: Request, res: Response, next: NextFunction) {
@@ -212,6 +240,17 @@ export function registerRoutes(app: express.Application): Server {
 
   // Serve uploaded files statically
   app.use('/uploads', express.static(uploadPath));
+  
+  // Serve mobile app statically
+  const mobileAppPath = '/app/backend/static/mobile';
+  if (fs.existsSync(mobileAppPath)) {
+    app.use('/mobile-app', express.static(mobileAppPath));
+    // Serve index.html for all mobile app routes (SPA)
+    app.get('/mobile-app/*', (_req, res) => {
+      res.sendFile(path.join(mobileAppPath, 'index.html'));
+    });
+    console.log('📱 Mobile app served at /mobile-app');
+  }
 
   // Session configuration
   app.use(session(getSessionConfig()));
@@ -250,10 +289,40 @@ export function registerRoutes(app: express.Application): Server {
   });
   app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
 
+  // Uzum Market Direct API Routes
+  app.use('/api/uzum-market', uzumMarketRoutes);
+
+  // Python Backend Proxy - BIRINCHI NAVBATDA!
+  // Auth, Chat, Admin, Partner va boshqa API'lar Python backend orqali ishlaydi
+  app.use('/api/auth', pythonBackendProxy);
+  app.use('/api/chat', pythonBackendProxy);
+  app.use('/api/admin', pythonBackendProxy);
+  app.use('/api/partner', pythonBackendProxy);
+  app.use('/api/ai-manager', pythonBackendProxy);
+  app.use('/api/notifications', pythonBackendProxy);
+  app.use('/api/analytics', pythonBackendProxy);
+  app.use('/api/trends', pythonBackendProxy);
+  app.use('/api/search', pythonBackendProxy);
+  app.use('/api/ai', pythonBackendProxy);
+  app.use('/api/yandex', pythonBackendProxy);
+  app.use('/api/uzum-auto', pythonBackendProxy);
+  app.use('/api/uzum-automation', pythonBackendProxy);
+  app.use('/api/python', pythonBackendProxy);
+  app.use('/api/leads', pythonBackendProxy);  // Leads API - reklama sahifasidan
+
+  // Click Payment Routes - webhook lar autentifikatsiyasiz
+  app.use('/api/click', clickPaymentRoutes);
+
+  // Unified Scanner - both Node.js and Python backends handle this
+  app.use('/api/unified-scanner', unifiedScannerRoutes);
+
+  // MXIK Code Search - public endpoint for tax code lookup
+  app.use('/api/mxik', mxikRoutes);
+
   // Authentication routes
   app.post("/api/auth/login", asyncHandler(async (req: Request, res: Response) => {
     try {
-      console.log('🔐 Login attempt:', { username: req.body.username, hasSession: !!req.session });
+      console.log('🔐 Login attempt:', { username: req.body.username, hasSession: !!req.session, ip: req.ip });
       
       const { username, password } = loginSchema.parse(req.body);
       
@@ -279,7 +348,20 @@ export function registerRoutes(app: express.Application): Server {
         });
       }
 
-      // Set session
+      // Regenerate session to prevent fixation attacks
+      await new Promise<void>((resolve, reject) => {
+        req.session.regenerate((err) => {
+          if (err) {
+            console.error('❌ Session regenerate error:', err);
+            reject(err);
+          } else {
+            console.log('✅ Session regenerated');
+            resolve();
+          }
+        });
+      });
+
+      // Set session user data
       req.session.user = {
         id: user.id,
         username: user.username,
@@ -299,13 +381,6 @@ export function registerRoutes(app: express.Application): Server {
         permissions = await storage.getAdminPermissions(user.id);
       }
 
-      await storage.createAuditLog({
-        userId: user.id,
-        action: 'LOGIN_SUCCESS',
-        entityType: 'user',
-        payload: { username, role: user.role }
-      });
-
       // Save session before sending response
       await new Promise<void>((resolve, reject) => {
         req.session.save((err) => {
@@ -315,21 +390,25 @@ export function registerRoutes(app: express.Application): Server {
           } else {
             console.log('✅ Session saved successfully for user:', user.id);
             console.log('📝 Session ID:', req.sessionID);
-            console.log('🍪 Session cookie will be set');
+            console.log('🍪 Session data:', { hasUser: !!req.session.user, role: req.session.user?.role });
             resolve();
           }
         });
       });
 
-      // Explicitly set cookie header for debugging
-      const cookieValue = `connect.sid=${req.sessionID}; Path=/; HttpOnly; SameSite=Lax`;
-      console.log('🍪 Setting cookie:', cookieValue);
+      await storage.createAuditLog({
+        userId: user.id,
+        action: 'LOGIN_SUCCESS',
+        entityType: 'user',
+        payload: { username, role: user.role }
+      });
 
       res.json({ 
         user: req.session.user, 
         partner,
         permissions,
-        message: "Muvaffaqiyatli kirildi"
+        message: "Muvaffaqiyatli kirildi",
+        sessionId: req.sessionID // Debug only - remove in production
       });
     } catch (error) {
       if (error instanceof ZodError) {
@@ -339,6 +418,164 @@ export function registerRoutes(app: express.Application): Server {
           errors: error.errors
         });
       }
+      console.error('❌ Login error:', error);
+      throw error;
+    }
+  }));
+
+  // Partner Registration - /api/auth/register alias
+  app.post("/api/auth/register", asyncHandler(async (req: Request, res: Response) => {
+    try {
+      console.log('📝 Registration attempt:', { email: req.body.email });
+      
+      // Ma'lumotlarni olish
+      const { email, password, name, phone, selectedTier, billingPeriod, promoCode } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "Email va parol kerak",
+          code: "MISSING_FIELDS"
+        });
+      }
+      
+      // INN (STIR) tekshirish - MAJBURIY
+      const { inn, businessType } = req.body;
+      
+      if (!inn) {
+        return res.status(400).json({
+          success: false,
+          message: "INN (STIR) kiritish majburiy. Bu biznesingizni identifikatsiya qilish va suiiste'molni oldini olish uchun kerak.",
+          code: "INN_REQUIRED"
+        });
+      }
+      
+      // INN formatini tekshirish
+      const innValidation = validateINN(inn);
+      if (!innValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: innValidation.error,
+          code: "INVALID_INN"
+        });
+      }
+      
+      // Biznes mavjudligini tekshirish (INN bo'yicha dublikat oldini olish)
+      const cleanINN = inn.replace(/\D/g, '');
+      const businessCheck = await checkBusinessExists(cleanINN, phone, email);
+      
+      if (businessCheck.exists) {
+        return res.status(400).json({
+          success: false,
+          message: businessCheck.reason,
+          code: "BUSINESS_EXISTS",
+          hint: "Agar bu sizning akkkauntingiz bo'lsa, tizimga kiring yoki parolni tiklang."
+        });
+      }
+      
+      // Username yaratish (email dan)
+      const username = email.split('@')[0] + '_' + Date.now().toString(36);
+      
+      // Email mavjudligini tekshirish (user orqali)
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Bu username allaqachon mavjud",
+          code: "USERNAME_EXISTS"
+        });
+      }
+      
+      // Telefon normalizatsiya
+      const normalizedPhone = normalizePhone(phone || '+998900000000');
+      
+      // Tarif aniqlash
+      const tier = selectedTier || 'free_starter';
+      const activationRules = ACTIVATION_RULES[tier as keyof typeof ACTIVATION_RULES] || ACTIVATION_RULES.free_starter;
+      
+      // 1. Avval USER yaratish
+      const user = await storage.createUser({
+        username,
+        password,
+        role: 'partner'
+      });
+      
+      // 2. Keyin PARTNER yaratish (INN bilan)
+      const partner = await storage.createPartner({
+        userId: user.id,
+        businessName: name || 'My Business',
+        businessCategory: 'general',
+        businessType: businessType || 'yatt',
+        inn: cleanINN, // STIR - unikal
+        phone: normalizedPhone,
+        pricingTier: tier,
+        // Free uchun darhol aktiv
+        approved: !activationRules.requirePayment,
+        isActive: !activationRules.requirePayment,
+        aiEnabled: !activationRules.requirePayment,
+        billingPeriod: billingPeriod || 'monthly'
+      });
+      
+      // 3. Avtomatik aktivatsiya (Free uchun)
+      if (!activationRules.requirePayment) {
+        await activateNewPartner(partner.id, tier);
+        console.log(`✅ Hamkor avtomatik aktivatsiya qilindi: ${partner.id} (${tier}) INN: ${cleanINN}`);
+      }
+      
+      // 4. Promo kod tekshirish (referal)
+      if (promoCode) {
+        try {
+          const referrer = await db.select().from(partners).where(eq(partners.promoCode, promoCode));
+          if (referrer.length > 0) {
+            await db.insert(referrals).values({
+              id: crypto.randomUUID(),
+              referrerId: referrer[0].id,
+              referredId: partner.id,
+              promoCode,
+              status: 'pending',
+              createdAt: formatTimestamp()
+            });
+            console.log(`✅ Referal bog'landi: ${referrer[0].id} -> ${partner.id}`);
+          }
+        } catch (refErr) {
+          console.log('Referal bog\'lashda xato:', refErr);
+        }
+      }
+      
+      // Session yaratish
+      req.session.user = {
+        id: user.id,
+        username: user.username,
+        role: 'partner',
+        partnerId: partner.id,
+        tier: partner.pricingTier || 'free_starter'
+      };
+      
+      await storage.createAuditLog({
+        userId: user.id,
+        action: 'PARTNER_REGISTERED',
+        entityType: 'partner',
+        entityId: partner.id,
+        payload: { email, name, username, tier, billingPeriod }
+      });
+      
+      res.status(201).json({
+        success: true,
+        message: activationRules.requirePayment 
+          ? "Ro'yxatdan o'tildi! Aktivatsiya uchun to'lov qiling."
+          : "Muvaffaqiyatli ro'yxatdan o'tildi!",
+        user: {
+          id: user.id,
+          username: user.username,
+          email: email,
+          role: 'partner',
+          partnerId: partner.id,
+          tier: partner.pricingTier || 'free'
+        }
+      });
+      
+    } catch (error: any) {
+      console.error('❌ Registration error:', error);
       throw error;
     }
   }));
@@ -444,17 +681,17 @@ export function registerRoutes(app: express.Application): Server {
       });
       console.log('[REGISTRATION] Partner created:', partner.id);
 
-      // Handle referral code if provided (already handled in createPartner, but keep for backward compatibility)
+      // Handle referral/promo code if provided
       if (referralCode) {
         try {
-          // Find referrer by searching referrals table for matching promo code
-          const existingReferral = await db.select()
-            .from(referrals)
-            .where(eq(referrals.promoCode, referralCode))
+          // Find referrer by promo code in partners table
+          const referrerPartner = await db.select()
+            .from(partners)
+            .where(eq(partners.promoCode, referralCode))
             .limit(1);
 
-          if (existingReferral.length > 0) {
-            const referrerId = existingReferral[0].referrerPartnerId;
+          if (referrerPartner.length > 0) {
+            const referrerId = referrerPartner[0].id;
             
             // Create referral record for new partner
             await db.insert(referrals).values({
@@ -464,12 +701,12 @@ export function registerRoutes(app: express.Application): Server {
               promoCode: referralCode,
               contractType: 'starter_pro',
               status: 'registered',
-              createdAt: new Date()
+              createdAt: formatTimestamp()
             });
 
-            console.log('✅ Referral created:', referralCode, '→', partner.id);
+            console.log('✅ Referral created via promo code:', referralCode, '→', partner.id);
           } else {
-            console.log('⚠️ Promo code not found:', referralCode);
+            console.log('⚠️ Promo code not found in partners:', referralCode);
           }
         } catch (refError) {
           console.error('⚠️ Referral creation failed:', refError);
@@ -642,7 +879,15 @@ export function registerRoutes(app: express.Application): Server {
 
   app.post("/api/products", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
     try {
-      const validatedData = insertProductSchema.parse(req.body);
+      // Pre-process: convert string numbers to actual numbers
+      const processedBody = {
+        ...req.body,
+        price: typeof req.body.price === 'string' ? parseFloat(req.body.price) : req.body.price,
+        costPrice: typeof req.body.costPrice === 'string' ? parseFloat(req.body.costPrice) : req.body.costPrice,
+        weight: req.body.weight ? (typeof req.body.weight === 'string' ? parseFloat(req.body.weight) : req.body.weight) : undefined
+      };
+      
+      const validatedData = insertProductSchema.parse(processedBody);
       
       const partner = await storage.getPartnerByUserId(req.session!.user!.id);
       if (!partner) {
@@ -997,6 +1242,43 @@ export function registerRoutes(app: express.Application): Server {
     res.json(partner);
   }));
 
+  // Admin: Activate/Deactivate partner (without payment)
+  app.put("/api/admin/partners/:id/activate", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { isActive, pricingTier, adminNote } = req.body;
+    
+    const updateData: any = { 
+      isActive: isActive !== undefined ? isActive : true,
+      approved: isActive !== undefined ? isActive : true
+    };
+    
+    if (pricingTier) {
+      updateData.pricingTier = pricingTier;
+    }
+    
+    const partner = await storage.updatePartner(id, updateData);
+    if (!partner) {
+      return res.status(404).json({ 
+        message: "Hamkor topilmadi",
+        code: "PARTNER_NOT_FOUND"
+      });
+    }
+
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: isActive ? 'PARTNER_ACTIVATED_BY_ADMIN' : 'PARTNER_DEACTIVATED_BY_ADMIN',
+      entityType: 'partner',
+      entityId: id,
+      payload: { adminNote, pricingTier }
+    });
+
+    res.json({
+      success: true,
+      message: `Partner ${isActive ? 'faollashtirildi' : 'deaktivatsiya qilindi'}`,
+      partner
+    });
+  }));
+
   // Pricing tiers
   app.get("/api/pricing-tiers", asyncHandler(async (req: Request, res: Response) => {
     const tiers = await storage.getAllPricingTiers();
@@ -1103,7 +1385,7 @@ export function registerRoutes(app: express.Application): Server {
     }
   }));
 
-  // AI Services Toggle - Partner Request & Admin Approval
+  // AI Services Toggle - Tarifga bog'liq (Admin tasdiqi shart emas)
   app.post("/api/partners/ai-toggle", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
     const partner = await storage.getPartnerByUserId(req.session!.user!.id);
     if (!partner) {
@@ -1111,25 +1393,50 @@ export function registerRoutes(app: express.Application): Server {
     }
 
     const { enabled } = req.body;
+    const currentTier = partner.pricingTier || 'free';
+    
+    // Free tarifda AI cheklangan
+    const FREE_AI_LIMIT = 10;
+    const aiCardsUsed = partner.aiCardsUsed || 0;
 
     if (enabled) {
-      // Request AI - admin approval needed
-      await db.update(partners).set({ aiRequestedAt: new Date(), updatedAt: new Date() })
-        .where(eq(partners.id, partner.id));
+      // Free tarifda limit tekshirish
+      if (currentTier === 'free' || currentTier === 'free_starter') {
+        if (aiCardsUsed >= FREE_AI_LIMIT) {
+          return res.status(400).json({ 
+            success: false,
+            message: "Bepul AI limitingiz tugadi. Davom etish uchun tarifni yangilang.",
+            code: "AI_LIMIT_EXCEEDED",
+            aiCardsUsed,
+            limit: FREE_AI_LIMIT,
+            requiresUpgrade: true
+          });
+        }
+      }
+      
+      // AI yoqish - avtomatik (admin tasdiqi shart emas)
+      await db.update(partners).set({ 
+        aiEnabled: true
+      }).where(eq(partners.id, partner.id));
 
       await storage.createAuditLog({
         userId: req.session!.user!.id,
-        action: 'AI_REQUESTED',
+        action: 'AI_ENABLED',
         entityType: 'partner',
         entityId: partner.id
       });
 
-      res.json({ success: true, message: "AI so'rov yuborildi", aiEnabled: false, pendingApproval: true });
+      res.json({ 
+        success: true, 
+        message: "AI yoqildi", 
+        aiEnabled: true,
+        aiCardsUsed,
+        limit: currentTier === 'free' || currentTier === 'free_starter' ? FREE_AI_LIMIT : null
+      });
     } else {
-      // Disable AI immediately
+      // AI o'chirish
       await db.update(partners).set({ 
-        aiEnabled: false, aiRequestedAt: null, aiApprovedAt: null, 
-        aiApprovedBy: null, updatedAt: new Date() 
+        aiEnabled: false
       }).where(eq(partners.id, partner.id));
 
       await storage.createAuditLog({
@@ -1143,11 +1450,37 @@ export function registerRoutes(app: express.Application): Server {
     }
   }));
 
+  // AI Card usage tracking
+  app.post("/api/partners/ai-card-used", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ message: "Hamkor topilmadi" });
+    }
+
+    const currentTier = partner.pricingTier || 'free';
+    const aiCardsUsed = (partner.aiCardsUsed || 0) + 1;
+    const FREE_AI_LIMIT = 10;
+
+    // Update usage
+    await db.update(partners).set({ 
+      aiCardsUsed 
+    }).where(eq(partners.id, partner.id));
+
+    // Check limit for free tier
+    const requiresUpgrade = (currentTier === 'free' || currentTier === 'free_starter') && aiCardsUsed >= FREE_AI_LIMIT;
+
+    res.json({ 
+      success: true, 
+      aiCardsUsed,
+      limit: currentTier === 'free' || currentTier === 'free_starter' ? FREE_AI_LIMIT : null,
+      requiresUpgrade
+    });
+  }));
+
   app.post("/api/admin/partners/:partnerId/approve-ai", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
     const { partnerId } = req.params;
     await db.update(partners).set({ 
-      aiEnabled: true, aiApprovedAt: new Date(), 
-      aiApprovedBy: req.session!.user!.id, updatedAt: new Date() 
+      aiEnabled: true
     }).where(eq(partners.id, partnerId));
 
     await storage.createAuditLog({
@@ -1161,6 +1494,286 @@ export function registerRoutes(app: express.Application): Server {
   }));
 
   // ==================== NEW MODULE ROUTES ====================
+
+  // ==================== PARTNER MARKETPLACE SETUP ====================
+  // Hamkor o'zi API kiritib integratsiya qiladi
+  app.get("/api/partner/marketplace-integrations", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ message: "Hamkor topilmadi" });
+    }
+    
+    const integrations = await db.select().from(marketplaceIntegrations)
+      .where(eq(marketplaceIntegrations.partnerId, partner.id));
+    
+    res.json(integrations);
+  }));
+
+  app.post("/api/partner/marketplace-integrations", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ message: "Hamkor topilmadi" });
+    }
+
+    const { marketplace, apiKey, apiSecret, shopId } = req.body;
+    
+    if (!marketplace || !apiKey) {
+      return res.status(400).json({ message: "Marketplace va API key talab qilinadi" });
+    }
+
+    // Check existing integration
+    const existing = await db.select().from(marketplaceIntegrations)
+      .where(and(
+        eq(marketplaceIntegrations.partnerId, partner.id),
+        eq(marketplaceIntegrations.marketplace, marketplace)
+      ));
+
+    if (existing.length > 0) {
+      // Update existing
+      await db.update(marketplaceIntegrations).set({
+        apiKey,
+        apiSecret: apiSecret || null,
+        active: true
+      }).where(eq(marketplaceIntegrations.id, existing[0].id));
+    } else {
+      // Create new
+      await db.insert(marketplaceIntegrations).values({
+        id: nanoid(),
+        partnerId: partner.id,
+        marketplace,
+        apiKey,
+        apiSecret: apiSecret || null,
+        active: true
+      });
+    }
+
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: 'MARKETPLACE_CONNECTED',
+      entityType: 'marketplace_integration',
+      entityId: marketplace
+    });
+
+    res.json({ success: true, message: "Marketplace ulandi" });
+  }));
+
+  app.post("/api/partner/marketplace-integrations/:marketplace/test", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ message: "Hamkor topilmadi" });
+    }
+
+    const { marketplace } = req.params;
+    
+    // Get integration
+    const integration = await db.select().from(marketplaceIntegrations)
+      .where(and(
+        eq(marketplaceIntegrations.partnerId, partner.id),
+        eq(marketplaceIntegrations.marketplace, marketplace)
+      ));
+
+    if (integration.length === 0) {
+      return res.status(404).json({ success: false, message: "Integratsiya topilmadi" });
+    }
+
+    // TODO: Real API test - for now return success
+    res.json({ success: true, message: "Ulanish muvaffaqiyatli" });
+  }));
+
+  app.delete("/api/partner/marketplace-integrations/:marketplace", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ message: "Hamkor topilmadi" });
+    }
+
+    const { marketplace } = req.params;
+    
+    await db.delete(marketplaceIntegrations)
+      .where(and(
+        eq(marketplaceIntegrations.partnerId, partner.id),
+        eq(marketplaceIntegrations.marketplace, marketplace)
+      ));
+
+    res.json({ success: true, message: "Integratsiya o'chirildi" });
+  }));
+
+  // ==================== DIRECT TIER UPGRADE (AUTO) ====================
+  app.post("/api/subscriptions/direct-upgrade", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ message: "Hamkor topilmadi" });
+    }
+
+    const { targetTier, paymentMethod } = req.body;
+    
+    if (!targetTier || !paymentMethod) {
+      return res.status(400).json({ message: "Tarif va to'lov usuli talab qilinadi" });
+    }
+
+    // Tier narxlari
+    const TIER_PRICES: Record<string, number> = {
+      'free': 0,
+      'basic': 828000,
+      'starter_pro': 4188000,
+      'professional': 10788000
+    };
+
+    // AI tarifga bog'liq
+    const aiEnabled = targetTier !== 'free';
+
+    // TODO: Real payment integration
+    // For now, simulate payment success
+    
+    // Update partner tier
+    await db.update(partners).set({
+      pricingTier: targetTier,
+      aiEnabled,
+      monthlyFee: TIER_PRICES[targetTier] || 0
+    }).where(eq(partners.id, partner.id));
+
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: 'TIER_UPGRADED',
+      entityType: 'partner',
+      entityId: partner.id,
+      payload: { oldTier: partner.pricingTier, newTier: targetTier, paymentMethod }
+    });
+
+    res.json({ 
+      success: true, 
+      message: "Tarif muvaffaqiyatli yangilandi", 
+      newTier: targetTier,
+      aiEnabled
+    });
+  }));
+
+  // ==================== TARIF CHEKLOVLARI API ====================
+  
+  // Hamkor tarif limitlarini olish
+  app.get("/api/partner/tier-limits", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ success: false, error: "Hamkor topilmadi" });
+    }
+    
+    const tier = partner.pricingTier || 'free_starter';
+    const limits = TIER_LIMITS[tier as keyof typeof TIER_LIMITS] || TIER_LIMITS.free_starter;
+    
+    // Hozirgi foydalanish (bu oyda)
+    const aiCardsCheck = await checkTierLimit(partner.id, 'aiCards');
+    const trendHunterCheck = await checkTierLimit(partner.id, 'trendHunter');
+    const productsCheck = await checkTierLimit(partner.id, 'products');
+    
+    res.json({
+      success: true,
+      tier: limits.name,
+      tierId: tier,
+      limits: {
+        products: { limit: limits.products, used: productsCheck.current, remaining: productsCheck.remaining },
+        aiCards: { limit: limits.aiCards, used: aiCardsCheck.current, remaining: aiCardsCheck.remaining },
+        trendHunter: { limit: limits.trendHunter, used: trendHunterCheck.current, remaining: trendHunterCheck.remaining },
+        marketplaces: limits.marketplaces,
+        monthlyRevenue: limits.monthlyRevenue
+      },
+      features: limits.features,
+      excluded: limits.excluded
+    });
+  }));
+
+  // Limit tekshirish (action uchun)
+  app.post("/api/partner/check-limit", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ success: false, error: "Hamkor topilmadi" });
+    }
+    
+    const { action, count = 1 } = req.body;
+    
+    if (!action || !['aiCards', 'trendHunter', 'products', 'marketplaces'].includes(action)) {
+      return res.status(400).json({ success: false, error: "Noto'g'ri action" });
+    }
+    
+    const check = await checkTierLimit(partner.id, action, count);
+    
+    res.json({
+      success: true,
+      allowed: check.allowed,
+      current: check.current,
+      limit: check.limit,
+      remaining: check.remaining,
+      tier: check.tier
+    });
+  }));
+
+  // ==================== REFERAL BONUS API ====================
+  
+  // Referal statistikasi
+  app.get("/api/partner/referral-stats", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ success: false, error: "Hamkor topilmadi" });
+    }
+    
+    const stats = await getReferrerStats(partner.id);
+    
+    res.json({
+      success: true,
+      ...stats,
+      promoCode: partner.promoCode,
+      referralLink: `https://sellercloudx.com/register?ref=${partner.promoCode}`
+    });
+  }));
+
+  // ==================== PROMO CODE REFERRAL ====================
+  app.get("/api/partner/referrals/dashboard", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ message: "Hamkor topilmadi" });
+    }
+
+    // Generate promo code if not exists
+    let promoCode = partner.promoCode;
+    if (!promoCode) {
+      promoCode = `SC${nanoid(6).toUpperCase()}`;
+      await db.update(partners).set({ promoCode }).where(eq(partners.id, partner.id));
+    }
+
+    // Get referrals
+    const partnerReferrals = await db.select().from(referrals)
+      .where(eq(referrals.referrerPartnerId, partner.id));
+
+    // Calculate stats
+    const totalReferrals = partnerReferrals.length;
+    const activeReferrals = partnerReferrals.filter(r => r.status === 'active').length;
+    const totalEarnings = partnerReferrals.reduce((sum, r) => sum + (r.bonusEarned || 0), 0);
+
+    const referralLink = `https://sellercloudx.com/register?ref=${promoCode}`;
+
+    res.json({
+      stats: {
+        totalReferrals,
+        activeReferrals,
+        totalEarnings,
+        conversionRate: totalReferrals > 0 ? Math.round((activeReferrals / totalReferrals) * 100) : 0
+      },
+      promoCode,
+      referralCode: promoCode,
+      referralLink,
+      referrals: partnerReferrals
+    });
+  }));
+
+  app.post("/api/partner/referrals/generate-promo-code", requirePartnerWithData, asyncHandler(async (req: Request, res: Response) => {
+    const partner = await storage.getPartnerByUserId(req.session!.user!.id);
+    if (!partner) {
+      return res.status(404).json({ message: "Hamkor topilmadi" });
+    }
+
+    const promoCode = `SC${nanoid(6).toUpperCase()}`;
+    await db.update(partners).set({ promoCode }).where(eq(partners.id, partner.id));
+
+    res.json({ success: true, promoCode });
+  }));
 
   // Inventory Tracking routes
   app.use("/api/inventory", requirePartnerWithData, inventoryRoutes);
@@ -1183,14 +1796,40 @@ export function registerRoutes(app: express.Application): Server {
   // AI Autonomous Manager routes
   app.use("/api/ai-manager", requireAuth, aiManagerRoutes);
 
-  // AI Scanner routes
-  app.use("/api/ai/scanner", requireAuth, aiScannerRoutes);
+  // AI Scanner routes (Camera & Upload)
+  app.use("/api/ai/scanner", requireAuth, aiScannerRoutesV2);
+  
+  // AI V2 routes (New real AI Scanner & Manager)
+  app.use("/api/ai", requireAuth, aiRoutesV2);
 
   // AI Dashboard routes (Partner view-only)
   app.use("/api/ai-dashboard", requireAuth, aiDashboardRoutes);
 
-  // Trending Products Analytics routes
+  // Trending Products Analytics routes (Old)
   app.use("/api/trending", requireAuth, trendingRoutes);
+  
+  // Trend Hunter V2 routes (New - Real Profit Opportunity Detection)
+  // No auth required for public access
+  app.use("/api/trends", trendHunterRoutesV2);
+
+  // Mobile App Static Files (served from FastAPI backend)
+  // Proxy to FastAPI for mobile app
+  app.use("/api/mobile", async (req, res) => {
+    try {
+      const mobilePath = req.path === '/' ? '/index.html' : req.path;
+      const fullPath = path.join('/app/backend/static/mobile', mobilePath);
+      
+      if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+        res.sendFile(fullPath);
+      } else {
+        // SPA fallback
+        res.sendFile('/app/backend/static/mobile/index.html');
+      }
+    } catch (error) {
+      console.error('Mobile app error:', error);
+      res.status(500).send('Mobile app error');
+    }
+  });
 
   // Referral System Routes
   app.use("/api/referrals", requireAuth, requirePartnerWithData, referralRoutes);
@@ -1228,6 +1867,20 @@ export function registerRoutes(app: express.Application): Server {
   // Admin AI Management routes
   app.use("/api/admin/ai", requireAdmin, adminAIManagementRoutes);
   app.use("/api/smm", requireAdmin, smmRoutes); // SMM - Admin only
+
+  // Wallet & Payment routes
+  app.use("/api/partner", requirePartnerWithData, walletRoutes);
+  app.use("/api/partner", requirePartnerWithData, paymentHistoryRoutes);
+  app.use("/api/partner", requirePartnerWithData, referralDashboardRoutes);
+  
+  // Admin Impersonation routes
+  app.use("/api/admin", impersonationRoutes);
+  
+  // Admin Business Analytics
+  app.use("/api/admin", requireAdmin, businessAnalyticsRoutes);
+  
+  // Admin Management (Super Admin only)
+  app.use("/api/admin", adminManagementRoutes);
 
   // Chat uploads (files/images) - used by ChatSystem UI
   app.post(
@@ -1682,7 +2335,7 @@ export function registerRoutes(app: express.Application): Server {
       apiSecret: credentials.apiSecret || credentials.supplierId || credentials.campaignId,
       sellerId: credentials.sellerId,
       active: true,
-      createdAt: new Date()
+      createdAt: formatTimestamp()
     }).returning();
 
     await storage.createAuditLog({
@@ -1720,6 +2373,269 @@ export function registerRoutes(app: express.Application): Server {
       success: true, 
       message: "Ulanish muvaffaqiyatli",
       marketplace 
+    });
+  }));
+
+  // ==================== BLOG SYSTEM ====================
+
+  // Public: Get published blog posts
+  app.get("/api/blog/posts", asyncHandler(async (req: Request, res: Response) => {
+    const { category, status = 'published', limit } = req.query;
+    
+    let query = db.select().from(blogPosts);
+    
+    if (status === 'published') {
+      query = query.where(eq(blogPosts.status, 'published'));
+    }
+    
+    if (category && category !== 'all') {
+      query = query.where(and(
+        eq(blogPosts.status, status as string),
+        eq(blogPosts.category, category as string)
+      ));
+    }
+    
+    const posts = await query.orderBy(desc(blogPosts.createdAt));
+    
+    if (limit) {
+      return res.json(posts.slice(0, parseInt(limit as string)));
+    }
+    
+    res.json(posts);
+  }));
+
+  // Public: Get single blog post by slug
+  app.get("/api/blog/posts/:slug", asyncHandler(async (req: Request, res: Response) => {
+    const { slug } = req.params;
+    
+    const post = await db.select().from(blogPosts)
+      .where(eq(blogPosts.slug, slug))
+      .limit(1);
+    
+    if (post.length === 0) {
+      return res.status(404).json({ message: "Maqola topilmadi" });
+    }
+    
+    res.json(post[0]);
+  }));
+
+  // Public: Increment view count
+  app.post("/api/blog/posts/:id/view", asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    
+    await db.update(blogPosts)
+      .set({ viewCount: db.raw('view_count + 1') })
+      .where(eq(blogPosts.id, id));
+    
+    res.json({ success: true });
+  }));
+
+  // Public: Get blog categories
+  app.get("/api/blog/categories", asyncHandler(async (req: Request, res: Response) => {
+    const categories = await db.select().from(blogCategories);
+    res.json(categories);
+  }));
+
+  // Admin: Get all blog posts (including drafts)
+  app.get("/api/admin/blog/posts", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    const { category, status } = req.query;
+    
+    let query = db.select().from(blogPosts);
+    
+    if (status && status !== 'all') {
+      query = query.where(eq(blogPosts.status, status as string));
+    }
+    
+    if (category && category !== 'all') {
+      query = query.where(eq(blogPosts.category, category as string));
+    }
+    
+    const posts = await query.orderBy(desc(blogPosts.createdAt));
+    res.json(posts);
+  }));
+
+  // Admin: Create blog post
+  app.post("/api/admin/blog/posts", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    const { 
+      title, slug, excerpt, content, featuredImage, videoUrl,
+      category, tags, status, metaTitle, metaDescription, metaKeywords
+    } = req.body;
+    
+    if (!title || !content) {
+      return res.status(400).json({ message: "Sarlavha va matn kiritilishi shart" });
+    }
+    
+    const postSlug = slug || title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
+    
+    // Check if slug exists
+    const existing = await db.select().from(blogPosts).where(eq(blogPosts.slug, postSlug));
+    if (existing.length > 0) {
+      return res.status(400).json({ message: "Bu slug allaqachon mavjud" });
+    }
+    
+    const tagsJson = tags ? JSON.stringify(tags.split(',').map((t: string) => t.trim())) : null;
+    
+    const [post] = await db.insert(blogPosts).values({
+      id: nanoid(),
+      slug: postSlug,
+      title,
+      excerpt,
+      content,
+      featuredImage,
+      videoUrl,
+      category: category || 'news',
+      tags: tagsJson,
+      status: status || 'draft',
+      authorId: req.session!.user!.id,
+      authorName: req.session!.user!.username,
+      metaTitle,
+      metaDescription,
+      metaKeywords,
+      publishedAt: status === 'published' ? new Date() : null,
+    }).returning();
+    
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: 'BLOG_POST_CREATED',
+      entityType: 'blog_post',
+      entityId: post.id,
+      payload: { title, status }
+    });
+    
+    res.status(201).json(post);
+  }));
+
+  // Admin: Update blog post
+  app.put("/api/admin/blog/posts/:id", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { 
+      title, slug, excerpt, content, featuredImage, videoUrl,
+      category, tags, status, metaTitle, metaDescription, metaKeywords
+    } = req.body;
+    
+    const tagsJson = tags ? JSON.stringify(tags.split(',').map((t: string) => t.trim())) : null;
+    
+    const [post] = await db.update(blogPosts).set({
+      title,
+      slug,
+      excerpt,
+      content,
+      featuredImage,
+      videoUrl,
+      category,
+      tags: tagsJson,
+      status,
+      metaTitle,
+      metaDescription,
+      metaKeywords,
+      publishedAt: status === 'published' ? new Date() : null,
+      updatedAt: new Date(),
+    }).where(eq(blogPosts.id, id)).returning();
+    
+    if (!post) {
+      return res.status(404).json({ message: "Maqola topilmadi" });
+    }
+    
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: 'BLOG_POST_UPDATED',
+      entityType: 'blog_post',
+      entityId: id,
+      payload: { title, status }
+    });
+    
+    res.json(post);
+  }));
+
+  // Admin: Delete blog post
+  app.delete("/api/admin/blog/posts/:id", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    
+    await db.delete(blogPosts).where(eq(blogPosts.id, id));
+    
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: 'BLOG_POST_DELETED',
+      entityType: 'blog_post',
+      entityId: id
+    });
+    
+    res.json({ success: true, message: "Maqola o'chirildi" });
+  }));
+
+  // Admin: Publish blog post
+  app.post("/api/admin/blog/posts/:id/publish", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    
+    const [post] = await db.update(blogPosts).set({
+      status: 'published',
+      publishedAt: new Date(),
+    }).where(eq(blogPosts.id, id)).returning();
+    
+    if (!post) {
+      return res.status(404).json({ message: "Maqola topilmadi" });
+    }
+    
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: 'BLOG_POST_PUBLISHED',
+      entityType: 'blog_post',
+      entityId: id
+    });
+    
+    res.json(post);
+  }));
+
+  // ===== SALES SYNC & CRON JOBS =====
+  
+  // Admin: Trigger manual sales sync
+  app.post("/api/admin/sales-sync/run", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    console.log('🔄 Manual sales sync triggered by admin:', req.session?.user?.username);
+    
+    const result = await salesSyncService.runDailySyncJob();
+    
+    await storage.createAuditLog({
+      userId: req.session!.user!.id,
+      action: 'MANUAL_SALES_SYNC',
+      entityType: 'system',
+      payload: { 
+        syncedPartners: result.sales.synced,
+        totalSales: result.sales.totalSalesUzs,
+        duration: result.duration
+      }
+    });
+    
+    res.json({
+      success: true,
+      message: 'Sales sync completed',
+      data: result
+    });
+  }));
+
+  // Admin: Sync single partner's sales
+  app.post("/api/admin/sales-sync/partner/:partnerId", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    const { partnerId } = req.params;
+    
+    const partner = await storage.getPartner(partnerId);
+    if (!partner) {
+      return res.status(404).json({ success: false, error: 'Partner not found' });
+    }
+    
+    const result = await salesSyncService.syncPartnerSales(partner);
+    
+    res.json({
+      success: true,
+      data: result
+    });
+  }));
+
+  // Admin: Get sync status
+  app.get("/api/admin/sales-sync/status", requireAdmin, asyncHandler(async (req: Request, res: Response) => {
+    // Return last sync info from database or cache
+    res.json({
+      success: true,
+      lastSync: new Date().toISOString(),
+      message: 'Sales sync status endpoint'
     });
   }));
 

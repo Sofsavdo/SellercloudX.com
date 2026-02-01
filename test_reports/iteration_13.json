@@ -1,0 +1,160 @@
+{
+  "summary": "Backend testing completed for SellerCloudX Revenue Share Billing & Unified Scanner endpoints. All 14 tests passed (100% success rate). Tested: billing/calculate, billing/summary, billing/invoice, unified-scanner/full-process, ai/full-automation, yandex/dashboard/status, and mobile app integration endpoints.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "GET /api/yandex/dashboard/status",
+        "issue": "The 'limit' parameter doesn't actually limit the number of offers returned - Yandex API returns all offers regardless",
+        "priority": "LOW"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_billing_unified_scanner.py",
+    "/app/test_reports/pytest/billing_unified_scanner_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Revenue share billing correctly calculates 4% of sales + $499/month",
+    "USD to UZS conversion rate is 12,600 (hardcoded in revenue_share_service.py)",
+    "Invoice generation includes payment methods (bank transfer + Click)",
+    "Unified scanner full-process correctly implements 6-step flow for mobile app",
+    "Mobile constants.ts correctly points to production API URL"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_billing_unified_scanner.py"
+  ],
+  "success_rate": {
+    "backend": "100% (14/14 passed, 1 skipped)",
+    "frontend": "N/A (backend only testing requested)"
+  },
+  "test_credentials": {
+    "API_URL": "https://sellercloudx.preview.emergentagent.com",
+    "test_image_url": "https://i.ibb.co/MkqKDcBn/68785868b3db.jpg"
+  },
+  "seed_data_creation": "None - used test image URL for scanning",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 5 requested features verified working. Revenue share billing calculates correctly. Unified scanner creates Yandex products successfully.",
+  "features_tested": {
+    "1_billing_calculate": {
+      "endpoint": "GET /api/billing/calculate",
+      "status": "PASS",
+      "verified": [
+        "Default values: $499/month + 4% revenue share",
+        "Custom sales amount calculation",
+        "Custom parameters (fee, share %)",
+        "USD to UZS conversion (rate: 12,600)"
+      ],
+      "sample_response": {
+        "monthly_fee_usd": 499,
+        "monthly_fee_uzs": 6287400,
+        "revenue_share_percent": 4.0,
+        "for_10M_sales": "400,000 UZS revenue share"
+      }
+    },
+    "2_billing_summary": {
+      "endpoint": "POST /api/billing/summary",
+      "status": "PASS",
+      "verified": [
+        "Uses environment Yandex credentials",
+        "Syncs sales from Yandex Market API",
+        "Returns billing breakdown with month name",
+        "Estimates monthly sales from active products"
+      ]
+    },
+    "3_unified_scanner_full_process": {
+      "endpoint": "POST /api/unified-scanner/full-process",
+      "status": "PASS",
+      "verified": [
+        "Image base64 scanning works",
+        "Product name fallback works",
+        "6 steps completed: image_scan, competitor_analysis, price_optimization, ikpu_lookup, card_generation, yandex_upload",
+        "Yandex product creation successful"
+      ],
+      "sample_response": {
+        "detected_product": "O'rikli va yong'oqli Nutley batonchik",
+        "ikpu_code": "10890000",
+        "optimal_price": "87229 UZS"
+      }
+    },
+    "4_full_automation": {
+      "endpoint": "POST /api/ai/full-automation",
+      "status": "PASS",
+      "verified": [
+        "6-step flow: scan → mxik → ai_card → pricing → infographics → yandex",
+        "Works with image URL input",
+        "Yandex product creation successful"
+      ]
+    },
+    "5_yandex_dashboard_status": {
+      "endpoint": "GET /api/yandex/dashboard/status",
+      "status": "PASS",
+      "verified": [
+        "Returns stats: total, ready, in_moderation, need_content, rejected",
+        "Returns offers list with offer_id, name, status, price",
+        "last_updated timestamp included"
+      ],
+      "sample_stats": {
+        "total": 84,
+        "ready": 77,
+        "in_moderation": 0,
+        "need_content": 0,
+        "rejected": 0
+      }
+    },
+    "6_billing_invoice": {
+      "endpoint": "POST /api/billing/invoice",
+      "status": "PASS",
+      "verified": [
+        "Generates invoice with unique ID (INV-{partner}-{month})",
+        "Includes payment methods (bank transfer, Click)",
+        "Due date is 7 days from creation",
+        "Status is 'pending'"
+      ],
+      "sample_invoice": {
+        "invoice_id": "INV-test-0-202601",
+        "month_name": "Yanvar 2026",
+        "total_debt_uzs": 6487400,
+        "total_debt_usd": 514.87
+      }
+    }
+  },
+  "api_endpoints_tested": {
+    "GET /api/health": "PASS - Backend healthy, version 3.0.0",
+    "GET /api/billing/calculate": "PASS - Revenue share calculator working",
+    "GET /api/billing/calculate?total_sales_uzs=10000000": "PASS - 400,000 UZS revenue share",
+    "POST /api/billing/summary": "PASS - Partner billing summary with Yandex sales",
+    "POST /api/billing/invoice": "PASS - Invoice generation working",
+    "POST /api/unified-scanner/full-process": "PASS - Mobile app full flow working",
+    "POST /api/ai/full-automation": "PASS - Web full automation working",
+    "GET /api/yandex/dashboard/status": "PASS - 84 products, 77 ready",
+    "POST /api/ai/scan-from-url": "PASS - Image URL scanning working"
+  },
+  "revenue_share_model": {
+    "monthly_fee_usd": 499,
+    "revenue_share_percent": 4,
+    "usd_to_uzs_rate": 12600,
+    "grace_period_days": 7,
+    "example_calculation": {
+      "sales_uzs": 10000000,
+      "monthly_fee_uzs": 6287400,
+      "revenue_share_uzs": 400000,
+      "total_debt_uzs": 6687400,
+      "total_debt_usd": 530.75
+    }
+  },
+  "mobile_app_integration": {
+    "api_base_url": "https://sellercloudx.preview.emergentagent.com/api",
+    "constants_file": "/app/mobile/src/utils/constants.ts",
+    "api_service_file": "/app/mobile/src/services/api.ts",
+    "unified_scanner_endpoint": "/api/unified-scanner/full-process",
+    "scan_from_url_endpoint": "/api/ai/scan-from-url"
+  }
+}

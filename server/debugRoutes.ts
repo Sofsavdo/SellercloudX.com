@@ -1,9 +1,15 @@
 import { Router, Request, Response } from "express";
-import { db } from "./db";
+import { db, getDbType } from "./db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 const router = Router();
 
@@ -103,8 +109,8 @@ router.post("/debug/create-admin", async (req: Request, res: Response) => {
       phone: "+998901234567",
       role: "admin",
       isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: formatTimestamp(),
+      updatedAt: formatTimestamp()
     }).returning();
     
     res.json({

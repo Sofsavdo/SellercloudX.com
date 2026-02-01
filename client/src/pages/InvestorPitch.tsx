@@ -13,7 +13,8 @@ export default function InvestorPitch() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
-  const CORRECT_PASSWORD = 'Medik9298';
+  // Password should be set via environment variable in production
+  const CORRECT_PASSWORD = import.meta.env.VITE_INVESTOR_PASSWORD || 'investor2024';
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();

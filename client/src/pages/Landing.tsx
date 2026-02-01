@@ -13,7 +13,7 @@ import {
   MessageCircle, AlertCircle, Bot, Image as ImageIcon,
   LineChart, PieChart, ShoppingCart, Box, Warehouse,
   Infinity, Gauge, UserCheck, Lock, Award, Plus, X, FileText, ChevronDown,
-  Camera, Lightbulb
+  Camera, Lightbulb, Calculator
 } from 'lucide-react';
 
 export default function Landing() {
@@ -225,59 +225,82 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* SAAS Pricing - Premium Fintech Style */}
+      {/* 2026 PREMIUM PRICING - Revenue Share Model */}
       {selectedModel === 'saas' && (
         <section className="py-24 px-4 sm:px-6 lg:px-8 gradient-hero relative">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <Badge className="mb-4 bg-gradient-to-r from-[hsl(220,70%,45%)] to-[hsl(250,84%,50%)] text-white px-6 py-2.5 shadow-lg shadow-primary/20">
-                <Brain className="w-4 h-4 mr-2" />
-                SAAS Model - AI Manager
+              <Badge className="mb-4 bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] text-black px-6 py-2.5 shadow-lg">
+                <Crown className="w-4 h-4 mr-2" />
+                2026 PREMIUM MODEL
               </Badge>
               <h2 className="text-5xl font-black mb-4">
                 <span className="text-gradient-primary">
-                  Faqat AI - Maksimal Avtomatizatsiya
+                  Faqat Natija Uchun To'lov
                 </span>
               </h2>
-              <p className="text-xl text-muted-foreground">Siz mahsulot tayyorlaysiz, AI qolganini qiladi. 1-1.5% savdodan.</p>
+              <p className="text-xl text-muted-foreground">Savdolaringizdan 4% olamiz. Savdo bo'lmasa - to'lov yo'q.</p>
+              
+              {/* Guarantee badges */}
+              <div className="flex flex-wrap justify-center gap-4 mt-6">
+                <div className="flex items-center gap-2 bg-success/10 text-success px-4 py-2 rounded-full">
+                  <Shield className="w-5 h-5" />
+                  <span className="font-semibold">60-kun kafolat</span>
+                </div>
+                <div className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full">
+                  <Zap className="w-5 h-5" />
+                  <span className="font-semibold">7-kun bepul sinov</span>
+                </div>
+                <div className="flex items-center gap-2 bg-[hsl(45,93%,47%)]/10 text-[hsl(45,93%,35%)] px-4 py-2 rounded-full">
+                  <TrendingUp className="w-5 h-5" />
+                  <span className="font-semibold">4% savdodan</span>
+                </div>
+              </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
-              {/* AI Starter */}
-              <div className="card-fintech p-8">
-                <div className="text-center mb-8">
-                  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/20">
-                    <Brain className="w-10 h-10 text-primary" />
+              {/* PREMIUM Tariff - Main */}
+              <div className="card-fintech p-8 border-2 border-[hsl(45,93%,47%)]/50 shadow-2xl shadow-[hsl(45,93%,47%)]/20 relative">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <Badge className="bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] text-black px-6 py-2.5 font-bold shadow-lg">
+                    <Star className="w-4 h-4 mr-2" />
+                    PREMIUM
+                  </Badge>
+                </div>
+                <div className="text-center mb-8 pt-4">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] flex items-center justify-center shadow-lg">
+                    <Crown className="w-10 h-10 text-black" />
                   </div>
-                  <h3 className="text-3xl font-black text-foreground">AI Starter</h3>
-                  <div className="mt-4">
-                    <span className="text-5xl font-black text-foreground">$349</span>
-                    <span className="text-xl text-muted-foreground">/oy</span>
-                  </div>
-                  <p className="text-lg font-bold text-primary mt-2">+ 1.5% savdodan</p>
+                  <h3 className="text-3xl font-black text-foreground">Premium Tarif</h3>
+                  <p className="text-muted-foreground mt-2">To'liq AI avtomatizatsiya</p>
                 </div>
                 
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-xl border border-primary/10">
-                    <Package className="w-5 h-5 text-primary" />
-                    <span className="font-semibold text-foreground">100 SKU</span>
+                {/* Pricing Breakdown */}
+                <div className="space-y-4 p-4 bg-muted/30 rounded-xl mb-6">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Bir martalik sozlash:</span>
+                    <span className="text-xl font-black text-foreground">$699</span>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-xl border border-primary/10">
-                    <Globe className="w-5 h-5 text-primary" />
-                    <span className="font-semibold text-foreground">2 marketplace</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Oylik to'lov:</span>
+                    <span className="text-xl font-black text-foreground">$499/oy</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-border">
+                    <span className="text-muted-foreground">Savdodan ulush:</span>
+                    <span className="text-xl font-black text-[hsl(45,93%,40%)]">4%</span>
                   </div>
                 </div>
                 
-                <div className="space-y-2 mb-4">
-                  <p className="font-bold text-sm text-foreground">✅ Included:</p>
+                <div className="space-y-2 mb-6">
                   {[
-                    'AI kartochka yaratish',
-                    'Marketplace avtomatik yuklash',
-                    'SEO optimizatsiya',
-                    'Narx monitoring',
-                    'Buyurtma boshqaruvi',
-                    'Basic analytics',
-                    'Email support'
+                    '7 kunlik BEPUL sinov davri',
+                    '60 kunlik savdo o\'sishi kafolati',
+                    'Cheksiz AI kartochka yaratish',
+                    'Barcha marketplace integratsiya',
+                    'Trend Hunter FULL access',
+                    'Sof foyda analitikasi',
+                    'Priority 24/7 support',
+                    'API access'
                   ].map((f, i) => (
                     <div key={i} className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
@@ -286,85 +309,109 @@ export default function Landing() {
                   ))}
                 </div>
                 
-                <div className="space-y-2 mb-6">
-                  <p className="font-bold text-sm text-destructive">❌ Cheklovlar:</p>
-                  {[
-                    'Trend Hunter yopiq',
-                    'Foyda analizi yopiq',
-                    'Advanced analytics yopiq'
-                  ].map((f, i) => (
-                    <div key={i} className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-muted-foreground">{f}</span>
+                {/* 60-day guarantee badge */}
+                <div className="p-4 bg-success/10 rounded-xl border border-success/30 mb-6">
+                  <div className="flex items-center gap-3">
+                    <Shield className="w-8 h-8 text-success flex-shrink-0" />
+                    <div>
+                      <p className="font-bold text-success">60-KUN KAFOLAT</p>
+                      <p className="text-xs text-muted-foreground">
+                        Savdo o'smasa, oylik to'lovning bir qismini qaytaramiz
+                      </p>
                     </div>
-                  ))}
+                  </div>
                 </div>
                 
                 <Button 
-                  className="w-full bg-gradient-to-r from-[hsl(220,70%,45%)] to-[hsl(250,84%,50%)] hover:from-[hsl(220,70%,40%)] hover:to-[hsl(250,84%,45%)] shadow-lg shadow-primary/20"
-                  onClick={() => setLocation('/partner-registration')}
+                  className="w-full bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] hover:from-[hsl(45,93%,50%)] hover:to-[hsl(38,92%,58%)] text-black font-bold text-lg py-6"
+                  onClick={() => setLocation('/partner-registration?tariff=premium')}
                 >
-                  Boshlash
+                  <Zap className="w-5 h-5 mr-2" />
+                  7 Kunlik Bepul Sinov
                 </Button>
               </div>
 
-              {/* AI Manager Pro - Premium Gold Style */}
-              <div className="card-fintech p-8 border-2 border-[hsl(45,93%,47%)]/30 shadow-xl shadow-[hsl(45,93%,47%)]/10 relative">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] text-[hsl(220,70%,10%)] px-6 py-2.5 font-bold shadow-lg">
-                    <Crown className="w-4 h-4 mr-2" />
-                    FULL ACCESS
-                  </Badge>
-                </div>
-                <div className="text-center mb-8 pt-4">
-                  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] flex items-center justify-center shadow-lg shadow-[hsl(45,93%,47%)]/30">
-                    <Sparkles className="w-10 h-10 text-[hsl(220,70%,10%)]" />
+              {/* Individual Tariff */}
+              <div className="card-fintech p-8 border-2 border-primary/30 relative">
+                <div className="text-center mb-8">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-[hsl(250,84%,50%)] flex items-center justify-center shadow-lg">
+                    <Users className="w-10 h-10 text-white" />
                   </div>
-                  <h3 className="text-3xl font-black text-foreground">AI Manager Pro</h3>
-                  <div className="mt-4">
-                    <span className="text-5xl font-black text-foreground">$899</span>
-                    <span className="text-xl text-muted-foreground">/oy</span>
-                  </div>
-                  <p className="text-lg font-bold text-[hsl(45,93%,40%)] mt-2">+ 1% savdodan</p>
+                  <h3 className="text-3xl font-black text-foreground">Individual Tarif</h3>
+                  <p className="text-muted-foreground mt-2">Katta sotuvchilar uchun maxsus</p>
                 </div>
                 
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center gap-3 p-3 bg-[hsl(45,93%,47%)]/10 rounded-xl border border-[hsl(45,93%,47%)]/20">
-                    <Package className="w-5 h-5 text-[hsl(45,93%,40%)]" />
-                    <span className="font-semibold text-foreground">250 SKU</span>
-                    <Badge className="ml-auto bg-[hsl(45,93%,47%)]/20 text-[hsl(45,93%,35%)] border-0 text-xs">+250 alohida</Badge>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-[hsl(45,93%,47%)]/10 rounded-xl border border-[hsl(45,93%,47%)]/20">
-                    <Globe className="w-5 h-5 text-[hsl(45,93%,40%)]" />
-                    <span className="font-semibold text-foreground">Cheksiz marketplace</span>
-                  </div>
+                <div className="text-center p-6 bg-primary/5 rounded-xl border border-primary/20 mb-6">
+                  <p className="text-muted-foreground mb-2">Sizning hajmingizga mos</p>
+                  <p className="text-4xl font-black text-primary">SHAXSIY NARX</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Setup: $1599+ | Share: 2% dan
+                  </p>
                 </div>
                 
                 <div className="space-y-2 mb-6">
-                  <p className="font-bold text-sm text-foreground">✅ BARCHA Features:</p>
                   {[
-                    'AI Starter features',
-                    'Trend Hunter FULL',
-                    'Sof foyda analizi',
-                    'Advanced analytics',
-                    'Priority support',
-                    'API access',
-                    'Custom integrations'
+                    'Premium ning barcha imkoniyatlari',
+                    'Pastroq % ulush (2% dan)',
+                    'Dedicated account manager',
+                    'Custom integrations',
+                    'SLA kafolati',
+                    'Enterprise analytics'
                   ].map((f, i) => (
                     <div key={i} className="flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
-                      <span className="text-sm font-medium text-foreground">{f}</span>
+                      <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="text-sm text-foreground">{f}</span>
                     </div>
                   ))}
                 </div>
                 
+                <div className="p-4 bg-muted/30 rounded-xl mb-6">
+                  <p className="font-semibold mb-2 text-sm">Kimlar uchun:</p>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• Oylik savdo $50,000+ bo'lgan sotuvchilar</li>
+                    <li>• Ko'p brendli bizneslar</li>
+                    <li>• Maxsus talablar bo'lgan kompaniyalar</li>
+                  </ul>
+                </div>
+                
                 <Button 
-                  className="w-full bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] hover:from-[hsl(45,93%,50%)] hover:to-[hsl(38,92%,58%)] text-[hsl(220,70%,10%)] font-bold shadow-lg shadow-[hsl(45,93%,47%)]/25"
-                  onClick={() => setLocation('/partner-registration')}
+                  className="w-full bg-gradient-to-r from-primary to-[hsl(250,84%,50%)] font-bold text-lg py-6"
+                  onClick={() => window.open('https://t.me/sellercloudx_support', '_blank')}
                 >
-                  <Crown className="w-5 h-5 mr-2" />
-                  Boshlash
+                  <MessageCircle className="w-5 h-5 mr-2" />
+                  Shaxsiy Taklif Olish
                 </Button>
+              </div>
+            </div>
+            
+            {/* Revenue Calculator */}
+            <div className="mt-16 card-fintech p-8">
+              <div className="text-center mb-8">
+                <Badge className="mb-4 bg-primary/10 text-primary">
+                  <Calculator className="w-4 h-4 mr-2" />
+                  KALKULYATOR
+                </Badge>
+                <h3 className="text-3xl font-black">Qancha to'laysiz?</h3>
+                <p className="text-muted-foreground mt-2">100M so'm oylik savdo uchun</p>
+              </div>
+              
+              <div className="grid md:grid-cols-4 gap-4">
+                <div className="p-4 bg-muted/30 rounded-xl text-center">
+                  <p className="text-sm text-muted-foreground mb-1">Oylik savdo</p>
+                  <p className="text-2xl font-black text-primary">100M so'm</p>
+                </div>
+                <div className="p-4 bg-muted/30 rounded-xl text-center">
+                  <p className="text-sm text-muted-foreground mb-1">4% Ulush</p>
+                  <p className="text-2xl font-black">4M so'm</p>
+                </div>
+                <div className="p-4 bg-muted/30 rounded-xl text-center">
+                  <p className="text-sm text-muted-foreground mb-1">Oylik to'lov</p>
+                  <p className="text-2xl font-black">6.3M so'm</p>
+                </div>
+                <div className="p-4 bg-success/10 rounded-xl text-center border border-success/30">
+                  <p className="text-sm text-muted-foreground mb-1">Sizda qoladi</p>
+                  <p className="text-2xl font-black text-success">89.7M so'm</p>
+                </div>
               </div>
             </div>
           </div>

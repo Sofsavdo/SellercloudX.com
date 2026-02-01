@@ -2,10 +2,16 @@
 // Referral Campaign Routes - Konkurslar va aksiyalar boshqaruvi
 import express, { Request, Response } from 'express';
 import { asyncHandler } from '../errorHandler';
-import { db } from '../db';
+import { db, getDbType } from '../db';
 import { referralCampaigns, referralCampaignParticipants, partners, referralFirstPurchases, referrals } from '@shared/schema';
 import { eq, and, sql, gte, lte } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 const router = express.Router();
 
@@ -50,7 +56,7 @@ router.post('/create', asyncHandler(async (req: Request, res: Response) => {
     status: 'active',
     participants: 0,
     winners: 0,
-    createdAt: new Date(),
+    createdAt: formatTimestamp(),
     createdBy: user.id
   });
 

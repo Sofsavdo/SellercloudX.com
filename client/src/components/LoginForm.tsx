@@ -32,6 +32,9 @@ export function LoginForm({ onSuccess, isAdmin = false }: LoginFormProps) {
       const result = await login(formData.username, formData.password);
       console.log('✅ Login result:', result);
       
+      // Give browser time to set cookies before redirect
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
       if (result?.user?.role === 'admin') {
         console.log('👤 Redirecting to admin panel');
         window.location.href = '/admin-panel';

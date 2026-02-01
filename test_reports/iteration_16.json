@@ -1,0 +1,147 @@
+{
+  "summary": "Frontend testing completed for SellerCloudX 2026 Pricing Model. All requested features verified: Landing page shows correct 2026 pricing ($499/mo + $699 setup + 4% revenue share), Individual tariff displays SHAXSIY price with $1599+ setup and 2% commission, 60-day guarantee and 7-day free trial badges visible, Navigation working (Imkoniyatlar, Narxlar, Blog), Registration button working, Login dropdown showing Hamkor/Admin options. Trend Hunter API /api/trends/top returns real AliExpress data. One issue found: Blog page shows error 'posts.filter is not a function' due to missing blog_posts table in database.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "/api/blog/posts",
+        "issue": "Returns error 'no such table: blog_posts' - SQLite table not created",
+        "priority": "MEDIUM"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "BlogPage",
+        "issue": "Shows error 'posts.filter is not a function' because API returns error object instead of array",
+        "selector": "/blog",
+        "priority": "MEDIUM",
+        "root_cause": "Backend /api/blog/posts returns {success: false, error: 'no such table: blog_posts'} instead of array"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_16.json"
+  ],
+  "action_items": [
+    "Create blog_posts table in SQLite database or handle API error gracefully in BlogPage.tsx"
+  ],
+  "critical_code_review_comments": [
+    "2026 Pricing Model correctly displayed: Premium $499/oy + $699 setup + 4% savdodan",
+    "Individual tariff shows SHAXSIY price with $1599+ setup and 2% dan boshlab",
+    "60-kun kafolat and 7-kun bepul sinov badges visible in pricing section",
+    "Trend Hunter API /api/trends/top returns real product data from AliExpress",
+    "Navigation links (Imkoniyatlar, Narxlar, Blog) all working",
+    "Login dropdown shows Hamkor Kirish and Admin Kirish options",
+    "Registration page (/partner-registration) loads correctly with form fields",
+    "BlogPage.tsx line 80 assumes posts is array but API may return error object"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only testing)",
+    "frontend": "90% (6/7 features working, Blog page has error)"
+  },
+  "test_credentials": {
+    "API_URL": "https://sellercloudx.preview.emergentagent.com"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "All 2026 pricing features verified working on Landing page and Pricing page. Blog page has database issue - blog_posts table missing. Trend Hunter API works and returns real data. Protected pages (trend-hunter, ai-scanner) correctly redirect to login.",
+  "features_tested": {
+    "1_landing_page_2026_pricing": {
+      "status": "PASS",
+      "verified": [
+        "2026 PREMIUM MODEL badge visible",
+        "Premium: $499/oy price displayed",
+        "$699 bir martalik sozlash (setup fee)",
+        "4% savdodan (revenue share)",
+        "60-kun kafolat badge",
+        "7-kun bepul sinov badge",
+        "TAVSIYA ETILADI badge on Premium"
+      ]
+    },
+    "2_individual_tariff": {
+      "status": "PASS",
+      "verified": [
+        "Individual tariff card visible",
+        "SHAXSIY price displayed",
+        "$1599+ sozlash setup fee",
+        "2% dan boshlab commission",
+        "KATTA SOTUVCHILAR badge",
+        "Kimlar uchun section with criteria"
+      ]
+    },
+    "3_guarantee_badges": {
+      "status": "PASS",
+      "verified": [
+        "60-kun kafolat badge in header",
+        "7-kun bepul sinov badge in header",
+        "4% savdodan badge in header",
+        "60-KUN KAFOLAT card in Premium tariff"
+      ]
+    },
+    "4_trend_hunter_api": {
+      "status": "PASS",
+      "endpoint": "GET /api/trends/top",
+      "verified": [
+        "Returns real product data",
+        "Products from AliExpress",
+        "Includes opportunityScore, profitMargin, recommendation",
+        "Uzbek language recommendations"
+      ]
+    },
+    "5_navigation": {
+      "status": "PASS",
+      "verified": [
+        "Imkoniyatlar link works (scrolls to #features)",
+        "Narxlar button works (navigates to /pricing)",
+        "Blog button works (navigates to /blog)"
+      ]
+    },
+    "6_registration_button": {
+      "status": "PASS",
+      "verified": [
+        "Ro'yxatdan o'tish button visible in navbar",
+        "Navigates to /partner-registration",
+        "Registration form loads with all fields"
+      ]
+    },
+    "7_login_dropdown": {
+      "status": "PASS",
+      "verified": [
+        "Kirish button visible in navbar",
+        "Dropdown opens on click",
+        "Hamkor Kirish option visible",
+        "Admin Kirish option visible"
+      ]
+    },
+    "8_blog_page": {
+      "status": "FAIL",
+      "issue": "Error: posts.filter is not a function",
+      "root_cause": "API /api/blog/posts returns error object due to missing blog_posts table"
+    }
+  },
+  "api_endpoints_tested": {
+    "GET /api/trends/top": "PASS - Returns real AliExpress product data",
+    "GET /api/blog/posts": "FAIL - no such table: blog_posts"
+  },
+  "pricing_model_2026_verified": {
+    "premium_tariff": {
+      "monthly_fee": "$499/oy",
+      "setup_fee": "$699 bir martalik sozlash",
+      "revenue_share": "4% savdodan",
+      "guarantee": "60-kun kafolat",
+      "free_trial": "7 kunlik BEPUL sinov davri"
+    },
+    "individual_tariff": {
+      "price": "SHAXSIY (negotiable)",
+      "setup_fee": "$1599+ sozlash",
+      "revenue_share": "2% dan boshlab",
+      "target": "Katta hajmli sotuvchilar"
+    }
+  }
+}

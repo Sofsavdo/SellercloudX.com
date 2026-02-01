@@ -24,8 +24,8 @@
     "dev:client": "cd client && npm run dev",
     "dev:server": "cross-env NODE_ENV=development tsx server/index.ts",
     "build": "npm run build:client && npm run build:server && node postbuild.js",
-    "build:verify": "node -e \"const fs=require('fs'); const path=require('path'); if(!fs.existsSync('dist/public')){console.error('❌ dist/public not found'); process.exit(1);} if(!fs.existsSync('dist/public/index.html')){console.error('❌ dist/public/index.html not found'); process.exit(1);} if(!fs.existsSync('dist/index.js')){console.error('❌ dist/index.js not found'); process.exit(1);} console.log('✅ Build verification passed'); console.log('📂 dist/public contents:'); fs.readdirSync('dist/public').forEach(f=>console.log('  -',f));\"",
-    "start": "NODE_ENV=production node dist/index.js",
+    "build:verify": "node -e \"const fs=require('fs'); const path=require('path'); if(!fs.existsSync('dist/public')){console.error('\u274c dist/public not found'); process.exit(1);} if(!fs.existsSync('dist/public/index.html')){console.error('\u274c dist/public/index.html not found'); process.exit(1);} if(!fs.existsSync('dist/index.js')){console.error('\u274c dist/index.js not found'); process.exit(1);} console.log('\u2705 Build verification passed'); console.log('\ud83d\udcc2 dist/public contents:'); fs.readdirSync('dist/public').forEach(f=>console.log('  -',f));\"",
+    "start": "supervisord -c /etc/supervisor/conf.d/supervisord.conf -n",
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
@@ -40,10 +40,12 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write .",
     "production:setup": "npm run db:push && npm run build",
-    "production:start": "npm run production:setup && npm start"
+    "production:start": "npm run production:setup && npm start",
+    "start:node": "NODE_ENV=production node dist/index.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.0",
+    "@google-cloud/vision": "^5.3.4",
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
@@ -115,6 +117,7 @@
     "express-session": "^1.18.1",
     "framer-motion": "^11.13.1",
     "helmet": "^7.1.0",
+    "http-proxy-middleware": "^3.0.5",
     "i18next": "^25.6.0",
     "input-otp": "^1.4.2",
     "jspdf": "^3.0.3",

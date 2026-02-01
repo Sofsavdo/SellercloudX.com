@@ -4,10 +4,16 @@
 
 import { marketplaceManager, MarketplaceName } from '../marketplace/manager';
 import { aiOrchestrator } from './aiOrchestrator';
-import { db } from '../db';
+import { db, getDbType } from '../db';
 import { products, aiProductCards, partners } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { logger } from '../logger';
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 export interface AutomationConfig {
   partnerId: string;
@@ -143,9 +149,13 @@ class AutonomousProductManager {
         // Save to database
         for (const product of marketplaceProducts) {
           try {
-            // Check if product exists
+            // Check if product exists - select only required columns
             const existing = await db
-              .select()
+              .select({
+                id: products.id,
+                partnerId: products.partnerId,
+                sku: products.sku
+              })
               .from(products)
               .where(
                 and(
@@ -165,7 +175,7 @@ class AutonomousProductManager {
                 price: product.price,
                 stockQuantity: product.stock,
                 isActive: product.status === 'active',
-                createdAt: new Date(),
+                createdAt: formatTimestamp(),
               });
               
               allProducts.push(product);
@@ -204,7 +214,15 @@ class AutonomousProductManager {
   private async getProductsWithoutCards(partnerId: string): Promise<any[]> {
     try {
       const allProducts = await db
-        .select()
+        .select({
+          id: products.id,
+          name: products.name,
+          partnerId: products.partnerId,
+          category: products.category,
+          description: products.description,
+          price: products.price,
+          isActive: products.isActive
+        })
         .from(products)
         .where(
           and(
@@ -217,7 +235,10 @@ class AutonomousProductManager {
 
       for (const product of allProducts) {
         const existingCards = await db
-          .select()
+          .select({
+            id: aiProductCards.id,
+            productId: aiProductCards.productId
+          })
           .from(aiProductCards)
           .where(eq(aiProductCards.productId, product.id))
           .limit(1);
@@ -341,7 +362,7 @@ class AutonomousProductManager {
             qualityScore: analysis.confidence,
             aiModel: 'claude-3.5-sonnet + flux-1.1',
             generationCost: cardCost,
-            createdAt: new Date(),
+            createdAt: formatTimestamp(),
           });
 
           cards.push({
@@ -419,12 +440,19 @@ class AutonomousProductManager {
       const stats = await marketplaceManager.getCombinedStats(partnerId);
       
       const totalProducts = await db
-        .select()
+        .select({
+          id: products.id,
+          isActive: products.isActive
+        })
         .from(products)
         .where(eq(products.partnerId, partnerId));
 
       const totalCards = await db
-        .select()
+        .select({
+          id: aiProductCards.id,
+          status: aiProductCards.status,
+          generationCost: aiProductCards.generationCost
+        })
         .from(aiProductCards)
         .where(eq(aiProductCards.partnerId, partnerId));
 
@@ -482,12 +510,19 @@ class AutonomousProductManager {
   ): Promise<ProductCardGenerationResult[]> {
     logger.info(`🎨 Manual card generation for ${productIds.length} products`);
 
-    const products = await db
-      .select()
+    const allProducts = await db
+      .select({
+        id: products.id,
+        name: products.name,
+        partnerId: products.partnerId,
+        category: products.category,
+        description: products.description,
+        price: products.price
+      })
       .from(products)
       .where(eq(products.partnerId, partnerId));
 
-    const selectedProducts = products.filter(p => productIds.includes(p.id));
+    const selectedProducts = allProducts.filter(p => productIds.includes(p.id));
 
     return await this.batchGenerateProductCards(partnerId, selectedProducts, targetMarketplaces);
   }

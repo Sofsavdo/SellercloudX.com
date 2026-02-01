@@ -3,10 +3,16 @@
 // Fixes: Constant errors, proper validation, detailed logging
 import express, { Request, Response } from 'express';
 import { asyncHandler } from '../errorHandler';
-import { db } from '../db';
+import { db, getDbType } from '../db';
 import { referrals, partners, referralEarnings, withdrawals } from '@shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 // IMPROVED: Add comprehensive logging
 const logInfo = (message: string, data?: any) => {
@@ -81,7 +87,7 @@ router.post('/generate-code', asyncHandler(async (req: Request, res: Response) =
           promoCode: promoCode,
           contractType: partner.pricingTier || 'free_starter',
           status: 'active',
-          createdAt: new Date(),
+          createdAt: formatTimestamp(),
           activatedAt: new Date()
         });
       } catch (insertError: any) {
@@ -373,7 +379,7 @@ router.post('/withdraw', asyncHandler(async (req: Request, res: Response) => {
       method,
       accountDetails: JSON.stringify(accountDetails),
       status: 'pending',
-      createdAt: new Date()
+      createdAt: formatTimestamp()
     });
 
     res.json({

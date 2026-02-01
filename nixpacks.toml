@@ -1,11 +1,17 @@
+# Nixpacks configuration for Railway
+# SellerCloudX - Node.js + Python hybrid
+
 [phases.setup]
-nixPkgs = ["nodejs-20_x", "npm-9_x"]
+nixPkgs = ["nodejs-20_x", "npm-9_x", "python311", "python311Packages.pip", "supervisor"]
 
 [phases.install]
-cmds = ["npm ci --include=dev"]
+cmds = [
+    "npm ci --include=dev",
+    "pip install -r backend/requirements.txt"
+]
 
 [phases.build]
 cmds = ["npm run build"]
 
 [start]
-cmd = "npm start"
+cmd = "supervisord -c railway-supervisor.conf -n"

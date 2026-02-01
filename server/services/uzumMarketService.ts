@@ -1,381 +1,207 @@
-// Uzum Market Seller API Integration Service
-// Based on: https://api-seller.uzum.uz/api/seller-openapi/swagger/
-
+// Uzum Market API Service - REAL Implementation
 import axios, { AxiosInstance } from 'axios';
 
-interface UzumCredentials {
-  apiKey: string;
-  sellerId?: string;
-  accessToken?: string;
-}
+// API key from environment variable only - no default value for security
+const UZUM_API_KEY = process.env.UZUM_API_KEY || '';
+const UZUM_BASE_URL = 'https://api-seller.uzum.uz/api/seller-openapi';
 
-interface UzumProduct {
-  productId?: string;
-  name: string;
-  categoryId: number;
+export interface UzumProductData {
+  title: string;
+  description: string;
+  images: string[];
   price: number;
-  oldPrice?: number;
-  description?: string;
-  images?: string[];
-  sku?: string;
-  barcode?: string;
-  stockQuantity?: number;
-  weight?: number;
-  dimensions?: {
-    length?: number;
-    width?: number;
-    height?: number;
-  };
+  quantity: number;
+  category_id?: number;
+  brand?: string;
   attributes?: Record<string, any>;
 }
 
-interface UzumOrder {
-  orderId: string;
-  status: string;
-  createdAt: string;
-  items: Array<{
-    productId: string;
-    quantity: number;
-    price: number;
-  }>;
-  customer?: {
-    name?: string;
-    phone?: string;
-    address?: string;
-  };
-  totalAmount: number;
+export interface UzumProductResult {
+  success: boolean;
+  product_id?: string;
+  sku?: string;
+  status?: string;
+  error?: string;
+  details?: any;
 }
 
-interface UzumAnalytics {
-  sales: {
-    totalRevenue: number;
-    totalOrders: number;
-    averageOrderValue: number;
-    period: string;
-  };
-  products: {
-    totalViews: number;
-    totalClicks: number;
-    conversionRate: number;
-    topProducts: Array<{
-      productId: string;
-      name: string;
-      sales: number;
-    }>;
-  };
-  performance: {
-    responseTime: number;
-    fulfillmentRate: number;
-    customerSatisfaction: number;
-  };
-}
+class UzumMarketService {
+  private client: AxiosInstance;
+  private apiKey: string;
 
-export class UzumMarketService {
-  private api: AxiosInstance;
-  private credentials: UzumCredentials;
-
-  constructor(credentials: UzumCredentials) {
-    this.credentials = credentials;
-    this.api = axios.create({
-      baseURL: 'https://api-seller.uzum.uz/api',
+  constructor(apiKey: string = UZUM_API_KEY) {
+    this.apiKey = apiKey;
+    this.client = axios.create({
+      baseURL: UZUM_BASE_URL,
+      timeout: 30000,
       headers: {
-        'Authorization': `Bearer ${credentials.accessToken || credentials.apiKey}`,
+        // Uzum API: Token WITHOUT "Bearer" prefix (as per documentation)
+        'Authorization': apiKey,
         'Content-Type': 'application/json',
-        'X-Seller-Id': credentials.sellerId || '',
       },
     });
+
+    console.log('✅ Uzum Market Service initialized');
+    console.log('🔑 API Key format: Direct token (no Bearer prefix)');
   }
 
-  // ==================== PRODUCTS MANAGEMENT ====================
-
   /**
-   * Mahsulot yaratish/yangilash
-   * POST /products
+   * Create product on Uzum Market
    */
-  async createOrUpdateProduct(product: UzumProduct): Promise<string> {
+  async createProduct(productData: UzumProductData): Promise<UzumProductResult> {
     try {
-      const productData: any = {
-        name: product.name,
-        categoryId: product.categoryId,
-        price: product.price,
-        oldPrice: product.oldPrice,
-        description: product.description,
-        images: product.images || [],
-        sku: product.sku,
-        barcode: product.barcode,
-        stockQuantity: product.stockQuantity || 0,
-        weight: product.weight,
-        dimensions: product.dimensions,
-        attributes: product.attributes || {},
+      console.log('📦 Creating product on Uzum Market...');
+      console.log('Product:', productData.title);
+
+      // Uzum Market product creation payload
+      const payload = {
+        name: productData.title,
+        description: productData.description,
+        price: productData.price,
+        quantity: productData.quantity,
+        images: productData.images,
+        category_id: productData.category_id || 1000, // Default category
+        brand: productData.brand || 'Generic',
+        attributes: productData.attributes || {},
       };
 
-      let response;
-      if (product.productId) {
-        // Update existing product
-        response = await this.api.put(`/products/${product.productId}`, productData);
-      } else {
-        // Create new product
-        response = await this.api.post('/products', productData);
+      // Call Uzum API - endpoint from documentation
+      const response = await this.client.post('/api/seller/products', payload);
+
+      console.log('✅ Product created on Uzum Market');
+      console.log('Response:', response.data);
+
+      return {
+        success: true,
+        product_id: response.data?.id || response.data?.product_id,
+        sku: response.data?.sku,
+        status: response.data?.status || 'pending',
+        details: response.data,
+      };
+    } catch (error: any) {
+      console.error('❌ Uzum Market error:', error.message);
+      
+      // Handle specific errors
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        return {
+          success: false,
+          error: error.response.data?.message || error.message,
+          details: error.response.data,
+        };
       }
 
-      return response.data.productId || response.data.id || product.productId || '';
-    } catch (error: any) {
-      console.error('Uzum Market: Product creation error:', error.response?.data || error.message);
-      throw error;
+      return {
+        success: false,
+        error: error.message,
+      };
     }
   }
 
   /**
-   * Mahsulotni o'chirish
-   * DELETE /products/{productId}
+   * Update product price
    */
-  async deleteProduct(productId: string): Promise<boolean> {
+  async updatePrice(productId: string, price: number): Promise<boolean> {
     try {
-      await this.api.delete(`/products/${productId}`);
+      await this.client.patch(`/api/seller/products/${productId}/price`, {
+        price,
+      });
+      console.log(`✅ Price updated for product ${productId}`);
       return true;
     } catch (error: any) {
-      console.error('Uzum Market: Product deletion error:', error.response?.data || error.message);
+      console.error('❌ Price update failed:', error.message);
       return false;
     }
   }
 
   /**
-   * Mahsulotlar ro'yxatini olish
-   * GET /products
+   * Get product status
    */
-  async getProducts(limit: number = 100, offset: number = 0): Promise<UzumProduct[]> {
+  async getProductStatus(productId: string): Promise<any> {
     try {
-      const response = await this.api.get('/products', {
+      const response = await this.client.get(`/api/seller/products/${productId}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Get status failed:', error.message);
+      return null;
+    }
+  }
+
+  /**
+   * Test API connection - using /v2/fbs/orders endpoint from documentation
+   */
+  async testConnection(): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      console.log('🧪 Testing Uzum Market API connection...');
+      console.log('📍 URL:', UZUM_BASE_URL);
+      
+      // Try to get orders list (from Swagger documentation)
+      const response = await this.client.get('/v2/fbs/orders', {
+        params: { 
+          limit: 10,
+          offset: 0 
+        },
+      });
+      
+      console.log('✅ Uzum Market API: Connected successfully!');
+      console.log('📦 Response:', JSON.stringify(response.data, null, 2));
+      return { success: true, data: response.data };
+    } catch (error: any) {
+      console.error('❌ Uzum Market API: Connection failed');
+      if (error.response) {
+        console.error('Status:', error.response.status);
+        console.error('Data:', error.response.data);
+        return { 
+          success: false, 
+          error: `${error.response.status}: ${JSON.stringify(error.response.data)}` 
+        };
+      }
+      console.error('Error:', error.message);
+      return { success: false, error: error.message };
+    }
+  }
+  
+  /**
+   * Get FBS orders
+   */
+  async getOrders(limit: number = 10, offset: number = 0): Promise<any> {
+    try {
+      const response = await this.client.get('/v2/fbs/orders', {
         params: { limit, offset },
       });
-
-      return response.data.result?.products || response.data.products || [];
+      return response.data;
     } catch (error: any) {
-      console.error('Uzum Market: Get products error:', error.response?.data || error.message);
-      return [];
-    }
-  }
-
-  /**
-   * Bitta mahsulotni olish
-   * GET /products/{productId}
-   */
-  async getProduct(productId: string): Promise<UzumProduct | null> {
-    try {
-      const response = await this.api.get(`/products/${productId}`);
-      return response.data.result || response.data || null;
-    } catch (error: any) {
-      console.error('Uzum Market: Get product error:', error.response?.data || error.message);
+      console.error('❌ Get orders failed:', error.message);
       return null;
     }
   }
-
-  // ==================== PRICES MANAGEMENT ====================
-
+  
   /**
-   * Narxlarni yangilash
-   * PUT /products/{productId}/price
+   * Get order by ID
    */
-  async updatePrice(productId: string, price: number, oldPrice?: number): Promise<boolean> {
+  async getOrderById(orderId: string): Promise<any> {
     try {
-      await this.api.put(`/products/${productId}/price`, {
-        price,
-        oldPrice,
-      });
-
-      return true;
+      const response = await this.client.get(`/v1/fbs/order/${orderId}`);
+      return response.data;
     } catch (error: any) {
-      console.error('Uzum Market: Price update error:', error.response?.data || error.message);
-      return false;
-    }
-  }
-
-  /**
-   * Bir nechta mahsulotlar narxlarini yangilash
-   * POST /products/prices/bulk-update
-   */
-  async updatePricesBulk(
-    prices: Array<{ productId: string; price: number; oldPrice?: number }>
-  ): Promise<boolean> {
-    try {
-      await this.api.post('/products/prices/bulk-update', {
-        prices,
-      });
-
-      return true;
-    } catch (error: any) {
-      console.error('Uzum Market: Bulk price update error:', error.response?.data || error.message);
-      return false;
-    }
-  }
-
-  // ==================== INVENTORY MANAGEMENT ====================
-
-  /**
-   * Qoldiqlarni yangilash
-   * PUT /products/{productId}/stock
-   */
-  async updateStock(productId: string, quantity: number): Promise<boolean> {
-    try {
-      await this.api.put(`/products/${productId}/stock`, {
-        quantity,
-      });
-
-      return true;
-    } catch (error: any) {
-      console.error('Uzum Market: Stock update error:', error.response?.data || error.message);
-      return false;
-    }
-  }
-
-  /**
-   * Bir nechta mahsulotlar qoldiqlarini yangilash
-   * POST /products/stocks/bulk-update
-   */
-  async updateStocksBulk(
-    stocks: Array<{ productId: string; quantity: number }>
-  ): Promise<boolean> {
-    try {
-      await this.api.post('/products/stocks/bulk-update', {
-        stocks,
-      });
-
-      return true;
-    } catch (error: any) {
-      console.error('Uzum Market: Bulk stock update error:', error.response?.data || error.message);
-      return false;
-    }
-  }
-
-  // ==================== ORDERS MANAGEMENT ====================
-
-  /**
-   * Buyurtmalarni olish
-   * GET /orders
-   */
-  async getOrders(
-    status?: string,
-    fromDate?: string,
-    toDate?: string,
-    limit: number = 100
-  ): Promise<UzumOrder[]> {
-    try {
-      const params: any = { limit };
-      if (status) params.status = status;
-      if (fromDate) params.fromDate = fromDate;
-      if (toDate) params.toDate = toDate;
-
-      const response = await this.api.get('/orders', { params });
-
-      return response.data.result?.orders || response.data.orders || [];
-    } catch (error: any) {
-      console.error('Uzum Market: Get orders error:', error.response?.data || error.message);
-      return [];
-    }
-  }
-
-  /**
-   * Bitta buyurtmani olish
-   * GET /orders/{orderId}
-   */
-  async getOrder(orderId: string): Promise<UzumOrder | null> {
-    try {
-      const response = await this.api.get(`/orders/${orderId}`);
-      return response.data.result || response.data || null;
-    } catch (error: any) {
-      console.error('Uzum Market: Get order error:', error.response?.data || error.message);
+      console.error('❌ Get order failed:', error.message);
       return null;
     }
   }
-
+  
   /**
-   * Buyurtma holatini yangilash
-   * PUT /orders/{orderId}/status
+   * Get stocks by SKU
    */
-  async updateOrderStatus(orderId: string, status: string): Promise<boolean> {
+  async getStocks(): Promise<any> {
     try {
-      await this.api.put(`/orders/${orderId}/status`, {
-        status,
-      });
-
-      return true;
+      const response = await this.client.get('/v2/fbs/sku/stocks');
+      return response.data;
     } catch (error: any) {
-      console.error('Uzum Market: Order status update error:', error.response?.data || error.message);
-      return false;
-    }
-  }
-
-  // ==================== ANALYTICS ====================
-
-  /**
-   * Analitik ma'lumotlarni olish
-   * GET /analytics/sales
-   */
-  async getAnalytics(fromDate?: string, toDate?: string): Promise<UzumAnalytics> {
-    try {
-      const params: any = {};
-      if (fromDate) params.fromDate = fromDate;
-      if (toDate) params.toDate = toDate;
-
-      // Sales analytics
-      const salesResponse = await this.api.get('/analytics/sales', { params });
-      
-      // Products analytics
-      const productsResponse = await this.api.get('/analytics/products', { params });
-      
-      // Performance analytics
-      const performanceResponse = await this.api.get('/analytics/performance', { params });
-
-      const salesData = salesResponse.data.result || salesResponse.data || {};
-      const productsData = productsResponse.data.result || productsResponse.data || {};
-      const performanceData = performanceResponse.data.result || performanceResponse.data || {};
-
-      return {
-        sales: {
-          totalRevenue: salesData.totalRevenue || 0,
-          totalOrders: salesData.totalOrders || 0,
-          averageOrderValue: salesData.averageOrderValue || 0,
-          period: `${fromDate || 'start'} - ${toDate || 'now'}`,
-        },
-        products: {
-          totalViews: productsData.totalViews || 0,
-          totalClicks: productsData.totalClicks || 0,
-          conversionRate: productsData.conversionRate || 0,
-          topProducts: productsData.topProducts || [],
-        },
-        performance: {
-          responseTime: performanceData.responseTime || 0,
-          fulfillmentRate: performanceData.fulfillmentRate || 0,
-          customerSatisfaction: performanceData.customerSatisfaction || 0,
-        },
-      };
-    } catch (error: any) {
-      console.error('Uzum Market: Analytics error:', error.response?.data || error.message);
-      return {
-        sales: { totalRevenue: 0, totalOrders: 0, averageOrderValue: 0, period: '' },
-        products: { totalViews: 0, totalClicks: 0, conversionRate: 0, topProducts: [] },
-        performance: { responseTime: 0, fulfillmentRate: 0, customerSatisfaction: 0 },
-      };
-    }
-  }
-
-  /**
-   * Top mahsulotlarni olish
-   * GET /analytics/products/top
-   */
-  async getTopProducts(limit: number = 10): Promise<Array<{ productId: string; name: string; sales: number }>> {
-    try {
-      const response = await this.api.get('/analytics/products/top', {
-        params: { limit },
-      });
-
-      return response.data.result?.products || response.data.products || [];
-    } catch (error: any) {
-      console.error('Uzum Market: Get top products error:', error.response?.data || error.message);
-      return [];
+      console.error('❌ Get stocks failed:', error.message);
+      return null;
     }
   }
 }
 
 export default UzumMarketService;
-
+export const uzumMarketService = new UzumMarketService();

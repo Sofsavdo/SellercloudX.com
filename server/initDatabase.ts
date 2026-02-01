@@ -111,6 +111,8 @@ export async function initializeDatabaseTables() {
         monthly_fee INTEGER,
         profit_share_percent INTEGER,
         ai_enabled INTEGER DEFAULT 0,
+        ai_cards_used INTEGER DEFAULT 0,
+        promo_code TEXT UNIQUE,
         warehouse_space_kg INTEGER,
         anydesk_id TEXT,
         anydesk_password TEXT,
@@ -323,6 +325,22 @@ export async function initializeDatabaseTables() {
       );
     `);
     
+    // AI Cost Records table (for tracking AI usage costs)
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS ai_cost_records (
+        id TEXT PRIMARY KEY,
+        partner_id TEXT NOT NULL REFERENCES partners(id),
+        operation TEXT NOT NULL,
+        model TEXT NOT NULL,
+        tokens_used INTEGER,
+        images_generated INTEGER,
+        cost REAL NOT NULL DEFAULT 0,
+        tier TEXT NOT NULL DEFAULT 'free_starter',
+        metadata TEXT,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch())
+      );
+    `);
+    
     // Profit breakdown table
     sqlite.exec(`
       CREATE TABLE IF NOT EXISTS profit_breakdown (
@@ -457,6 +475,27 @@ export async function initializeDatabaseTables() {
         created_at INTEGER NOT NULL DEFAULT (unixepoch())
       );
     `);
+    
+    // Add missing columns to existing tables
+    console.log('📝 Adding missing columns to existing tables...');
+    
+    // Add ai_cards_used and promo_code to partners if missing
+    try {
+      const partnersInfo = sqlite.prepare("PRAGMA table_info(partners)").all() as any[];
+      const hasAiCardsUsed = partnersInfo.some((col: any) => col.name === 'ai_cards_used');
+      const hasPromoCode = partnersInfo.some((col: any) => col.name === 'promo_code');
+      
+      if (!hasAiCardsUsed) {
+        console.log('📝 Adding ai_cards_used column to partners table...');
+        sqlite.exec('ALTER TABLE partners ADD COLUMN ai_cards_used INTEGER DEFAULT 0');
+      }
+      if (!hasPromoCode) {
+        console.log('📝 Adding promo_code column to partners table...');
+        sqlite.exec('ALTER TABLE partners ADD COLUMN promo_code TEXT');
+      }
+    } catch (e) {
+      console.warn('⚠️  Could not add columns to partners:', e);
+    }
     
     console.log('✅ All database tables created successfully');
     

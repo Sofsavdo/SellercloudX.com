@@ -10,15 +10,17 @@ const __dirname = path.dirname(__filename)
 
 export default defineConfig(({ mode }) => ({
   plugins: [
-    react(),
+    react({
+      jsxRuntime: 'automatic',
+    }),
     mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "client", "src"),
-      "@shared": path.resolve(__dirname, "shared"),
-      "@assets": path.resolve(__dirname, "attached_assets"),
-    },
+    alias: [
+      { find: "@", replacement: path.resolve(__dirname, "client", "src") },
+      { find: "@shared", replacement: path.resolve(__dirname, "shared") },
+      { find: "@assets", replacement: path.resolve(__dirname, "attached_assets") },
+    ],
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react/jsx-runtime'],

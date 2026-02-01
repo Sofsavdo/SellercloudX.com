@@ -1,11 +1,17 @@
 // Referral First Purchase Service
 // Birinchi haridaga nisbatan referral bonus hisoblash
 
-import { db } from '../db';
+import { db, getDbType } from '../db';
 import { referrals, partners, referralFirstPurchases, subscriptions, invoices, payments } from '@shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { SAAS_PRICING_TIERS } from '../../SAAS_PRICING_CONFIG';
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 const REFERRAL_COMMISSION_RATE = 0.10; // 10%
 
@@ -90,7 +96,7 @@ export async function processFirstPurchase(data: FirstPurchaseData): Promise<voi
       commissionAmount: commissionAmount,
       status: 'paid',
       paidAt: new Date(),
-      createdAt: new Date()
+      createdAt: formatTimestamp()
     });
 
     // 6. Referral status'ni yangilash
@@ -114,7 +120,7 @@ export async function processFirstPurchase(data: FirstPurchaseData): Promise<voi
       bonusRate: REFERRAL_COMMISSION_RATE,
       tierMultiplier: 1.0, // Tier bonus yo'q
       status: 'pending',
-      createdAt: new Date()
+      createdAt: formatTimestamp()
     });
 
     console.log('[REFERRAL FIRST PURCHASE] ✅ Success:', {

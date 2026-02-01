@@ -5,14 +5,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { Rocket, Home, Gift, User, Building, Mail, Phone, Lock, Tag } from 'lucide-react';
+import { Rocket, Home, Gift, User, Building, Mail, Phone, Lock, Tag, Crown, CheckCircle, AlertCircle, FileText } from 'lucide-react';
 
 export default function PartnerRegistrationNew() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [promoCode, setPromoCode] = useState<string>('');
+  const [selectedTier, setSelectedTier] = useState<any>(null);
+  const [innError, setInnError] = useState<string>('');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -21,11 +26,49 @@ export default function PartnerRegistrationNew() {
     username: '',
     password: '',
     businessName: '',
+    businessType: 'yatt', // yatt, ooo, individual
+    inn: '', // STIR - majburiy
     agreeToTerms: false,
     referralCode: ''
   });
 
+  // INN validatsiya (kuchaytirilgan)
+  const validateINN = (inn: string) => {
+    const cleanINN = inn.replace(/\D/g, '');
+    if (!cleanINN) {
+      setInnError('');
+      return;
+    }
+    if (cleanINN.length !== 9) {
+      setInnError('INN 9 ta raqamdan iborat bo\'lishi kerak');
+      return;
+    }
+    if (cleanINN.startsWith('0')) {
+      setInnError('Noto\'g\'ri INN formati');
+      return;
+    }
+    // Barcha raqamlar bir xil bo'lmasligi kerak
+    const allSame = cleanINN.split('').every((d: string) => d === cleanINN[0]);
+    if (allSame) {
+      setInnError('Noto\'g\'ri INN: barcha raqamlar bir xil bo\'lmasligi kerak');
+      return;
+    }
+    // Ketma-ket raqamlar bo'lmasligi kerak
+    if (cleanINN === '123456789' || cleanINN === '987654321') {
+      setInnError('Noto\'g\'ri INN: ketma-ket raqamlar qabul qilinmaydi');
+      return;
+    }
+    // Viloyat kodi tekshirish (birinchi 2 raqam 10-99 orasida)
+    const regionCode = parseInt(cleanINN.substring(0, 2));
+    if (regionCode < 10 || regionCode > 99) {
+      setInnError('Noto\'g\'ri INN: viloyat kodi noto\'g\'ri');
+      return;
+    }
+    setInnError('');
+  };
+
   useEffect(() => {
+    // Get referral code
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref');
     if (ref) {
@@ -35,6 +78,21 @@ export default function PartnerRegistrationNew() {
         title: "🎁 Promo kod qo'llandi!",
         description: `Kod: ${ref}`,
       });
+    }
+
+    // Get selected tier from sessionStorage
+    const savedTier = sessionStorage.getItem('selectedTier');
+    if (savedTier) {
+      try {
+        const tier = JSON.parse(savedTier);
+        setSelectedTier(tier);
+        toast({
+          title: "✅ Tarif tanlandi",
+          description: `${tier.name} - ${tier.priceSom}`,
+        });
+      } catch (error) {
+        console.error('Failed to parse selected tier:', error);
+      }
     }
   }, [toast]);
 
@@ -48,8 +106,8 @@ export default function PartnerRegistrationNew() {
           ...data,
           businessCategory: 'general',
           monthlyRevenue: '0',
-          pricingTier: 'free_starter', // Default SaaS tier
-          notes: ''
+          pricingTier: selectedTier?.id || 'free_starter', // Use selected tier
+          notes: selectedTier ? `Selected tier: ${selectedTier.name}` : ''
         }),
       });
       
@@ -112,6 +170,26 @@ export default function PartnerRegistrationNew() {
         </CardHeader>
         
         <CardContent className="p-6">
+          {/* Selected Tier Card */}
+          {selectedTier && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border-2 border-primary">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Crown className="w-8 h-8 text-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tanlangan tarif</p>
+                    <h3 className="text-xl font-bold">{selectedTier.name}</h3>
+                    <p className="text-sm text-muted-foreground">{selectedTier.priceSom}</p>
+                  </div>
+                </div>
+                <Badge className="bg-success text-success-foreground">
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  Tanlandi
+                </Badge>
+              </div>
+            </div>
+          )}
+
           {promoCode && (
             <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200 flex items-center gap-2">
               <Gift className="w-5 h-5 text-green-600" />
@@ -230,6 +308,62 @@ export default function PartnerRegistrationNew() {
                   />
                 </div>
 
+                {/* Biznes turi */}
+                <div>
+                  <Label className="flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Biznes Turi *
+                  </Label>
+                  <Select
+                    value={formData.businessType}
+                    onValueChange={(value) => setFormData({...formData, businessType: value})}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Tanlang" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yatt">YATT (Yakka tartibdagi tadbirkor)</SelectItem>
+                      <SelectItem value="ooo">OOO/MChJ (Mas'uliyati cheklangan jamiyat)</SelectItem>
+                      <SelectItem value="individual">Jismoniy shaxs</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* INN (STIR) */}
+                <div>
+                  <Label className="flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    INN (STIR) *
+                  </Label>
+                  <Input
+                    value={formData.inn}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 9);
+                      setFormData({...formData, inn: value});
+                      validateINN(value);
+                    }}
+                    required
+                    placeholder="123456789"
+                    className={`mt-1 ${innError ? 'border-red-500' : ''}`}
+                    maxLength={9}
+                  />
+                  {innError && (
+                    <p className="text-sm text-red-500 mt-1">{innError}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    9 ta raqam. Bitta INN = Bitta akkaunt
+                  </p>
+                </div>
+
+                {/* INN haqida ogohlantirish */}
+                <Alert className="bg-amber-50 border-amber-200">
+                  <AlertCircle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-amber-800 text-sm">
+                    <strong>Muhim:</strong> Har bir biznes (YATT/OOO) uchun faqat bitta akkaunt yaratish mumkin. 
+                    INN bo'yicha dublikat akkauntlar bloklash bilan ogohlantirish oladi.
+                  </AlertDescription>
+                </Alert>
+
                 {promoCode && (
                   <div>
                     <Label className="flex items-center gap-2">
@@ -261,7 +395,7 @@ export default function PartnerRegistrationNew() {
             {/* Submit */}
             <Button
               type="submit"
-              disabled={!formData.agreeToTerms || registrationMutation.isPending}
+              disabled={!formData.agreeToTerms || !formData.inn || innError !== '' || registrationMutation.isPending}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 h-12 text-lg"
             >
               {registrationMutation.isPending ? (

@@ -67,37 +67,44 @@ export function AdvancedTrendHunter() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch trends
-      const trendsRes = await fetch('/api/smart-ai/trends', { credentials: 'include' });
+      // Fetch trends from Python backend
+      const trendsRes = await fetch('/api/trends/hunter?category=' + selectedCategory);
       if (trendsRes.ok) {
         const data = await trendsRes.json();
-        setTrends(data.data || generateMockTrends());
+        setTrends(data.data || []);
       } else {
-        setTrends(generateMockTrends());
+        setTrends([]);
       }
 
       // Fetch opportunities
-      const oppsRes = await fetch('/api/smart-ai/opportunities', { credentials: 'include' });
+      const oppsRes = await fetch('/api/trends/opportunities');
       if (oppsRes.ok) {
         const data = await oppsRes.json();
-        setOpportunities(data.data || generateMockOpportunities());
+        setOpportunities(data.data || []);
       } else {
-        setOpportunities(generateMockOpportunities());
+        setOpportunities([]);
       }
 
-      // Generate forecasts
-      setForecasts(generateMockForecasts());
+      // Fetch forecasts
+      const forecastsRes = await fetch('/api/trends/forecasts');
+      if (forecastsRes.ok) {
+        const data = await forecastsRes.json();
+        setForecasts(data.data || []);
+      } else {
+        setForecasts([]);
+      }
     } catch (error) {
-      console.error('Error fetching data:', error);
-      setTrends(generateMockTrends());
-      setOpportunities(generateMockOpportunities());
-      setForecasts(generateMockForecasts());
+      console.error('Error fetching trend data:', error);
+      setTrends([]);
+      setOpportunities([]);
+      setForecasts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const generateMockTrends = (): TrendData[] => [
+  // Fallback generators removed - using real API data only
+  const generateMockTrends = (): TrendData[] => [];
     {
       id: '1',
       productName: 'Smart Watch Ultra Pro',

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { db } from "./db";
+import { db, getDbType } from "./db";
 import { 
   users, 
   partners, 
@@ -67,6 +67,17 @@ class StorageError extends Error {
     super(message);
     this.name = 'StorageError';
   }
+}
+
+// Universal timestamp formatter for PostgreSQL/SQLite compatibility
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  if (dbType === 'sqlite') {
+    // SQLite: integer timestamp (seconds)
+    return Math.floor(Date.now() / 1000);
+  }
+  // PostgreSQL: Date object
+  return new Date();
 }
 
 // User operations
@@ -249,7 +260,7 @@ export async function createPartner(partnerData: {
             promoCode: partnerData.referralCode.toUpperCase(),
             contractType: partnerData.pricingTier || 'starter_pro',
             status: 'registered',
-            createdAt: new Date()
+            createdAt: formatTimestamp()
           });
           
           console.log('✅ Referral relationship created:', {
@@ -276,7 +287,7 @@ export async function createPartner(partnerData: {
         promoCode: promoCode,
         contractType: partnerData.pricingTier || 'starter_pro',
         status: 'active',
-        createdAt: new Date()
+        createdAt: formatTimestamp()
       });
       console.log('✅ Partner promo code stored:', promoCode);
     } catch (error) {
@@ -338,7 +349,7 @@ export async function getPartnerById(id: string): Promise<Partner | null> {
 export async function updatePartner(id: string, updates: Partial<Partner>): Promise<Partner | null> {
   try {
     const [partner] = await db.update(partners)
-      .set({ ...updates, updatedAt: new Date() })
+      .set({ ...updates, updatedAt: formatTimestamp() })
       .where(eq(partners.id, id))
       .returning();
     
@@ -379,7 +390,7 @@ export async function approvePartner(partnerId: string, adminId: string): Promis
     const [updatedPartner] = await db.update(partners)
       .set({
         approved: true,
-        updatedAt: new Date()
+        updatedAt: formatTimestamp()
       })
       .where(eq(partners.id, partnerId))
       .returning();
@@ -396,7 +407,7 @@ export async function approvePartner(partnerId: string, adminId: string): Promis
         await db.update(users)
           .set({ 
             isActive: true,
-            updatedAt: new Date()
+            updatedAt: formatTimestamp()
           })
           .where(eq(users.id, partner.userId));
         
@@ -438,8 +449,8 @@ export async function createProduct(productData: {
       barcode: productData.barcode,
       weight: productData.weight,
       isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: formatTimestamp(),
+      updatedAt: formatTimestamp()
     }).returning();
     
     return product;
@@ -493,8 +504,8 @@ export async function createFulfillmentRequest(requestData: {
       status: 'pending',
       estimatedCost: requestData.estimatedCost,
       metadata: requestData.metadata ? JSON.stringify(requestData.metadata) : null,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: formatTimestamp(),
+      updatedAt: formatTimestamp()
     }).returning();
     
     return request;
@@ -527,7 +538,7 @@ export async function getAllFulfillmentRequests(): Promise<FulfillmentRequest[]>
 export async function updateFulfillmentRequest(id: string, updates: Partial<FulfillmentRequest>): Promise<FulfillmentRequest | null> {
   try {
     const [request] = await db.update(fulfillmentRequests)
-      .set({ ...updates, updatedAt: new Date() })
+      .set({ ...updates, updatedAt: formatTimestamp() })
       .where(eq(fulfillmentRequests.id, id))
       .returning();
     
@@ -559,7 +570,7 @@ export async function createMessage(messageData: {
       fileName: messageData.fileName || null,
       fileSize: messageData.fileSize ?? null,
       isRead: messageData.isRead || false,
-      createdAt: new Date()
+      createdAt: formatTimestamp()
     }).returning();
     
     return message;
@@ -617,7 +628,7 @@ export async function createAnalytics(analyticsData: {
       commissionPaid: analyticsData.commissionPaid,
       marketplace: analyticsData.marketplace as any,
       category: analyticsData.category as any,
-      createdAt: new Date()
+      createdAt: formatTimestamp()
     }).returning();
     
     return newAnalytics;
@@ -773,8 +784,8 @@ export async function createTrendingProduct(productData: {
       images: JSON.stringify(productData.images || []),
       isActive: true,
       scannedAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: formatTimestamp(),
+      updatedAt: formatTimestamp()
     }).returning();
     
     return product;
@@ -859,7 +870,7 @@ export async function setSystemSetting(settingData: {
         .set({
           settingValue: settingData.settingValue,
           updatedBy: settingData.updatedBy,
-          updatedAt: new Date()
+          updatedAt: formatTimestamp()
         })
         .where(eq(systemSettings.settingKey, settingData.settingKey))
         .returning();
@@ -876,8 +887,8 @@ export async function setSystemSetting(settingData: {
         description: settingData.description,
         isActive: true,
         updatedBy: settingData.updatedBy,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: formatTimestamp(),
+        updatedAt: formatTimestamp()
       }).returning();
       
       return setting;
@@ -936,11 +947,6 @@ export async function createAuditLog(logData: {
   payload?: any;
 }): Promise<void> {
   try {
-    const dbType = getDbType();
-    const timestamp = dbType === 'sqlite' 
-      ? Math.floor(Date.now() / 1000) // SQLite: Unix timestamp (seconds)
-      : new Date(); // PostgreSQL: timestamp
-
     await db.insert(auditLogs).values({
       id: nanoid(),
       userId: logData.userId,
@@ -948,7 +954,7 @@ export async function createAuditLog(logData: {
       entityType: logData.entityType,
       entityId: logData.entityId,
       payload: logData.payload ? JSON.stringify(logData.payload) : null,
-      createdAt: timestamp as any
+      createdAt: formatTimestamp()
     });
   } catch (error: any) {
     console.error('Error creating audit log:', error);
@@ -995,8 +1001,8 @@ export async function createWarehouse(warehouseData: {
       managerId: warehouseData.managerId,
       contactPhone: warehouseData.contactPhone,
       operatingHours: warehouseData.operatingHours ? JSON.stringify(warehouseData.operatingHours) : null,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: formatTimestamp(),
+      updatedAt: formatTimestamp()
     }).returning();
     
     return warehouse;
@@ -1075,7 +1081,7 @@ export async function updateProductStock(
         availableStock: availableStock,
         stockStatus: stockStatus,
         lastStockUpdate: new Date(),
-        updatedAt: new Date()
+        updatedAt: formatTimestamp()
       })
       .where(eq(products.id, productId))
       .returning();
@@ -1094,7 +1100,7 @@ export async function updateProductStock(
       referenceId,
       performedBy,
       notes,
-      createdAt: new Date()
+      createdAt: formatTimestamp()
     }).returning();
 
     // Update warehouse stock
@@ -1110,7 +1116,7 @@ export async function updateProductStock(
           quantity: newStock,
           availableQuantity: availableStock,
           lastMovement: new Date(),
-          updatedAt: new Date()
+          updatedAt: formatTimestamp()
         })
         .where(eq(warehouseStock.id, existingWarehouseStock.id));
     } else {
@@ -1122,8 +1128,8 @@ export async function updateProductStock(
         reservedQuantity: 0,
         availableQuantity: newStock,
         lastMovement: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: formatTimestamp(),
+        updatedAt: formatTimestamp()
       });
     }
 
@@ -1240,8 +1246,8 @@ export async function createOrder(orderData: {
       shippingAddress: JSON.stringify(orderData.shippingAddress),
       shippingMethod: orderData.shippingMethod,
       warehouseId: orderData.warehouseId,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: formatTimestamp(),
+      updatedAt: formatTimestamp()
     }).returning();
 
     // Create order items and reserve stock
@@ -1260,7 +1266,7 @@ export async function createOrder(orderData: {
         tax: (parseFloat(item.unitPrice) * item.quantity * 0.12).toString(),
         totalPrice: (parseFloat(item.unitPrice) * item.quantity).toString(),
         status: 'pending',
-        createdAt: new Date()
+        createdAt: formatTimestamp()
       });
 
       // Reserve stock
@@ -1268,7 +1274,7 @@ export async function createOrder(orderData: {
         .set({
           reservedStock: product.reservedStock + item.quantity,
           availableStock: product.currentStock - (product.reservedStock + item.quantity),
-          updatedAt: new Date()
+          updatedAt: formatTimestamp()
         })
         .where(eq(products.id, item.productId));
     }
@@ -1328,7 +1334,7 @@ export async function updateOrderStatus(
   try {
     const updates: any = {
       status,
-      updatedAt: new Date()
+      updatedAt: formatTimestamp()
     };
 
     if (fulfillmentStatus) updates.fulfillmentStatus = fulfillmentStatus;
@@ -1354,7 +1360,7 @@ export async function updateOrderStatus(
           .set({
             reservedStock: Math.max(0, product.reservedStock - item.quantity),
             availableStock: product.currentStock - Math.max(0, product.reservedStock - item.quantity),
-            updatedAt: new Date()
+            updatedAt: formatTimestamp()
           })
           .where(eq(products.id, item.productId));
       }
@@ -1404,7 +1410,7 @@ export async function createStockAlert(alertData: {
       }),
       isRead: false,
       priority: alertData.severity === 'critical' ? 'urgent' : 'high',
-      createdAt: new Date()
+      createdAt: formatTimestamp()
     });
 
     return alert;
@@ -1587,7 +1593,7 @@ export async function getOrdersByDateRange(
 export async function updateOrder(orderId: string, updates: any): Promise<any> {
   try {
     const [order] = await db.update(orders)
-      .set({ ...updates, updatedAt: new Date() })
+      .set({ ...updates, updatedAt: formatTimestamp() })
       .where(eq(orders.id, orderId))
       .returning();
     return order;

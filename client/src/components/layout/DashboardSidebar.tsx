@@ -21,6 +21,10 @@ import {
   LogOut,
   Search,
   Sparkles,
+  FileText,
+  CreditCard,
+  Target,
+  PhoneCall,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -258,9 +262,11 @@ export const adminNavItems: SidebarNavItem[] = [
   { id: 'overview', label: 'Umumiy', icon: LayoutDashboard },
   { id: 'ai-manager', label: 'AI Manager', icon: Brain, isPremium: true },
   { id: 'smm', label: 'SMM & Marketing', icon: Share2, isNew: true },
+  { id: 'leads', label: 'Leadlar', icon: PhoneCall, isNew: true },
   { id: 'marketplace', label: 'Marketplace', icon: Globe },
   { id: 'analytics', label: 'Tahlillar', icon: BarChart3 },
   { id: 'partners', label: 'Hamkorlar', icon: Users },
+  { id: 'blog', label: 'Blog', icon: FileText, isNew: true },
   { id: 'trends', label: 'Trendlar', icon: TrendingUp },
   { id: 'chat', label: 'Support', icon: MessageSquare },
   { id: 'referrals', label: 'Referrallar', icon: Gift },
@@ -273,7 +279,10 @@ export const partnerNavItems: SidebarNavItem[] = [
   { id: 'products', label: 'Mahsulotlar', icon: Package },
   { id: 'orders', label: 'Buyurtmalar', icon: ShoppingCart },
   { id: 'ai-manager', label: 'AI Manager', icon: Brain, isPremium: true },
+  { id: 'ai-scanner', label: 'AI Scanner', icon: Search, isNew: true, isPremium: true },
+  { id: 'trend-hunter', label: 'Trend Hunter', icon: TrendingUp, isNew: true, isPremium: true },
   { id: 'analytics', label: 'Tahlillar', icon: BarChart3 },
+  { id: 'payments', label: 'To\'lovlar', icon: CreditCard, isNew: true },
   { id: 'wallet', label: 'Hamyon', icon: Wallet },
   { id: 'referrals', label: 'Referrallar', icon: Gift },
   { id: 'chat', label: 'Yordam', icon: MessageSquare },

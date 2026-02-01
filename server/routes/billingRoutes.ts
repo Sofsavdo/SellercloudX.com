@@ -1,10 +1,16 @@
 // @ts-nocheck
 import { Router } from 'express';
-import { db } from '../db';
+import { db, getDbType } from '../db';
 import { invoices, payments, subscriptions, commissionRecords, partners } from '../../shared/schema';
 import { eq, and, gte, lte, desc } from 'drizzle-orm';
 import billingService from '../services/billingService';
 import emailService from '../services/emailService';
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 const router = Router();
 
@@ -163,7 +169,7 @@ router.post('/admin/payments/manual', async (req, res) => {
       paymentMethod,
       status: 'completed',
       notes,
-      createdAt: new Date(),
+      createdAt: formatTimestamp(),
     });
 
     // Update invoice if provided
@@ -436,6 +442,280 @@ router.get('/admin/invoices/export', async (req, res) => {
   } catch (error) {
     console.error('Error exporting invoices:', error);
     res.status(500).json({ error: 'Failed to export invoices' });
+  }
+});
+
+// ==================== 2026 REVENUE SHARE MODEL ====================
+
+import revenueShareService from '../services/revenueShareService';
+
+// Get partner billing summary (2026 model)
+router.get('/revenue-share/summary', async (req, res) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const partner = await db.query.partners.findFirst({
+      where: eq(partners.userId, userId),
+    });
+
+    if (!partner) {
+      return res.status(404).json({ error: 'Partner topilmadi' });
+    }
+
+    const summary = await revenueShareService.getPartnerBillingSummary(partner.id);
+
+    res.json({
+      success: true,
+      data: {
+        partnerId: partner.id,
+        tariffType: partner.tariffType || 'trial',
+        setupPaid: partner.setupPaid || false,
+        setupFeeUsd: partner.setupFeeUsd || 699,
+        monthlyFeeUsd: partner.monthlyFeeUsd || 499,
+        revenueSharePercent: partner.revenueSharePercent || 0.04,
+        trialEndDate: partner.trialEndDate,
+        guaranteeStartDate: partner.guaranteeStartDate,
+        ...summary
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching billing summary:', error);
+    res.status(500).json({ error: 'Failed to fetch billing summary' });
+  }
+});
+
+// Start trial period
+router.post('/revenue-share/start-trial', async (req, res) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const partner = await db.query.partners.findFirst({
+      where: eq(partners.userId, userId),
+    });
+
+    if (!partner) {
+      return res.status(404).json({ error: 'Partner topilmadi' });
+    }
+
+    if (partner.trialStartDate) {
+      return res.status(400).json({ error: 'Trial davri allaqachon ishlatilgan' });
+    }
+
+    await revenueShareService.startTrialPeriod(partner.id);
+
+    res.json({
+      success: true,
+      message: '7 kunlik bepul sinov davri boshlandi!'
+    });
+  } catch (error) {
+    console.error('Error starting trial:', error);
+    res.status(500).json({ error: 'Failed to start trial' });
+  }
+});
+
+// Record payment (for Click/Payme callbacks)
+router.post('/revenue-share/record-payment', async (req, res) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const partner = await db.query.partners.findFirst({
+      where: eq(partners.userId, userId),
+    });
+
+    if (!partner) {
+      return res.status(404).json({ error: 'Partner topilmadi' });
+    }
+
+    const { amountUzs, paymentType, paymentMethod, transactionId, monthlyTrackingId } = req.body;
+
+    if (!amountUzs || !paymentType || !paymentMethod) {
+      return res.status(400).json({ 
+        error: 'amountUzs, paymentType va paymentMethod talab qilinadi' 
+      });
+    }
+
+    await revenueShareService.recordPayment({
+      partnerId: partner.id,
+      amountUzs,
+      paymentType,
+      paymentMethod,
+      transactionId,
+      monthlyTrackingId
+    });
+
+    res.json({
+      success: true,
+      message: 'To\'lov muvaffaqiyatli qayd etildi'
+    });
+  } catch (error) {
+    console.error('Error recording payment:', error);
+    res.status(500).json({ error: 'Failed to record payment' });
+  }
+});
+
+// Admin: Confirm manual payment
+router.post('/admin/revenue-share/confirm-payment', async (req, res) => {
+  try {
+    if ((req as any).user?.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { paymentId } = req.body;
+    if (!paymentId) {
+      return res.status(400).json({ error: 'paymentId talab qilinadi' });
+    }
+
+    await revenueShareService.confirmManualPayment(paymentId, (req as any).user.id);
+
+    res.json({
+      success: true,
+      message: 'To\'lov tasdiqlandi'
+    });
+  } catch (error) {
+    console.error('Error confirming payment:', error);
+    res.status(500).json({ error: 'Failed to confirm payment' });
+  }
+});
+
+// Admin: Activate premium tariff
+router.post('/admin/revenue-share/activate-premium', async (req, res) => {
+  try {
+    if ((req as any).user?.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { partnerId, monthlyFeeUsd, revenueSharePercent, setupFeeUsd } = req.body;
+    if (!partnerId) {
+      return res.status(400).json({ error: 'partnerId talab qilinadi' });
+    }
+
+    await revenueShareService.activatePremiumTariff(partnerId, {
+      monthlyFeeUsd,
+      revenueSharePercent,
+      setupFeeUsd
+    });
+
+    res.json({
+      success: true,
+      message: 'Premium tarif aktivlashtirildi'
+    });
+  } catch (error) {
+    console.error('Error activating premium:', error);
+    res.status(500).json({ error: 'Failed to activate premium' });
+  }
+});
+
+// Admin: Unblock partner
+router.post('/admin/revenue-share/unblock-partner', async (req, res) => {
+  try {
+    if ((req as any).user?.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { partnerId } = req.body;
+    if (!partnerId) {
+      return res.status(400).json({ error: 'partnerId talab qilinadi' });
+    }
+
+    await revenueShareService.unblockPartner(partnerId);
+
+    res.json({
+      success: true,
+      message: 'Partner blokdan chiqarildi'
+    });
+  } catch (error) {
+    console.error('Error unblocking partner:', error);
+    res.status(500).json({ error: 'Failed to unblock partner' });
+  }
+});
+
+// Admin: Update sales data manually
+router.post('/admin/revenue-share/update-sales', async (req, res) => {
+  try {
+    if ((req as any).user?.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { partnerId, totalSales, orders, marketplace } = req.body;
+    if (!partnerId || !totalSales || !marketplace) {
+      return res.status(400).json({ 
+        error: 'partnerId, totalSales va marketplace talab qilinadi' 
+      });
+    }
+
+    await revenueShareService.updateMonthlySales(partnerId, {
+      totalSales,
+      orders: orders || 0,
+      marketplace
+    });
+
+    res.json({
+      success: true,
+      message: 'Savdo ma\'lumotlari yangilandi'
+    });
+  } catch (error) {
+    console.error('Error updating sales:', error);
+    res.status(500).json({ error: 'Failed to update sales' });
+  }
+});
+
+// Admin: Run debt check and blocking
+router.post('/admin/revenue-share/run-debt-check', async (req, res) => {
+  try {
+    if ((req as any).user?.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const result = await revenueShareService.checkAndBlockOverduePartners();
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error running debt check:', error);
+    res.status(500).json({ error: 'Failed to run debt check' });
+  }
+});
+
+// Admin: Get all partners with debt
+router.get('/admin/revenue-share/all-debts', async (req, res) => {
+  try {
+    if ((req as any).user?.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { gt } = await import('drizzle-orm');
+    
+    const partnersWithDebt = await db
+      .select()
+      .from(partners)
+      .where(gt(partners.totalDebtUzs, 0));
+
+    res.json({
+      success: true,
+      count: partnersWithDebt.length,
+      data: partnersWithDebt.map(p => ({
+        id: p.id,
+        businessName: p.businessName,
+        totalDebtUzs: p.totalDebtUzs,
+        tariffType: p.tariffType,
+        isBlocked: !!p.blockedUntil,
+        blockReason: p.blockReason
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching debts:', error);
+    res.status(500).json({ error: 'Failed to fetch debts' });
   }
 });
 

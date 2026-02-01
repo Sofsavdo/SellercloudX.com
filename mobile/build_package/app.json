@@ -1,0 +1,77 @@
+{
+  "expo": {
+    "name": "SellerCloudX",
+    "slug": "sellercloudx-22",
+    "version": "1.0.1",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#4F46E5"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sellercloudx.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Mahsulot rasmlarini olish uchun kamera kerak",
+        "NSPhotoLibraryUsageDescription": "Galereyadan rasm tanlash uchun ruxsat kerak"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#4F46E5"
+      },
+      "package": "com.sellercloudx.mobile",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "updates": {
+      "enabled": true,
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/314308c3-1931-45ef-bd5c-bd962b774a07"
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Mahsulot rasmlarini olish uchun kamera kerak"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Galereyadan rasm tanlash uchun ruxsat kerak"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#4F46E5"
+        }
+      ],
+      "expo-font",
+      "expo-localization",
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "314308c3-1931-45ef-bd5c-bd962b774a07"
+      }
+    },
+    "owner": "medik2244s-organization"
+  }
+}

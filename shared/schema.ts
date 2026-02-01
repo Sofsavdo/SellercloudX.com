@@ -28,20 +28,62 @@ export const partners = sqliteTable('partners', {
   businessName: text('business_name').notNull(),
   businessAddress: text('business_address'),
   businessCategory: text('business_category'),
-  inn: text('inn').unique(),
+  businessType: text('business_type').default('yatt'), // yatt, ooo, individual
+  inn: text('inn').unique(), // STIR - 9 raqam, UNIKAL
   phone: text('phone').notNull(),
   website: text('website'),
   monthlyRevenue: text('monthly_revenue'),
   approved: integer('approved', { mode: 'boolean' }).default(false),
-  pricingTier: text('pricing_tier').default('free_starter'), // Updated to SaaS model
+  isActive: integer('is_active', { mode: 'boolean' }).default(false),
+  
+  // ===== 2026 PRICING MODEL =====
+  tariffType: text('tariff_type').default('trial'), // trial, premium, individual
+  setupPaid: integer('setup_paid', { mode: 'boolean' }).default(false), // One-time setup to'landi
+  setupFeeUsd: integer('setup_fee_usd').default(699), // $699 default
+  monthlyFeeUsd: integer('monthly_fee_usd').default(499), // $499/oy default  
+  revenueSharePercent: real('revenue_share_percent').default(0.04), // 4% default
+  totalDebtUzs: integer('total_debt_uzs').default(0), // Jami qarz (UZS)
+  lastDebtCalculatedAt: integer('last_debt_calculated_at', { mode: 'timestamp' }),
+  blockedUntil: integer('blocked_until', { mode: 'timestamp' }), // Bloklangan sana
+  blockReason: text('block_reason'), // Bloklash sababi
+  trialStartDate: integer('trial_start_date', { mode: 'timestamp' }), // 7-kun trial boshi
+  trialEndDate: integer('trial_end_date', { mode: 'timestamp' }), // Trial tugash sanasi
+  guaranteeStartDate: integer('guarantee_start_date', { mode: 'timestamp' }), // 60-kun kafolat boshi
+  salesBeforeUs: integer('sales_before_us').default(0), // Bizdan oldingi oylik savdo (UZS)
+  
+  // Legacy fields (keeping for compatibility)
+  pricingTier: text('pricing_tier').default('free_starter'),
+  billingPeriod: text('billing_period').default('monthly'),
   monthlyFee: integer('monthly_fee'),
   profitSharePercent: integer('profit_share_percent'),
   aiEnabled: integer('ai_enabled', { mode: 'boolean' }).default(false),
+  aiCardsUsed: integer('ai_cards_used').default(0),
+  aiCardsThisMonth: integer('ai_cards_this_month').default(0),
+  productsCount: integer('products_count').default(0),
+  promoCode: text('promo_code').unique(),
+  referredBy: text('referred_by'),
+  walletBalance: integer('wallet_balance').default(0),
+  marketplaceIntegrations: text('marketplace_integrations'),
+  paymentVerified: integer('payment_verified', { mode: 'boolean' }).default(false),
+  activatedAt: integer('activated_at', { mode: 'timestamp' }),
   warehouseSpaceKg: integer('warehouse_space_kg'),
   anydeskId: text('anydesk_id'),
   anydeskPassword: text('anydesk_password'),
   notes: text('notes'),
+  
+  // Click Payment Fields
+  pendingPaymentId: text('pending_payment_id'),
+  pendingPaymentTier: text('pending_payment_tier'),
+  pendingPaymentAmount: integer('pending_payment_amount'),
+  pendingPaymentBillingPeriod: text('pending_payment_billing_period'),
+  pendingPaymentCreatedAt: integer('pending_payment_created_at', { mode: 'timestamp' }),
+  lastPaymentId: text('last_payment_id'),
+  lastPaymentAmount: integer('last_payment_amount'),
+  lastPaymentDate: integer('last_payment_date', { mode: 'timestamp' }),
+  lastPaymentStatus: text('last_payment_status'),
+  clickTransactionId: text('click_transaction_id'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }),
   lastActivityAt: integer('last_activity_at', { mode: 'timestamp' }),
 });
 
@@ -156,6 +198,44 @@ export const payments = sqliteTable('payments', {
   transactionId: text('transaction_id'), // Gateway transaction ID
   status: text('status').notNull().default('pending'), // pending, completed, failed, refunded
   metadata: text('metadata'), // JSON: gateway response
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  completedAt: integer('completed_at', { mode: 'timestamp' }),
+});
+
+// ===== 2026 REVENUE SHARE & SALES TRACKING =====
+
+// Monthly Sales Tracking - Oylik savdo tracking
+export const monthlySalesTracking = sqliteTable('monthly_sales_tracking', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => partners.id),
+  month: integer('month').notNull(), // YYYYMM format (e.g., 202601)
+  marketplace: text('marketplace').notNull(), // yandex, uzum, wildberries, etc.
+  totalSalesUzs: integer('total_sales_uzs').default(0), // Jami savdo (UZS)
+  totalOrders: integer('total_orders').default(0), // Buyurtmalar soni
+  revenueShareUzs: integer('revenue_share_uzs').default(0), // Hisoblangan 4% ulush
+  monthlyFeeUzs: integer('monthly_fee_uzs').default(0), // Oylik to'lov (UZS)
+  totalDebtUzs: integer('total_debt_uzs').default(0), // Jami qarz (share + monthly)
+  isPaid: integer('is_paid', { mode: 'boolean' }).default(false),
+  paidAt: integer('paid_at', { mode: 'timestamp' }),
+  paidAmount: integer('paid_amount'),
+  paymentMethod: text('payment_method'), // click, payme, manual
+  lastSyncAt: integer('last_sync_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }),
+});
+
+// Revenue Share Payments - Ulush to'lovlari tarixi
+export const revenueSharePayments = sqliteTable('revenue_share_payments', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => partners.id),
+  monthlyTrackingId: text('monthly_tracking_id').references(() => monthlySalesTracking.id),
+  amountUzs: integer('amount_uzs').notNull(), // To'langan summa (UZS)
+  paymentType: text('payment_type').notNull(), // revenue_share, monthly_fee, setup_fee
+  paymentMethod: text('payment_method').notNull(), // click, payme, manual
+  transactionId: text('transaction_id'),
+  confirmedBy: text('confirmed_by').references(() => users.id), // Admin tasdiqladi (manual uchun)
+  notes: text('notes'),
+  status: text('status').notNull().default('pending'), // pending, completed, failed
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
   completedAt: integer('completed_at', { mode: 'timestamp' }),
 });
@@ -764,3 +844,107 @@ export type OrderItem = typeof orderItems.$inferSelect;
 export type Customer = typeof customers.$inferSelect;
 export type StockAlert = typeof stockAlerts.$inferSelect;
 export type InventoryReport = typeof inventoryReports.$inferSelect;
+
+
+// ==================== WALLET & PAYMENTS ====================
+
+// Wallet Transactions
+export const walletTransactions = sqliteTable('wallet_transactions', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => partners.id),
+  type: text('type').notNull(), // 'income', 'expense', 'commission', 'withdrawal'
+  amount: text('amount').notNull(),
+  description: text('description'),
+  status: text('status').notNull().default('pending'), // 'pending', 'completed', 'failed'
+  metadata: text('metadata'), // JSON string for additional data
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').default(sql`(datetime('now'))`),
+});
+
+// Payment History
+export const paymentHistory = sqliteTable('payment_history', {
+  id: text('id').primaryKey(),
+  partnerId: text('partner_id').notNull().references(() => partners.id),
+  amount: text('amount').notNull(),
+  currency: text('currency').default('UZS'),
+  paymentMethod: text('payment_method'), // 'click', 'payme', 'uzcard', 'stripe'
+  transactionId: text('transaction_id'),
+  status: text('status').notNull().default('pending'), // 'pending', 'completed', 'failed', 'refunded'
+  description: text('description'),
+  metadata: text('metadata'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  completedAt: text('completed_at'),
+});
+
+// Impersonation Logs
+export const impersonationLogs = sqliteTable('impersonation_logs', {
+  id: text('id').primaryKey(),
+  adminId: text('admin_id').notNull().references(() => users.id),
+  partnerId: text('partner_id').notNull().references(() => partners.id),
+  action: text('action').notNull(), // 'start', 'end'
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  notes: text('notes'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+});
+
+// ==================== BLOG SYSTEM ====================
+
+// Blog Posts - Yangiliklar va maqolalar
+export const blogPosts = sqliteTable('blog_posts', {
+  id: text('id').primaryKey(),
+  slug: text('slug').notNull().unique(), // SEO-friendly URL
+  title: text('title').notNull(),
+  excerpt: text('excerpt'), // Qisqa tavsif
+  content: text('content').notNull(), // HTML/Markdown content
+  featuredImage: text('featured_image'), // Asosiy rasm URL
+  videoUrl: text('video_url'), // Video URL (YouTube, etc.)
+  category: text('category').notNull().default('news'), // news, updates, tutorials, tips
+  tags: text('tags'), // JSON array of tags
+  status: text('status').notNull().default('draft'), // draft, published, archived
+  authorId: text('author_id').notNull().references(() => users.id),
+  authorName: text('author_name'),
+  viewCount: integer('view_count').default(0),
+  likeCount: integer('like_count').default(0),
+  // SEO fields
+  metaTitle: text('meta_title'),
+  metaDescription: text('meta_description'),
+  metaKeywords: text('meta_keywords'),
+  // Dates
+  publishedAt: integer('published_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
+});
+
+// Blog Categories
+export const blogCategories = sqliteTable('blog_categories', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  slug: text('slug').notNull().unique(),
+  description: text('description'),
+  icon: text('icon'),
+  color: text('color'),
+  sortOrder: integer('sort_order').default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+});
+
+// Blog Comments (optional)
+export const blogComments = sqliteTable('blog_comments', {
+  id: text('id').primaryKey(),
+  postId: text('post_id').notNull().references(() => blogPosts.id),
+  userId: text('user_id').references(() => users.id),
+  authorName: text('author_name'),
+  authorEmail: text('author_email'),
+  content: text('content').notNull(),
+  status: text('status').default('pending'), // pending, approved, spam
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+});
+
+// Type exports
+export type WalletTransaction = typeof walletTransactions.$inferSelect;
+export type PaymentHistory = typeof paymentHistory.$inferSelect;
+export type ImpersonationLog = typeof impersonationLogs.$inferSelect;
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type BlogCategory = typeof blogCategories.$inferSelect;
+export type BlogComment = typeof blogComments.$inferSelect;
+

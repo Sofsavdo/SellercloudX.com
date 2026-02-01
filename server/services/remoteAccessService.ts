@@ -2,10 +2,16 @@
 // Remote Access Service - Admin can help partners remotely
 // Similar to AnyDesk/TeamViewer but integrated into SellerCloudX
 
-import { db } from '../db';
+import { db, getDbType } from '../db';
 import { remoteAccessSessions } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 import crypto from 'crypto';
+
+// Universal timestamp formatter
+function formatTimestamp(): any {
+  const dbType = getDbType();
+  return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
+}
 
 export interface RemoteAccessSession {
   id: number;
@@ -47,7 +53,7 @@ class RemoteAccessService {
         status: 'pending',
         purpose: request.purpose,
         requestedBy: request.requestedBy,
-        createdAt: new Date()
+        createdAt: formatTimestamp()
       }).returning();
 
       console.log(`🔐 Remote access requested by partner ${request.partnerId}`);

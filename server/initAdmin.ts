@@ -12,11 +12,16 @@ export async function initializeAdmin() {
   try {
     console.log("🔍 Checking for admin user...");
     
+    // Get admin credentials from environment
+    const adminUsername = process.env.ADMIN_USERNAME || "admin";
+    const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
+    const adminEmail = process.env.ADMIN_EMAIL || "admin@sellercloudx.com";
+    
     // Check if admin user already exists
     const existingAdmin = await db
       .select()
       .from(users)
-      .where(eq(users.username, "Medik"))
+      .where(eq(users.username, adminUsername))
       .limit(1);
     
     if (existingAdmin.length > 0) {
@@ -26,16 +31,16 @@ export async function initializeAdmin() {
     
     // Create admin user
     console.log("🔧 Creating admin user...");
-    const adminPassword = await bcrypt.hash("Medik9298", 10);
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
     
     await db.insert(users).values({
       id: nanoid(),
-      username: "Medik",
-      email: "medik@sellercloudx.com",
-      password: adminPassword,
-      firstName: "Medik",
-      lastName: "Admin",
-      phone: "+998901234567",
+      username: adminUsername,
+      email: adminEmail,
+      password: hashedPassword,
+      firstName: "Admin",
+      lastName: "User",
+      phone: "+998900000000",
       role: "admin",
       isActive: true
       // createdAt and updatedAt use database defaults
@@ -43,9 +48,9 @@ export async function initializeAdmin() {
     
     console.log("✅ Admin user created successfully!");
     console.log("🔑 Admin Login Credentials:");
-    console.log("   Username: Medik");
-    console.log("   Password: Medik9298");
-    console.log("   Email: medik@sellercloudx.com");
+    console.log("   Username:", adminUsername);
+    console.log("   Password: [Set via ADMIN_PASSWORD env var]");
+    console.log("   Email:", adminEmail);
     
   } catch (error) {
     console.error("❌ Error initializing admin user:", error);

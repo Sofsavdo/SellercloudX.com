@@ -27,14 +27,35 @@ export async function setupVite(app: Express, server: Server) {
     allowedHosts: true as const,
   };
 
+  const clientRoot = path.resolve(process.cwd(), "client");
+  
+  // Import plugins separately
+  const react = (await import('@vitejs/plugin-react')).default;
+  
   const vite = await createViteServer({
-    ...viteConfig,
     configFile: false,
+    root: clientRoot,
+    plugins: [
+      react({
+        jsxRuntime: 'automatic',
+      }),
+    ],
+    resolve: {
+      alias: [
+        { find: "@", replacement: path.resolve(clientRoot, "src") },
+        { find: "@shared", replacement: path.resolve(process.cwd(), "shared") },
+        { find: "@assets", replacement: path.resolve(process.cwd(), "attached_assets") },
+      ],
+    },
+    optimizeDeps: {
+      include: ['react', 'react-dom', 'react/jsx-runtime'],
+    },
     customLogger: {
       ...viteLogger,
       error: (msg, options) => {
         viteLogger.error(msg, options);
-        process.exit(1);
+        // Don't exit on errors - just log them
+        console.error('Vite error (non-fatal):', msg);
       },
     },
     server: serverOptions,

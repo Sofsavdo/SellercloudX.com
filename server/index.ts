@@ -118,6 +118,13 @@ app.use(
         return;
       }
       
+      // Allow emergentagent.com domains (preview environments)
+      if (origin && origin.includes('.emergentagent.com')) {
+        console.log("✅ CORS: EmergentAgent domain allowed:", origin);
+        callback(null, true);
+        return;
+      }
+      
       // Allow all known origins
       if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
         console.log("✅ CORS: Known origin allowed:", origin);
@@ -137,8 +144,11 @@ app.use(
   })
 );
 
-// Trust proxy for Render deployment
-app.set('trust proxy', 1);
+// Trust proxy for Railway/Render deployment
+// Critical for session cookies to work behind reverse proxy
+const isProd = process.env.NODE_ENV === 'production';
+app.set('trust proxy', isProd ? 1 : false);
+console.log('🔧 Trust proxy:', isProd ? 'enabled (production)' : 'disabled (development)');
 
 // Cookie parser MUST be before session middleware
 app.use(cookieParser(process.env.SESSION_SECRET || "your-secret-key-dev-only"));
