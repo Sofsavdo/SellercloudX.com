@@ -682,6 +682,40 @@ async function initializePostgresTables() {
     `);
     console.log('✅ Warehouse stock table ready');
 
+    // Create audit_logs table for PostgreSQL (TIMESTAMP instead of INTEGER)
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id VARCHAR(255) PRIMARY KEY,
+        user_id VARCHAR(255),
+        action VARCHAR(255) NOT NULL,
+        entity_type VARCHAR(255) NOT NULL,
+        entity_id VARCHAR(255),
+        changes TEXT,
+        payload TEXT,
+        ip_address VARCHAR(255),
+        user_agent TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ Audit logs table ready');
+
+    // Create admin_permissions table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS admin_permissions (
+        user_id VARCHAR(255) PRIMARY KEY,
+        can_manage_admins BOOLEAN DEFAULT FALSE,
+        can_manage_content BOOLEAN DEFAULT FALSE,
+        can_manage_chat BOOLEAN DEFAULT FALSE,
+        can_view_reports BOOLEAN DEFAULT FALSE,
+        can_receive_products BOOLEAN DEFAULT FALSE,
+        can_activate_partners BOOLEAN DEFAULT FALSE,
+        can_manage_integrations BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ Admin permissions table ready');
+
     console.log('✅ PostgreSQL migrations completed successfully');
     
   } catch (error: any) {

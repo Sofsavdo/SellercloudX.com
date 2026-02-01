@@ -953,15 +953,34 @@ export async function createAuditLog(logData: {
   payload?: any;
 }): Promise<void> {
   try {
-    await db.insert(auditLogs).values({
-      id: nanoid(),
-      userId: logData.userId,
-      action: logData.action,
-      entityType: logData.entityType,
-      entityId: logData.entityId,
-      payload: logData.payload ? JSON.stringify(logData.payload) : null,
-      createdAt: formatTimestamp()
-    });
+    const dbType = getDbType();
+    
+    if (dbType === 'postgres') {
+      // PostgreSQL: Use raw SQL to let database handle timestamp
+      await db.execute(sql`
+        INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, payload, created_at)
+        VALUES (
+          ${nanoid()},
+          ${logData.userId},
+          ${logData.action},
+          ${logData.entityType},
+          ${logData.entityId || null},
+          ${logData.payload ? JSON.stringify(logData.payload) : null},
+          NOW()
+        )
+      `);
+    } else {
+      // SQLite: Use Drizzle ORM with integer timestamp
+      await db.insert(auditLogs).values({
+        id: nanoid(),
+        userId: logData.userId,
+        action: logData.action,
+        entityType: logData.entityType,
+        entityId: logData.entityId,
+        payload: logData.payload ? JSON.stringify(logData.payload) : null,
+        createdAt: formatTimestamp()
+      });
+    }
   } catch (error: any) {
     console.error('Error creating audit log:', error);
   }
