@@ -936,6 +936,11 @@ export async function createAuditLog(logData: {
   payload?: any;
 }): Promise<void> {
   try {
+    const dbType = getDbType();
+    const timestamp = dbType === 'sqlite' 
+      ? Math.floor(Date.now() / 1000) // SQLite: Unix timestamp (seconds)
+      : new Date(); // PostgreSQL: timestamp
+
     await db.insert(auditLogs).values({
       id: nanoid(),
       userId: logData.userId,
@@ -943,7 +948,7 @@ export async function createAuditLog(logData: {
       entityType: logData.entityType,
       entityId: logData.entityId,
       payload: logData.payload ? JSON.stringify(logData.payload) : null,
-      createdAt: new Date()
+      createdAt: timestamp as any
     });
   } catch (error: any) {
     console.error('Error creating audit log:', error);
