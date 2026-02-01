@@ -15,7 +15,7 @@ import { ImpersonationButton } from '@/components/ImpersonationButton';
 import {
   Users, MessageSquare, Bell, Ban, TrendingUp, DollarSign, Package, Eye, Send,
   CheckCircle, AlertTriangle, BarChart3, Mail, Phone, Building, MapPin, Calendar,
-  Crown, Trash2, ShoppingCart, Zap
+  Crown, Trash2, ShoppingCart, Zap, CreditCard, Loader2, Sparkles
 } from 'lucide-react';
 
 // SAAS MODEL: Use new SaaS-only pricing
@@ -144,6 +144,33 @@ export function AdminPartnersManagement() {
     },
     onError: (error: Error) => {
       console.error('❌ Block error:', error);
+      toast({ 
+        title: "❌ Xatolik",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // To'lovsiz faollashtirish (admin override)
+  const activateManualMutation = useMutation({
+    mutationFn: async ({ partnerId, tariff }: { partnerId: string; tariff: string }) => {
+      console.log('🔄 Activating partner manually:', partnerId, tariff);
+      const response = await apiRequest('POST', `/api/admin/partners/${partnerId}/activate`, {
+        tariff,
+        note: "Admin tomonidan to'lovsiz faollashtirildi"
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ 
+        title: "✅ Faollashtirildi!",
+        description: "Hamkor to'lovsiz faollashtirildi"
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/partners'] });
+    },
+    onError: (error: Error) => {
+      console.error('❌ Activate error:', error);
       toast({ 
         title: "❌ Xatolik",
         description: error.message,
@@ -330,15 +357,31 @@ export function AdminPartnersManagement() {
                     Xabar
                   </Button>
                   {!p.approved && (
-                    <Button 
-                      onClick={() => approveMutation.mutate(p.id)} 
-                      size="sm" 
-                      className="bg-green-600 hover:bg-green-700"
-                      disabled={approveMutation.isPending}
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      {approveMutation.isPending ? 'Tasdiqlanmoqda...' : 'Tasdiqlash'}
-                    </Button>
+                    <>
+                      <Button 
+                        onClick={() => approveMutation.mutate(p.id)} 
+                        size="sm" 
+                        className="bg-green-600 hover:bg-green-700"
+                        disabled={approveMutation.isPending}
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        {approveMutation.isPending ? 'Tasdiqlanmoqda...' : 'Tasdiqlash'}
+                      </Button>
+                      {/* Admin to'lovsiz faollashtirish */}
+                      <Button 
+                        onClick={() => activateManualMutation.mutate({ partnerId: p.id, tariff: 'premium' })} 
+                        size="sm" 
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                        disabled={activateManualMutation.isPending}
+                      >
+                        {activateManualMutation.isPending ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Sparkles className="w-4 h-4 mr-2" />
+                        )}
+                        To'lovsiz Faollashtirish
+                      </Button>
+                    </>
                   )}
                   <Button 
                     onClick={() => blockMutation.mutate(p.id)} 

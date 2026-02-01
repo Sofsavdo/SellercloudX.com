@@ -35,6 +35,15 @@ from database import (
 # Import AI service
 from ai_service import generate_product_card, scan_product_image, optimize_price
 
+# Import Trend Hunter service
+try:
+    from trend_hunter_service import trend_hunter_service, search_trending_products, search_1688_products, get_product_details_1688
+except ImportError:
+    trend_hunter_service = None
+    search_trending_products = None
+    search_1688_products = None
+    get_product_details_1688 = None
+
 # Import new advanced services
 from uzum_rules import (
     check_stop_words, 
@@ -694,7 +703,7 @@ async def connect_marketplace(body: MarketplaceCredentials, request: Request):
 
 @app.get("/api/partner/marketplaces")
 async def get_connected_marketplaces(request: Request):
-    """Get connected marketplaces"""
+    """Get connected marketplaces with REAL status check"""
     user = await require_auth(request)
     partner = await get_partner_by_user_id(user["id"])
     
@@ -704,16 +713,47 @@ async def get_connected_marketplaces(request: Request):
     creds = await get_marketplace_credentials(partner["id"])
     
     marketplaces = {
-        "yandex": {"connected": False, "name": "Yandex Market"},
-        "uzum": {"connected": False, "name": "Uzum Market"},
-        "wildberries": {"connected": False, "name": "Wildberries"},
-        "ozon": {"connected": False, "name": "Ozon"}
+        "yandex": {"connected": False, "name": "Yandex Market", "status": "not_connected", "error": None},
+        "uzum": {"connected": False, "name": "Uzum Market", "status": "not_connected", "error": None},
+        "wildberries": {"connected": False, "name": "Wildberries", "status": "not_connected", "error": None},
+        "ozon": {"connected": False, "name": "Ozon", "status": "not_connected", "error": None}
     }
     
     for cred in creds:
         mp = cred.get("marketplace")
-        if mp in marketplaces:
-            marketplaces[mp]["connected"] = True
+        if mp not in marketplaces:
+            continue
+            
+        api_creds = cred.get("api_credentials") or cred.get("credentials", {})
+        if isinstance(api_creds, str):
+            try:
+                api_creds = json.loads(api_creds)
+            except:
+                api_creds = {}
+        
+        # Mark as connected (credentials exist)
+        marketplaces[mp]["connected"] = True
+        
+        # Real status check for Yandex
+        if mp == "yandex" and api_creds.get("oauth_token"):
+            try:
+                api = YandexMarketAPI(
+                    oauth_token=api_creds.get("oauth_token"),
+                    business_id=api_creds.get("business_id"),
+                    campaign_id=api_creds.get("campaign_id")
+                )
+                # Quick health check
+                is_healthy = await api.check_connection()
+                if is_healthy:
+                    marketplaces[mp]["status"] = "active"
+                else:
+                    marketplaces[mp]["status"] = "error"
+                    marketplaces[mp]["error"] = "API kaliti muddati tugagan yoki noto'g'ri"
+            except Exception as e:
+                marketplaces[mp]["status"] = "error"
+                marketplaces[mp]["error"] = str(e)
+        elif mp == "yandex":
+            marketplaces[mp]["status"] = "connected"  # Connected but not verified
     
     return {
         "success": True,
@@ -1066,6 +1106,34 @@ async def unified_scanner_analyze(body: ScannerAnalyzeRequest, request: Request)
         
         if result.get("success"):
             product = result.get("product", {})
+            
+            # CRITICAL: Block face/person detection
+            # AI should only identify products, not people
+            category = (product.get("category", "") or "").lower()
+            name = (product.get("name", "") or "").lower()
+            description = (product.get("description", "") or "").lower()
+            
+            # List of blocked categories/keywords (faces, people, etc.)
+            blocked_keywords = [
+                "person", "face", "human", "people", "portrait", "selfie", "yuz", 
+                "odam", "inson", "man", "woman", "child", "baby", "kid",
+                "erkak", "ayol", "bola", "celebrity", "athlete", "user"
+            ]
+            
+            # Check if any blocked keyword is present
+            is_person_detected = any(
+                keyword in category or keyword in name or keyword in description 
+                for keyword in blocked_keywords
+            )
+            
+            if is_person_detected:
+                return {
+                    "success": False,
+                    "error": "Mahsulot aniqlanmadi! Iltimos, mahsulot rasmini oling (yuz yoki odam emas).",
+                    "error_type": "person_detected",
+                    "data": None,
+                    "hint": "AI skaner faqat mahsulotlarni aniqlaydi. Telefoningiz kamerasini mahsulotga qarating."
+                }
             
             # Return in format that supports both old and new frontend
             return {
@@ -5937,8 +6005,16 @@ async def get_category_trends(category: str):
 async def search_trends(query: str, limit: int = 10):
     """
     Kalit so'z bo'yicha trending mahsulotlarni qidirish.
+    Real 1688/AliExpress API dan olish.
     """
     try:
+        # Try real API first
+        if search_trending_products:
+            real_results = await search_trending_products(query, limit)
+            if real_results.get("success") and real_results.get("data"):
+                return real_results
+        
+        # Fallback to mock data
         query_lower = query.lower()
         results = []
         
@@ -5954,7 +6030,65 @@ async def search_trends(query: str, limit: int = 10):
             "success": True,
             "data": [opp.dict() for opp in results[:limit]],
             "query": query,
-            "total": len(results)
+            "total": len(results),
+            "source": "fallback_mock_data"
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e), "data": []}
+
+
+# Real 1688 Direct Product Link
+@app.get("/api/1688/product/{product_id}")
+async def get_1688_product_details(product_id: str):
+    """
+    Get direct product details from 1688.com
+    Returns direct link to the product
+    """
+    try:
+        if get_product_details_1688:
+            details = await get_product_details_1688(product_id)
+            if details:
+                return {
+                    "success": True,
+                    "data": details,
+                    "directUrl": f"https://detail.1688.com/offer/{product_id}.html"
+                }
+        
+        # Fallback - just return the direct URL
+        return {
+            "success": True,
+            "data": {
+                "id": product_id,
+                "directUrl": f"https://detail.1688.com/offer/{product_id}.html"
+            },
+            "message": "API not configured, use direct URL"
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+# Real 1688 Search
+@app.get("/api/1688/search")
+async def search_1688_real(query: str, limit: int = 10):
+    """
+    Search products directly from 1688.com via RapidAPI
+    """
+    try:
+        if search_1688_products:
+            products = await search_1688_products(query, limit)
+            if products:
+                return {
+                    "success": True,
+                    "data": products,
+                    "total": len(products),
+                    "source": "1688.com RapidAPI"
+                }
+        
+        return {
+            "success": False,
+            "error": "RapidAPI key not configured. Please add RAPIDAPI_KEY to environment variables.",
+            "data": [],
+            "setup_url": "https://rapidapi.com/logicbuilder/api/1688-product-data"
         }
     except Exception as e:
         return {"success": False, "error": str(e), "data": []}
