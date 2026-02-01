@@ -70,14 +70,20 @@ class StorageError extends Error {
 }
 
 // Universal timestamp formatter for PostgreSQL/SQLite compatibility
-function formatTimestamp(): any {
+// CRITICAL FIX: PostgreSQL requires Date object, SQLite requires Unix seconds
+function formatTimestamp(): Date | number {
   const dbType = getDbType();
+  console.log('[formatTimestamp] DB type:', dbType);
   if (dbType === 'sqlite') {
     // SQLite: integer timestamp (seconds)
-    return Math.floor(Date.now() / 1000);
+    const ts = Math.floor(Date.now() / 1000);
+    console.log('[formatTimestamp] SQLite timestamp:', ts);
+    return ts;
   }
-  // PostgreSQL: Date object
-  return new Date();
+  // PostgreSQL: Date object (NOT Unix timestamp!)
+  const dateObj = new Date();
+  console.log('[formatTimestamp] PostgreSQL Date:', dateObj.toISOString());
+  return dateObj;
 }
 
 // User operations
