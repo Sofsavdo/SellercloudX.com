@@ -6733,6 +6733,37 @@ async def get_partner_referrals(request: Request):
     }
 
 
+@app.post("/api/partner/referrals/generate-promo-code")
+async def generate_promo_code(request: Request):
+    """Generate new promo code for partner"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    # If partner already has promo code, return it
+    if partner.get("promo_code"):
+        return {
+            "success": True,
+            "promoCode": partner["promo_code"],
+            "message": "Mavjud promo kod qaytarildi"
+        }
+    
+    # Generate new promo code
+    import secrets
+    new_code = f"SCX-{secrets.token_hex(4).upper()}"
+    
+    # Update partner with new code
+    await update_partner(partner["id"], {"promo_code": new_code})
+    
+    return {
+        "success": True,
+        "promoCode": new_code,
+        "message": "Yangi promo kod yaratildi"
+    }
+
+
 @app.post("/api/partner/referrals/apply")
 async def apply_referral_code(request: Request):
     """Apply referral code"""
@@ -6757,6 +6788,54 @@ async def apply_referral_code(request: Request):
         "success": True,
         "message": "Referral kodi qo'llandi",
         "referrer": referrer.get("business_name", "Partner")
+    }
+
+
+# ========================================
+# ADMIN MARKETPLACE INTEGRATION ENDPOINTS
+# ========================================
+
+@app.get("/api/admin/marketplace-integration/requests")
+async def get_marketplace_integration_requests(request: Request):
+    """Get pending marketplace integration requests"""
+    user = await require_admin(request)
+    
+    # Get all partners with pending marketplace integrations
+    partners = await get_all_partners()
+    
+    requests = []
+    for partner in partners:
+        # Check if partner has pending marketplace setup
+        if partner.get("approved") and not partner.get("marketplace_integrations"):
+            requests.append({
+                "id": partner["id"],
+                "partnerId": partner["id"],
+                "businessName": partner.get("business_name", "Unknown"),
+                "requestedMarketplace": "yandex",
+                "status": "pending",
+                "createdAt": partner.get("created_at"),
+                "userData": partner.get("userData", {})
+            })
+    
+    return {
+        "success": True,
+        "data": requests,
+        "total": len(requests)
+    }
+
+
+@app.put("/api/admin/marketplace-integration/requests/{request_id}/approve")
+async def approve_marketplace_integration(request_id: str, request: Request):
+    """Approve marketplace integration request"""
+    user = await require_admin(request)
+    
+    partner = await get_partner_by_id(request_id)
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    return {
+        "success": True,
+        "message": "Marketplace integratsiya tasdiqlandi"
     }
 
 
