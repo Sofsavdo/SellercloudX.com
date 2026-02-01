@@ -201,7 +201,7 @@ export function ChatSystem({ partnerId, isAdmin = false }: ChatSystemProps) {
       };
       if (isAdmin) payload.chatRoomId = selectedPartner.id;
 
-      const response = await apiRequest('POST', `/api/chat/messages`, payload);
+      const response = await apiRequest('POST', `/api/chat/send`, payload);
       if (!response.ok) throw new Error('Message send failed');
       await response.json();
       setNewMessage('');

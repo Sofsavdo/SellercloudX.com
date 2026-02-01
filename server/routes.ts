@@ -292,9 +292,21 @@ export function registerRoutes(app: express.Application): Server {
   // Uzum Market Direct API Routes
   app.use('/api/uzum-market', uzumMarketRoutes);
 
-  // Python Backend Proxy - BIRINCHI NAVBATDA!
-  // Auth, Chat, Admin, Partner va boshqa API'lar Python backend orqali ishlaydi
-  app.use('/api/auth', pythonBackendProxy);
+  // ========================================
+  // Node.js-only routes - MUST be before Python proxy!
+  // These handle session-sensitive operations
+  // ========================================
+  
+  // Admin Impersonation - needs Node.js session management
+  app.use('/api/admin', impersonationRoutes);
+  
+  // ========================================
+  // Python Backend Proxy - IMPORTANT ORDER!
+  // Auth routes are EXCLUDED - handled by Node.js for proper session management
+  // ========================================
+  
+  // Chat, Admin, Partner, AI va boshqa API'lar Python backend orqali ishlaydi
+  // NOTE: /api/auth is NOT proxied - Node.js handles login/logout for session management
   app.use('/api/chat', pythonBackendProxy);
   app.use('/api/admin', pythonBackendProxy);
   app.use('/api/partner', pythonBackendProxy);
