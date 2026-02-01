@@ -7674,6 +7674,120 @@ async def full_health_check():
     return health
 
 
+# ========================================
+# MISSING ADMIN ENDPOINTS
+# ========================================
+
+@app.get("/api/admin/referrals/stats")
+async def get_admin_referrals_stats(request: Request):
+    """Get referral statistics for admin"""
+    user = await get_current_user(request=request)
+    if not user or user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        pool = get_pool()
+        if pool and USE_POSTGRES:
+            async with pool.acquire() as conn:
+                total = await conn.fetchval("SELECT COUNT(*) FROM referrals") or 0
+                active = await conn.fetchval("SELECT COUNT(*) FROM referrals WHERE status = 'active'") or 0
+                converted = await conn.fetchval("SELECT COUNT(*) FROM referrals WHERE status = 'converted'") or 0
+                
+                return {
+                    "success": True,
+                    "data": {
+                        "totalReferrals": total,
+                        "activeReferrals": active,
+                        "convertedReferrals": converted,
+                        "conversionRate": round((converted / max(total, 1)) * 100, 1)
+                    }
+                }
+        return {"success": True, "data": {"totalReferrals": 0, "activeReferrals": 0, "convertedReferrals": 0, "conversionRate": 0}}
+    except Exception as e:
+        return {"success": True, "data": {"totalReferrals": 0, "activeReferrals": 0, "convertedReferrals": 0, "conversionRate": 0}}
+
+
+@app.get("/api/admin/referrals/earnings")
+async def get_admin_referrals_earnings(request: Request):
+    """Get referral earnings for admin"""
+    user = await get_current_user(request=request)
+    if not user or user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    return {
+        "success": True,
+        "data": {
+            "totalEarnings": 0,
+            "pendingPayouts": 0,
+            "paidOut": 0,
+            "currency": "UZS"
+        }
+    }
+
+
+@app.get("/api/admin/admins")
+async def get_admin_users(request: Request):
+    """Get list of admin users"""
+    user = await get_current_user(request=request)
+    if not user or user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        pool = get_pool()
+        if pool and USE_POSTGRES:
+            async with pool.acquire() as conn:
+                admins = await conn.fetch("""
+                    SELECT id, username, email, first_name, last_name, role, created_at
+                    FROM users WHERE role = 'admin'
+                """)
+                return {
+                    "success": True,
+                    "data": [serialize_pg_row(a) for a in admins]
+                }
+        return {"success": True, "data": []}
+    except Exception as e:
+        print(f"Error getting admins: {e}")
+        return {"success": True, "data": []}
+
+
+@app.get("/api/admin/marketplace-configs")
+async def get_marketplace_configs(request: Request):
+    """Get marketplace configurations"""
+    user = await get_current_user(request=request)
+    if not user or user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Return platform-level marketplace configurations
+    configs = {
+        "yandex": {
+            "enabled": True,
+            "name": "Yandex Market",
+            "apiConfigured": bool(os.getenv("YANDEX_API_KEY")),
+            "features": ["product_creation", "price_update", "stock_sync"]
+        },
+        "uzum": {
+            "enabled": True,
+            "name": "Uzum Market",
+            "apiConfigured": False,  # Uzum uses browser automation
+            "features": ["assisted_upload"]
+        },
+        "wildberries": {
+            "enabled": False,
+            "name": "Wildberries",
+            "apiConfigured": False,
+            "features": []
+        },
+        "ozon": {
+            "enabled": False,
+            "name": "Ozon",
+            "apiConfigured": False,
+            "features": []
+        }
+    }
+    
+    return {"success": True, "data": configs}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)

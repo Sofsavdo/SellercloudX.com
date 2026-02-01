@@ -20,6 +20,7 @@ function formatTimestamp(): any {
 
 // Serialize timestamps in objects for JSON response
 // Converts Date objects and Unix timestamps to ISO strings
+// FIXED: Handle Invalid Date properly
 function serializeTimestamps(obj: any): any {
   if (obj === null || obj === undefined) return obj;
   if (Array.isArray(obj)) return obj.map(serializeTimestamps);
@@ -28,21 +29,32 @@ function serializeTimestamps(obj: any): any {
   const result: any = {};
   for (const [key, value] of Object.entries(obj)) {
     if (value instanceof Date) {
-      // Date object - convert to ISO string
-      result[key] = value.toISOString();
+      // Date object - check if valid before converting
+      if (isNaN(value.getTime())) {
+        // Invalid Date - return null instead of throwing error
+        result[key] = null;
+      } else {
+        result[key] = value.toISOString();
+      }
     } else if (typeof value === 'number' && (
       key.toLowerCase().includes('date') || 
       key.toLowerCase().includes('at') ||
       key === 'createdAt' || key === 'updatedAt' || key === 'activatedAt'
     )) {
       // Unix timestamp (seconds) - check if it's a reasonable timestamp
-      if (value > 1000000000 && value < 2000000000) {
-        result[key] = new Date(value * 1000).toISOString();
-      } else if (value > 1000000000000) {
-        // Milliseconds timestamp
-        result[key] = new Date(value).toISOString();
-      } else {
-        result[key] = value;
+      try {
+        if (value > 1000000000 && value < 2000000000) {
+          const date = new Date(value * 1000);
+          result[key] = isNaN(date.getTime()) ? null : date.toISOString();
+        } else if (value > 1000000000000) {
+          // Milliseconds timestamp
+          const date = new Date(value);
+          result[key] = isNaN(date.getTime()) ? null : date.toISOString();
+        } else {
+          result[key] = null; // Invalid timestamp value
+        }
+      } catch {
+        result[key] = null;
       }
     } else if (typeof value === 'object' && value !== null) {
       result[key] = serializeTimestamps(value);
