@@ -47,24 +47,56 @@ export default function YandexDashboard() {
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/yandex/dashboard/status?limit=100`);
+      // Use new unified dashboard endpoint
+      const response = await fetch(`${API_URL}/api/partner/yandex/dashboard`, {
+        credentials: 'include'
+      });
       const data = await response.json();
       
-      if (data.success) {
-        setStats(data.stats);
-        setOffers(data.offers || []);
-        setLastUpdated(data.last_updated);
+      if (data.success && data.data) {
+        const dashboard = data.data;
         
-        // Also fetch campaigns
-        const campaignsRes = await fetch(`${API_URL}/api/yandex/campaigns`);
-        const campaignsData = await campaignsRes.json();
-        if (campaignsData.success && campaignsData.campaigns) {
-          setCampaigns(campaignsData.campaigns);
+        // Transform to match expected format
+        setStats({
+          total: dashboard.products?.total || 0,
+          ready: dashboard.products?.active || 0,
+          in_moderation: dashboard.products?.pending || 0,
+          need_content: dashboard.products?.need_content || 0,
+          rejected: dashboard.products?.rejected || 0,
+          other: 0
+        });
+        
+        // Get offers from all offers status endpoint
+        try {
+          const offersRes = await fetch(`${API_URL}/api/partner/yandex/orders`, {
+            credentials: 'include'
+          });
+          const offersData = await offersRes.json();
+          if (offersData.success) {
+            setOffers(offersData.orders || []);
+          }
+        } catch (e) {
+          console.error('Error fetching offers:', e);
+        }
+        
+        setLastUpdated(new Date().toISOString());
+        
+        // Get campaigns from marketplace status
+        try {
+          const marketplaceRes = await fetch(`${API_URL}/api/partner/marketplaces`, {
+            credentials: 'include'
+          });
+          const marketplaceData = await marketplaceRes.json();
+          if (marketplaceData.success && marketplaceData.data?.yandex?.campaigns) {
+            setCampaigns(marketplaceData.data.yandex.campaigns);
+          }
+        } catch (e) {
+          console.error('Error fetching campaigns:', e);
         }
       } else {
         toast({
           title: "Xatolik",
-          description: data.error || "Ma'lumotlarni yuklab bo'lmadi",
+          description: data.error || "Yandex Market ulanmagan yoki ma'lumotlarni yuklab bo'lmadi",
           variant: "destructive"
         });
       }

@@ -48,11 +48,34 @@ export function OrderManagement() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
 
-  // Fetch orders
+  // Fetch orders - Try Yandex first, then fallback to local
   const { data: orders = [], isLoading, error } = useQuery<Order[]>({
     queryKey: ['/api/orders'],
     queryFn: async () => {
       try {
+        // First try Yandex Market orders
+        const yandexResponse = await apiRequest('GET', '/api/partner/yandex/orders');
+        if (yandexResponse.ok) {
+          const yandexData = await yandexResponse.json();
+          if (yandexData.success && yandexData.orders) {
+            // Transform Yandex orders to our format
+            return yandexData.orders.map((o: any) => ({
+              id: o.id || `yandex-${o.id}`,
+              orderNumber: o.id || 'N/A',
+              customerName: o.buyer_region || 'Yandex Market',
+              customerPhone: '',
+              marketplace: 'yandex',
+              orderDate: o.created_at || new Date().toISOString(),
+              status: o.status || 'pending',
+              paymentStatus: 'paid', // Yandex orders are pre-paid
+              fulfillmentStatus: o.substatus || 'pending',
+              totalAmount: o.total?.toString() || '0',
+              items: []
+            }));
+          }
+        }
+        
+        // Fallback to local orders
         const response = await apiRequest('GET', '/api/orders');
         if (!response.ok) {
           console.error('Orders API error:', response.status);

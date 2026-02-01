@@ -7898,6 +7898,67 @@ async def get_yandex_statistics(request: Request, date_from: str = None, date_to
     return await api.get_sales_statistics(date_from=date_from, date_to=date_to)
 
 
+@app.get("/api/partner/wallet")
+async def get_partner_wallet(request: Request):
+    """Get partner wallet balance and transactions"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    try:
+        pool = get_pool()
+        if pool and USE_POSTGRES:
+            async with pool.acquire() as conn:
+                # Get wallet balance from partners table
+                balance = await conn.fetchval(
+                    "SELECT wallet_balance FROM partners WHERE id = $1",
+                    partner["id"]
+                ) or 0
+                
+                # Get recent transactions
+                transactions = await conn.fetch("""
+                    SELECT id, type, amount, description, created_at, status
+                    FROM wallet_transactions
+                    WHERE partner_id = $1
+                    ORDER BY created_at DESC
+                    LIMIT 50
+                """, partner["id"])
+                
+                return {
+                    "success": True,
+                    "data": {
+                        "balance": float(balance),
+                        "currency": "UZS",
+                        "transactions": [serialize_pg_row(t) for t in transactions],
+                        "totalTransactions": len(transactions)
+                    }
+                }
+        
+        # Fallback for MongoDB
+        return {
+            "success": True,
+            "data": {
+                "balance": partner.get("walletBalance", 0),
+                "currency": "UZS",
+                "transactions": [],
+                "totalTransactions": 0
+            }
+        }
+    except Exception as e:
+        print(f"Error getting wallet: {e}")
+        return {
+            "success": True,
+            "data": {
+                "balance": partner.get("walletBalance", 0),
+                "currency": "UZS",
+                "transactions": [],
+                "totalTransactions": 0
+            }
+        }
+
+
 @app.get("/api/admin/marketplace-configs")
 async def get_marketplace_configs(request: Request):
     """Get marketplace configurations"""

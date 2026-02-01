@@ -573,15 +573,38 @@ async function initializePostgresTables() {
     console.log('✅ Orders table ready');
     
     // Add marketplace column to existing orders table if missing
+    // PostgreSQL doesn't support IF NOT EXISTS in ALTER TABLE, so we check first
     try {
-      await db.execute(sql`
-        ALTER TABLE orders ADD COLUMN IF NOT EXISTS marketplace VARCHAR(100)
+      const checkMarketplace = await db.execute(sql`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'orders' AND column_name = 'marketplace'
       `);
-      await db.execute(sql`
-        ALTER TABLE orders ADD COLUMN IF NOT EXISTS marketplace_order_id VARCHAR(255)
+      
+      if (!checkMarketplace || checkMarketplace.length === 0) {
+        await db.execute(sql`
+          ALTER TABLE orders ADD COLUMN marketplace VARCHAR(100)
+        `);
+        console.log('✅ Added marketplace column to orders table');
+      }
+      
+      const checkMarketplaceOrderId = await db.execute(sql`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'orders' AND column_name = 'marketplace_order_id'
       `);
-    } catch (e) {
-      // Column might already exist
+      
+      if (!checkMarketplaceOrderId || checkMarketplaceOrderId.length === 0) {
+        await db.execute(sql`
+          ALTER TABLE orders ADD COLUMN marketplace_order_id VARCHAR(255)
+        `);
+        console.log('✅ Added marketplace_order_id column to orders table');
+      }
+    } catch (e: any) {
+      // Column might already exist or other error
+      if (!e.message?.includes('already exists') && !e.message?.includes('duplicate')) {
+        console.error('Error adding marketplace columns:', e.message);
+      }
     }
 
     // Create order_items table if not exists

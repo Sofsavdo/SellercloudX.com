@@ -89,6 +89,22 @@ export default function PartnerDashboard() {
     enabled: isPartner,
   });
 
+  // Fetch Yandex Market dashboard data (real statistics)
+  const { data: yandexDashboard } = useQuery({
+    queryKey: ['/api/partner/yandex/dashboard'],
+    queryFn: async () => {
+      try {
+        const res = await apiRequest('GET', '/api/partner/yandex/dashboard');
+        const data = await res.json();
+        return data.success ? data.data : null;
+      } catch {
+        return null;
+      }
+    },
+    enabled: isPartner,
+    refetchInterval: 60000, // Refresh every minute
+  });
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) setLocation('/login');
@@ -119,11 +135,17 @@ export default function PartnerDashboard() {
   const safeProducts = Array.isArray(products) ? products : [];
   const safeAnalytics = Array.isArray(analytics) ? analytics : [];
   
+  // Merge Yandex real data with local analytics
+  const yandexRevenue = yandexDashboard?.revenue?.total || 0;
+  const yandexOrders = yandexDashboard?.orders?.total || 0;
+  const yandexProducts = yandexDashboard?.products?.active || 0;
+  
   const stats = {
-    totalRevenue: safeAnalytics.reduce((sum, item) => sum + parseFloat(item?.revenue || '0'), 0),
-    totalOrders: safeAnalytics.reduce((sum, item) => sum + (item?.orders || 0), 0),
+    totalRevenue: yandexRevenue || safeAnalytics.reduce((sum, item) => sum + parseFloat(item?.revenue || '0'), 0),
+    totalOrders: yandexOrders || safeAnalytics.reduce((sum, item) => sum + (item?.orders || 0), 0),
     totalProfit: safeAnalytics.reduce((sum, item) => sum + parseFloat(item?.profit || '0'), 0),
-    activeProducts: safeProducts.filter(p => p?.isActive).length,
+    activeProducts: yandexProducts || safeProducts.filter(p => p?.isActive).length,
+    yandexConnected: yandexDashboard?.connection_status === 'active',
   };
 
   const getTierName = (tier: string) => {
