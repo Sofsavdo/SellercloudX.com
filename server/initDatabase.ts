@@ -12,8 +12,10 @@ export async function initializeDatabaseTables() {
     console.log('🔧 Initializing database tables...');
     
     if (dbType === 'postgres') {
-      // PostgreSQL - tables should be created via migrations
-      console.log('📦 PostgreSQL: Tables should be created via migrations');
+      // PostgreSQL - create missing tables dynamically
+      console.log('📦 Database type: PostgreSQL');
+      console.log('🔄 Running PostgreSQL migrations...');
+      await initializePostgresTables();
       return;
     }
     
@@ -539,3 +541,151 @@ export async function initializeDatabaseTables() {
   }
 }
 
+/**
+ * Initialize PostgreSQL tables - creates missing tables
+ */
+async function initializePostgresTables() {
+  try {
+    // Create orders table if not exists
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS orders (
+        id VARCHAR(255) PRIMARY KEY,
+        partner_id VARCHAR(255) NOT NULL,
+        order_number VARCHAR(255) UNIQUE NOT NULL,
+        customer_name VARCHAR(255) NOT NULL,
+        customer_email VARCHAR(255),
+        customer_phone VARCHAR(50),
+        status VARCHAR(50) DEFAULT 'pending',
+        subtotal DECIMAL(12,2) DEFAULT 0,
+        shipping_cost DECIMAL(12,2) DEFAULT 0,
+        tax DECIMAL(12,2) DEFAULT 0,
+        total_amount DECIMAL(12,2) DEFAULT 0,
+        shipping_address JSONB,
+        shipping_method VARCHAR(100),
+        warehouse_id VARCHAR(255),
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ Orders table ready');
+
+    // Create order_items table if not exists
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS order_items (
+        id VARCHAR(255) PRIMARY KEY,
+        order_id VARCHAR(255) NOT NULL,
+        product_id VARCHAR(255) NOT NULL,
+        quantity INTEGER NOT NULL,
+        unit_price DECIMAL(12,2) NOT NULL,
+        discount DECIMAL(12,2) DEFAULT 0,
+        tax DECIMAL(12,2) DEFAULT 0,
+        total_price DECIMAL(12,2) NOT NULL,
+        status VARCHAR(50) DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ Order items table ready');
+
+    // Create monthly_sales_tracking table if not exists
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS monthly_sales_tracking (
+        id VARCHAR(255) PRIMARY KEY,
+        partner_id VARCHAR(255) NOT NULL,
+        month INTEGER NOT NULL,
+        year INTEGER NOT NULL,
+        total_sales DECIMAL(12,2) DEFAULT 0,
+        total_orders INTEGER DEFAULT 0,
+        commission_earned DECIMAL(12,2) DEFAULT 0,
+        revenue_share_paid DECIMAL(12,2) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(partner_id, month, year)
+      )
+    `);
+    console.log('✅ Monthly sales tracking table ready');
+
+    // Create profit_breakdown table if not exists
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS profit_breakdown (
+        id VARCHAR(255) PRIMARY KEY,
+        partner_id VARCHAR(255) NOT NULL,
+        order_id VARCHAR(255),
+        revenue DECIMAL(12,2) NOT NULL,
+        costs DECIMAL(12,2) NOT NULL,
+        platform_fee DECIMAL(12,2) NOT NULL,
+        marketplace_fee DECIMAL(12,2) DEFAULT 0,
+        shipping_cost DECIMAL(12,2) DEFAULT 0,
+        tax DECIMAL(12,2) DEFAULT 0,
+        net_profit DECIMAL(12,2) NOT NULL,
+        profit_margin DECIMAL(5,2) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ Profit breakdown table ready');
+
+    // Create stock_movements table if not exists
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS stock_movements (
+        id VARCHAR(255) PRIMARY KEY,
+        product_id VARCHAR(255) NOT NULL,
+        movement_type VARCHAR(50) NOT NULL,
+        quantity INTEGER NOT NULL,
+        previous_stock INTEGER DEFAULT 0,
+        new_stock INTEGER DEFAULT 0,
+        reason VARCHAR(255),
+        reference_type VARCHAR(100),
+        reference_id VARCHAR(255),
+        performed_by VARCHAR(255),
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ Stock movements table ready');
+
+    // Create warehouses table if not exists
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS warehouses (
+        id VARCHAR(255) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        address VARCHAR(500),
+        city VARCHAR(100),
+        region VARCHAR(100),
+        country VARCHAR(100) DEFAULT 'Uzbekistan',
+        postal_code VARCHAR(20),
+        capacity DECIMAL(12,2) DEFAULT 0,
+        current_utilization DECIMAL(12,2) DEFAULT 0,
+        is_active BOOLEAN DEFAULT true,
+        manager_id VARCHAR(255),
+        contact_phone VARCHAR(50),
+        operating_hours JSONB,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ Warehouses table ready');
+
+    // Create warehouse_stock table if not exists
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS warehouse_stock (
+        id VARCHAR(255) PRIMARY KEY,
+        warehouse_id VARCHAR(255) NOT NULL,
+        product_id VARCHAR(255) NOT NULL,
+        quantity INTEGER DEFAULT 0,
+        reserved_quantity INTEGER DEFAULT 0,
+        available_quantity INTEGER DEFAULT 0,
+        last_movement TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(warehouse_id, product_id)
+      )
+    `);
+    console.log('✅ Warehouse stock table ready');
+
+    console.log('✅ PostgreSQL migrations completed successfully');
+    
+  } catch (error: any) {
+    console.error('❌ PostgreSQL migration error:', error.message);
+    // Don't throw - some tables might already exist with different structure
+  }
+}
