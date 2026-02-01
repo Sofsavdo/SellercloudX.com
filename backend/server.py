@@ -5898,44 +5898,9 @@ class ProfitOpportunity(BaseModel):
     recommendation: str
 
 
-# Kategoriya bo'yicha trending mahsulotlar (AI tahlili)
-TRENDING_CATEGORIES = {
-    "electronics": [
-        {"name": "TWS Bluetooth Earbuds Pro", "price": 8.50, "growth": 145, "rating": 4.7},
-        {"name": "Mini Projector HD 1080P", "price": 45.00, "growth": 89, "rating": 4.5},
-        {"name": "Wireless Car Charger 15W", "price": 6.20, "growth": 112, "rating": 4.6},
-        {"name": "Smart Watch T500 Series", "price": 12.00, "growth": 78, "rating": 4.4},
-        {"name": "Ring Light 10 inch LED", "price": 7.80, "growth": 95, "rating": 4.8},
-    ],
-    "clothing": [
-        {"name": "Oversized Hoodie Unisex", "price": 11.00, "growth": 167, "rating": 4.6},
-        {"name": "Cargo Pants Wide Leg", "price": 14.50, "growth": 134, "rating": 4.5},
-        {"name": "Summer Dress Floral", "price": 8.90, "growth": 156, "rating": 4.7},
-        {"name": "Vintage Denim Jacket", "price": 18.00, "growth": 89, "rating": 4.4},
-        {"name": "Athletic Leggings High Waist", "price": 6.50, "growth": 178, "rating": 4.8},
-    ],
-    "home": [
-        {"name": "LED Strip Lights RGB 5M", "price": 4.20, "growth": 198, "rating": 4.6},
-        {"name": "Vacuum Storage Bags Set", "price": 5.80, "growth": 145, "rating": 4.5},
-        {"name": "Aroma Diffuser Humidifier", "price": 9.50, "growth": 112, "rating": 4.7},
-        {"name": "Kitchen Organizer Rack", "price": 7.20, "growth": 87, "rating": 4.4},
-        {"name": "Cloud Shape Pillow", "price": 8.90, "growth": 156, "rating": 4.8},
-    ],
-    "beauty": [
-        {"name": "Vitamin C Serum 30ml", "price": 3.50, "growth": 234, "rating": 4.7},
-        {"name": "Hair Curler Automatic", "price": 15.00, "growth": 167, "rating": 4.5},
-        {"name": "Makeup Brush Set 15pcs", "price": 5.20, "growth": 145, "rating": 4.6},
-        {"name": "Facial Massager Roller", "price": 4.80, "growth": 189, "rating": 4.8},
-        {"name": "Nail Art Kit Complete", "price": 6.90, "growth": 123, "rating": 4.4},
-    ],
-    "sports": [
-        {"name": "Resistance Bands Set", "price": 4.50, "growth": 212, "rating": 4.7},
-        {"name": "Yoga Mat Non-Slip 6mm", "price": 7.80, "growth": 156, "rating": 4.6},
-        {"name": "Jump Rope Speed", "price": 2.80, "growth": 178, "rating": 4.5},
-        {"name": "Gym Gloves Training", "price": 3.90, "growth": 134, "rating": 4.4},
-        {"name": "Water Bottle 1L Sport", "price": 4.20, "growth": 145, "rating": 4.8},
-    ],
-}
+# REMOVED: TRENDING_CATEGORIES mock data
+# All trending data now comes from real 1688.com API via RapidAPI
+# See: /api/trends/hunter endpoint below
 
 
 def calculate_opportunity(product_data: dict, category: str) -> ProfitOpportunity:
@@ -6045,25 +6010,40 @@ def calculate_opportunity(product_data: dict, category: str) -> ProfitOpportunit
 async def get_top_trends(limit: int = 20):
     """
     Barcha kategoriyalardan TOP trending mahsulotlar.
-    AI asosida foyda imkoniyati hisoblangan.
+    REAL 1688.com API dan olinadi.
     """
     try:
-        opportunities = []
+        # Use real 1688.com API via RapidAPI
+        if search_trending_products:
+            # Search for trending products across categories
+            categories = ["electronics", "clothing", "home", "beauty", "sports"]
+            all_products = []
+            
+            for category in categories:
+                try:
+                    results = await search_trending_products(category, limit=5)
+                    if results.get("success") and results.get("data"):
+                        for product in results["data"][:3]:  # Top 3 per category
+                            all_products.append(product)
+                except Exception as e:
+                    print(f"Error fetching {category} trends: {e}")
+                    continue
+            
+            # Sort by opportunity score if available
+            if all_products:
+                return {
+                    "success": True,
+                    "data": all_products[:limit],
+                    "total": len(all_products),
+                    "source": "1688.com RapidAPI (Real Data)"
+                }
         
-        # Barcha kategoriyalardan eng yaxshilarini olish
-        for category, products in TRENDING_CATEGORIES.items():
-            for product in products[:3]:  # Har bir kategoriyadan 3 ta
-                opp = calculate_opportunity(product, category)
-                opportunities.append(opp)
-        
-        # Score bo'yicha tartiblash
-        opportunities.sort(key=lambda x: x.opportunityScore, reverse=True)
-        
+        # If API not configured, return error
         return {
-            "success": True,
-            "data": [opp.dict() for opp in opportunities[:limit]],
-            "total": len(opportunities),
-            "source": "AI Analysis + 1688.com/AliExpress Data"
+            "success": False,
+            "error": "RapidAPI key not configured. Please add RAPIDAPI_KEY to environment variables.",
+            "data": [],
+            "setup_url": "https://rapidapi.com/logicbuilder/api/1688-product-data"
         }
     except Exception as e:
         return {"success": False, "error": str(e), "data": []}
@@ -6073,30 +6053,28 @@ async def get_top_trends(limit: int = 20):
 async def get_category_trends(category: str):
     """
     Muayyan kategoriya bo'yicha trending mahsulotlar.
+    REAL 1688.com API dan olinadi.
     """
     try:
-        if category not in TRENDING_CATEGORIES:
-            return {
-                "success": False,
-                "error": f"Kategoriya topilmadi: {category}",
-                "available_categories": list(TRENDING_CATEGORIES.keys()),
-                "data": []
-            }
+        # Use real 1688.com API
+        if search_trending_products:
+            results = await search_trending_products(category, limit=20)
+            if results.get("success") and results.get("data"):
+                return {
+                    "success": True,
+                    "data": results["data"],
+                    "category": category,
+                    "total": len(results["data"]),
+                    "source": "1688.com RapidAPI (Real Data)"
+                }
         
-        products = TRENDING_CATEGORIES[category]
-        opportunities = [
-            calculate_opportunity(product, category)
-            for product in products
-        ]
-        
-        # Score bo'yicha tartiblash
-        opportunities.sort(key=lambda x: x.opportunityScore, reverse=True)
-        
+        # If API not configured, return error
         return {
-            "success": True,
-            "data": [opp.dict() for opp in opportunities],
-            "category": category,
-            "total": len(opportunities)
+            "success": False,
+            "error": f"RapidAPI key not configured for category: {category}",
+            "data": [],
+            "available_categories": ["electronics", "clothing", "home", "beauty", "sports"],
+            "setup_url": "https://rapidapi.com/logicbuilder/api/1688-product-data"
         }
     except Exception as e:
         return {"success": False, "error": str(e), "data": []}
@@ -6106,33 +6084,26 @@ async def get_category_trends(category: str):
 async def search_trends(query: str, limit: int = 10):
     """
     Kalit so'z bo'yicha trending mahsulotlarni qidirish.
-    Real 1688/AliExpress API dan olish.
+    REAL 1688.com API dan olinadi.
     """
     try:
-        # Try real API first
+        # Use real 1688.com API
         if search_trending_products:
             real_results = await search_trending_products(query, limit)
             if real_results.get("success") and real_results.get("data"):
-                return real_results
+                return {
+                    **real_results,
+                    "query": query,
+                    "source": "1688.com RapidAPI (Real Data)"
+                }
         
-        # Fallback to mock data
-        query_lower = query.lower()
-        results = []
-        
-        for category, products in TRENDING_CATEGORIES.items():
-            for product in products:
-                if query_lower in product["name"].lower():
-                    opp = calculate_opportunity(product, category)
-                    results.append(opp)
-        
-        results.sort(key=lambda x: x.opportunityScore, reverse=True)
-        
+        # If API not configured, return error
         return {
-            "success": True,
-            "data": [opp.dict() for opp in results[:limit]],
+            "success": False,
+            "error": "RapidAPI key not configured. Please add RAPIDAPI_KEY to environment variables.",
+            "data": [],
             "query": query,
-            "total": len(results),
-            "source": "fallback_mock_data"
+            "setup_url": "https://rapidapi.com/logicbuilder/api/1688-product-data"
         }
     except Exception as e:
         return {"success": False, "error": str(e), "data": []}
@@ -6392,97 +6363,100 @@ async def get_sales_heatmap(partner_id: str, request: Request):
 # Trend Hunter Real API - AI Enhanced
 @app.get("/api/trends/hunter")
 async def get_trend_hunter_data(request: Request, category: str = "all"):
-    """Get real trending products data with AI analysis"""
+    """Get REAL trending products data from 1688.com API with AI analysis"""
     user = await get_current_user(request=request)
     
     try:
-        trends = []
         usd_rate = 12800  # UZS/USD kursi
+        trends = []
         
-        for cat, products in TRENDING_CATEGORIES.items():
-            if category == "all" or category == cat:
-                for i, product in enumerate(products[:5]):
-                    source_price_usd = product.get("price", 10)
-                    source_price_uzs = int(source_price_usd * usd_rate)
+        # Use real 1688.com API
+        if search_trending_products:
+            categories_to_search = ["electronics", "clothing", "home", "beauty", "sports"] if category == "all" else [category]
+            
+            for cat in categories_to_search:
+                try:
+                    # Search trending products for this category
+                    results = await search_trending_products(cat, limit=5)
                     
-                    # Hisoblashlar
-                    shipping_cost = int(source_price_uzs * 0.15)  # 15% shipping
-                    customs_cost = int(source_price_uzs * 0.12)   # 12% bojxona
-                    total_cost = source_price_uzs + shipping_cost + customs_cost
-                    
-                    # Tavsiya etilgan narx (40% margin)
-                    recommended_price = int(total_cost * 1.4)
-                    profit_margin = 40 - i * 3
-                    
-                    # Oylik foyda (100 dona sotilganda)
-                    monthly_profit = int((recommended_price - total_cost) * 100)
-                    
-                    trends.append({
-                        "id": f"{cat}-{i}",
-                        "name": product.get("name", "Product"),
-                        "category": cat,
-                        "categoryUz": {
-                            "electronics": "Elektronika",
-                            "clothing": "Kiyim",
-                            "home": "Uy jihozlari",
-                            "beauty": "Go'zallik",
-                            "sports": "Sport"
-                        }.get(cat, cat),
-                        "trend": "rising" if product.get("growth", 0) > 100 else "stable",
-                        "growthPercent": product.get("growth", 0),
-                        "demandScore": min(95, 70 + product.get("growth", 0) // 10),
-                        "rating": product.get("rating", 4.5),
-                        
-                        # Narxlar
-                        "sourcePrice": source_price_usd,
-                        "sourcePriceUzs": source_price_uzs,
-                        "shippingCost": shipping_cost,
-                        "customsCost": customs_cost,
-                        "totalCost": total_cost,
-                        "recommendedPrice": recommended_price,
-                        "profitMargin": profit_margin,
-                        "monthlyProfit": monthly_profit,
-                        
-                        # Qo'shimcha
-                        "competition": "high" if i == 0 else "medium" if i < 3 else "low",
-                        "source": "1688/AliExpress",
-                        "deliveryDays": "15-25 kun",
-                        "minOrder": 10
-                    })
+                    if results.get("success") and results.get("data"):
+                        for i, product in enumerate(results["data"]):
+                            # Extract product data
+                            source_price_usd = product.get("price", product.get("sourcePrice", 10))
+                            source_price_uzs = int(source_price_usd * usd_rate)
+                            
+                            # Calculate costs
+                            shipping_cost = int(source_price_uzs * 0.15)  # 15% shipping
+                            customs_cost = int(source_price_uzs * 0.12)   # 12% bojxona
+                            total_cost = source_price_uzs + shipping_cost + customs_cost
+                            
+                            # Recommended price (40% margin)
+                            recommended_price = int(total_cost * 1.4)
+                            profit_margin = 40 - (i * 3)
+                            
+                            # Monthly profit (100 units sold)
+                            monthly_profit = int((recommended_price - total_cost) * 100)
+                            
+                            trends.append({
+                                "id": product.get("id", f"{cat}-{i}"),
+                                "name": product.get("name", product.get("productName", "Product")),
+                                "category": cat,
+                                "categoryUz": {
+                                    "electronics": "Elektronika",
+                                    "clothing": "Kiyim",
+                                    "home": "Uy jihozlari",
+                                    "beauty": "Go'zallik",
+                                    "sports": "Sport"
+                                }.get(cat, cat),
+                                "trend": product.get("trend", "rising") if product.get("salesGrowth", 0) > 100 else "stable",
+                                "growthPercent": product.get("salesGrowth", product.get("growthPercent", 0)),
+                                "demandScore": min(95, 70 + (product.get("salesGrowth", 0) // 10)),
+                                "rating": product.get("rating", product.get("avgRating", 4.5)),
+                                
+                                # Prices
+                                "sourcePrice": source_price_usd,
+                                "sourcePriceUzs": source_price_uzs,
+                                "shippingCost": shipping_cost,
+                                "customsCost": customs_cost,
+                                "totalCost": total_cost,
+                                "recommendedPrice": recommended_price,
+                                "profitMargin": profit_margin,
+                                "monthlyProfit": monthly_profit,
+                                
+                                # Additional
+                                "competition": "high" if i == 0 else "medium" if i < 3 else "low",
+                                "source": "1688.com (Real Data)",
+                                "deliveryDays": "15-25 kun",
+                                "minOrder": product.get("minOrder", 10),
+                                "productUrl": product.get("productUrl", product.get("directUrl", ""))
+                            })
+                except Exception as e:
+                    print(f"Error fetching {cat} trends: {e}")
+                    continue
+            
+            if trends:
+                return {
+                    "success": True,
+                    "data": trends[:20],
+                    "usdRate": usd_rate,
+                    "lastUpdated": datetime.now(timezone.utc).isoformat(),
+                    "source": "1688.com RapidAPI (Real Data)"
+                }
         
+        # If API not configured, return error
         return {
-            "success": True,
-            "data": trends[:20],
+            "success": False,
+            "error": "RapidAPI key not configured. Please add RAPIDAPI_KEY to environment variables.",
+            "data": [],
             "usdRate": usd_rate,
-            "lastUpdated": datetime.now(timezone.utc).isoformat()
+            "setup_url": "https://rapidapi.com/logicbuilder/api/1688-product-data"
         }
     except Exception as e:
         print(f"Trend hunter error: {e}")
         return {
-            "success": True,
-            "data": [
-                {
-                    "id": "1",
-                    "name": "Simsiz quloqchin TWS",
-                    "category": "electronics",
-                    "categoryUz": "Elektronika",
-                    "trend": "rising",
-                    "growthPercent": 145,
-                    "demandScore": 92,
-                    "rating": 4.7,
-                    "sourcePrice": 8.50,
-                    "sourcePriceUzs": 108800,
-                    "totalCost": 138000,
-                    "recommendedPrice": 195000,
-                    "profitMargin": 35,
-                    "monthlyProfit": 5700000,
-                    "competition": "high",
-                    "source": "1688/AliExpress",
-                    "deliveryDays": "15-25 kun",
-                    "minOrder": 10
-                }
-            ],
-            "usdRate": 12800
+            "success": False,
+            "error": str(e),
+            "data": []
         }
 
 
