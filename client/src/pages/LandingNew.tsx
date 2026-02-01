@@ -416,7 +416,7 @@ export default function LandingNew() {
               onClick={() => setLocation('/partner-registration')} 
               className="text-lg px-8 py-6 gradient-primary border-0 shadow-lg shadow-primary/25 hover:shadow-glow transition-all btn-glow"
             >
-              <Rocket className="w-5 h-5 mr-2" /> Bepul boshlash <ArrowRight className="w-5 h-5 ml-2" />
+              <Rocket className="w-5 h-5 mr-2" /> Hoziroq Boshlash <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button 
               size="lg" 
