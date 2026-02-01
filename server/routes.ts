@@ -17,6 +17,41 @@ function formatTimestamp(): any {
   const dbType = getDbType();
   return dbType === 'sqlite' ? Math.floor(Date.now() / 1000) : new Date();
 }
+
+// Serialize timestamps in objects for JSON response
+// Converts Date objects and Unix timestamps to ISO strings
+function serializeTimestamps(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (Array.isArray(obj)) return obj.map(serializeTimestamps);
+  if (typeof obj !== 'object') return obj;
+  
+  const result: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value instanceof Date) {
+      // Date object - convert to ISO string
+      result[key] = value.toISOString();
+    } else if (typeof value === 'number' && (
+      key.toLowerCase().includes('date') || 
+      key.toLowerCase().includes('at') ||
+      key === 'createdAt' || key === 'updatedAt' || key === 'activatedAt'
+    )) {
+      // Unix timestamp (seconds) - check if it's a reasonable timestamp
+      if (value > 1000000000 && value < 2000000000) {
+        result[key] = new Date(value * 1000).toISOString();
+      } else if (value > 1000000000000) {
+        // Milliseconds timestamp
+        result[key] = new Date(value).toISOString();
+      } else {
+        result[key] = value;
+      }
+    } else if (typeof value === 'object' && value !== null) {
+      result[key] = serializeTimestamps(value);
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
 import { partners, referrals, marketplaceIntegrations, blogPosts, blogCategories } from "@shared/schema";
 
 import { 
@@ -510,10 +545,11 @@ export function registerRoutes(app: express.Application): Server {
       // Generate session token for API calls
       const token = req.sessionID; // Use session ID as token
       
+      // Serialize timestamps to ISO format for frontend
       res.json({ 
         token, // MUHIM: Frontend bunga ehtiyoj bor
-        user: req.session.user, 
-        partner,
+        user: serializeTimestamps(req.session.user), 
+        partner: serializeTimestamps(partner),
         permissions,
         message: "Muvaffaqiyatli kirildi"
       });
@@ -736,9 +772,10 @@ export function registerRoutes(app: express.Application): Server {
       permissions = await storage.getAdminPermissions(req.session.user.id);
     }
 
+    // Serialize timestamps to ISO format
     res.json({ 
-      user: req.session.user, 
-      partner,
+      user: serializeTimestamps(req.session.user), 
+      partner: serializeTimestamps(partner),
       permissions
     });
   }));

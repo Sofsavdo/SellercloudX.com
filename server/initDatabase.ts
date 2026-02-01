@@ -555,11 +555,13 @@ async function initializePostgresTables() {
         customer_name VARCHAR(255) NOT NULL,
         customer_email VARCHAR(255),
         customer_phone VARCHAR(50),
+        marketplace VARCHAR(100),
+        marketplace_order_id VARCHAR(255),
         status VARCHAR(50) DEFAULT 'pending',
         subtotal DECIMAL(12,2) DEFAULT 0,
         shipping_cost DECIMAL(12,2) DEFAULT 0,
         tax DECIMAL(12,2) DEFAULT 0,
-        total_amount DECIMAL(12,2) DEFAULT 0,
+        total_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
         shipping_address JSONB,
         shipping_method VARCHAR(100),
         warehouse_id VARCHAR(255),
@@ -569,6 +571,18 @@ async function initializePostgresTables() {
       )
     `);
     console.log('✅ Orders table ready');
+    
+    // Add marketplace column to existing orders table if missing
+    try {
+      await db.execute(sql`
+        ALTER TABLE orders ADD COLUMN IF NOT EXISTS marketplace VARCHAR(100)
+      `);
+      await db.execute(sql`
+        ALTER TABLE orders ADD COLUMN IF NOT EXISTS marketplace_order_id VARCHAR(255)
+      `);
+    } catch (e) {
+      // Column might already exist
+    }
 
     // Create order_items table if not exists
     await db.execute(sql`

@@ -461,6 +461,71 @@ async def admin_deactivate_partner(partner_id: str, request: Request):
     }
 
 
+class BlockPartnerRequest(BaseModel):
+    reason: Optional[str] = None
+    days: Optional[int] = None  # Block for N days, None = permanent
+
+
+@app.put("/api/admin/partners/{partner_id}/block")
+async def admin_block_partner(partner_id: str, request: Request):
+    """Block partner (admin)"""
+    user = await require_admin(request)
+    
+    # Parse optional body
+    try:
+        body = await request.json()
+    except:
+        body = {}
+    
+    reason = body.get("reason", "Admin tomonidan bloklandi")
+    days = body.get("days")
+    
+    blocked_until = None
+    if days:
+        blocked_until = datetime.now(timezone.utc) + timedelta(days=days)
+    
+    partner = await update_partner(partner_id, {
+        "is_active": False,
+        "approved": False,
+        "blocked_until": blocked_until,
+        "block_reason": reason,
+        "blocked_by": user["id"],
+        "blocked_at": datetime.now(timezone.utc)
+    })
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    return {
+        "success": True,
+        "message": "Partner bloklandi",
+        "data": partner
+    }
+
+
+@app.put("/api/admin/partners/{partner_id}/unblock")
+async def admin_unblock_partner(partner_id: str, request: Request):
+    """Unblock partner (admin)"""
+    user = await require_admin(request)
+    
+    partner = await update_partner(partner_id, {
+        "is_active": True,
+        "blocked_until": None,
+        "block_reason": None,
+        "unblocked_by": user["id"],
+        "unblocked_at": datetime.now(timezone.utc)
+    })
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    return {
+        "success": True,
+        "message": "Partner blokdan chiqarildi",
+        "data": partner
+    }
+
+
 # ========================================
 # PARTNER DASHBOARD ENDPOINTS
 # ========================================
