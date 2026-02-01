@@ -78,7 +78,7 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
   const connectedMarketplace = marketplaceStatus?.yandex?.connected ? 'yandex' : 
                                marketplaceStatus?.uzum?.connected ? 'uzum' : null;
 
-  // Create product mutation
+  // Create product mutation - NEW: Uses enterprise auto-create endpoint
   const createProductMutation = useMutation({
     mutationFn: async (data: any) => {
       // MUHIM: Marketplace ulanganligini tekshirish
@@ -86,6 +86,19 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
         throw new Error('Marketplace ulanmagan. Avval API kalitlarini ulang.');
       }
 
+      // Use new auto-create endpoint for Yandex (full automation)
+      if (connectedMarketplace === 'yandex') {
+        const response = await apiRequest('POST', '/api/yandex/auto-create', {
+          partner_id: 'current',
+          image_base64: data.imageBase64,
+          cost_price: parseFloat(data.costPrice),
+          generate_infographics: true,
+          use_perfect_infographics: true  // ERROR-FREE text!
+        });
+        return response.json();
+      }
+
+      // Fallback for other marketplaces
       const response = await apiRequest('POST', '/api/unified-scanner/full-process', {
         partner_id: 'current',
         product_name: data.name,
@@ -94,7 +107,7 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
         cost_price: parseFloat(data.costPrice),
         quantity: parseInt(data.quantity),
         image_base64: data.imageBase64,
-        marketplace: connectedMarketplace, // Ulangan marketplace
+        marketplace: connectedMarketplace,
         auto_ikpu: true,
         auto_generate_infographics: true
       });
@@ -103,17 +116,35 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
     onSuccess: (data) => {
       if (data.success) {
         const marketplaceName = connectedMarketplace === 'yandex' ? 'Yandex Market' : 'Uzum Market';
+        
+        // Show detailed success message
+        const stepsCompleted = data.steps_completed?.length || 0;
+        const message = data.message || `${marketplaceName} ga yuklash boshlandi`;
+        
         toast({
           title: "✅ Mahsulot yaratildi!",
-          description: `${marketplaceName} ga yuklash boshlandi`,
+          description: message,
         });
+        
+        // Show SKU if available
+        if (data.sku) {
+          toast({
+            title: "📦 SKU yaratildi",
+            description: `Mahsulot kodi: ${data.sku}`,
+          });
+        }
+        
         queryClient.invalidateQueries({ queryKey: ['/api/products'] });
         handleClose();
         onProductCreated?.();
       } else {
+        // Show specific error and failed steps
+        const failedSteps = data.steps_failed?.join(', ') || '';
+        const errorMessage = data.error || data.yandex_error || "Mahsulot yaratishda muammo";
+        
         toast({
           title: "⚠️ Ogohlantirish",
-          description: data.error || "Mahsulot yaratishda muammo",
+          description: failedSteps ? `${errorMessage} (${failedSteps})` : errorMessage,
           variant: "destructive",
         });
       }
