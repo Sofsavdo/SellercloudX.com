@@ -112,12 +112,14 @@ export function AdminPartnersManagement() {
       const response = await apiRequest('PUT', `/api/admin/partners/${partnerId}/approve`);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({ 
         title: "✅ Tasdiqlandi!",
         description: "Hamkor muvaffaqiyatli tasdiqlandi"
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/partners'] });
+      // MUHIM: Invalidate va immediately refetch - cache'ni to'liq yangilash
+      await queryClient.invalidateQueries({ queryKey: ['/api/admin/partners'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/admin/partners'] });
     },
     onError: (error: Error) => {
       console.error('❌ Approve error:', error);
@@ -135,12 +137,14 @@ export function AdminPartnersManagement() {
       const response = await apiRequest('PUT', `/api/admin/partners/${partnerId}/block`);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({ 
         title: "🚫 Bloklandi",
         description: "Hamkor bloklandi"
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/partners'] });
+      // MUHIM: Invalidate va immediately refetch - cache'ni to'liq yangilash
+      await queryClient.invalidateQueries({ queryKey: ['/api/admin/partners'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/admin/partners'] });
     },
     onError: (error: Error) => {
       console.error('❌ Block error:', error);
@@ -162,12 +166,14 @@ export function AdminPartnersManagement() {
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({ 
         title: "✅ Faollashtirildi!",
         description: "Hamkor to'lovsiz faollashtirildi"
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/partners'] });
+      // MUHIM: Invalidate va immediately refetch - cache'ni to'liq yangilash
+      await queryClient.invalidateQueries({ queryKey: ['/api/admin/partners'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/admin/partners'] });
     },
     onError: (error: Error) => {
       console.error('❌ Activate error:', error);
