@@ -503,9 +503,9 @@ async def update_partner(partner_id: str, updates: dict) -> Optional[dict]:
             values = []
             i = 1
             for key, value in updates.items():
-                # Convert datetime to string for JSON fields
-                if isinstance(value, datetime):
-                    value = value.isoformat()
+                # CRITICAL FIX: Keep datetime objects as-is for PostgreSQL
+                # PostgreSQL's asyncpg driver handles datetime serialization automatically
+                # Converting to isoformat() string causes: "expected datetime instance, got 'str'"
                 set_clauses.append(f"{key} = ${i}")
                 values.append(value)
                 i += 1

@@ -199,7 +199,8 @@ export function ChatSystem({ partnerId, isAdmin = false }: ChatSystemProps) {
         messageType,
         ...(fileData && { attachmentUrl: fileData.fileUrl, fileName: fileData.fileName, fileSize: fileData.fileSize })
       };
-      if (isAdmin) payload.chatRoomId = selectedPartner.id;
+      // CRITICAL FIX: Backend expects "roomId", not "chatRoomId"
+      if (isAdmin) payload.roomId = selectedPartner.id;
 
       const response = await apiRequest('POST', `/api/chat/send`, payload);
       if (!response.ok) throw new Error('Message send failed');
