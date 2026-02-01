@@ -11,7 +11,7 @@ import {
   Brain, Target, Clock, Users, DollarSign, Rocket, Play, BarChart3, Shield,
   Crown, Package, Globe, Bot, LineChart, Award, Menu, X, ArrowUpRight,
   ChevronUp, Lock, Mail, MessageCircle, Phone, Instagram, Send, Layers,
-  RefreshCw, Bell, FileText, Settings, Plus, Minus
+  RefreshCw, Bell, FileText, Settings, Plus, Minus, Newspaper
 } from 'lucide-react';
 
 // Counter animation hook
@@ -44,7 +44,6 @@ export default function LandingNew() {
   const [showLoginMenu, setShowLoginMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   // Stats with counter animation
@@ -132,193 +131,107 @@ export default function LandingNew() {
     {
       quote: "Platform biznesingizni 10 baravar tez o'stiradi. AI funksiyalar ajoyib!",
       name: "Sardor Rahimov",
-      role: "CEO, Textile Uzbekistan"
+      role: "CEO, Textile Uzbekistan",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
     },
     {
       quote: "Bir necha oyda ROI 300% ga yetdi. Eng yaxshi investitsiya!",
       name: "Dilnoza Karimova",
-      role: "E-commerce Manager"
+      role: "E-commerce Manager, Online Shop UZ",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face"
     },
     {
       quote: "24/7 monitoring va AI yordam biznesni avtomatlashtirdi.",
       name: "Aziz Tursunov",
-      role: "Online Store Owner"
+      role: "Founder, Digital Market",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
     }
   ];
 
+  // 2026 PRICING MODEL - Revenue Share
   const pricing = [
     {
-      name: 'Free Starter',
-      badge: 'BEPUL',
-      badgeColor: 'bg-success text-success-foreground',
-      price: '$0',
-      priceNum: 0,
+      name: 'Premium',
+      badge: 'TAVSIYA',
+      badgeColor: 'bg-accent text-accent-foreground badge-pulse',
+      price: '$499',
+      priceNum: 499,
       period: '/oy',
-      priceSom: "0 so'm/oy",
-      commission: '2% komissiya',
-      commissionColor: 'bg-success/10 text-success',
-      description: "Sinab ko'rish uchun",
-      cta: 'Bepul boshlash',
-      ctaVariant: 'outline' as const,
-      limits: [
-        { icon: Package, text: '10 ta mahsulot' },
-        { icon: Globe, text: '1 marketplace (Yandex Market)' },
-        { icon: Bot, text: '10 AI kartochka' },
-        { icon: Target, text: '10 marta/oy Trend Hunter' },
-        { icon: DollarSign, text: "15M so'm oylik limit" },
-        { icon: Globe, text: '3 tilda tarjima' },
-      ],
-      features: [
-        '10 ta mahsulot',
-        '1 marketplace (Yandex Market)',
-        'AI kartochka yaratish (10 ta)',
-        'Trend Hunter (10 marta/oy)',
-        '3 tilda tarjima',
-        'Asosiy savdo statistikasi',
-        'Ombor monitoring',
-        'Admin chat yordam',
-        'Email yordam',
-      ],
-      excluded: [
-        'Sof foyda tahlili',
-        'Narx monitoring',
-        'SEO optimizatsiya',
-        "Ko'p marketplace",
-        'Telegram xabarnomalar',
-      ],
-      popular: false,
-    },
-    {
-      name: 'Basic',
-      badge: 'Arzon',
-      badgeColor: 'bg-warning text-warning-foreground',
-      price: '$69',
-      priceNum: 69,
-      period: '/oy',
-      priceSom: "828,000 so'm/oy",
-      commission: '1.8% komissiya',
-      commissionColor: 'bg-warning/10 text-warning',
-      description: 'Kichik biznes uchun',
-      cta: 'Basic rejasini tanlash',
-      ctaVariant: 'outline' as const,
-      limits: [
-        { icon: Package, text: '69 ta mahsulot' },
-        { icon: Globe, text: '1 marketplace (Yandex Market)' },
-        { icon: Bot, text: '69 AI kartochka' },
-        { icon: Target, text: '69 marta/oy Trend Hunter' },
-        { icon: DollarSign, text: "69M so'm oylik limit" },
-        { icon: Globe, text: '3 tilda tarjima' },
-      ],
-      features: [
-        '69 ta mahsulot',
-        '1 marketplace (Yandex Market)',
-        'AI kartochka yaratish (69 ta)',
-        'Trend Hunter (69 marta/oy)',
-        '3 tilda tarjima',
-        '✨ Sof foyda tahlili',
-        "To'liq savdo statistikasi",
-        'Ombor boshqaruvi',
-        'Telegram xabarnomalar',
-        'Email yordam',
-      ],
-      excluded: [
-        "Ko'p marketplace",
-        'SEO optimizatsiya',
-        'Narx monitoring',
-        'Ommaviy operatsiyalar',
-      ],
-      popular: false,
-    },
-    {
-      name: 'Starter Pro',
-      badge: 'MASHHUR',
-      badgeColor: 'bg-primary text-primary-foreground badge-pulse',
-      extraBadge: "Eng ko'p tanlangan",
-      price: '$349',
-      priceNum: 349,
-      period: '/oy',
-      priceSom: "4,188,000 so'm/oy",
-      commission: '1.5% komissiya',
-      commissionColor: 'bg-primary/10 text-primary',
-      description: "O'sib borayotgan biznes",
-      cta: 'Starter Pro rejasini tanlash',
+      priceSom: "6,300,000 so'm/oy",
+      commission: '4% savdodan',
+      commissionColor: 'bg-accent/10 text-accent',
+      description: "To'liq AI avtomatizatsiya",
+      cta: 'Boshlash',
       ctaVariant: 'default' as const,
       limits: [
-        { icon: Package, text: '400 ta mahsulot (100/marketplace)' },
-        { icon: Globe, text: '4 marketplace (Uzum, Yandex, WB, Ozon)' },
+        { icon: Package, text: 'Cheksiz mahsulotlar' },
+        { icon: Globe, text: '4 marketplace' },
         { icon: Bot, text: 'Cheksiz AI kartochka' },
         { icon: Target, text: 'Cheksiz Trend Hunter' },
-        { icon: DollarSign, text: "200M so'm oylik limit" },
-        { icon: Globe, text: '3 tilda tarjima' },
+        { icon: DollarSign, text: 'Cheksiz savdo' },
+        { icon: Shield, text: '60-kun kafolat' },
       ],
       features: [
-        '400 ta mahsulot (100 har bir marketplace)',
-        '4 marketplace (Uzum, Yandex, Wildberries, Ozon)',
-        'Cheksiz AI kartochka yaratish',
-        'Cheksiz Trend Hunter',
-        '3 tilda professional tarjima',
-        '🎯 SEO optimizatsiya',
-        '📊 Narx monitoring',
-        '💰 Sof foyda tahlili',
-        "📈 To'liq savdo tahlili",
-        '🏪 Ombor boshqaruvi',
-        '🔄 Ommaviy operatsiyalar',
-        '📱 Telegram xabarnomalar',
-        '⏰ 24/7 monitoring',
-        '📧 Email yordam',
+        '60-kun savdo kafolati',
+        'Cheksiz AI kartochka',
+        'Barcha marketplace',
+        'Trend Hunter FULL',
+        'Sof foyda analitikasi',
+        '24/7 support',
+        'API access',
+        '3 tilda tarjima',
+        'SEO optimizatsiya',
+        'Narx monitoring',
       ],
       excluded: [],
       popular: true,
+      guarantee: true,
     },
     {
-      name: 'Professional',
-      badge: 'Premium',
-      badgeColor: 'bg-accent text-accent-foreground',
-      extraBadge: 'Enterprise',
-      price: '$899',
-      priceNum: 899,
-      period: '/oy',
-      priceSom: "10,788,000 so'm/oy",
-      commission: '1% komissiya',
-      commissionColor: 'bg-accent/10 text-accent',
-      description: 'Enterprise biznes',
-      cta: 'Professional rejasini tanlash',
+      name: 'Individual',
+      badge: 'VIP',
+      badgeColor: 'bg-primary text-primary-foreground',
+      price: 'Kelishiladi',
+      priceNum: 0,
+      period: '',
+      priceSom: "Shaxsiy taklif",
+      commission: '2% dan',
+      commissionColor: 'bg-primary/10 text-primary',
+      description: 'Katta sotuvchilar uchun',
+      cta: 'Taklif Olish',
       ctaVariant: 'outline' as const,
       limits: [
         { icon: Package, text: 'Cheksiz mahsulotlar' },
-        { icon: Globe, text: 'Barcha mavjud marketplacelar' },
+        { icon: Globe, text: 'Barcha marketplace' },
         { icon: Bot, text: 'Cheksiz AI kartochka' },
         { icon: Target, text: 'Cheksiz Trend Hunter' },
-        { icon: DollarSign, text: 'Cheksiz oylik savdo' },
-        { icon: Globe, text: '3 tilda tarjima' },
+        { icon: DollarSign, text: 'Cheksiz savdo' },
+        { icon: Users, text: 'Dedicated team' },
       ],
       features: [
-        'Cheksiz mahsulotlar',
-        '4+ marketplace (barcha mavjud)',
-        'Cheksiz AI kartochka',
-        'Cheksiz Trend Hunter',
-        '3 tilda professional tarjima',
-        'SEO optimizatsiya',
-        'Narx monitoring',
-        'Sof foyda tahlili',
-        '🧠 Kengaytirilgan AI tahlil',
-        '⚡ Tezkor yordam (1 soat)',
-        '👨‍💼 Shaxsiy menejer',
-        '🔌 API kirish',
-        '🎨 White-label branding',
-        '🔗 Maxsus integratsiyalar',
-        '🧪 A/B testing',
-        '🌍 Xalqaro kengayish',
+        'Premium imkoniyatlari',
+        'Past % ulush (2% dan)',
+        'Shaxsiy menejer',
+        'Custom integrations',
+        'SLA kafolati',
+        'Enterprise analytics',
+        'White-label branding',
+        'API priority',
       ],
       excluded: [],
       popular: false,
+      whoFor: [
+        'Oylik savdo $50,000+ bo\'lgan sotuvchilar',
+        'Ko\'p brendli bizneslar',
+        'Maxsus talablar bo\'lgan kompaniyalar',
+      ],
     },
   ];
 
   const faqs = [
     {
       question: "Platformani qanday boshlash mumkin?",
-      answer: "Ro'yxatdan o'ting, email tasdiqlash, marketplace'laringizni ulang va darhol ishni boshlang. Birinchi 7 kun bepul."
+      answer: "Ro'yxatdan o'ting, marketplace'laringizni ulang va AI bilan avtomatik ishlashni boshlang. 60 kunlik savdo kafolati bilan."
     },
     {
       question: "Qaysi marketplace'lar qo'llab-quvvatlanadi?",
@@ -377,11 +290,18 @@ export default function LandingNew() {
               <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                 Imkoniyatlar
               </a>
-              <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              <button onClick={() => setLocation('/pricing')} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                 Narxlar
-              </a>
-              <Button variant="ghost" onClick={() => setLocation('/demo')} className="gap-2">
-                <Play className="w-4 h-4" /> Demo
+              </button>
+              <Button variant="ghost" onClick={() => setLocation('/blog')} className="gap-2">
+                <Newspaper className="w-4 h-4" /> Blog
+              </Button>
+              <Button 
+                variant="ghost" 
+                onClick={() => setLocation('/seller')} 
+                className="gap-2 text-pink-500 hover:text-pink-600 hover:bg-pink-500/10"
+              >
+                <Instagram className="w-4 h-4" /> Reklama
               </Button>
             </div>
 
@@ -444,8 +364,8 @@ export default function LandingNew() {
             <div className="p-4 space-y-2">
               <a href="#features" className="block px-4 py-2 text-muted-foreground hover:text-foreground">Imkoniyatlar</a>
               <a href="#pricing" className="block px-4 py-2 text-muted-foreground hover:text-foreground">Narxlar</a>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => { setMobileMenuOpen(false); setLocation('/demo'); }}>
-                <Play className="w-4 h-4 mr-2" /> Demo
+              <Button variant="ghost" className="w-full justify-start" onClick={() => { setMobileMenuOpen(false); setLocation('/blog'); }}>
+                <Newspaper className="w-4 h-4 mr-2" /> Blog
               </Button>
               <Button variant="outline" className="w-full" onClick={() => { setMobileMenuOpen(false); setLocation('/partner-registration'); }}>
                 Ro'yxatdan o'tish
@@ -501,16 +421,28 @@ export default function LandingNew() {
             <Button 
               size="lg" 
               variant="outline" 
-              onClick={() => setLocation('/demo')} 
+              onClick={() => setLocation('/blog')} 
               className="text-lg px-8 py-6 hover-scale-sm"
             >
-              <Play className="w-5 h-5 mr-2" /> Demo ko'rish
+              <Newspaper className="w-5 h-5 mr-2" /> Yangiliklar
+            </Button>
+          </div>
+
+          {/* Promo Banner - Instagram/Reklama uchun */}
+          <div className="flex justify-center mb-8 animate-fade-in-up stagger-3">
+            <Button
+              onClick={() => setLocation('/seller')}
+              className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 hover:from-pink-600 hover:via-red-600 hover:to-yellow-600 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all"
+            >
+              <Instagram className="w-5 h-5 mr-2" />
+              🔥 Maxsus Taklif - Sotuvchilar uchun
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
 
           {/* Trust Indicators */}
           <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground mb-16 animate-fade-in-up stagger-4">
-            {['7 kun bepul', 'Kredit karta kerak emas', '5 daqiqada sozlash'].map((text, i) => (
+            {['60-kun kafolat', 'Savdo o\'sishi', '5 daqiqada sozlash'].map((text, i) => (
               <div key={i} className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-success" />
                 <span>{text}</span>
@@ -545,12 +477,21 @@ export default function LandingNew() {
           <p className="text-center text-muted-foreground mb-8 font-medium">Bizga ishonishadi</p>
           <div className="grid md:grid-cols-3 gap-6">
             {testimonials.map((item, i) => (
-              <div key={i} className="p-6 rounded-2xl bg-muted/50 border animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
-                <p className="text-foreground mb-4 italic">"{item.quote}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white font-bold">
-                    {item.name[0]}
-                  </div>
+              <div key={i} className="p-6 rounded-2xl bg-muted/50 border animate-fade-in hover:shadow-lg transition-shadow" style={{ animationDelay: `${i * 100}ms` }}>
+                <div className="flex items-start gap-1 mb-3">
+                  {[...Array(5)].map((_, j) => (
+                    <svg key={j} className="w-4 h-4 text-yellow-500 fill-current" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-foreground mb-4 italic leading-relaxed">"{item.quote}"</p>
+                <div className="flex items-center gap-3 pt-3 border-t border-border/50">
+                  <img 
+                    src={item.avatar} 
+                    alt={item.name}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"
+                  />
                   <div>
                     <p className="font-semibold text-foreground">{item.name}</p>
                     <p className="text-sm text-muted-foreground">{item.role}</p>
@@ -630,53 +571,54 @@ export default function LandingNew() {
       <section id="pricing" className="py-24 px-4 scroll-mt-24">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
-              <Crown className="w-4 h-4 mr-2" /> Tariflar
+            <Badge className="mb-4 bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] text-black px-6 py-2.5 shadow-lg">
+              <Crown className="w-4 h-4 mr-2" />
+              2026 MODEL
             </Badge>
-            <h2 className="text-3xl sm:text-section font-bold mb-4">O'zingizga mos tarifni tanlang</h2>
+            <h2 className="text-3xl sm:text-section font-bold mb-4">
+              <span className="text-gradient-primary">Faqat Natija Uchun To'lov</span>
+            </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-              Har qanday biznes o'lchami uchun moslashuvchan tariflar. Istalgan vaqt o'zgartiring yoki bekor qiling.
+              Savdolaringizdan faqat 4% olamiz. Savdo bo'lmasa - to'lov yo'q.
             </p>
-
-            {/* Billing Toggle */}
-            <div className="flex items-center justify-center gap-4 mt-8">
-              <button
-                onClick={() => setBillingPeriod('monthly')}
-                className={cn(
-                  'px-4 py-2 rounded-lg font-medium transition-all',
-                  billingPeriod === 'monthly' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                Oylik
-              </button>
-              <button
-                onClick={() => setBillingPeriod('yearly')}
-                className={cn(
-                  'px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2',
-                  billingPeriod === 'yearly' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                Yillik <Badge className="bg-success text-success-foreground text-xs">20% chegirma</Badge>
-              </button>
+            
+            {/* Guarantee badges */}
+            <div className="flex flex-wrap justify-center gap-4 mt-6">
+              <div className="flex items-center gap-2 bg-success/10 text-success px-4 py-2 rounded-full">
+                <Shield className="w-5 h-5" />
+                <span className="font-semibold">60-kun kafolat</span>
+              </div>
+              <div className="flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full">
+                <TrendingUp className="w-5 h-5" />
+                <span className="font-semibold">4% savdodan</span>
+              </div>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
+          {/* 2026 PRICING - 2 ta tarif */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {pricing.map((plan, i) => (
               <div
                 key={i}
                 className={cn(
-                  'relative animate-fade-in',
-                  plan.popular ? 'card-pricing-popular' : 'card-pricing hover:border-primary/50'
+                  'relative animate-fade-in p-6 rounded-2xl border bg-card',
+                  plan.popular ? 'border-accent shadow-xl shadow-accent/20' : 'border-border hover:border-primary/50'
                 )}
                 style={{ animationDelay: `${i * 100}ms` }}
               >
+                {/* Popular marker */}
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <Badge className="bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] text-black px-4 py-1 font-bold shadow-lg text-sm">
+                      <Star className="w-3 h-3 mr-1" />
+                      TAVSIYA
+                    </Badge>
+                  </div>
+                )}
+
                 {/* Badges */}
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-2 mb-3 pt-2">
                   <Badge className={plan.badgeColor}>{plan.badge}</Badge>
-                  {plan.extraBadge && (
-                    <Badge variant="outline" className="text-xs">{plan.extraBadge}</Badge>
-                  )}
                 </div>
 
                 {/* Tier Name */}
@@ -685,60 +627,91 @@ export default function LandingNew() {
                 {/* Price */}
                 <div className="mb-1">
                   <span className={cn(
-                    'text-5xl font-black',
+                    'text-4xl font-black',
                     plan.popular ? 'text-gradient-primary' : ''
                   )}>
-                    ${billingPeriod === 'yearly' ? Math.round(plan.priceNum * 0.8) : plan.priceNum}
+                    {plan.price}
                   </span>
-                  <span className="text-muted-foreground">{plan.period}</span>
+                  <span className="text-muted-foreground text-sm">{plan.period}</span>
                 </div>
-                <p className="text-sm text-muted-foreground mb-2">{plan.priceSom}</p>
+                
+                {/* So'm narxi */}
+                <p className="text-xs text-muted-foreground mb-2">{plan.priceSom}</p>
 
                 {/* Commission Badge */}
-                <Badge className={cn('mb-4', plan.commissionColor)}>{plan.commission}</Badge>
+                <Badge className={cn('mb-3', plan.commissionColor)}>{plan.commission}</Badge>
 
                 {/* Description */}
-                <p className="text-sm text-muted-foreground mb-6">{plan.description}</p>
+                <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
+
+                {/* 60-day guarantee badge for Premium */}
+                {plan.guarantee && (
+                  <div className="p-3 bg-success/10 rounded-lg border border-success/30 mb-4">
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-5 h-5 text-success flex-shrink-0" />
+                      <p className="font-semibold text-success text-sm">60-kun kafolat</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Who is this for - Individual */}
+                {plan.whoFor && (
+                  <div className="p-3 bg-muted/30 rounded-lg mb-4">
+                    <p className="font-semibold mb-1 text-xs">Kimlar uchun:</p>
+                    <ul className="text-xs text-muted-foreground space-y-0.5">
+                      {plan.whoFor.map((item, j) => (
+                        <li key={j}>• {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 {/* CTA Button */}
                 <Button
                   className={cn(
-                    'w-full mb-6',
-                    plan.popular && 'gradient-primary border-0 shadow-glow btn-glow'
+                    'w-full mb-4 py-5 font-bold',
+                    plan.popular ? 'bg-gradient-to-r from-[hsl(45,93%,47%)] to-[hsl(38,92%,55%)] text-black hover:from-[hsl(45,93%,50%)] hover:to-[hsl(38,92%,58%)]' : ''
                   )}
                   variant={plan.ctaVariant}
-                  onClick={() => setLocation('/partner-registration')}
+                  onClick={() => {
+                    if (plan.name === 'Individual') {
+                      window.open('https://t.me/sellercloudx_support', '_blank');
+                      return;
+                    }
+                    sessionStorage.setItem('selectedTier', JSON.stringify({
+                      id: plan.name.toLowerCase().replace(/\s+/g, '_'),
+                      name: plan.name,
+                      price: plan.priceNum,
+                      priceSom: plan.priceSom,
+                      commission: plan.commission,
+                    }));
+                    setLocation('/partner-registration?tariff=premium');
+                  }}
                 >
+                  {plan.name === 'Individual' ? <MessageCircle className="w-4 h-4 mr-2" /> : <Zap className="w-4 h-4 mr-2" />}
                   {plan.cta}
-                  {plan.popular ? <Star className="w-4 h-4 ml-2" /> : <ArrowRight className="w-4 h-4 ml-2" />}
                 </Button>
 
                 {/* Divider */}
-                <div className="border-t mb-6" />
+                <div className="border-t mb-4" />
 
                 {/* Limits */}
-                <div className="space-y-3 mb-6">
+                <div className="space-y-2 mb-4">
                   {plan.limits.map((limit, j) => (
-                    <div key={j} className="flex items-center gap-3 text-sm">
+                    <div key={j} className="flex items-center gap-2 text-sm">
                       <limit.icon className="w-4 h-4 text-primary shrink-0" />
-                      <span>{limit.text}</span>
+                      <span className="truncate">{limit.text}</span>
                     </div>
                   ))}
                 </div>
 
                 {/* Features */}
-                <p className="text-xs font-semibold text-muted-foreground uppercase mb-3">Xususiyatlar</p>
-                <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Xususiyatlar</p>
+                <div className="space-y-1.5">
                   {plan.features.map((feature, j) => (
-                    <div key={j} className="flex items-start gap-2 text-sm">
-                      <CheckCircle className="w-4 h-4 text-success shrink-0 mt-0.5" />
-                      <span>{feature}</span>
-                    </div>
-                  ))}
-                  {plan.excluded.map((feature, j) => (
-                    <div key={j} className="flex items-start gap-2 text-sm text-muted-foreground">
-                      <X className="w-4 h-4 shrink-0 mt-0.5" />
-                      <span>{feature}</span>
+                    <div key={j} className="flex items-start gap-2 text-xs">
+                      <CheckCircle className="w-3.5 h-3.5 text-success shrink-0 mt-0.5" />
+                      <span className="truncate">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -869,7 +842,7 @@ export default function LandingNew() {
               <div className="space-y-3 text-sm text-muted-foreground">
                 <a href="#features" className="block hover:text-foreground transition-colors">Imkoniyatlar</a>
                 <a href="#pricing" className="block hover:text-foreground transition-colors">Narxlar</a>
-                <a href="#" className="block hover:text-foreground transition-colors">Demo</a>
+                <a href="/blog" className="block hover:text-foreground transition-colors">Blog</a>
                 <a href="#" className="block hover:text-foreground transition-colors">API</a>
               </div>
             </div>
@@ -881,7 +854,7 @@ export default function LandingNew() {
                 <a href="#" className="block hover:text-foreground transition-colors">Biz haqimizda</a>
                 <a href="#" className="block hover:text-foreground transition-colors">Jamoa</a>
                 <a href="#" className="block hover:text-foreground transition-colors">Vakansiyalar</a>
-                <a href="#" className="block hover:text-foreground transition-colors">Blog</a>
+                <a href="/blog" className="block hover:text-foreground transition-colors">Yangiliklar</a>
               </div>
             </div>
 
