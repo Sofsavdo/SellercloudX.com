@@ -103,6 +103,14 @@ class YandexMarketAPI:
                 "error": str(e)
             }
     
+    async def check_connection(self) -> bool:
+        """Quick health check - returns True if connected"""
+        try:
+            result = await self.test_connection()
+            return result.get("success", False)
+        except:
+            return False
+    
     async def get_campaigns(self) -> dict:
         """Get list of seller's campaigns (shops)"""
         try:
@@ -532,6 +540,169 @@ class YandexMarketAPI:
                     }
         except Exception as e:
             return {"success": False, "error": str(e)}
+
+
+    async def get_orders(self, page: int = 1, status: str = None) -> dict:
+        """Get orders from Yandex Market"""
+        if not self.campaign_id:
+            return {"success": False, "error": "campaign_id required"}
+        
+        try:
+            params = {
+                "page": page,
+                "pageSize": 50
+            }
+            if status:
+                params["status"] = status
+            
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(
+                    f"{YANDEX_API_BASE}/v2/campaigns/{self.campaign_id}/orders",
+                    headers=self.headers,
+                    params=params
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    orders = data.get("orders", [])
+                    
+                    # Transform orders
+                    order_list = []
+                    for order in orders:
+                        order_list.append({
+                            "id": order.get("id"),
+                            "status": order.get("status"),
+                            "substatus": order.get("substatus"),
+                            "created_at": order.get("creationDate"),
+                            "total": order.get("total"),
+                            "items_count": len(order.get("items", [])),
+                            "buyer_region": order.get("delivery", {}).get("region", {}).get("name"),
+                            "delivery_type": order.get("delivery", {}).get("type")
+                        })
+                    
+                    return {
+                        "success": True,
+                        "orders": order_list,
+                        "paging": data.get("pager", {})
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "error": response.text,
+                        "status_code": response.status_code
+                    }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def get_sales_statistics(self, date_from: str = None, date_to: str = None) -> dict:
+        """Get sales statistics from Yandex Market"""
+        if not self.campaign_id:
+            return {"success": False, "error": "campaign_id required"}
+        
+        try:
+            # Use today if not specified
+            from datetime import datetime, timedelta
+            if not date_to:
+                date_to = datetime.now().strftime("%Y-%m-%d")
+            if not date_from:
+                date_from = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+            
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(
+                    f"{YANDEX_API_BASE}/v2/campaigns/{self.campaign_id}/stats/main",
+                    headers=self.headers,
+                    params={
+                        "fromDate": date_from,
+                        "toDate": date_to
+                    }
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    main_stats = data.get("mainStats", [])
+                    
+                    # Aggregate stats
+                    total_orders = 0
+                    total_revenue = 0
+                    total_items = 0
+                    
+                    for stat in main_stats:
+                        total_orders += stat.get("ordersCount", 0)
+                        total_revenue += stat.get("revenue", 0)
+                        total_items += stat.get("itemsCount", 0)
+                    
+                    return {
+                        "success": True,
+                        "data": {
+                            "total_orders": total_orders,
+                            "total_revenue": total_revenue,
+                            "total_items": total_items,
+                            "period": f"{date_from} - {date_to}",
+                            "daily_stats": main_stats
+                        }
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "error": response.text
+                    }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def get_dashboard_data(self) -> dict:
+        """Get full dashboard data - products, orders, statistics"""
+        result = {
+            "success": True,
+            "products": {"total": 0, "active": 0, "pending": 0},
+            "orders": {"total": 0, "pending": 0, "completed": 0},
+            "revenue": {"total": 0, "this_month": 0},
+            "connection_status": "unknown"
+        }
+        
+        try:
+            # Check connection
+            connection_ok = await self.check_connection()
+            result["connection_status"] = "active" if connection_ok else "error"
+            
+            if not connection_ok:
+                return result
+            
+            # Get products
+            products_data = await self.get_all_offers_status()
+            if products_data.get("success"):
+                stats = products_data.get("stats", {})
+                result["products"] = {
+                    "total": stats.get("total", 0),
+                    "active": stats.get("ready", 0),
+                    "pending": stats.get("in_moderation", 0),
+                    "need_content": stats.get("need_content", 0),
+                    "rejected": stats.get("rejected", 0)
+                }
+            
+            # Get orders
+            orders_data = await self.get_orders()
+            if orders_data.get("success"):
+                orders = orders_data.get("orders", [])
+                result["orders"] = {
+                    "total": len(orders),
+                    "pending": len([o for o in orders if o.get("status") in ["PROCESSING", "PENDING"]]),
+                    "completed": len([o for o in orders if o.get("status") == "DELIVERED"])
+                }
+            
+            # Get statistics
+            stats_data = await self.get_sales_statistics()
+            if stats_data.get("success"):
+                data = stats_data.get("data", {})
+                result["revenue"] = {
+                    "total": data.get("total_revenue", 0),
+                    "this_month": data.get("total_revenue", 0)
+                }
+            
+            return result
+            
+        except Exception as e:
+            result["error"] = str(e)
+            return result
 
 
 class YandexCardGenerator:

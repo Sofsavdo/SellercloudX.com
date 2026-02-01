@@ -827,10 +827,13 @@ async def get_connected_marketplaces(request: Request):
         marketplaces[mp]["connected"] = True
         
         # Real status check for Yandex
-        if mp == "yandex" and api_creds.get("oauth_token"):
+        # Support both "api_key" and "oauth_token" field names
+        yandex_token = api_creds.get("api_key") or api_creds.get("oauth_token")
+        
+        if mp == "yandex" and yandex_token:
             try:
                 api = YandexMarketAPI(
-                    oauth_token=api_creds.get("oauth_token"),
+                    oauth_token=yandex_token,
                     business_id=api_creds.get("business_id"),
                     campaign_id=api_creds.get("campaign_id")
                 )
@@ -838,12 +841,18 @@ async def get_connected_marketplaces(request: Request):
                 is_healthy = await api.check_connection()
                 if is_healthy:
                     marketplaces[mp]["status"] = "active"
+                    marketplaces[mp]["verified"] = True
+                    marketplaces[mp]["campaigns"] = api_creds.get("campaigns", [])
                 else:
                     marketplaces[mp]["status"] = "error"
                     marketplaces[mp]["error"] = "API kaliti muddati tugagan yoki noto'g'ri"
             except Exception as e:
                 marketplaces[mp]["status"] = "error"
                 marketplaces[mp]["error"] = str(e)
+        elif mp == "yandex":
+            # Credentials exist but no token
+            marketplaces[mp]["status"] = "incomplete"
+            marketplaces[mp]["error"] = "API kaliti kiritilmagan"
         elif mp == "yandex":
             marketplaces[mp]["status"] = "connected"  # Connected but not verified
     
@@ -7748,6 +7757,145 @@ async def get_admin_users(request: Request):
     except Exception as e:
         print(f"Error getting admins: {e}")
         return {"success": True, "data": []}
+
+
+# ========================================
+# YANDEX MARKET - DASHBOARD DATA ENDPOINTS
+# ========================================
+
+@app.get("/api/partner/yandex/dashboard")
+async def get_yandex_dashboard_data(request: Request):
+    """Get Yandex Market dashboard data - products, orders, revenue"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    # Get Yandex credentials
+    creds = await get_marketplace_credentials(partner["id"])
+    yandex_creds = None
+    
+    for c in creds:
+        if c.get("marketplace") == "yandex":
+            api_creds = c.get("api_credentials") or c.get("credentials", {})
+            if isinstance(api_creds, str):
+                try:
+                    api_creds = json.loads(api_creds)
+                except:
+                    api_creds = {}
+            yandex_creds = api_creds
+            break
+    
+    if not yandex_creds:
+        return {
+            "success": False,
+            "error": "Yandex Market ulanmagan",
+            "data": {
+                "connection_status": "not_connected",
+                "products": {"total": 0, "active": 0, "pending": 0},
+                "orders": {"total": 0, "pending": 0, "completed": 0},
+                "revenue": {"total": 0, "this_month": 0}
+            }
+        }
+    
+    yandex_token = yandex_creds.get("api_key") or yandex_creds.get("oauth_token")
+    
+    if not yandex_token:
+        return {
+            "success": False,
+            "error": "API kaliti topilmadi",
+            "data": {"connection_status": "incomplete"}
+        }
+    
+    api = YandexMarketAPI(
+        oauth_token=yandex_token,
+        business_id=yandex_creds.get("business_id"),
+        campaign_id=yandex_creds.get("campaign_id")
+    )
+    
+    dashboard = await api.get_dashboard_data()
+    
+    return {
+        "success": True,
+        "data": dashboard
+    }
+
+
+@app.get("/api/partner/yandex/orders")
+async def get_yandex_orders(request: Request, page: int = 1):
+    """Get orders from Yandex Market"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    # Get Yandex credentials
+    creds = await get_marketplace_credentials(partner["id"])
+    yandex_creds = None
+    
+    for c in creds:
+        if c.get("marketplace") == "yandex":
+            api_creds = c.get("api_credentials") or c.get("credentials", {})
+            if isinstance(api_creds, str):
+                try:
+                    api_creds = json.loads(api_creds)
+                except:
+                    api_creds = {}
+            yandex_creds = api_creds
+            break
+    
+    if not yandex_creds:
+        return {"success": False, "error": "Yandex Market ulanmagan", "orders": []}
+    
+    yandex_token = yandex_creds.get("api_key") or yandex_creds.get("oauth_token")
+    
+    api = YandexMarketAPI(
+        oauth_token=yandex_token,
+        business_id=yandex_creds.get("business_id"),
+        campaign_id=yandex_creds.get("campaign_id")
+    )
+    
+    return await api.get_orders(page=page)
+
+
+@app.get("/api/partner/yandex/statistics")
+async def get_yandex_statistics(request: Request, date_from: str = None, date_to: str = None):
+    """Get sales statistics from Yandex Market"""
+    user = await require_auth(request)
+    partner = await get_partner_by_user_id(user["id"])
+    
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner topilmadi")
+    
+    # Get Yandex credentials
+    creds = await get_marketplace_credentials(partner["id"])
+    yandex_creds = None
+    
+    for c in creds:
+        if c.get("marketplace") == "yandex":
+            api_creds = c.get("api_credentials") or c.get("credentials", {})
+            if isinstance(api_creds, str):
+                try:
+                    api_creds = json.loads(api_creds)
+                except:
+                    api_creds = {}
+            yandex_creds = api_creds
+            break
+    
+    if not yandex_creds:
+        return {"success": False, "error": "Yandex Market ulanmagan", "data": {}}
+    
+    yandex_token = yandex_creds.get("api_key") or yandex_creds.get("oauth_token")
+    
+    api = YandexMarketAPI(
+        oauth_token=yandex_token,
+        business_id=yandex_creds.get("business_id"),
+        campaign_id=yandex_creds.get("campaign_id")
+    )
+    
+    return await api.get_sales_statistics(date_from=date_from, date_to=date_to)
 
 
 @app.get("/api/admin/marketplace-configs")
