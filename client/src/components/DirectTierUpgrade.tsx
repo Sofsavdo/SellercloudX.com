@@ -1,15 +1,21 @@
-// Direct Tier Upgrade - To'lov qilib avtomatik tarif almashish
-// Kompakt bir ekranga sig'adigan dizayn
+// Direct Tier Upgrade - 2026 Revenue Share Model
+// Premium: $499/oy + $699 setup + 4% savdodan
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent } from './ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { CheckCircle, Crown, Sparkles, Zap, CreditCard, Loader2, ArrowRight, Bot, X } from 'lucide-react';
-import { PRICING_TIERS, getTierById } from '@/constants/pricing';
+import { 
+  CheckCircle, Crown, Sparkles, Shield, CreditCard, Loader2, 
+  ArrowRight, Phone, MessageCircle, Users, DollarSign, Percent
+} from 'lucide-react';
+import { 
+  PRICING_TIERS, getTierById, 
+  USD_TO_UZS, PREMIUM_MONTHLY_USD, PREMIUM_SETUP_USD, PREMIUM_REVENUE_SHARE 
+} from '@/constants/pricing';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
@@ -25,32 +31,27 @@ const PAYMENT_METHODS = [
   { id: 'uzcard', name: 'UzCard', logo: '💳' },
 ];
 
-export function DirectTierUpgrade({ currentTier, partnerId, aiCardsUsed = 0 }: DirectTierUpgradeProps) {
+export function DirectTierUpgrade({ currentTier, partnerId }: DirectTierUpgradeProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedTier, setSelectedTier] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState('click');
   const [showPayment, setShowPayment] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('click');
+  const [paymentType, setPaymentType] = useState<'setup' | 'monthly'>('setup');
 
   const currentTierData = getTierById(currentTier);
-  const currentIndex = PRICING_TIERS.findIndex(t => t.id === currentTierData?.id);
+  const isPremium = currentTierData?.id === 'premium';
 
-  // Free tarif uchun AI limit - 10 ta kartochka
-  const FREE_AI_LIMIT = 10;
-  const showAIUpgradePrompt = currentTierData?.id === 'free' && aiCardsUsed >= FREE_AI_LIMIT;
-
-  // Process payment and upgrade tier
+  // Process payment
   const upgradeMutation = useMutation({
-    mutationFn: async (data: { targetTier: string; paymentMethod: string }) => {
-      const response = await apiRequest('POST', '/api/subscriptions/direct-upgrade', data);
+    mutationFn: async (data: { paymentType: string; paymentMethod: string }) => {
+      const response = await apiRequest('POST', '/api/billing/revenue-share/payment', data);
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast({
         title: 'Muvaffaqiyatli!',
-        description: `Tarifingiz ${getTierById(data.newTier)?.name} ga yangilandi!`,
+        description: 'To\'lov qabul qilindi!',
       });
-      setSelectedTier(null);
       setShowPayment(false);
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       queryClient.invalidateQueries({ queryKey: ['/api/partner/me'] });
@@ -64,181 +65,226 @@ export function DirectTierUpgrade({ currentTier, partnerId, aiCardsUsed = 0 }: D
     },
   });
 
-  const handleSelectTier = (tierId: string) => {
-    setSelectedTier(tierId);
-    setShowPayment(true);
-  };
-
   const handlePayment = () => {
-    if (!selectedTier) return;
     upgradeMutation.mutate({
-      targetTier: selectedTier,
+      paymentType,
       paymentMethod,
     });
   };
 
-  const selectedTierData = selectedTier ? getTierById(selectedTier) : null;
+  const formatUzs = (amount: number) => {
+    return new Intl.NumberFormat('uz-UZ').format(amount) + " so'm";
+  };
 
   return (
-    <div className="space-y-4">
-      {/* AI Upgrade Prompt for Free Users */}
-      {showAIUpgradePrompt && (
-        <div className="p-4 bg-warning/10 border border-warning/30 rounded-lg flex items-center gap-3">
-          <Bot className="w-5 h-5 text-warning flex-shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-medium">AI limitingiz tugadi! ({aiCardsUsed}/{FREE_AI_LIMIT})</p>
+    <div className="space-y-6">
+      {/* 2026 Revenue Share Model Info */}
+      <Card className="border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Crown className="w-5 h-5 text-primary" />
+              2026 Premium Model
+            </CardTitle>
+            <Badge className="bg-accent text-accent-foreground">
+              <Shield className="w-3 h-3 mr-1" />
+              60-kun kafolat
+            </Badge>
           </div>
-          <Button size="sm" onClick={() => handleSelectTier('basic')} className="gap-1">
-            <Sparkles className="w-3 h-3" /> Yangilash
-          </Button>
-        </div>
-      )}
-
-      {/* Current Tier - Compact */}
-      <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20">
-        <div className="flex items-center gap-2">
-          <Crown className="w-4 h-4 text-primary" />
-          <span className="font-medium">Joriy: {currentTierData?.name}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-bold">{currentTierData?.priceSom}</span>
-          <Badge variant="outline" className="text-xs">{currentTierData?.badge}</Badge>
-        </div>
-      </div>
-
-      {/* Available Tiers - 2x2 Compact Grid */}
-      <div className="grid grid-cols-2 gap-3">
-        {PRICING_TIERS.map((tier, index) => {
-          const isCurrent = tier.id === currentTierData?.id;
-          const isLower = index < currentIndex;
-          const Icon = tier.popular ? Sparkles : tier.id === 'professional' ? Crown : Zap;
-
-          return (
-            <div
-              key={tier.id}
-              className={`
-                p-3 rounded-lg border transition-all
-                ${isCurrent ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
-                ${tier.popular ? 'ring-1 ring-primary/30' : ''}
-                ${isLower ? 'opacity-50' : ''}
-              `}
-            >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-1.5">
-                  <Icon className="w-4 h-4 text-primary" />
-                  <span className="font-semibold text-sm">{tier.name}</span>
-                </div>
-                {tier.popular && <Badge className="text-[10px] px-1.5 py-0">MASHHUR</Badge>}
-              </div>
-              
-              <p className="text-lg font-bold mb-1">{tier.priceSom}</p>
-              <p className="text-[10px] text-muted-foreground mb-2">{tier.commission}</p>
-              
-              <div className="text-[10px] text-muted-foreground space-y-0.5 mb-2">
-                {tier.limits.slice(0, 2).map((limit, i) => (
-                  <div key={i} className="flex items-center gap-1">
-                    <CheckCircle className="w-2.5 h-2.5 text-primary" />
-                    <span>{limit.text}</span>
-                  </div>
-                ))}
-              </div>
-
-              {isCurrent ? (
-                <Button size="sm" className="w-full h-7 text-xs" disabled>
-                  <CheckCircle className="w-3 h-3 mr-1" /> Joriy
-                </Button>
-              ) : isLower ? (
-                <Button size="sm" variant="ghost" className="w-full h-7 text-xs" disabled>
-                  Pastroq
-                </Button>
-              ) : (
-                <Button 
-                  size="sm" 
-                  variant={tier.popular ? 'default' : 'outline'}
-                  className="w-full h-7 text-xs"
-                  onClick={() => handleSelectTier(tier.id)}
-                >
-                  Tanlash <ArrowRight className="w-3 h-3 ml-1" />
-                </Button>
-              )}
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Pricing Breakdown */}
+          <div className="grid grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">Bir martalik sozlash</p>
+              <p className="text-xl font-bold text-foreground">${PREMIUM_SETUP_USD}</p>
+              <p className="text-xs text-muted-foreground">{formatUzs(PREMIUM_SETUP_USD * USD_TO_UZS)}</p>
             </div>
-          );
-        })}
-      </div>
+            <div className="text-center border-x border-border">
+              <p className="text-sm text-muted-foreground">Oylik to'lov</p>
+              <p className="text-xl font-bold text-foreground">${PREMIUM_MONTHLY_USD}</p>
+              <p className="text-xs text-muted-foreground">{formatUzs(PREMIUM_MONTHLY_USD * USD_TO_UZS)}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">Savdodan ulush</p>
+              <p className="text-xl font-bold text-accent">{PREMIUM_REVENUE_SHARE * 100}%</p>
+              <p className="text-xs text-muted-foreground">Har oyning oxirida</p>
+            </div>
+          </div>
 
-      {/* Payment Modal - Compact Dialog */}
+          {/* Features */}
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              'Cheksiz AI kartochka',
+              'Barcha marketplace',
+              '60-kun kafolat',
+              'Sof foyda analitikasi',
+              'Trend Hunter FULL',
+              '24/7 support',
+              'Nano Banana infografika',
+              'MXIK avtomatik',
+            ].map((feature, i) => (
+              <div key={i} className="flex items-center gap-2 text-sm">
+                <CheckCircle className="w-4 h-4 text-success flex-shrink-0" />
+                <span>{feature}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Guarantee Badge */}
+          <div className="p-3 bg-success/10 rounded-lg border border-success/30 flex items-center gap-3">
+            <Shield className="w-6 h-6 text-success" />
+            <div>
+              <p className="font-semibold text-success">60-KUN KAFOLAT</p>
+              <p className="text-xs text-muted-foreground">
+                Savdo o'smasa, oylik to'lovning bir qismini qaytaramiz
+              </p>
+            </div>
+          </div>
+
+          {/* Payment Buttons */}
+          <div className="flex gap-3">
+            <Button 
+              className="flex-1 bg-gradient-to-r from-primary to-accent"
+              onClick={() => {
+                setPaymentType('setup');
+                setShowPayment(true);
+              }}
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              Setup To'lash (${PREMIUM_SETUP_USD})
+            </Button>
+            <Button 
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setPaymentType('monthly');
+                setShowPayment(true);
+              }}
+            >
+              <DollarSign className="w-4 h-4 mr-2" />
+              Oylik To'lash (${PREMIUM_MONTHLY_USD})
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Individual Tariff - for large sellers */}
+      <Card className="border border-border">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                <Users className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Individual Tarif</h3>
+                <p className="text-sm text-muted-foreground">Katta sotuvchilar uchun maxsus</p>
+              </div>
+            </div>
+            <Badge variant="outline" className="border-primary text-primary">
+              VIP
+            </Badge>
+          </div>
+
+          <div className="p-4 bg-muted/30 rounded-lg mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-muted-foreground">Setup:</span>
+              <span className="font-bold">$1599+ (kelishiladi)</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Revenue Share:</span>
+              <span className="font-bold text-primary">2% dan</span>
+            </div>
+          </div>
+
+          <p className="text-sm text-muted-foreground mb-4">
+            Oylik savdo $50,000+ bo'lgan sotuvchilar uchun maxsus shartlar, 
+            shaxsiy menejer va SLA kafolati.
+          </p>
+
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => window.open('https://t.me/sellercloudx_support', '_blank')}
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Telegram
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => window.open('tel:+998901234567', '_blank')}
+            >
+              <Phone className="w-4 h-4 mr-2" />
+              Qo'ng'iroq
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Payment Dialog */}
       <Dialog open={showPayment} onOpenChange={setShowPayment}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base">
-              <CreditCard className="w-4 h-4" />
-              {selectedTierData?.name} tarifiga o'tish
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5" />
+              {paymentType === 'setup' ? 'Setup To\'lov' : 'Oylik To\'lov'}
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4">
-            {/* Summary */}
-            <div className="bg-muted/50 p-3 rounded-lg text-sm">
-              <div className="flex justify-between mb-1">
-                <span className="text-muted-foreground">Tarif</span>
-                <span className="font-medium">{selectedTierData?.name}</span>
-              </div>
-              <div className="flex justify-between pt-2 border-t">
-                <span className="font-medium">Jami</span>
-                <span className="text-lg font-bold text-primary">{selectedTierData?.priceSom}</span>
-              </div>
+            {/* Amount */}
+            <div className="p-4 bg-muted rounded-lg text-center">
+              <p className="text-sm text-muted-foreground">To'lov summasi</p>
+              <p className="text-3xl font-bold">
+                ${paymentType === 'setup' ? PREMIUM_SETUP_USD : PREMIUM_MONTHLY_USD}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {formatUzs((paymentType === 'setup' ? PREMIUM_SETUP_USD : PREMIUM_MONTHLY_USD) * USD_TO_UZS)}
+              </p>
             </div>
 
-            {/* Payment Methods - Horizontal */}
+            {/* Payment Method */}
             <div>
-              <Label className="text-xs font-medium mb-2 block">To'lov usuli</Label>
-              <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="flex gap-2">
+              <Label className="text-sm font-medium mb-2 block">To'lov usuli</Label>
+              <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-3 gap-2">
                 {PAYMENT_METHODS.map((method) => (
-                  <div 
-                    key={method.id} 
-                    className={`flex-1 flex items-center justify-center gap-1.5 p-2 border rounded cursor-pointer transition-colors
-                      ${paymentMethod === method.id ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'}
-                    `}
-                    onClick={() => setPaymentMethod(method.id)}
-                  >
-                    <RadioGroupItem value={method.id} id={method.id} className="sr-only" />
-                    <span>{method.logo}</span>
-                    <span className="text-xs font-medium">{method.name}</span>
+                  <div key={method.id}>
+                    <RadioGroupItem value={method.id} id={method.id} className="peer sr-only" />
+                    <Label
+                      htmlFor={method.id}
+                      className="flex flex-col items-center justify-center p-3 border rounded-lg cursor-pointer peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5"
+                    >
+                      <span className="text-2xl">{method.logo}</span>
+                      <span className="text-xs mt-1">{method.name}</span>
+                    </Label>
                   </div>
                 ))}
               </RadioGroup>
             </div>
 
-            {/* Actions */}
-            <div className="flex gap-2">
-              <Button 
-                onClick={handlePayment} 
-                disabled={upgradeMutation.isPending}
-                className="flex-1 gap-1.5"
-                size="sm"
-              >
-                {upgradeMutation.isPending ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                  <CreditCard className="w-3 h-3" />
-                )}
-                To'lov qilish
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => {
-                  setShowPayment(false);
-                  setSelectedTier(null);
-                }}
-              >
-                Bekor
-              </Button>
-            </div>
-
-            <p className="text-[10px] text-muted-foreground text-center">
-              To'lov muvaffaqiyatli bo'lgach tarif avtomatik yangilanadi
-            </p>
+            {/* Pay Button */}
+            <Button 
+              className="w-full" 
+              size="lg"
+              onClick={handlePayment}
+              disabled={upgradeMutation.isPending}
+            >
+              {upgradeMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  To'lov jarayonida...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  To'lash
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

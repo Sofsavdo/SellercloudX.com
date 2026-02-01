@@ -1,4 +1,4 @@
-import { Package, Globe, Bot, Target, DollarSign } from 'lucide-react';
+import { Package, Globe, Bot, Target, DollarSign, Crown, Shield, Users } from 'lucide-react';
 
 export interface PricingTier {
   id: string;
@@ -10,6 +10,10 @@ export interface PricingTier {
   priceNum: number;
   period: string;
   priceSom: string;
+  setupFee?: string;
+  setupFeeNum?: number;
+  revenueShare?: string;
+  revenueSharePercent?: number;
   commission: string;
   commissionColor: string;
   description: string;
@@ -19,175 +23,94 @@ export interface PricingTier {
   features: string[];
   excluded: string[];
   popular: boolean;
+  guarantee?: string;
 }
 
+// 2026 REVENUE SHARE MODEL
 export const PRICING_TIERS: PricingTier[] = [
   {
-    id: 'free',
-    name: 'Free Starter',
-    badge: 'BEPUL',
-    badgeColor: 'bg-success text-success-foreground',
-    price: '$0',
-    priceNum: 0,
+    id: 'premium',
+    name: 'Premium',
+    badge: 'TAVSIYA',
+    badgeColor: 'bg-accent text-accent-foreground badge-pulse',
+    extraBadge: '60-kun kafolat',
+    price: '$499',
+    priceNum: 499,
     period: '/oy',
-    priceSom: "0 so'm/oy",
-    commission: '2% komissiya',
-    commissionColor: 'bg-success/10 text-success',
-    description: "Sinab ko'rish uchun",
-    cta: 'Bepul boshlash',
-    ctaVariant: 'outline',
-    limits: [
-      { icon: Package, text: '10 ta mahsulot' },
-      { icon: Globe, text: '1 marketplace (Yandex Market)' },
-      { icon: Bot, text: '10 AI kartochka' },
-      { icon: Target, text: '10 marta/oy Trend Hunter' },
-      { icon: DollarSign, text: "15M so'm oylik limit" },
-      { icon: Globe, text: '3 tilda tarjima' },
-    ],
-    features: [
-      '10 ta mahsulot',
-      '1 marketplace (Yandex Market)',
-      'AI kartochka yaratish (10 ta)',
-      'Trend Hunter (10 marta/oy)',
-      '3 tilda tarjima',
-      'Asosiy savdo statistikasi',
-      'Ombor monitoring',
-      'Admin chat yordam',
-      'Email yordam',
-    ],
-    excluded: [
-      'Sof foyda tahlili',
-      'Narx monitoring',
-      'SEO optimizatsiya',
-      "Ko'p marketplace",
-      'Telegram xabarnomalar',
-    ],
-    popular: false,
-  },
-  {
-    id: 'basic',
-    name: 'Basic',
-    badge: 'Arzon',
-    badgeColor: 'bg-warning text-warning-foreground',
-    price: '$69',
-    priceNum: 69,
-    period: '/oy',
-    priceSom: "828,000 so'm/oy",
-    commission: '1.8% komissiya',
-    commissionColor: 'bg-warning/10 text-warning',
-    description: 'Kichik biznes uchun',
-    cta: 'Basic rejasini tanlash',
-    ctaVariant: 'outline',
-    limits: [
-      { icon: Package, text: '69 ta mahsulot' },
-      { icon: Globe, text: '1 marketplace (Yandex Market)' },
-      { icon: Bot, text: '69 AI kartochka' },
-      { icon: Target, text: '69 marta/oy Trend Hunter' },
-      { icon: DollarSign, text: "69M so'm oylik limit" },
-      { icon: Globe, text: '3 tilda tarjima' },
-    ],
-    features: [
-      '69 ta mahsulot',
-      '1 marketplace (Yandex Market)',
-      'AI kartochka yaratish (69 ta)',
-      'Trend Hunter (69 marta/oy)',
-      '3 tilda tarjima',
-      '✨ Sof foyda tahlili',
-      "To'liq savdo statistikasi",
-      'Ombor boshqaruvi',
-      'Telegram xabarnomalar',
-      'Email yordam',
-    ],
-    excluded: [
-      "Ko'p marketplace",
-      'SEO optimizatsiya',
-      'Narx monitoring',
-      'Ommaviy operatsiyalar',
-    ],
-    popular: false,
-  },
-  {
-    id: 'starter_pro',
-    name: 'Starter Pro',
-    badge: 'MASHHUR',
-    badgeColor: 'bg-primary text-primary-foreground badge-pulse',
-    extraBadge: "Eng ko'p tanlangan",
-    price: '$349',
-    priceNum: 349,
-    period: '/oy',
-    priceSom: "4,188,000 so'm/oy",
-    commission: '1.5% komissiya',
-    commissionColor: 'bg-primary/10 text-primary',
-    description: "O'sib borayotgan biznes",
-    cta: 'Starter Pro rejasini tanlash',
+    priceSom: "6,300,000 so'm/oy",
+    setupFee: '$699',
+    setupFeeNum: 699,
+    revenueShare: '4% savdodan',
+    revenueSharePercent: 4,
+    commission: '4% revenue share',
+    commissionColor: 'bg-accent/10 text-accent',
+    description: "To'liq AI avtomatizatsiya",
+    cta: 'Hoziroq Boshlash',
     ctaVariant: 'default',
     limits: [
-      { icon: Package, text: '400 ta mahsulot (100/marketplace)' },
-      { icon: Globe, text: '4 marketplace (Uzum, Yandex, WB, Ozon)' },
+      { icon: Package, text: 'Cheksiz mahsulotlar' },
+      { icon: Globe, text: '4 marketplace' },
       { icon: Bot, text: 'Cheksiz AI kartochka' },
       { icon: Target, text: 'Cheksiz Trend Hunter' },
-      { icon: DollarSign, text: "200M so'm oylik limit" },
-      { icon: Globe, text: '3 tilda tarjima' },
+      { icon: DollarSign, text: 'Cheksiz savdo' },
+      { icon: Shield, text: '60-kun kafolat' },
     ],
     features: [
-      '400 ta mahsulot (100 har bir marketplace)',
-      '4 marketplace (Uzum, Yandex, Wildberries, Ozon)',
+      '60-kun savdo o\'sishi kafolati',
       'Cheksiz AI kartochka yaratish',
-      'Cheksiz Trend Hunter',
-      '3 tilda professional tarjima',
-      '🎯 SEO optimizatsiya',
-      '📊 Narx monitoring',
-      '💰 Sof foyda tahlili',
-      "📈 To'liq savdo tahlili",
-      '🏪 Ombor boshqaruvi',
-      '🔄 Ommaviy operatsiyalar',
-      '📱 Telegram xabarnomalar',
-      '⏰ 24/7 monitoring',
-      '📧 Email yordam',
+      'Barcha marketplace integratsiya',
+      'Trend Hunter FULL access',
+      'Sof foyda analitikasi',
+      '24/7 support',
+      'API access',
+      '3 tilda tarjima',
+      'SEO optimizatsiya',
+      'Narx monitoring',
+      'Nano Banana infografika',
+      'MXIK kod avtomatik',
     ],
     excluded: [],
     popular: true,
+    guarantee: '60 kunlik savdo o\'sishi kafolati',
   },
   {
-    id: 'professional',
-    name: 'Professional',
-    badge: 'Premium',
-    badgeColor: 'bg-accent text-accent-foreground',
-    extraBadge: 'Enterprise',
-    price: '$899',
-    priceNum: 899,
-    period: '/oy',
-    priceSom: "10,788,000 so'm/oy",
-    commission: '1% komissiya',
-    commissionColor: 'bg-accent/10 text-accent',
-    description: 'Enterprise biznes',
-    cta: 'Professional rejasini tanlash',
+    id: 'individual',
+    name: 'Individual',
+    badge: 'VIP',
+    badgeColor: 'bg-primary text-primary-foreground',
+    extraBadge: 'Katta sotuvchilar',
+    price: 'Kelishiladi',
+    priceNum: 0,
+    period: '',
+    priceSom: "Shaxsiy taklif",
+    setupFee: '$1599+',
+    setupFeeNum: 1599,
+    revenueShare: '2% dan',
+    revenueSharePercent: 2,
+    commission: '2% dan revenue share',
+    commissionColor: 'bg-primary/10 text-primary',
+    description: 'Katta sotuvchilar uchun',
+    cta: 'Taklif Olish',
     ctaVariant: 'outline',
     limits: [
       { icon: Package, text: 'Cheksiz mahsulotlar' },
-      { icon: Globe, text: 'Barcha mavjud marketplacelar' },
+      { icon: Globe, text: 'Barcha marketplace' },
       { icon: Bot, text: 'Cheksiz AI kartochka' },
       { icon: Target, text: 'Cheksiz Trend Hunter' },
-      { icon: DollarSign, text: 'Cheksiz oylik savdo' },
-      { icon: Globe, text: '3 tilda tarjima' },
+      { icon: DollarSign, text: 'Cheksiz savdo' },
+      { icon: Users, text: 'Dedicated team' },
     ],
     features: [
-      'Cheksiz mahsulotlar',
-      '4+ marketplace (barcha mavjud)',
-      'Cheksiz AI kartochka',
-      'Cheksiz Trend Hunter',
-      '3 tilda professional tarjima',
-      'SEO optimizatsiya',
-      'Narx monitoring',
-      'Sof foyda tahlili',
-      '🧠 Kengaytirilgan AI tahlil',
-      '⚡ Tezkor yordam (1 soat)',
-      '👨‍💼 Shaxsiy menejer',
-      '🔌 API kirish',
-      '🎨 White-label branding',
-      '🔗 Maxsus integratsiyalar',
-      '🧪 A/B testing',
-      '🌍 Xalqaro kengayish',
+      'Premium ning barcha imkoniyatlari',
+      'Pastroq % ulush (2% dan)',
+      'Shaxsiy menejer',
+      'Custom integrations',
+      'SLA kafolati',
+      'Enterprise analytics',
+      'White-label branding',
+      'API priority',
+      'On-site training',
+      'Multi-brand support',
     ],
     excluded: [],
     popular: false,
@@ -196,14 +119,20 @@ export const PRICING_TIERS: PricingTier[] = [
 
 // Tier name to ID mapping for database compatibility
 export const TIER_NAME_TO_ID: Record<string, string> = {
-  'Free Starter': 'free',
-  'free': 'free',
-  'Basic': 'basic',
-  'basic': 'basic',
-  'Starter Pro': 'starter_pro',
-  'starter_pro': 'starter_pro',
-  'Professional': 'professional',
-  'professional': 'professional',
+  'Premium': 'premium',
+  'premium': 'premium',
+  'Individual': 'individual',
+  'individual': 'individual',
+  // Legacy mappings for backward compatibility
+  'Free Starter': 'premium',
+  'free': 'premium',
+  'free_starter': 'premium',
+  'Basic': 'premium',
+  'basic': 'premium',
+  'Starter Pro': 'premium',
+  'starter_pro': 'premium',
+  'Professional': 'individual',
+  'professional': 'individual',
 };
 
 // Helper function to get tier by ID or name
@@ -217,3 +146,11 @@ export function getTierDisplayName(idOrName: string): string {
   const tier = getTierById(idOrName);
   return tier?.name || idOrName;
 }
+
+// 2026 Pricing Constants
+export const USD_TO_UZS = 12600;
+export const PREMIUM_MONTHLY_USD = 499;
+export const PREMIUM_SETUP_USD = 699;
+export const PREMIUM_REVENUE_SHARE = 0.04; // 4%
+export const INDIVIDUAL_MIN_SETUP_USD = 1599;
+export const INDIVIDUAL_MIN_REVENUE_SHARE = 0.02; // 2%

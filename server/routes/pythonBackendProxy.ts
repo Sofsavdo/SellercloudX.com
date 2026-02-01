@@ -3,6 +3,8 @@
  * 
  * Bu modul Node.js serverdan Python FastAPI backend'ga so'rovlarni proxy qiladi
  * Yandex Market va Uzum avtomatlashtirish API'lari uchun
+ * 
+ * MUHIM: Node.js session ma'lumotlari Python backend'ga X-User-* headerlar orqali yuboriladi
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
@@ -30,6 +32,21 @@ router.all('*', async (req: Request, res: Response) => {
     // Pass Authorization header if present
     if (req.headers.authorization) {
       proxyHeaders['Authorization'] = req.headers.authorization as string;
+    }
+    
+    // CRITICAL: Pass Node.js session user info to Python backend
+    // This ensures Python backend knows which user is making the request
+    const sessionUser = (req as any).session?.user;
+    if (sessionUser) {
+      proxyHeaders['X-User-Id'] = sessionUser.id || '';
+      proxyHeaders['X-User-Role'] = sessionUser.role || '';
+      proxyHeaders['X-User-Email'] = sessionUser.email || '';
+      proxyHeaders['X-User-Username'] = sessionUser.username || '';
+      // Also pass partner ID if available
+      if (sessionUser.partnerId) {
+        proxyHeaders['X-Partner-Id'] = sessionUser.partnerId;
+      }
+      console.log(`📤 Proxying with session user: ${sessionUser.username} (${sessionUser.role})`);
     }
     
     const response = await axios({

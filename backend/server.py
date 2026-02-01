@@ -156,7 +156,22 @@ class RegisterRequest(BaseModel):
     businessCategory: Optional[str] = "general"
 
 async def get_current_user(authorization: str = None, request: Request = None):
-    """Get current user from Authorization header"""
+    """Get current user from Authorization header or X-User-* headers from Node.js proxy"""
+    
+    # FIRST: Check X-User-Id header from Node.js proxy (session-based auth)
+    if request:
+        x_user_id = request.headers.get("X-User-Id")
+        if x_user_id:
+            # User authenticated via Node.js session
+            return {
+                "id": x_user_id,
+                "role": request.headers.get("X-User-Role", "partner"),
+                "email": request.headers.get("X-User-Email", ""),
+                "username": request.headers.get("X-User-Username", ""),
+                "partner_id": request.headers.get("X-Partner-Id", "")
+            }
+    
+    # FALLBACK: Check Authorization header (token-based auth)
     if not authorization and request:
         authorization = request.headers.get("Authorization")
     
