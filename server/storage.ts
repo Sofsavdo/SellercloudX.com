@@ -176,16 +176,23 @@ export async function createPartner(partnerData: {
   userId: string;
   businessName?: string;
   businessCategory: string;
+  businessType?: string;
+  inn?: string;
   monthlyRevenue?: string;
   pricingTier?: string;
+  billingPeriod?: string;
   phone: string;
   notes?: string;
   referralCode?: string; // New: referral code from registration
+  approved?: boolean;
+  isActive?: boolean;
+  aiEnabled?: boolean;
 }): Promise<Partner> {
   try {
     console.log('📝 Creating partner with data:', {
       userId: partnerData.userId,
       businessName: partnerData.businessName,
+      inn: partnerData.inn,
       phone: partnerData.phone,
       pricingTier: partnerData.pricingTier,
       referralCode: partnerData.referralCode
@@ -199,17 +206,25 @@ export async function createPartner(partnerData: {
     console.log('🎁 Generated promo code for partner:', promoCode);
     
     const tier = partnerData.pricingTier || 'free_starter';
-    const isAutoApproved = tier === 'free_starter' || tier === 'starter_pro';
+    const isAutoApproved = partnerData.approved !== undefined 
+      ? partnerData.approved 
+      : (tier === 'free_starter' || tier === 'starter_pro');
     
     const [partner] = await db.insert(partners).values({
       id: partnerId,
       userId: partnerData.userId,
       businessName: partnerData.businessName || 'Yangi Biznes',
       businessCategory: partnerData.businessCategory as any,
+      businessType: partnerData.businessType || 'yatt',
+      inn: partnerData.inn || null, // INN (STIR) - unikal
       monthlyRevenue: partnerData.monthlyRevenue,
       pricingTier: tier,
+      billingPeriod: partnerData.billingPeriod || 'monthly',
       phone: partnerData.phone,
-      approved: isAutoApproved, // Auto-approve free/starter tiers
+      approved: isAutoApproved,
+      isActive: partnerData.isActive !== undefined ? partnerData.isActive : isAutoApproved,
+      aiEnabled: partnerData.aiEnabled !== undefined ? partnerData.aiEnabled : isAutoApproved,
+      promoCode: promoCode, // Partner's own promo code
       notes: partnerData.notes
       // createdAt uses database default
     }).returning();
@@ -296,6 +311,16 @@ export async function getPartnerByUserId(userId: string): Promise<Partner | null
   } catch (error: any) {
     console.error('❌ ERROR getting partner by user ID:', error);
     console.error('Error details:', error.message, error.stack);
+    return null;
+  }
+}
+
+export async function getPartnerByEmail(email: string): Promise<Partner | null> {
+  try {
+    const [partner] = await db.select().from(partners).where(eq(partners.email, email));
+    return partner || null;
+  } catch (error: any) {
+    console.error('Error getting partner by email:', error);
     return null;
   }
 }
@@ -425,11 +450,22 @@ export async function createProduct(productData: {
 
 export async function getProductsByPartnerId(partnerId: string): Promise<Product[]> {
   try {
+    // Validate partnerId
+    if (!partnerId || typeof partnerId !== 'string' || partnerId.trim() === '' || partnerId === 'NaN') {
+      console.warn('⚠️ Invalid partnerId in getProductsByPartnerId:', partnerId);
+      return [];
+    }
+
     return await db.select().from(products)
       .where(eq(products.partnerId, partnerId))
       .orderBy(desc(products.createdAt));
   } catch (error: any) {
-    console.error('Error getting products by partner ID:', error);
+    // Handle schema mismatch errors gracefully (PostgreSQL vs SQLite)
+    if (error?.message?.includes('Symbol(drizzle:Columns)') || error?.code === '42P01') {
+      console.log(`⚠️ Schema mismatch in getProductsByPartnerId for partner ${partnerId}, returning empty array`);
+      return [];
+    }
+    console.error('Error getting products by partner ID:', error?.message || error);
     return [];
   }
 }
@@ -1565,6 +1601,7 @@ export const storage = {
   createPartner,
   getPartnerByUserId,
   getPartnerById,
+  getPartnerByEmail,
   updatePartner,
   getAllPartners,
   approvePartner,

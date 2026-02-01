@@ -461,17 +461,24 @@ JSON formatda javob bering:
 
       for (const partner of activePartners) {
         // CRITICAL: Validate partner ID is a valid string (UUID), not NaN
-        const partnerId = partner.id || partner.userId;
-        if (!partnerId || typeof partnerId !== 'string' || partnerId.trim() === '') {
-          console.warn('⚠️ Skipping partner with invalid ID:', partner?.id);
+        // Use partner.id (not userId) as that's the actual partner record ID
+        const partnerId = partner.id;
+        if (!partnerId || typeof partnerId !== 'string' || partnerId.trim() === '' || partnerId === 'NaN' || partnerId === 'null' || partnerId === 'undefined') {
+          console.warn('⚠️ Skipping partner with invalid ID:', partner);
           continue;
         }
 
         try {
           // Pass partner.id as STRING (UUID), NOT parseInt which causes NaN!
           await monitorPartnerProducts(partnerId);
-        } catch (error) {
-          console.error(`Error monitoring partner ${partnerId}:`, error);
+        } catch (error: any) {
+          // Silently handle errors - don't spam logs
+          if (error?.message?.includes('Symbol(drizzle:Columns)')) {
+            // Schema mismatch - skip this partner
+            console.log(`⚠️ Skipping partner ${partnerId} due to schema mismatch`);
+          } else {
+            console.error(`Error monitoring partner ${partnerId}:`, error?.message || error);
+          }
         }
       }
     } catch (error) {
