@@ -97,12 +97,44 @@ import { processReferralBonusOnPayment, getReferrerStats, REFERRAL_CONFIG } from
 import { validateINN, checkBusinessExists, normalizePhone } from "./services/businessVerification";
 
 // Enhanced authentication middleware with better error handling
-function requireAuth(req: Request, res: Response, next: NextFunction) {
-  if (!req.session?.user) {
-    return res.status(401).json({ 
-      message: "Avtorizatsiya yo'q",
-      code: "UNAUTHORIZED",
-      timestamp: new Date().toISOString()
+// Supports both session cookies AND Authorization header (for API calls)
+async function requireAuth(req: Request, res: Response, next: NextFunction) {
+  // First check session
+  if (req.session?.user) {
+    return next();
+  }
+  
+  // Then check Authorization header (Bearer token = session ID)
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const sessionId = authHeader.substring(7);
+    
+    // Try to load session by ID from store
+    if (req.sessionStore) {
+      try {
+        const session = await new Promise<any>((resolve, reject) => {
+          req.sessionStore.get(sessionId, (err, session) => {
+            if (err) reject(err);
+            else resolve(session);
+          });
+        });
+        
+        if (session?.user) {
+          // Attach user data to request
+          req.session.user = session.user;
+          return next();
+        }
+      } catch (error) {
+        console.error('Session lookup error:', error);
+      }
+    }
+  }
+  
+  // No valid auth found
+  return res.status(401).json({ 
+    message: "Avtorizatsiya yo'q",
+    code: "UNAUTHORIZED",
+    timestamp: new Date().toISOString()
     });
   }
   
@@ -112,7 +144,28 @@ function requireAuth(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-function requireAdmin(req: Request, res: Response, next: NextFunction) {
+async function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  // First try to restore session from Authorization header if no session
+  if (!req.session?.user) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ') && req.sessionStore) {
+      const sessionId = authHeader.substring(7);
+      try {
+        const session = await new Promise<any>((resolve, reject) => {
+          req.sessionStore.get(sessionId, (err, session) => {
+            if (err) reject(err);
+            else resolve(session);
+          });
+        });
+        if (session?.user) {
+          req.session.user = session.user;
+        }
+      } catch (error) {
+        console.error('Session lookup error:', error);
+      }
+    }
+  }
+
   if (!req.session?.user) {
     return res.status(401).json({ 
       message: "Avtorizatsiya yo'q",
@@ -127,10 +180,34 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
     });
   }
   
+  // Attach user to req for controllers
+  (req as any).user = req.session.user;
+  
   next();
 }
 
-function requirePartner(req: Request, res: Response, next: NextFunction) {
+async function requirePartner(req: Request, res: Response, next: NextFunction) {
+  // First try to restore session from Authorization header if no session
+  if (!req.session?.user) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ') && req.sessionStore) {
+      const sessionId = authHeader.substring(7);
+      try {
+        const session = await new Promise<any>((resolve, reject) => {
+          req.sessionStore.get(sessionId, (err, session) => {
+            if (err) reject(err);
+            else resolve(session);
+          });
+        });
+        if (session?.user) {
+          req.session.user = session.user;
+        }
+      } catch (error) {
+        console.error('Session lookup error:', error);
+      }
+    }
+  }
+
   if (!req.session?.user) {
     return res.status(401).json({ 
       message: "Avtorizatsiya yo'q",
@@ -153,6 +230,27 @@ function requirePartner(req: Request, res: Response, next: NextFunction) {
 
 // Enhanced middleware - attaches partner data
 async function requirePartnerWithData(req: Request, res: Response, next: NextFunction) {
+  // First try to restore session from Authorization header if no session
+  if (!req.session?.user) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ') && req.sessionStore) {
+      const sessionId = authHeader.substring(7);
+      try {
+        const session = await new Promise<any>((resolve, reject) => {
+          req.sessionStore.get(sessionId, (err, session) => {
+            if (err) reject(err);
+            else resolve(session);
+          });
+        });
+        if (session?.user) {
+          req.session.user = session.user;
+        }
+      } catch (error) {
+        console.error('Session lookup error:', error);
+      }
+    }
+  }
+
   if (!req.session?.user) {
     return res.status(401).json({ 
       message: "Avtorizatsiya yo'q",
@@ -415,12 +513,15 @@ export function registerRoutes(app: express.Application): Server {
         payload: { username, role: user.role }
       });
 
+      // Generate session token for API calls
+      const token = req.sessionID; // Use session ID as token
+      
       res.json({ 
+        token, // MUHIM: Frontend bunga ehtiyoj bor
         user: req.session.user, 
         partner,
         permissions,
-        message: "Muvaffaqiyatli kirildi",
-        sessionId: req.sessionID // Debug only - remove in production
+        message: "Muvaffaqiyatli kirildi"
       });
     } catch (error) {
       if (error instanceof ZodError) {

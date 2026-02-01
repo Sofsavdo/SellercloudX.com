@@ -1,16 +1,18 @@
 // Simple Product Form - AI Scanner orqali mahsulot yaratish
-// Tugma bosilganda darhol AI Scanner ochiladi
-import { useState } from 'react';
+// MUHIM: Marketplace ulanmagan bo'lsa kartochka yaratilmaydi!
+// Mobil ilova bilan bir xil mantiq
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Package, Camera, Loader2, Scan, CheckCircle, AlertTriangle, DollarSign, TrendingUp, ArrowRight } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Plus, Package, Camera, Loader2, Scan, CheckCircle, AlertTriangle, DollarSign, TrendingUp, ArrowRight, Link2Off, Settings } from 'lucide-react';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'wouter';
 
 interface SimpleProductFormProps {
   onProductCreated?: () => void;
@@ -35,9 +37,10 @@ interface ScanResult {
 export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   
   // State
-  const [step, setStep] = useState<'scanner' | 'cost' | 'review'>('scanner');
+  const [step, setStep] = useState<'marketplace_check' | 'scanner' | 'cost' | 'review'>('marketplace_check');
   const [isOpen, setIsOpen] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [costPrice, setCostPrice] = useState('');
@@ -58,9 +61,31 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
   const videoRef = { current: null as HTMLVideoElement | null };
   const canvasRef = { current: null as HTMLCanvasElement | null };
 
+  // MUHIM: Marketplace ulanish holatini tekshirish
+  const { data: marketplaceStatus, isLoading: isLoadingMarketplace, refetch: refetchMarketplace } = useQuery({
+    queryKey: ['/api/partner/marketplaces'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/partner/marketplaces');
+      if (!response.ok) return { yandex: { connected: false }, uzum: { connected: false } };
+      const data = await response.json();
+      return data.data || data;
+    },
+    staleTime: 30000, // 30 seconds
+  });
+
+  // Check if any marketplace is connected
+  const hasConnectedMarketplace = marketplaceStatus?.yandex?.connected || marketplaceStatus?.uzum?.connected;
+  const connectedMarketplace = marketplaceStatus?.yandex?.connected ? 'yandex' : 
+                               marketplaceStatus?.uzum?.connected ? 'uzum' : null;
+
   // Create product mutation
   const createProductMutation = useMutation({
     mutationFn: async (data: any) => {
+      // MUHIM: Marketplace ulanganligini tekshirish
+      if (!connectedMarketplace) {
+        throw new Error('Marketplace ulanmagan. Avval API kalitlarini ulang.');
+      }
+
       const response = await apiRequest('POST', '/api/unified-scanner/full-process', {
         partner_id: 'current',
         product_name: data.name,
@@ -69,7 +94,7 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
         cost_price: parseFloat(data.costPrice),
         quantity: parseInt(data.quantity),
         image_base64: data.imageBase64,
-        marketplace: 'yandex',
+        marketplace: connectedMarketplace, // Ulangan marketplace
         auto_ikpu: true,
         auto_generate_infographics: true
       });
@@ -77,9 +102,10 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
     },
     onSuccess: (data) => {
       if (data.success) {
+        const marketplaceName = connectedMarketplace === 'yandex' ? 'Yandex Market' : 'Uzum Market';
         toast({
           title: "✅ Mahsulot yaratildi!",
-          description: "Yandex Market ga yuklash boshlandi",
+          description: `${marketplaceName} ga yuklash boshlandi`,
         });
         queryClient.invalidateQueries({ queryKey: ['/api/products'] });
         handleClose();
@@ -101,15 +127,24 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
     },
   });
 
-  // Handle open - immediately start scanner
-  const handleOpen = () => {
+  // Handle open - check marketplace first, then scanner
+  const handleOpen = async () => {
     setIsOpen(true);
-    setStep('scanner');
     setScanResult(null);
     setCostPrice('');
     setQuantity('1');
     setCapturedImage(null);
     setPriceAnalysis(null);
+    
+    // Refresh marketplace status
+    await refetchMarketplace();
+    
+    // If marketplace connected, go to scanner; otherwise show warning
+    if (hasConnectedMarketplace) {
+      setStep('scanner');
+    } else {
+      setStep('marketplace_check');
+    }
   };
 
   const handleClose = () => {
@@ -305,12 +340,115 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Scan className="w-5 h-5 text-primary" />
-              {step === 'scanner' && 'AI Scanner - Mahsulotni Skanerlang'}
-              {step === 'cost' && 'Tannarx va Narx Tahlili'}
-              {step === 'review' && 'Yakuniy Tekshiruv'}
+              {step === 'marketplace_check' && (
+                <>
+                  <Link2Off className="w-5 h-5 text-destructive" />
+                  Marketplace Ulanmagan
+                </>
+              )}
+              {step === 'scanner' && (
+                <>
+                  <Scan className="w-5 h-5 text-primary" />
+                  AI Scanner - Mahsulotni Skanerlang
+                </>
+              )}
+              {step === 'cost' && (
+                <>
+                  <DollarSign className="w-5 h-5 text-primary" />
+                  Tannarx va Narx Tahlili
+                </>
+              )}
+              {step === 'review' && (
+                <>
+                  <CheckCircle className="w-5 h-5 text-primary" />
+                  Yakuniy Tekshiruv
+                </>
+              )}
             </DialogTitle>
           </DialogHeader>
+
+          {/* Step 0: Marketplace Check - MUHIM! */}
+          {step === 'marketplace_check' && (
+            <div className="space-y-6 py-4">
+              {isLoadingMarketplace ? (
+                <div className="text-center py-8">
+                  <Loader2 className="w-12 h-12 mx-auto animate-spin text-primary mb-4" />
+                  <p className="text-muted-foreground">Marketplace ulanishlar tekshirilmoqda...</p>
+                </div>
+              ) : (
+                <>
+                  {/* Warning Card */}
+                  <Card className="bg-destructive/5 border-destructive/30">
+                    <CardContent className="p-6 text-center">
+                      <Link2Off className="w-16 h-16 mx-auto mb-4 text-destructive" />
+                      <h3 className="text-xl font-bold text-destructive mb-2">
+                        Marketplace Ulanmagan!
+                      </h3>
+                      <p className="text-muted-foreground mb-4">
+                        Mahsulot kartochkasi yaratish uchun avval Yandex Market yoki Uzum Market API kalitlarini ulang.
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Kartochka qayerga yuklanadi? Marketplace ulanmagan bo'lsa, kartochka yaratib bo'lmaydi.
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Marketplace Status */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm">Marketplace Holati</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-3 h-3 rounded-full ${marketplaceStatus?.yandex?.connected ? 'bg-success' : 'bg-destructive'}`} />
+                          <span className="font-medium">Yandex Market</span>
+                        </div>
+                        <Badge variant={marketplaceStatus?.yandex?.connected ? 'default' : 'destructive'}>
+                          {marketplaceStatus?.yandex?.connected ? 'Ulangan' : 'Ulanmagan'}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-3 h-3 rounded-full ${marketplaceStatus?.uzum?.connected ? 'bg-success' : 'bg-destructive'}`} />
+                          <span className="font-medium">Uzum Market</span>
+                        </div>
+                        <Badge variant={marketplaceStatus?.uzum?.connected ? 'default' : 'destructive'}>
+                          {marketplaceStatus?.uzum?.connected ? 'Ulangan' : 'Ulanmagan'}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col gap-3">
+                    <Button 
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600"
+                      onClick={() => {
+                        handleClose();
+                        setLocation('/partner-dashboard?tab=integrations');
+                      }}
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Marketplace Ulash (Sozlamalar)
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="w-full"
+                      onClick={handleClose}
+                    >
+                      Bekor qilish
+                    </Button>
+                  </div>
+
+                  {/* Info Note */}
+                  <p className="text-xs text-center text-muted-foreground">
+                    💡 Marketplace ulangandan so'ng, AI Scanner yordamida 2 daqiqada mahsulot kartochkasi yarating
+                  </p>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Step 1: Scanner */}
           {step === 'scanner' && (
