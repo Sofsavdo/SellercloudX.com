@@ -773,7 +773,7 @@ export default function LandingNew() {
               <Sparkles className="w-16 h-16 mx-auto mb-6 opacity-90" />
               <h2 className="text-3xl sm:text-4xl font-bold mb-4">Bugun boshlang va biznesingizni o'stiring</h2>
               <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-                7 kun bepul. Kreditka talab qilinmaydi.
+                60 kunlik savdo o'sishi kafolati.
               </p>
               
               {/* Email Input + CTA */}
