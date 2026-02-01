@@ -13,7 +13,7 @@ import {
   ProductCard,
   ProductCreationResult,
 } from './marketplaceService';
-import { realAIService } from './realAIService.js';
+import { realAIService } from './realAIService';
 import { formatDateForDB } from '../../shared/db-utils';
 
 // ==================== TYPES ====================

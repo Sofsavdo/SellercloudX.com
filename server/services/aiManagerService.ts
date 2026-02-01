@@ -7,7 +7,7 @@ import { calculateOptimalPrice } from './priceCalculationService';
 import { sql } from 'drizzle-orm';
 import { analytics } from '../../shared/schema';
 import { wsManager } from '../websocket';
-import { realAIService } from './realAIService.js';
+import { realAIService } from './realAIService';
 import { contextCacheService } from './contextCacheService';
 
 // ================================================================
