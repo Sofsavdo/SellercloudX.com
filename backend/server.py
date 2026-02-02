@@ -7399,19 +7399,118 @@ class YandexAutoCreateRequest(BaseModel):
     use_perfect_infographics: bool = True
 
 
+async def _create_card_background(
+    body: YandexAutoCreateRequest,
+    partner_id: str,
+    yandex_api: YandexMarketAPI,
+    product_name: str,
+    brand: str,
+    category: str,
+    features: list,
+    result: dict
+):
+    """Background task for card creation - allows parallel processing"""
+    try:
+        print("🔄 Background: Starting card creation...")
+        
+        # === STEP 2: MXIK/IKPU CODE ===
+        ikpu_code = None
+        try:
+            from ikpu_service import find_ikpu_code
+            ikpu_result = await find_ikpu_code(product_name)
+            if ikpu_result.get("success"):
+                ikpu_code = ikpu_result.get("code")
+                result["ikpu_code"] = ikpu_code
+        except Exception as e:
+            print(f"Background IKPU error: {e}")
+        
+        # === STEP 3: AI CARD GENERATION ===
+        card = {}
+        try:
+            card_result = await YandexCardGenerator.generate_card(
+                product_name=product_name,
+                category=category,
+                brand=brand,
+                detected_info={"name": product_name, "brand": brand, "category": category}
+            )
+            if card_result.get("success"):
+                card = card_result.get("card", {})
+        except Exception as e:
+            print(f"Background card error: {e}")
+        
+        # === STEP 4: INFOGRAPHICS ===
+        image_urls = []
+        if body.generate_infographics and PERFECT_INFOGRAPHIC_AVAILABLE:
+            try:
+                infographic_result = await generate_6_perfect_infographics(
+                    product_name=product_name,
+                    features=features if features else ["Yuqori sifat", "Kafolat bor", "Tez yetkazib berish"],
+                    brand=brand,
+                    marketplace="yandex"
+                )
+                if infographic_result.get("success"):
+                    images = infographic_result.get("images", [])
+                    # Upload to CDN or use base64
+                    image_urls = [img.get("image_base64") for img in images]
+            except Exception as e:
+                print(f"Background infographic error: {e}")
+        
+        # === STEP 5: PRICE ===
+        selling_price = body.sale_price if body.sale_price and body.sale_price > 0 else body.cost_price * 1.5
+        
+        # === STEP 6: CREATE ON YANDEX ===
+        import re
+        name_parts = re.sub(r'[^a-zA-Z0-9\s]', '', product_name).split()[:3]
+        sku_prefix = ''.join([w[:3].upper() for w in name_parts])[:8]
+        model_part = brand[:3].upper() if brand else "MDL"
+        sku = f"{sku_prefix}-{model_part}-{body.quantity}"
+        
+        create_result = await yandex_api.create_product(
+            offer_id=sku,
+            name=card.get("name", product_name)[:120],
+            description=card.get("description", f"{product_name} - yuqori sifatli mahsulot"),
+            vendor=brand or "SellerCloudX Partner",
+            pictures=image_urls[:10] if image_urls else [],
+            price=selling_price,
+            currency="UZS",
+            ikpu_code=ikpu_code
+        )
+        
+        if create_result.get("success"):
+            # === STEP 7: QUALITY CHECK & AUTO-FIX ===
+            quality_result = await yandex_api.get_offer_quality(sku)
+            if quality_result.get("success") and quality_result.get("quality_score", 0) < 100:
+                await yandex_api.fix_product_quality(sku, quality_result.get("errors", []), product_name, brand, category)
+            
+            result["success"] = True
+            result["sku"] = sku
+            result["message"] = "✅ Kartochka yaratildi!"
+            print(f"✅ Background: Card created - {sku}")
+        else:
+            result["success"] = False
+            result["error"] = create_result.get("error")
+            print(f"❌ Background: Card creation failed - {create_result.get('error')}")
+            
+    except Exception as e:
+        print(f"❌ Background card creation error: {e}")
+        result["background_error"] = str(e)
+
+
 @app.post("/api/yandex/auto-create")
 async def yandex_auto_create_product(body: YandexAutoCreateRequest, request: Request):
     """
-    YANDEX MARKET - TO'LIQ AVTOMATIK MAHSULOT YARATISH
+    YANDEX MARKET - TO'LIQ AVTOMATIK MAHSULOT YARATISH (PARALLEL PROCESSING)
     
     Full pipeline:
-    1. AI Scanner - mahsulotni aniqlash (Load Balanced)
-    2. MXIK/IKPU code - avtomatik topish
-    3. AI Card - RU + UZ tavsif generatsiya
-    4. Perfect Infographics - 6 ta xatosiz rasm
-    5. Price optimization - raqobatbardosh narx
-    6. Yandex API - kartochka yaratish
+    1. AI Scanner - mahsulotni aniqlash (Load Balanced) [FAST - returns immediately]
+    2. MXIK/IKPU code - avtomatik topish [BACKGROUND]
+    3. AI Card - RU + UZ tavsif generatsiya [BACKGROUND]
+    4. Perfect Infographics - 6 ta xatosiz rasm [BACKGROUND]
+    5. Price optimization - raqobatbardosh narx [BACKGROUND]
+    6. Yandex API - kartochka yaratish [BACKGROUND]
+    7. Quality check & auto-fix [BACKGROUND]
     
+    PARALLEL: Steps 2-7 run in background, scanner can continue immediately!
     Natija: 100 ballik sifat indeksi!
     """
     try:
@@ -7497,6 +7596,33 @@ async def yandex_auto_create_product(body: YandexAutoCreateRequest, request: Req
         brand = body.brand or product_info.get("brand", "")
         category = body.category or product_info.get("category", "general")
         features = product_info.get("keywords", [])[:6]
+        
+        # PARALLEL PROCESSING: If parallel_processing=True, return immediately after scan
+        # Card creation continues in background
+        if body.parallel_processing:
+            # Start background task for card creation
+            asyncio.create_task(_create_card_background(
+                body=body,
+                partner_id=partner_id,
+                yandex_api=yandex_api,
+                product_name=product_name,
+                brand=brand,
+                category=category,
+                features=features,
+                result=result
+            ))
+            
+            # Return immediately - scanner can continue
+            return {
+                "success": True,
+                "message": "✅ Mahsulot aniqlandi! Kartochka yaratish jarayonda...",
+                "scan_result": product_info,
+                "product_name": product_name,
+                "brand": brand,
+                "category": category,
+                "steps_completed": ["ai_scanner"],
+                "processing_in_background": True
+            }
         
         # === STEP 2: MXIK/IKPU CODE ===
         print("2️⃣ MXIK code...")
