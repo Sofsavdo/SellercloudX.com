@@ -80,7 +80,7 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
   const connectedMarketplace = marketplaceStatus?.yandex?.connected ? 'yandex' : 
                                marketplaceStatus?.uzum?.connected ? 'uzum' : null;
 
-  // Create product mutation - NEW: Uses enterprise auto-create endpoint
+  // Create product mutation - NEW: Uses enterprise auto-create endpoint with parallel processing
   const createProductMutation = useMutation({
     mutationFn: async (data: any) => {
       // MUHIM: Marketplace ulanganligini tekshirish
@@ -100,8 +100,9 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
         throw new Error('Uzum Market ulanmagan. Avval API kalitlarini ulang.');
       }
 
-      // Use new auto-create endpoint for Yandex (full automation)
+      // Use new auto-create endpoint for Yandex (full automation with parallel processing)
       if (isYandexSelected) {
+        // PARALLEL: Start card creation in background, scanner can continue
         const response = await apiRequest('POST', '/api/yandex/auto-create', {
           partner_id: 'current',
           image_base64: data.imageBase64,
@@ -113,9 +114,19 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
           quantity: parseInt(data.quantity || '1'),
           generate_infographics: true,
           use_perfect_infographics: true,  // ERROR-FREE text!
-          marketplaces: data.marketplaces  // NEW: Multiple marketplaces
+          marketplaces: data.marketplaces,  // NEW: Multiple marketplaces
+          parallel_processing: true  // NEW: Enable parallel processing
         });
-        return response.json();
+        
+        const result = await response.json();
+        
+        // If success, allow scanner to continue (parallel)
+        if (result.success) {
+          // Don't close scanner immediately - allow next product scan
+          // Scanner stays open for next product
+        }
+        
+        return result;
       }
 
       // Fallback for other marketplaces
@@ -135,15 +146,17 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
     },
     onSuccess: (data) => {
       if (data.success) {
-        const marketplaceName = connectedMarketplace === 'yandex' ? 'Yandex Market' : 'Uzum Market';
+        const marketplaceName = selectedMarketplaces.includes('yandex') ? 'Yandex Market' : 
+                               selectedMarketplaces.includes('uzum') ? 'Uzum Market' : 'Marketplace';
         
-        // Show detailed success message
+        // Show detailed success message with quality score
         const stepsCompleted = data.steps_completed?.length || 0;
+        const qualityScore = data.quality_score || data.quality_score_after_fix;
         const message = data.message || `${marketplaceName} ga yuklash boshlandi`;
         
         toast({
           title: "✅ Mahsulot yaratildi!",
-          description: message,
+          description: qualityScore ? `${message} (Sifat: ${qualityScore}/100)` : message,
         });
         
         // Show SKU if available
@@ -154,9 +167,27 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
           });
         }
         
+        // PARALLEL PROCESSING: Don't close scanner - allow next product scan
+        // Reset form but keep scanner open
+        setScanResult(null);
+        setCostPrice('');
+        setSalePrice('');
+        setQuantity('1');
+        setCapturedImage(null);
+        setPriceAnalysis(null);
+        setSelectedMarketplaces([]);
+        setStep('scanner'); // Go back to scanner for next product
+        
         queryClient.invalidateQueries({ queryKey: ['/api/products'] });
-        handleClose();
         onProductCreated?.();
+        
+        // Show info: Scanner ready for next product
+        setTimeout(() => {
+          toast({
+            title: "🔄 Keyingi mahsulotni skaner qiling",
+            description: "AI Scanner keyingi mahsulotni aniqlashga tayyor",
+          });
+        }, 2000);
       } else {
         // Show specific error and failed steps
         const failedSteps = data.steps_failed?.join(', ') || '';
