@@ -58,7 +58,7 @@ class YandexMarketAPI:
         }
     
     async def test_connection(self) -> dict:
-        """Test API connection and get account info"""
+        """Test API connection and get account info with shop names"""
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.get(
@@ -70,18 +70,36 @@ class YandexMarketAPI:
                     data = response.json()
                     campaigns = data.get("campaigns", [])
                     
-                    # Extract business_id from first campaign if not provided
-                    if campaigns and not self.business_id:
-                        first_campaign = campaigns[0]
-                        self.business_id = str(first_campaign.get("business", {}).get("id", ""))
+                    # Extract business_id and shop names from campaigns
+                    shop_info = []
+                    business_id = self.business_id
+                    
+                    for campaign in campaigns:
+                        campaign_id = campaign.get("id")
+                        domain = campaign.get("domain", "")
+                        shop_name = campaign.get("name") or domain or f"Do'kon #{campaign_id}"
+                        
+                        # Get business_id from first campaign if not provided
+                        if not business_id:
+                            business_id = str(campaign.get("business", {}).get("id", ""))
+                        
+                        shop_info.append({
+                            "id": campaign_id,
+                            "name": shop_name,
+                            "domain": domain,
+                            "status": campaign.get("status", "unknown"),
+                            "business_id": str(campaign.get("business", {}).get("id", ""))
+                        })
                     
                     return {
                         "success": True,
                         "message": "Muvaffaqiyatli ulandi!",
                         "campaigns": campaigns,
-                        "campaign_count": len(campaigns),
-                        "business_id": self.business_id,
-                        "can_create_products": True  # Yandex API supports this!
+                        "shop_info": shop_info,  # NEW: Shop names and details
+                        "shop_count": len(campaigns),
+                        "business_id": business_id or self.business_id,
+                        "can_create_products": True,
+                        "primary_shop": shop_info[0] if shop_info else None  # First shop as primary
                     }
                 elif response.status_code == 401:
                     return {

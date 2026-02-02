@@ -720,32 +720,43 @@ async def connect_marketplace(body: MarketplaceCredentials, request: Request):
                 "help": test_result.get("help", "")
             }
         
-        # Get business_id and campaigns from successful connection
+        # Get business_id, campaigns, and shop info from successful connection
         campaigns = test_result.get("campaigns", [])
         business_id = test_result.get("business_id", "")
+        shop_info = test_result.get("shop_info", [])
+        primary_shop = test_result.get("primary_shop", {})
+        shop_name = primary_shop.get("name", "Yandex Market Do'kon")
         
         credentials = {
             "api_key": body.apiKey,
+            "oauth_token": body.apiKey,  # Also save as oauth_token for compatibility
             "client_id": body.clientId,
             "campaign_id": body.campaignId or (campaigns[0]["id"] if campaigns else ""),
             "business_id": business_id,
             "token": body.token,
             "verified": True,
             "verified_at": datetime.now(timezone.utc).isoformat(),
-            "campaigns": campaigns
+            "campaigns": campaigns,
+            "shop_info": shop_info,  # NEW: Shop names and details
+            "shop_name": shop_name,  # NEW: Primary shop name
+            "primary_shop": primary_shop  # NEW: Primary shop details
         }
         
         await save_marketplace_credentials(partner["id"], body.marketplace, credentials)
         
         return {
             "success": True,
-            "message": f"Yandex Market muvaffaqiyatli ulandi!",
+            "message": f"✅ Yandex Market muvaffaqiyatli ulandi! Do'kon: {shop_name}",
             "data": {
                 "marketplace": body.marketplace,
                 "is_connected": True,
+                "status": "active",
                 "campaign_count": len(campaigns),
+                "shop_count": len(shop_info),
                 "business_id": business_id,
-                "shops": [{"id": c["id"], "name": c.get("clientName", c.get("domain", "Do'kon"))} for c in campaigns[:5]]
+                "shop_name": shop_name,  # NEW: Shop name
+                "primary_shop": primary_shop,  # NEW: Primary shop
+                "shops": shop_info[:5]  # First 5 shops
             }
         }
     
@@ -837,15 +848,22 @@ async def get_connected_marketplaces(request: Request):
                     business_id=api_creds.get("business_id"),
                     campaign_id=api_creds.get("campaign_id")
                 )
-                # Quick health check
-                is_healthy = await api.check_connection()
-                if is_healthy:
+                # Full connection test with shop info
+                test_result = await api.test_connection()
+                if test_result.get("success"):
                     marketplaces[mp]["status"] = "active"
                     marketplaces[mp]["verified"] = True
-                    marketplaces[mp]["campaigns"] = api_creds.get("campaigns", [])
+                    marketplaces[mp]["campaigns"] = test_result.get("campaigns", [])
+                    marketplaces[mp]["shop_info"] = test_result.get("shop_info", [])
+                    marketplaces[mp]["shop_count"] = test_result.get("shop_count", 0)
+                    marketplaces[mp]["primary_shop"] = test_result.get("primary_shop", {})
+                    marketplaces[mp]["shop_name"] = test_result.get("primary_shop", {}).get("name", "Yandex Market Do'kon")
+                    marketplaces[mp]["business_id"] = test_result.get("business_id")
+                    marketplaces[mp]["message"] = f"✅ Ulangan! {test_result.get('shop_count', 0)} ta do'kon topildi"
                 else:
                     marketplaces[mp]["status"] = "error"
-                    marketplaces[mp]["error"] = "API kaliti muddati tugagan yoki noto'g'ri"
+                    marketplaces[mp]["error"] = test_result.get("error", "API kaliti muddati tugagan yoki noto'g'ri")
+                    marketplaces[mp]["message"] = "❌ Ulanmadi"
             except Exception as e:
                 marketplaces[mp]["status"] = "error"
                 marketplaces[mp]["error"] = str(e)
@@ -7367,9 +7385,15 @@ async def create_single_infographic(body: PerfectInfographicRequest, request: Re
 
 class YandexAutoCreateRequest(BaseModel):
     """To'liq avtomatik Yandex Market kartochka yaratish"""
-    partner_id: str
+    partner_id: str = "current"  # "current" means use session user
     image_base64: str
     cost_price: float
+    sale_price: Optional[float] = None  # NEW: Sale price from user
+    product_name: Optional[str] = None  # NEW: Product name from scanner
+    brand: Optional[str] = None  # NEW: Brand from scanner
+    category: Optional[str] = None  # NEW: Category from scanner
+    quantity: int = 1  # NEW: Quantity
+    marketplaces: Optional[List[str]] = None  # NEW: Selected marketplaces
     generate_infographics: bool = True
     use_perfect_infographics: bool = True
 
@@ -7397,8 +7421,25 @@ async def yandex_auto_create_product(body: YandexAutoCreateRequest, request: Req
             "marketplace": "yandex"
         }
         
+        # Get partner ID from session if "current"
+        partner_id = body.partner_id
+        if partner_id == "current":
+            user = await get_current_user(request=request)
+            if not user:
+                return {
+                    "success": False,
+                    "error": "Avtorizatsiya talab etiladi"
+                }
+            partner = await get_partner_by_user_id(user["id"])
+            if not partner:
+                return {
+                    "success": False,
+                    "error": "Partner topilmadi"
+                }
+            partner_id = partner["id"]
+        
         # Get partner's Yandex credentials
-        creds = await get_marketplace_credentials(body.partner_id)
+        creds = await get_marketplace_credentials(partner_id)
         yandex_creds = None
         
         for c in creds:
@@ -7450,9 +7491,10 @@ async def yandex_auto_create_product(body: YandexAutoCreateRequest, request: Req
         result["scan_result"] = product_info
         result["steps_completed"].append("ai_scanner")
         
-        product_name = product_info.get("name", "Mahsulot")
-        brand = product_info.get("brand", "")
-        category = product_info.get("category", "general")
+        # Use body data if provided (from scanner), otherwise use scan result
+        product_name = body.product_name or product_info.get("name") or product_info.get("product_name") or "Mahsulot"
+        brand = body.brand or product_info.get("brand", "")
+        category = body.category or product_info.get("category", "general")
         features = product_info.get("keywords", [])[:6]
         
         # === STEP 2: MXIK/IKPU CODE ===
@@ -7535,25 +7577,49 @@ async def yandex_auto_create_product(body: YandexAutoCreateRequest, request: Req
         
         # === STEP 5: PRICE OPTIMIZATION ===
         print("5️⃣ Price optimization...")
-        try:
-            price_result = PriceOptimizer.calculate_optimal_price(
-                cost_price=body.cost_price,
-                category=category
-            )
-            selling_price = price_result.get("optimal_price", body.cost_price * 2.5)
-            result["price_optimization"] = price_result
+        # Use sale_price from user if provided, otherwise calculate
+        if body.sale_price and body.sale_price > 0:
+            selling_price = body.sale_price
             result["selling_price"] = selling_price
+            result["price_source"] = "user_input"
             result["steps_completed"].append("price_optimization")
-        except Exception as e:
-            selling_price = body.cost_price * 2.5
-            print(f"Price optimization error: {e}")
+        else:
+            try:
+                price_result = PriceOptimizer.calculate_optimal_price(
+                    cost_price=body.cost_price,
+                    category=category
+                )
+                selling_price = price_result.get("optimal_price", body.cost_price * 1.5)  # Default 50% margin
+                result["price_optimization"] = price_result
+                result["selling_price"] = selling_price
+                result["price_source"] = "auto_calculated"
+                result["steps_completed"].append("price_optimization")
+            except Exception as e:
+                selling_price = body.cost_price * 1.5  # Fallback: 50% margin
+                result["price_source"] = "fallback_50pct"
+                print(f"Price optimization error: {e}")
         
         # === STEP 6: CREATE ON YANDEX MARKET ===
         print("6️⃣ Creating on Yandex Market...")
         
-        # Generate SKU
-        import uuid
-        sku = f"SC-{uuid.uuid4().hex[:8].upper()}"
+        # Generate SKU: Product name (short) + Model/Color
+        import re
+        # Short product name (first 3 words, uppercase, no spaces)
+        name_parts = re.sub(r'[^a-zA-Z0-9\s]', '', product_name).split()[:3]
+        sku_prefix = ''.join([w[:3].upper() for w in name_parts])[:8]
+        
+        # Model/Color from brand or features
+        model_part = brand[:3].upper() if brand else "MDL"
+        if features:
+            # Try to find color or model in features
+            color_keywords = ['rang', 'color', 'rangi', 'qora', 'oq', 'qizil', 'yashil', 'ko\'k']
+            for feat in features[:2]:
+                for keyword in color_keywords:
+                    if keyword.lower() in feat.lower():
+                        model_part = feat[:3].upper().replace(' ', '')
+                        break
+        
+        sku = f"{sku_prefix}-{model_part}-{body.quantity}"
         
         # Get card data
         card = result.get("card_data", {})

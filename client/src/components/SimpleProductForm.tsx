@@ -44,9 +44,11 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
   const [isOpen, setIsOpen] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [costPrice, setCostPrice] = useState('');
+  const [salePrice, setSalePrice] = useState(''); // NEW: Sale price input
   const [quantity, setQuantity] = useState('1');
   const [isScanning, setIsScanning] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [selectedMarketplaces, setSelectedMarketplaces] = useState<string[]>([]); // NEW: Multiple marketplace selection
   const [priceAnalysis, setPriceAnalysis] = useState<{
     suggestedPrice: number;
     minCompetitorPrice: number;
@@ -82,18 +84,36 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
   const createProductMutation = useMutation({
     mutationFn: async (data: any) => {
       // MUHIM: Marketplace ulanganligini tekshirish
-      if (!connectedMarketplace) {
-        throw new Error('Marketplace ulanmagan. Avval API kalitlarini ulang.');
+      if (!data.marketplaces || data.marketplaces.length === 0) {
+        throw new Error('Marketplace tanlang. Avval API kalitlarini ulang.');
+      }
+
+      // Check if selected marketplace is connected
+      const selectedMp = data.primaryMarketplace || data.marketplaces[0];
+      const isYandexSelected = data.marketplaces.includes('yandex');
+      const isUzumSelected = data.marketplaces.includes('uzum');
+      
+      if (isYandexSelected && !marketplaceStatus?.yandex?.connected) {
+        throw new Error('Yandex Market ulanmagan. Avval API kalitlarini ulang.');
+      }
+      if (isUzumSelected && !marketplaceStatus?.uzum?.connected) {
+        throw new Error('Uzum Market ulanmagan. Avval API kalitlarini ulang.');
       }
 
       // Use new auto-create endpoint for Yandex (full automation)
-      if (connectedMarketplace === 'yandex') {
+      if (isYandexSelected) {
         const response = await apiRequest('POST', '/api/yandex/auto-create', {
           partner_id: 'current',
           image_base64: data.imageBase64,
           cost_price: parseFloat(data.costPrice),
+          sale_price: parseFloat(data.salePrice), // NEW: Sale price
+          product_name: data.name,
+          brand: data.brand,
+          category: data.category,
+          quantity: parseInt(data.quantity || '1'),
           generate_infographics: true,
-          use_perfect_infographics: true  // ERROR-FREE text!
+          use_perfect_infographics: true,  // ERROR-FREE text!
+          marketplaces: data.marketplaces  // NEW: Multiple marketplaces
         });
         return response.json();
       }
@@ -283,20 +303,26 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
     }
   };
 
-  // Calculate price analysis when cost price changes
+  // Calculate price analysis when cost price changes - AUTO 50% MARGIN
   const handleCostPriceChange = (value: string) => {
     setCostPrice(value);
     
     if (!scanResult || !value) {
       setPriceAnalysis(null);
+      setSalePrice(''); // Clear sale price
       return;
     }
 
     const cost = parseFloat(value);
     if (isNaN(cost) || cost <= 0) {
       setPriceAnalysis(null);
+      setSalePrice(''); // Clear sale price
       return;
     }
+    
+    // AUTO CALCULATE: 50% margin (sale price = cost * 1.5)
+    const autoSalePrice = Math.round(cost * 1.5);
+    setSalePrice(autoSalePrice.toString());
 
     // Get competitor prices
     const competitors = scanResult.competitors || [];
@@ -339,15 +365,28 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
 
   // Handle submit
   const handleSubmit = () => {
-    if (!scanResult || !costPrice) return;
+    if (!scanResult || !costPrice || !salePrice || selectedMarketplaces.length === 0) {
+      toast({
+        title: "⚠️ Ma'lumotlar to'liq emas",
+        description: "Tannarx, sotuv narxi va marketplace tanlang",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    // Use first selected marketplace (or all if multiple)
+    const primaryMarketplace = selectedMarketplaces[0];
+    
     createProductMutation.mutate({
       name: scanResult.name,
       brand: scanResult.brand,
       category: scanResult.category,
       costPrice: costPrice,
+      salePrice: salePrice, // NEW: Sale price
       quantity: quantity,
-      imageBase64: scanResult.imageBase64
+      imageBase64: scanResult.imageBase64,
+      marketplaces: selectedMarketplaces, // NEW: Selected marketplaces
+      primaryMarketplace: primaryMarketplace
     });
   };
 
@@ -607,6 +646,103 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
                     className="pl-10 text-lg"
                   />
                 </div>
+                <p className="text-xs text-muted-foreground">Mahsulotni qanday narxda sotib oldingiz?</p>
+              </div>
+
+              {/* Sale Price Input - AUTO 50% MARGIN */}
+              <div className="space-y-2">
+                <Label htmlFor="salePrice" className="text-base font-semibold">
+                  Sotuv Narxi (50% marja avtomatik qo'shildi) *
+                </Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="salePrice"
+                    type="number"
+                    min="0"
+                    value={salePrice}
+                    onChange={(e) => setSalePrice(e.target.value)}
+                    placeholder="Avtomatik hisoblanadi"
+                    className="pl-10 text-lg"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {costPrice && salePrice && (
+                    <>
+                      Marja: {Math.round(((parseFloat(salePrice) - parseFloat(costPrice)) / parseFloat(costPrice)) * 100)}% 
+                      (Foyda: {formatCurrency(parseFloat(salePrice) - parseFloat(costPrice))})
+                    </>
+                  )}
+                  {!costPrice && "Tannarxni kiriting, sotuv narxi avtomatik hisoblanadi (50% marja)"}
+                </p>
+              </div>
+
+              {/* Marketplace Selection */}
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">
+                  Marketplace Tanlash *
+                </Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {marketplaceStatus?.yandex?.connected && (
+                    <Card 
+                      className={`cursor-pointer transition-all ${
+                        selectedMarketplaces.includes('yandex') 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-muted'
+                      }`}
+                      onClick={() => {
+                        if (selectedMarketplaces.includes('yandex')) {
+                          setSelectedMarketplaces(selectedMarketplaces.filter(m => m !== 'yandex'));
+                        } else {
+                          setSelectedMarketplaces([...selectedMarketplaces, 'yandex']);
+                        }
+                      }}
+                    >
+                      <CardContent className="p-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          {selectedMarketplaces.includes('yandex') && (
+                            <CheckCircle className="w-5 h-5 text-primary" />
+                          )}
+                          <span className="font-medium">Yandex Market</span>
+                        </div>
+                        {marketplaceStatus.yandex.shop_name && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {marketplaceStatus.yandex.shop_name}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                  {marketplaceStatus?.uzum?.connected && (
+                    <Card 
+                      className={`cursor-pointer transition-all ${
+                        selectedMarketplaces.includes('uzum') 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-muted'
+                      }`}
+                      onClick={() => {
+                        if (selectedMarketplaces.includes('uzum')) {
+                          setSelectedMarketplaces(selectedMarketplaces.filter(m => m !== 'uzum'));
+                        } else {
+                          setSelectedMarketplaces([...selectedMarketplaces, 'uzum']);
+                        }
+                      }}
+                    >
+                      <CardContent className="p-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          {selectedMarketplaces.includes('uzum') && (
+                            <CheckCircle className="w-5 h-5 text-primary" />
+                          )}
+                          <span className="font-medium">Uzum Market</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Tez kunda</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+                {selectedMarketplaces.length === 0 && (
+                  <p className="text-xs text-destructive">Kamida bitta marketplace tanlang</p>
+                )}
               </div>
 
               {/* Quantity Input */}
@@ -666,7 +802,13 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
                 </Button>
                 <Button 
                   onClick={handleSubmit}
-                  disabled={!costPrice || createProductMutation.isPending || (priceAnalysis && !priceAnalysis.isProfitable)}
+                  disabled={
+                    !costPrice || 
+                    !salePrice || 
+                    selectedMarketplaces.length === 0 ||
+                    createProductMutation.isPending || 
+                    (priceAnalysis && !priceAnalysis.isProfitable)
+                  }
                   className="bg-gradient-to-r from-blue-600 to-purple-600"
                 >
                   {createProductMutation.isPending ? (
