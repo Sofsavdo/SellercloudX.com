@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useQuery } from '@tanstack/react-query';
 
 interface MarketplaceCredential {
   marketplace: string;
@@ -68,6 +69,18 @@ export function MarketplaceCredentialsManager() {
   const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
   const [verifying, setVerifying] = useState<string | null>(null);
   const [savedCredentials, setSavedCredentials] = useState<MarketplaceCredential[]>([]);
+  
+  // Fetch real marketplace status
+  const { data: marketplaceStatus } = useQuery({
+    queryKey: ['/api/partner/marketplaces'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/partner/marketplaces');
+      if (!response.ok) return { yandex: { connected: false }, uzum: { connected: false } };
+      const data = await response.json();
+      return data.data || data;
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
 
   const handleSaveCredentials = async (marketplaceId: string) => {
     const cred = credentials[marketplaceId];
@@ -185,12 +198,30 @@ export function MarketplaceCredentialsManager() {
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">{marketplace.icon}</span>
-                    <span>{marketplace.name}</span>
+                    <div>
+                      <span>{marketplace.name}</span>
+                      {marketplace.id === 'yandex' && marketplaceStatus?.yandex?.shop_name && (
+                        <p className="text-xs opacity-90 mt-0.5">
+                          {marketplaceStatus.yandex.shop_name}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  {saved?.isConnected && (
-                    <Badge className="bg-green-500">
+                  {(saved?.isConnected || (marketplace.id === 'yandex' && marketplaceStatus?.yandex?.connected)) && (
+                    <Badge className={
+                      marketplaceStatus?.yandex?.status === 'active' ? 'bg-green-500' :
+                      marketplaceStatus?.yandex?.status === 'error' ? 'bg-red-500' :
+                      'bg-green-500'
+                    }>
                       <CheckCircle className="h-3 w-3 mr-1" />
-                      Ulangan
+                      {marketplaceStatus?.yandex?.status === 'active' ? '✅ Ulangan' :
+                       marketplaceStatus?.yandex?.status === 'error' ? '❌ Xatolik' :
+                       'Ulangan'}
+                    </Badge>
+                  )}
+                  {!saved?.isConnected && !(marketplace.id === 'yandex' && marketplaceStatus?.yandex?.connected) && (
+                    <Badge variant="secondary">
+                      ⏳ Ulanmagan
                     </Badge>
                   )}
                 </CardTitle>

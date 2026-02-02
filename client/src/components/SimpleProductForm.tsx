@@ -501,21 +501,46 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 flex-1">
                           <div className={`w-3 h-3 rounded-full ${marketplaceStatus?.yandex?.connected ? 'bg-success' : 'bg-destructive'}`} />
-                          <span className="font-medium">Yandex Market</span>
+                          <div className="flex-1">
+                            <span className="font-medium">Yandex Market</span>
+                            {marketplaceStatus?.yandex?.shop_name && (
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {marketplaceStatus.yandex.shop_name}
+                              </p>
+                            )}
+                            {marketplaceStatus?.yandex?.message && (
+                              <p className={`text-xs mt-0.5 ${
+                                marketplaceStatus.yandex.status === 'active' ? 'text-success' : 'text-destructive'
+                              }`}>
+                                {marketplaceStatus.yandex.message}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        <Badge variant={marketplaceStatus?.yandex?.connected ? 'default' : 'destructive'}>
-                          {marketplaceStatus?.yandex?.connected ? 'Ulangan' : 'Ulanmagan'}
+                        <Badge variant={
+                          marketplaceStatus?.yandex?.status === 'active' ? 'default' : 
+                          marketplaceStatus?.yandex?.status === 'error' ? 'destructive' : 
+                          'secondary'
+                        }>
+                          {marketplaceStatus?.yandex?.status === 'active' ? '✅ Ulangan' : 
+                           marketplaceStatus?.yandex?.status === 'error' ? '❌ Xatolik' : 
+                           '⏳ Ulanmagan'}
                         </Badge>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 flex-1">
                           <div className={`w-3 h-3 rounded-full ${marketplaceStatus?.uzum?.connected ? 'bg-success' : 'bg-destructive'}`} />
-                          <span className="font-medium">Uzum Market</span>
+                          <div className="flex-1">
+                            <span className="font-medium">Uzum Market</span>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Tez kunda
+                            </p>
+                          </div>
                         </div>
-                        <Badge variant={marketplaceStatus?.uzum?.connected ? 'default' : 'destructive'}>
-                          {marketplaceStatus?.uzum?.connected ? 'Ulangan' : 'Ulanmagan'}
+                        <Badge variant={marketplaceStatus?.uzum?.connected ? 'default' : 'secondary'}>
+                          {marketplaceStatus?.uzum?.connected ? '✅ Ulangan' : '⏳ Ulanmagan'}
                         </Badge>
                       </div>
                     </CardContent>

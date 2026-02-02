@@ -7397,6 +7397,7 @@ class YandexAutoCreateRequest(BaseModel):
     marketplaces: Optional[List[str]] = None  # NEW: Selected marketplaces
     generate_infographics: bool = True
     use_perfect_infographics: bool = True
+    parallel_processing: bool = False  # NEW: Enable parallel processing
 
 
 async def _create_card_background(
