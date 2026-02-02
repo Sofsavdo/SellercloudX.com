@@ -788,7 +788,9 @@ class YandexMarketAPI:
                 
                 # Fix description if missing
                 if "tavsif" in str(errors).lower() or "description" in str(errors).lower():
-                    fixed_offer["description"] = f"{product_name} - yuqori sifatli mahsulot. Brend: {brand or 'Noma\'lum'}. Kategoriya: {category or 'Umumiy'}."
+                    brand_text = brand if brand else "Noma'lum"
+                    category_text = category if category else "Umumiy"
+                    fixed_offer["description"] = f"{product_name} - yuqori sifatli mahsulot. Brend: {brand_text}. Kategoriya: {category_text}."
                 
                 # Fix pictures if missing
                 if "rasm" in str(errors).lower() or "picture" in str(errors).lower():
