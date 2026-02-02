@@ -45,7 +45,6 @@ import {
   LayoutDashboard, Sparkles, ShoppingCart, Wallet, ArrowRight,
   TrendingUp, CheckCircle, Building, XCircle, Globe, Scan, CreditCard, Camera
 } from 'lucide-react';
-import DashboardAIScanner from '../components/DashboardAIScanner';
 import TrendHunterDashboard from './TrendHunterDashboard';
 import PartnerPaymentsDashboard from '../components/PartnerPaymentsDashboard';
 
@@ -225,7 +224,7 @@ export default function PartnerDashboard() {
                 <DataCard title="Tezkor Amallar" subtitle="Asosiy funksiyalar" icon={Zap}>
                   <div className="grid grid-cols-2 gap-3">
                     <Button variant="outline" size="sm" className="justify-start gap-2" onClick={() => setSelectedTab('products')}>
-                      <Camera className="w-4 h-4" /> AI Scanner
+                      <Package className="w-4 h-4" /> Mahsulotlar
                     </Button>
                     <Button variant="outline" size="sm" className="justify-start gap-2" onClick={() => setSelectedTab('orders')}>
                       <ShoppingCart className="w-4 h-4" /> Buyurtmalar
@@ -333,18 +332,6 @@ export default function PartnerDashboard() {
             </div>
           )}
 
-          {/* AI Scanner */}
-          {selectedTab === 'ai-scanner' && (
-            <div className="space-y-6 mt-6">
-              <DashboardHeader 
-                title="AI Scanner" 
-                subtitle="Mahsulot rasmini skanerlang va raqobatchilarni aniqlang" 
-                icon={Scan} 
-                badge={{ text: 'NEW', icon: Sparkles }} 
-              />
-              <DashboardAIScanner />
-            </div>
-          )}
 
           {/* Trend Hunter */}
           {selectedTab === 'trend-hunter' && (

@@ -946,7 +946,7 @@ export async function seedSystemSettings(adminId: string): Promise<void> {
 
 // Audit log operations
 export async function createAuditLog(logData: {
-  userId: string;
+  userId?: string | null;  // Optional - can be null for anonymous actions
   action: string;
   entityType: string;
   entityId?: string;
@@ -955,13 +955,16 @@ export async function createAuditLog(logData: {
   try {
     const dbType = getDbType();
     
+    // Skip audit log if userId is 'anonymous' (not a valid user)
+    const userId = logData.userId && logData.userId !== 'anonymous' ? logData.userId : null;
+    
     if (dbType === 'postgres') {
       // PostgreSQL: Use raw SQL to let database handle timestamp
       await db.execute(sql`
         INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, payload, created_at)
         VALUES (
           ${nanoid()},
-          ${logData.userId},
+          ${userId},
           ${logData.action},
           ${logData.entityType},
           ${logData.entityId || null},
@@ -973,7 +976,7 @@ export async function createAuditLog(logData: {
       // SQLite: Use Drizzle ORM with integer timestamp
       await db.insert(auditLogs).values({
         id: nanoid(),
-        userId: logData.userId,
+        userId: userId,  // Use filtered userId (null if 'anonymous')
         action: logData.action,
         entityType: logData.entityType,
         entityId: logData.entityId,

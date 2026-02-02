@@ -5152,26 +5152,41 @@ async def yandex_full_auto_create(request: YandexAutoCreateRequest):
     """
     try:
         # Hamkor sozlamalarini olish
+        # NOTE: This endpoint is deprecated. Use /api/yandex/auto-create instead.
+        # For now, use default settings from environment
         if request.partner_id != "default":
-            settings = await db.partner_yandex_settings.find_one(
-                {"partner_id": request.partner_id},
-                {"_id": 0}
-            )
-            
-            if not settings:
-                return {
-                    "success": False,
-                    "error": "Hamkor sozlamalari topilmadi",
-                    "help": "Avval /api/yandex/partner/settings orqali sozlamalarni saqlang"
-                }
-            
-            partner_settings = PartnerSettings(
-                partner_id=request.partner_id,
-                yandex_api_key=settings.get("yandex_api_key", ""),
-                yandex_business_id=settings.get("yandex_business_id", ""),
-                yandex_campaign_id=settings.get("yandex_campaign_id"),
-                imgbb_api_key=settings.get("imgbb_api_key")
-            )
+            # Try to get from marketplace credentials
+            try:
+                partner = await get_partner_by_id(request.partner_id)
+                if partner:
+                    creds = await get_marketplace_credentials(request.partner_id)
+                    yandex_creds = None
+                    for c in creds:
+                        if c.get("marketplace") == "yandex":
+                            yandex_creds = c.get("api_credentials") or c.get("credentials", {})
+                            break
+                    
+                    if yandex_creds:
+                        partner_settings = PartnerSettings(
+                            partner_id=request.partner_id,
+                            yandex_api_key=yandex_creds.get("oauth_token") or yandex_creds.get("api_key", ""),
+                            yandex_business_id=yandex_creds.get("business_id", ""),
+                            yandex_campaign_id=yandex_creds.get("campaign_id"),
+                            imgbb_api_key=os.getenv("IMGBB_API_KEY")
+                        )
+                    else:
+                        raise ValueError("Yandex credentials not found")
+                else:
+                    raise ValueError("Partner not found")
+            except Exception:
+                # Fallback to default
+                partner_settings = PartnerSettings(
+                    partner_id="default",
+                    yandex_api_key=os.getenv("YANDEX_API_KEY", ""),
+                    yandex_business_id=os.getenv("YANDEX_BUSINESS_ID", ""),
+                    yandex_campaign_id=os.getenv("YANDEX_CAMPAIGN_ID"),
+                    imgbb_api_key=os.getenv("IMGBB_API_KEY")
+                )
         else:
             # Default - .env dan
             partner_settings = PartnerSettings(
