@@ -1105,12 +1105,20 @@ async def get_partner_products(request: Request):
                     # Convert Yandex offers to product format
                     yandex_products = []
                     for offer in offers_result.get("offers", [])[:100]:  # Limit to 100
+                        # Handle price field - can be dict or number
+                        price_value = 0
+                        price_obj = offer.get("price")
+                        if isinstance(price_obj, dict):
+                            price_value = price_obj.get("value", 0)
+                        elif isinstance(price_obj, (int, float)):
+                            price_value = price_obj
+                        
                         yandex_products.append({
                             "id": offer.get("offerId", ""),
                             "name": offer.get("name", ""),
                             "sku": offer.get("offerId", ""),
                             "category": offer.get("category", "general"),
-                            "price": offer.get("price", {}).get("value", 0),
+                            "price": price_value,
                             "costPrice": 0,  # Not available from Yandex
                             "stockQuantity": 1 if offer.get("availability") == "ACTIVE" else 0,
                             "isActive": offer.get("availability") == "ACTIVE",

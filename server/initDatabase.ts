@@ -630,17 +630,41 @@ async function initializePostgresTables() {
         id VARCHAR(255) PRIMARY KEY,
         partner_id VARCHAR(255) NOT NULL,
         month INTEGER NOT NULL,
-        year INTEGER NOT NULL,
-        total_sales DECIMAL(12,2) DEFAULT 0,
+        marketplace VARCHAR(50) NOT NULL DEFAULT 'yandex',
+        total_sales_uzs INTEGER DEFAULT 0,
         total_orders INTEGER DEFAULT 0,
-        commission_earned DECIMAL(12,2) DEFAULT 0,
-        revenue_share_paid DECIMAL(12,2) DEFAULT 0,
+        revenue_share_uzs INTEGER DEFAULT 0,
+        monthly_fee_uzs INTEGER DEFAULT 0,
+        total_debt_uzs INTEGER DEFAULT 0,
+        is_paid BOOLEAN DEFAULT FALSE,
+        paid_at TIMESTAMP,
+        paid_amount INTEGER,
+        payment_method VARCHAR(50),
+        last_sync_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW(),
-        UNIQUE(partner_id, month, year)
+        UNIQUE(partner_id, month, marketplace)
       )
     `);
     console.log('✅ Monthly sales tracking table ready');
+
+    // Add marketplace column to existing monthly_sales_tracking table if missing
+    try {
+      const checkMarketplace = await db.execute(sql`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'monthly_sales_tracking' AND column_name = 'marketplace'
+      `);
+      
+      if (!checkMarketplace || checkMarketplace.length === 0) {
+        await db.execute(sql`
+          ALTER TABLE monthly_sales_tracking ADD COLUMN marketplace VARCHAR(50) DEFAULT 'yandex'
+        `);
+        console.log('✅ Added marketplace column to monthly_sales_tracking table');
+      }
+    } catch (e: any) {
+      console.warn('⚠️ Could not add marketplace column to monthly_sales_tracking:', e.message);
+    }
 
     // Create profit_breakdown table if not exists
     await db.execute(sql`
