@@ -957,6 +957,28 @@ export function registerRoutes(app: express.Application): Server {
       });
     }
 
+    // Try to get real products from Yandex Market via Python backend
+    try {
+      const pythonResponse = await fetch(`http://localhost:${process.env.PYTHON_BACKEND_PORT || 8001}/api/partner/products`, {
+        headers: {
+          'X-User-Id': req.session!.user!.id,
+          'X-User-Role': req.session!.user!.role,
+          'X-Partner-Id': partner.id,
+          'Cookie': req.headers.cookie || ''
+        }
+      });
+      
+      if (pythonResponse.ok) {
+        const pythonData = await pythonResponse.json();
+        if (pythonData.success && pythonData.data && pythonData.source === "yandex_market") {
+          return res.json(pythonData.data);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching Yandex products:', error);
+    }
+
+    // Fallback to local products
     const products = await storage.getProductsByPartnerId(partner.id);
     res.json(products);
   }));

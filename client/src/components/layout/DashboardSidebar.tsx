@@ -279,7 +279,6 @@ export const partnerNavItems: SidebarNavItem[] = [
   { id: 'products', label: 'Mahsulotlar', icon: Package },
   { id: 'orders', label: 'Buyurtmalar', icon: ShoppingCart },
   { id: 'ai-manager', label: 'AI Manager', icon: Brain, isPremium: true },
-  { id: 'ai-scanner', label: 'AI Scanner', icon: Search, isNew: true, isPremium: true },
   { id: 'trend-hunter', label: 'Trend Hunter', icon: TrendingUp, isNew: true, isPremium: true },
   { id: 'analytics', label: 'Tahlillar', icon: BarChart3 },
   { id: 'payments', label: 'To\'lovlar', icon: CreditCard, isNew: true },

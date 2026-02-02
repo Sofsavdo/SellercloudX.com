@@ -61,11 +61,15 @@ export default function PartnerDashboard() {
   const isPartner = !!user && user.role === 'partner';
 
   const { data: products = [] } = useQuery<Product[]>({
-    queryKey: ['/api/products'],
+    queryKey: ['/api/partner/products'],
     queryFn: async () => { 
       try {
-        const res = await apiRequest('GET', '/api/products'); 
+        const res = await apiRequest('GET', '/api/partner/products'); 
         const data = await res.json();
+        // Handle both old format (array) and new format (object with data)
+        if (data.success && data.data) {
+          return Array.isArray(data.data) ? data.data : [];
+        }
         return Array.isArray(data) ? data : [];
       } catch {
         return [];

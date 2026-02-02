@@ -1066,18 +1066,71 @@ async def delete_marketplace_integration(marketplace: str, request: Request):
 
 @app.get("/api/partner/products")
 async def get_partner_products(request: Request):
-    """Get partner's products"""
+    """Get partner's products - REAL DATA from Yandex Market if connected"""
     user = await require_auth(request)
     partner = await get_partner_by_user_id(user["id"])
     
     if not partner:
         raise HTTPException(status_code=404, detail="Partner topilmadi")
     
+    # Try to get real products from Yandex Market if connected
+    try:
+        creds = await get_marketplace_credentials(partner["id"])
+        yandex_creds = None
+        for c in creds:
+            if c.get("marketplace") == "yandex":
+                yandex_creds = c.get("api_credentials") or c.get("credentials", {})
+                break
+        
+        if yandex_creds:
+            oauth_token = yandex_creds.get("oauth_token") or yandex_creds.get("api_key")
+            business_id = yandex_creds.get("business_id")
+            campaign_id = yandex_creds.get("campaign_id")
+            
+            if oauth_token and business_id:
+                yandex_api = YandexMarketAPI(
+                    oauth_token=oauth_token,
+                    business_id=business_id,
+                    campaign_id=campaign_id
+                )
+                # Get real offers from Yandex Market
+                offers_result = await yandex_api.get_all_offers_status()
+                if offers_result.get("success") and offers_result.get("offers"):
+                    # Convert Yandex offers to product format
+                    yandex_products = []
+                    for offer in offers_result.get("offers", [])[:100]:  # Limit to 100
+                        yandex_products.append({
+                            "id": offer.get("offerId", ""),
+                            "name": offer.get("name", ""),
+                            "sku": offer.get("offerId", ""),
+                            "category": offer.get("category", "general"),
+                            "price": offer.get("price", {}).get("value", 0),
+                            "costPrice": 0,  # Not available from Yandex
+                            "stockQuantity": 1 if offer.get("availability") == "ACTIVE" else 0,
+                            "isActive": offer.get("availability") == "ACTIVE",
+                            "createdAt": offer.get("createdAt", ""),
+                            "marketplace": "yandex",
+                            "marketplaceStatus": offer.get("availability", "UNKNOWN")
+                        })
+                    
+                    if yandex_products:
+                        return {
+                            "success": True,
+                            "data": yandex_products,
+                            "total": len(yandex_products),
+                            "source": "yandex_market"
+                        }
+    except Exception as e:
+        print(f"⚠️ Error fetching Yandex products: {e}")
+        # Fall through to local products
+    
+    # Fallback to local products
     products = await get_products_by_partner(partner["id"])
     return {
         "success": True,
         "data": products,
-        "total": len(products)
+        "total": len(products),
+        "source": "local"
     }
 
 
@@ -1227,26 +1280,30 @@ async def unified_scanner_analyze(body: ScannerAnalyzeRequest, request: Request)
         if result.get("success"):
             product = result.get("product", {})
             
-            # CRITICAL: Block face/person detection
+            # CRITICAL: Block face/person detection (only strict matches)
             # AI should only identify products, not people
+            # Only block if explicitly detected as person/face (not just containing words)
             category = (product.get("category", "") or "").lower()
             name = (product.get("name", "") or "").lower()
             description = (product.get("description", "") or "").lower()
             
-            # List of blocked categories/keywords (faces, people, etc.)
-            blocked_keywords = [
-                "person", "face", "human", "people", "portrait", "selfie", "yuz", 
-                "odam", "inson", "man", "woman", "child", "baby", "kid",
-                "erkak", "ayol", "bola", "celebrity", "athlete", "user"
+            # Strict blocked keywords (only exact matches or primary detection)
+            strict_blocked = [
+                "person", "face", "human face", "portrait", "selfie", "yuz", 
+                "odam yuzi", "inson yuzi", "celebrity", "athlete portrait"
             ]
             
-            # Check if any blocked keyword is present
-            is_person_detected = any(
-                keyword in category or keyword in name or keyword in description 
-                for keyword in blocked_keywords
+            # Check if explicitly detected as person (strict check)
+            # Only block if category/name explicitly says it's a person/face
+            is_person_detected = (
+                category in ["person", "face", "portrait", "selfie"] or
+                name in ["person", "face", "portrait", "selfie"] or
+                any(keyword in category for keyword in ["person", "face", "portrait"]) or
+                any(keyword in name for keyword in ["person", "face", "portrait"])
             )
             
-            if is_person_detected:
+            # Only block if very clear it's a person/face
+            if is_person_detected and (category == "person" or name == "person" or "face" in category or "face" in name):
                 return {
                     "success": False,
                     "error": "Mahsulot aniqlanmadi! Iltimos, mahsulot rasmini oling (yuz yoki odam emas).",
