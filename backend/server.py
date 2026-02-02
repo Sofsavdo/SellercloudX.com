@@ -1080,6 +1080,12 @@ async def get_partner_products(request: Request):
         for c in creds:
             if c.get("marketplace") == "yandex":
                 yandex_creds = c.get("api_credentials") or c.get("credentials", {})
+                # Parse JSON string if needed (PostgreSQL stores as JSONB/string)
+                if isinstance(yandex_creds, str):
+                    try:
+                        yandex_creds = json.loads(yandex_creds)
+                    except:
+                        yandex_creds = {}
                 break
         
         if yandex_creds:
@@ -7618,6 +7624,12 @@ async def yandex_auto_create_product(body: YandexAutoCreateRequest, request: Req
         for c in creds:
             if c.get("marketplace") == "yandex":
                 yandex_creds = c.get("api_credentials") or c.get("credentials", {})
+                # Parse JSON string if needed (PostgreSQL stores as JSONB/string)
+                if isinstance(yandex_creds, str):
+                    try:
+                        yandex_creds = json.loads(yandex_creds)
+                    except:
+                        yandex_creds = {}
                 break
         
         if not yandex_creds:
@@ -7627,8 +7639,10 @@ async def yandex_auto_create_product(body: YandexAutoCreateRequest, request: Req
                 "action_required": "Sozlamalar bo'limidan Yandex API kalitni ulang"
             }
         
+        # Get oauth_token (check both oauth_token and api_key fields)
         oauth_token = yandex_creds.get("oauth_token") or yandex_creds.get("api_key")
         business_id = yandex_creds.get("business_id")
+        campaign_id = yandex_creds.get("campaign_id")
         
         if not oauth_token or not business_id:
             return {
@@ -7639,7 +7653,8 @@ async def yandex_auto_create_product(body: YandexAutoCreateRequest, request: Req
         # Initialize Yandex API
         yandex_api = YandexMarketAPI(
             oauth_token=oauth_token,
-            business_id=business_id
+            business_id=business_id,
+            campaign_id=campaign_id
         )
         
         # === STEP 1: AI SCANNER (Load Balanced) ===
