@@ -120,6 +120,11 @@ export function SimpleProductForm({ onProductCreated }: SimpleProductFormProps) 
         
         const result = await response.json();
         
+        // Check if credentials are missing (even if success=true)
+        if (result.success && result.can_create_card === false) {
+          throw new Error(result.warning || result.action_required || 'Yandex Market integratsiyasi ulanmagan. Sozlamalar bo\'limidan API kalitni ulang.');
+        }
+        
         // If success, allow scanner to continue (parallel)
         if (result.success) {
           // Don't close scanner immediately - allow next product scan

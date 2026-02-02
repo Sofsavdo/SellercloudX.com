@@ -7663,19 +7663,36 @@ async def yandex_auto_create_product(body: YandexAutoCreateRequest, request: Req
         
         for c in creds:
             if c.get("marketplace") == "yandex":
+                print(f"🔍 Found Yandex credential entry: {c.get('id', 'no-id')}")
                 yandex_creds = c.get("api_credentials") or c.get("credentials", {})
-                print(f"🔍 Raw yandex_creds type: {type(yandex_creds)}")
+                print(f"🔍 Raw yandex_creds type: {type(yandex_creds)}, value: {str(yandex_creds)[:100] if yandex_creds else 'None'}")
+                
+                # Handle None or empty values
+                if not yandex_creds:
+                    print(f"⚠️ yandex_creds is None or empty, trying credentials field...")
+                    yandex_creds = c.get("credentials", {})
+                
                 # Parse JSON string if needed (PostgreSQL stores as JSONB/string)
                 if isinstance(yandex_creds, str):
                     try:
                         yandex_creds = json.loads(yandex_creds)
-                        print(f"✅ Parsed JSON string to dict: {list(yandex_creds.keys())}")
+                        print(f"✅ Parsed JSON string to dict: {list(yandex_creds.keys()) if isinstance(yandex_creds, dict) else 'not a dict'}")
                     except Exception as e:
                         print(f"❌ JSON parse error: {e}")
                         yandex_creds = {}
                 elif isinstance(yandex_creds, dict):
-                    print(f"✅ Already a dict: {list(yandex_creds.keys())}")
-                break
+                    print(f"✅ Already a dict with keys: {list(yandex_creds.keys())}")
+                else:
+                    print(f"⚠️ Unexpected type for yandex_creds: {type(yandex_creds)}")
+                    yandex_creds = {}
+                
+                # Check if credentials dict is not empty
+                if yandex_creds and isinstance(yandex_creds, dict) and len(yandex_creds) > 0:
+                    print(f"✅ Yandex credentials found with {len(yandex_creds)} keys")
+                    break
+                else:
+                    print(f"⚠️ Yandex credentials dict is empty, continuing search...")
+                    yandex_creds = None
         
         if not yandex_creds:
             print(f"❌ No Yandex credentials found for partner: {partner_id}")

@@ -222,6 +222,13 @@ def serialize_pg_row(row) -> dict:
     for key, value in result.items():
         if isinstance(value, datetime):
             result[key] = value.isoformat()
+        # Parse JSONB fields that might be stored as strings
+        elif key == "api_credentials" and isinstance(value, str):
+            try:
+                result[key] = json.loads(value)
+            except:
+                # If parsing fails, keep as string (will be parsed later)
+                pass
     return result
 
 
