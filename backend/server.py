@@ -12,6 +12,7 @@ import httpx
 import os
 import base64
 import json
+import asyncio
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 
@@ -7639,9 +7640,52 @@ async def yandex_auto_create_product(body: YandexAutoCreateRequest, request: Req
             if create_result.get("success"):
                 result["yandex_result"] = create_result
                 result["steps_completed"].append("yandex_create")
-                result["success"] = True
-                result["message"] = "✅ Mahsulot Yandex Market'ga muvaffaqiyatli yuklandi!"
                 result["sku"] = sku
+                
+                # === STEP 7: QUALITY CHECK & AUTO-FIX ===
+                print("7️⃣ Quality check and auto-fix...")
+                try:
+                    # Get product quality score from Yandex
+                    quality_result = await yandex_api.get_offer_quality(sku)
+                    if quality_result.get("success"):
+                        quality_score = quality_result.get("quality_score", 0)
+                        quality_errors = quality_result.get("errors", [])
+                        quality_warnings = quality_result.get("warnings", [])
+                        
+                        result["quality_score"] = quality_score
+                        result["quality_errors"] = quality_errors
+                        result["quality_warnings"] = quality_warnings
+                        
+                        # If quality < 100, try to auto-fix
+                        if quality_score < 100 and quality_errors:
+                            print(f"⚠️ Quality score: {quality_score}/100. Auto-fixing...")
+                            
+                            # Auto-fix: Update product with missing fields
+                            fix_result = await yandex_api.fix_product_quality(
+                                offer_id=sku,
+                                errors=quality_errors,
+                                product_name=product_name,
+                                brand=brand,
+                                category=category
+                            )
+                            
+                            if fix_result.get("success"):
+                                result["steps_completed"].append("quality_auto_fix")
+                                result["quality_score_after_fix"] = fix_result.get("quality_score", quality_score)
+                                result["message"] = f"✅ Mahsulot yuklandi! Sifat: {fix_result.get('quality_score', quality_score)}/100"
+                            else:
+                                result["steps_failed"].append("quality_auto_fix")
+                                result["message"] = f"✅ Mahsulot yuklandi! Sifat: {quality_score}/100 (xatolar tuzatilmadi)"
+                        else:
+                            result["message"] = f"✅ Mahsulot yuklandi! Sifat: {quality_score}/100"
+                    else:
+                        result["message"] = "✅ Mahsulot Yandex Market'ga muvaffaqiyatli yuklandi!"
+                    
+                    result["success"] = True
+                except Exception as e:
+                    print(f"Quality check error: {e}")
+                    result["message"] = "✅ Mahsulot Yandex Market'ga muvaffaqiyatli yuklandi!"
+                    result["success"] = True
             else:
                 result["steps_failed"].append("yandex_create")
                 result["yandex_error"] = create_result.get("error")

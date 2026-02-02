@@ -667,6 +667,165 @@ class YandexMarketAPI:
         except Exception as e:
             return {"success": False, "error": str(e)}
     
+    async def get_offer_quality(self, offer_id: str) -> dict:
+        """Get product quality score and errors from Yandex Market"""
+        if not self.business_id:
+            return {"success": False, "error": "business_id required"}
+        
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                # Get offer mapping to check quality
+                response = await client.get(
+                    f"{YANDEX_API_BASE}/v2/businesses/{self.business_id}/offer-mappings",
+                    headers=self.headers,
+                    params={"offerId": offer_id}
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    mappings = data.get("result", {}).get("offerMappingEntries", [])
+                    
+                    if mappings:
+                        mapping = mappings[0]
+                        offer = mapping.get("offer", {})
+                        processing = offer.get("processingState", {})
+                        
+                        # Calculate quality score (0-100)
+                        quality_score = 100
+                        errors = []
+                        warnings = []
+                        
+                        # Check required fields
+                        if not offer.get("name"):
+                            quality_score -= 20
+                            errors.append("Mahsulot nomi yo'q")
+                        if not offer.get("description"):
+                            quality_score -= 15
+                            errors.append("Tavsif yo'q")
+                        if not offer.get("pictures") or len(offer.get("pictures", [])) < 3:
+                            quality_score -= 10
+                            errors.append(f"Rasmlar yetarli emas (kerak: 3+, bor: {len(offer.get('pictures', []))})")
+                        if not offer.get("weightDimensions"):
+                            quality_score -= 10
+                            errors.append("Og'irlik va o'lchamlar yo'q")
+                        if not offer.get("basicPrice"):
+                            quality_score -= 15
+                            errors.append("Narx yo'q")
+                        if not offer.get("commodityCodes"):
+                            quality_score -= 10
+                            warnings.append("MXIK/IKPU kodi yo'q")
+                        
+                        # Check processing status
+                        status = processing.get("status", "")
+                        if status == "NEED_CONTENT":
+                            quality_score -= 30
+                            errors.append("Kontent yetarli emas")
+                        elif status == "REJECTED":
+                            quality_score = 0
+                            errors.append("Mahsulot rad etilgan")
+                        
+                        quality_score = max(0, quality_score)
+                        
+                        return {
+                            "success": True,
+                            "quality_score": quality_score,
+                            "errors": errors,
+                            "warnings": warnings,
+                            "status": status,
+                            "offer_id": offer_id
+                        }
+                    else:
+                        return {
+                            "success": False,
+                            "error": "Offer topilmadi"
+                        }
+                else:
+                    return {
+                        "success": False,
+                        "error": response.text,
+                        "status_code": response.status_code
+                    }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def fix_product_quality(
+        self,
+        offer_id: str,
+        errors: List[str],
+        product_name: str,
+        brand: str = "",
+        category: str = ""
+    ) -> dict:
+        """Auto-fix product quality issues"""
+        if not self.business_id:
+            return {"success": False, "error": "business_id required"}
+        
+        try:
+            # Get current offer
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                get_response = await client.get(
+                    f"{YANDEX_API_BASE}/v2/businesses/{self.business_id}/offer-mappings",
+                    headers=self.headers,
+                    params={"offerId": offer_id}
+                )
+                
+                if get_response.status_code != 200:
+                    return {"success": False, "error": "Offer topilmadi"}
+                
+                data = get_response.json()
+                mappings = data.get("result", {}).get("offerMappingEntries", [])
+                if not mappings:
+                    return {"success": False, "error": "Offer topilmadi"}
+                
+                current_offer = mappings[0].get("offer", {})
+                
+                # Fix missing fields based on errors
+                fixed_offer = current_offer.copy()
+                
+                # Fix name if missing
+                if "nom" in str(errors).lower() or "name" in str(errors).lower():
+                    fixed_offer["name"] = product_name[:120]
+                
+                # Fix description if missing
+                if "tavsif" in str(errors).lower() or "description" in str(errors).lower():
+                    fixed_offer["description"] = f"{product_name} - yuqori sifatli mahsulot. Brend: {brand or 'Noma\'lum'}. Kategoriya: {category or 'Umumiy'}."
+                
+                # Fix pictures if missing
+                if "rasm" in str(errors).lower() or "picture" in str(errors).lower():
+                    # Keep existing pictures, add placeholder if none
+                    if not fixed_offer.get("pictures"):
+                        fixed_offer["pictures"] = []  # Will be filled by infographics
+                
+                # Update offer
+                payload = {
+                    "offerMappings": [{
+                        "offer": fixed_offer
+                    }]
+                }
+                
+                update_response = await client.post(
+                    f"{YANDEX_API_BASE}/v2/businesses/{self.business_id}/offer-mappings/update",
+                    headers=self.headers,
+                    json=payload
+                )
+                
+                if update_response.status_code == 200:
+                    # Re-check quality
+                    quality_check = await self.get_offer_quality(offer_id)
+                    return {
+                        "success": True,
+                        "quality_score": quality_check.get("quality_score", 0),
+                        "fixed_errors": errors,
+                        "message": "Mahsulot tuzatildi va qayta saqlandi"
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "error": update_response.text
+                    }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
     async def get_dashboard_data(self) -> dict:
         """Get full dashboard data - products, orders, statistics"""
         result = {
