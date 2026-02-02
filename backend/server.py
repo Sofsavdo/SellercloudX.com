@@ -7625,70 +7625,7 @@ async def yandex_auto_create_product(body: YandexAutoCreateRequest, request: Req
                 }
             partner_id = partner["id"]
         
-        # Get partner's Yandex credentials
-        creds = await get_marketplace_credentials(partner_id)
-        yandex_creds = None
-        
-        print(f"🔍 Getting Yandex credentials for partner: {partner_id}")
-        print(f"🔍 Found {len(creds)} marketplace credentials")
-        
-        for c in creds:
-            if c.get("marketplace") == "yandex":
-                yandex_creds = c.get("api_credentials") or c.get("credentials", {})
-                print(f"🔍 Raw yandex_creds type: {type(yandex_creds)}")
-                # Parse JSON string if needed (PostgreSQL stores as JSONB/string)
-                if isinstance(yandex_creds, str):
-                    try:
-                        yandex_creds = json.loads(yandex_creds)
-                        print(f"✅ Parsed JSON string to dict: {list(yandex_creds.keys())}")
-                    except Exception as e:
-                        print(f"❌ JSON parse error: {e}")
-                        yandex_creds = {}
-                elif isinstance(yandex_creds, dict):
-                    print(f"✅ Already a dict: {list(yandex_creds.keys())}")
-                break
-        
-        if not yandex_creds:
-            print(f"❌ No Yandex credentials found for partner: {partner_id}")
-            return {
-                "success": False,
-                "error": "Yandex Market kredensiallar topilmadi",
-                "action_required": "Sozlamalar bo'limidan Yandex API kalitni ulang",
-                "debug": {
-                    "partner_id": partner_id,
-                    "credentials_count": len(creds),
-                    "marketplaces": [c.get("marketplace") for c in creds]
-                }
-            }
-        
-        # Get oauth_token (check both oauth_token and api_key fields)
-        oauth_token = yandex_creds.get("oauth_token") or yandex_creds.get("api_key")
-        business_id = yandex_creds.get("business_id")
-        campaign_id = yandex_creds.get("campaign_id")
-        
-        print(f"🔍 Extracted credentials - oauth_token: {'✅' if oauth_token else '❌'}, business_id: {'✅' if business_id else '❌'}, campaign_id: {'✅' if campaign_id else '❌'}")
-        
-        if not oauth_token or not business_id:
-            print(f"❌ Missing required credentials - oauth_token: {bool(oauth_token)}, business_id: {bool(business_id)}")
-            return {
-                "success": False,
-                "error": "Yandex API kalit yoki business_id to'liq emas",
-                "debug": {
-                    "has_oauth_token": bool(oauth_token),
-                    "has_business_id": bool(business_id),
-                    "has_campaign_id": bool(campaign_id),
-                    "available_keys": list(yandex_creds.keys()) if isinstance(yandex_creds, dict) else []
-                }
-            }
-        
-        # Initialize Yandex API
-        yandex_api = YandexMarketAPI(
-            oauth_token=oauth_token,
-            business_id=business_id,
-            campaign_id=campaign_id
-        )
-        
-        # === STEP 1: AI SCANNER (Load Balanced) ===
+        # === STEP 1: AI SCANNER FIRST (doesn't need credentials) ===
         print("1️⃣ AI Scanner...")
         if AI_LOAD_BALANCER_AVAILABLE:
             scan_result = await balanced_scan_product(body.image_base64)
@@ -7715,6 +7652,86 @@ async def yandex_auto_create_product(body: YandexAutoCreateRequest, request: Req
         brand = body.brand or product_info.get("brand", "")
         category = body.category or product_info.get("category", "general")
         features = product_info.get("keywords", [])[:6]
+        
+        # === STEP 2: CHECK CREDENTIALS (after scanner, before card creation) ===
+        print("2️⃣ Checking Yandex credentials...")
+        creds = await get_marketplace_credentials(partner_id)
+        yandex_creds = None
+        
+        print(f"🔍 Getting Yandex credentials for partner: {partner_id}")
+        print(f"🔍 Found {len(creds)} marketplace credentials")
+        
+        for c in creds:
+            if c.get("marketplace") == "yandex":
+                yandex_creds = c.get("api_credentials") or c.get("credentials", {})
+                print(f"🔍 Raw yandex_creds type: {type(yandex_creds)}")
+                # Parse JSON string if needed (PostgreSQL stores as JSONB/string)
+                if isinstance(yandex_creds, str):
+                    try:
+                        yandex_creds = json.loads(yandex_creds)
+                        print(f"✅ Parsed JSON string to dict: {list(yandex_creds.keys())}")
+                    except Exception as e:
+                        print(f"❌ JSON parse error: {e}")
+                        yandex_creds = {}
+                elif isinstance(yandex_creds, dict):
+                    print(f"✅ Already a dict: {list(yandex_creds.keys())}")
+                break
+        
+        if not yandex_creds:
+            print(f"❌ No Yandex credentials found for partner: {partner_id}")
+            # Return scan result but warn about missing credentials
+            return {
+                "success": True,
+                "message": "✅ Mahsulot aniqlandi! Lekin Yandex Market integratsiyasi ulanmagan.",
+                "scan_result": product_info,
+                "product_name": product_name,
+                "brand": brand,
+                "category": category,
+                "steps_completed": ["ai_scanner"],
+                "warning": "Yandex Market kredensiallar topilmadi",
+                "action_required": "Sozlamalar bo'limidan Yandex API kalitni ulang",
+                "can_create_card": False,
+                "debug": {
+                    "partner_id": partner_id,
+                    "credentials_count": len(creds),
+                    "marketplaces": [c.get("marketplace") for c in creds]
+                }
+            }
+        
+        # Get oauth_token (check both oauth_token and api_key fields)
+        oauth_token = yandex_creds.get("oauth_token") or yandex_creds.get("api_key")
+        business_id = yandex_creds.get("business_id")
+        campaign_id = yandex_creds.get("campaign_id")
+        
+        print(f"🔍 Extracted credentials - oauth_token: {'✅' if oauth_token else '❌'}, business_id: {'✅' if business_id else '❌'}, campaign_id: {'✅' if campaign_id else '❌'}")
+        
+        if not oauth_token or not business_id:
+            print(f"❌ Missing required credentials - oauth_token: {bool(oauth_token)}, business_id: {bool(business_id)}")
+            # Return scan result but warn about incomplete credentials
+            return {
+                "success": True,
+                "message": "✅ Mahsulot aniqlandi! Lekin Yandex Market kredensiallar to'liq emas.",
+                "scan_result": product_info,
+                "product_name": product_name,
+                "brand": brand,
+                "category": category,
+                "steps_completed": ["ai_scanner"],
+                "warning": "Yandex API kalit yoki business_id to'liq emas",
+                "can_create_card": False,
+                "debug": {
+                    "has_oauth_token": bool(oauth_token),
+                    "has_business_id": bool(business_id),
+                    "has_campaign_id": bool(campaign_id),
+                    "available_keys": list(yandex_creds.keys()) if isinstance(yandex_creds, dict) else []
+                }
+            }
+        
+        # Initialize Yandex API
+        yandex_api = YandexMarketAPI(
+            oauth_token=oauth_token,
+            business_id=business_id,
+            campaign_id=campaign_id
+        )
         
         # PARALLEL PROCESSING: If parallel_processing=True, return immediately after scan
         # Card creation continues in background
