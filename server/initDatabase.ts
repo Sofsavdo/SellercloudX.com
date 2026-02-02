@@ -565,6 +565,7 @@ async function initializePostgresTables() {
         shipping_address JSONB,
         shipping_method VARCHAR(100),
         warehouse_id VARCHAR(255),
+        tracking_number VARCHAR(255),
         notes TEXT,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
@@ -599,6 +600,19 @@ async function initializePostgresTables() {
           ALTER TABLE orders ADD COLUMN marketplace_order_id VARCHAR(255)
         `);
         console.log('✅ Added marketplace_order_id column to orders table');
+      }
+      
+      const checkTrackingNumber = await db.execute(sql`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'orders' AND column_name = 'tracking_number'
+      `);
+      
+      if (!checkTrackingNumber || checkTrackingNumber.length === 0) {
+        await db.execute(sql`
+          ALTER TABLE orders ADD COLUMN tracking_number VARCHAR(255)
+        `);
+        console.log('✅ Added tracking_number column to orders table');
       }
     } catch (e: any) {
       // Column might already exist or other error

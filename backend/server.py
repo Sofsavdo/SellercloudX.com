@@ -7629,22 +7629,36 @@ async def yandex_auto_create_product(body: YandexAutoCreateRequest, request: Req
         creds = await get_marketplace_credentials(partner_id)
         yandex_creds = None
         
+        print(f"🔍 Getting Yandex credentials for partner: {partner_id}")
+        print(f"🔍 Found {len(creds)} marketplace credentials")
+        
         for c in creds:
             if c.get("marketplace") == "yandex":
                 yandex_creds = c.get("api_credentials") or c.get("credentials", {})
+                print(f"🔍 Raw yandex_creds type: {type(yandex_creds)}")
                 # Parse JSON string if needed (PostgreSQL stores as JSONB/string)
                 if isinstance(yandex_creds, str):
                     try:
                         yandex_creds = json.loads(yandex_creds)
-                    except:
+                        print(f"✅ Parsed JSON string to dict: {list(yandex_creds.keys())}")
+                    except Exception as e:
+                        print(f"❌ JSON parse error: {e}")
                         yandex_creds = {}
+                elif isinstance(yandex_creds, dict):
+                    print(f"✅ Already a dict: {list(yandex_creds.keys())}")
                 break
         
         if not yandex_creds:
+            print(f"❌ No Yandex credentials found for partner: {partner_id}")
             return {
                 "success": False,
                 "error": "Yandex Market kredensiallar topilmadi",
-                "action_required": "Sozlamalar bo'limidan Yandex API kalitni ulang"
+                "action_required": "Sozlamalar bo'limidan Yandex API kalitni ulang",
+                "debug": {
+                    "partner_id": partner_id,
+                    "credentials_count": len(creds),
+                    "marketplaces": [c.get("marketplace") for c in creds]
+                }
             }
         
         # Get oauth_token (check both oauth_token and api_key fields)
@@ -7652,10 +7666,19 @@ async def yandex_auto_create_product(body: YandexAutoCreateRequest, request: Req
         business_id = yandex_creds.get("business_id")
         campaign_id = yandex_creds.get("campaign_id")
         
+        print(f"🔍 Extracted credentials - oauth_token: {'✅' if oauth_token else '❌'}, business_id: {'✅' if business_id else '❌'}, campaign_id: {'✅' if campaign_id else '❌'}")
+        
         if not oauth_token or not business_id:
+            print(f"❌ Missing required credentials - oauth_token: {bool(oauth_token)}, business_id: {bool(business_id)}")
             return {
                 "success": False,
-                "error": "Yandex API kalit yoki business_id to'liq emas"
+                "error": "Yandex API kalit yoki business_id to'liq emas",
+                "debug": {
+                    "has_oauth_token": bool(oauth_token),
+                    "has_business_id": bool(business_id),
+                    "has_campaign_id": bool(campaign_id),
+                    "available_keys": list(yandex_creds.keys()) if isinstance(yandex_creds, dict) else []
+                }
             }
         
         # Initialize Yandex API
