@@ -7444,21 +7444,23 @@ async def _create_card_background(
         # MUHIM: Avval skaner qilingan rasmdan foydalanish, keyin infografikalar
         image_urls = []
         
-        # STEP 4.1: Skaner qilingan rasmni yuklash (asosiy rasm)
+        # STEP 4.1: Skaner qilingan rasmni yuklash (asosiy rasm) - MUHIM!
         if body.image_base64:
             try:
                 from nano_banana_service import upload_to_imgbb
-                # Remove data:image prefix if present
-                base64_data = body.image_base64
-                if "base64," in base64_data:
-                    base64_data = base64_data.split("base64,")[1]
                 
-                scanned_image_url = await upload_to_imgbb(base64_data)
+                # Use original base64 (upload_to_imgbb will clean it)
+                scanned_image_url = await upload_to_imgbb(body.image_base64)
                 if scanned_image_url:
                     image_urls.append(scanned_image_url)
                     print(f"✅ Uploaded scanned image to ImgBB: {scanned_image_url[:50]}...")
+                else:
+                    print(f"⚠️ Scanned image upload failed, will try to use base64 directly")
+                    # Fallback: use base64 directly (but Yandex prefers URLs)
             except Exception as e:
-                print(f"⚠️ Scanned image upload error: {e}")
+                print(f"❌ Scanned image upload error: {e}")
+        else:
+            print(f"⚠️ No scanned image provided (body.image_base64 is empty)")
         
         # STEP 4.2: Infografikalar (qo'shimcha rasmlar)
         if body.generate_infographics and PERFECT_INFOGRAPHIC_AVAILABLE:
@@ -7486,12 +7488,8 @@ async def _create_card_background(
                         elif image_base64:
                             # Upload base64 to ImgBB
                             try:
-                                # Remove data:image prefix if present
-                                base64_data = image_base64
-                                if "base64," in base64_data:
-                                    base64_data = base64_data.split("base64,")[1]
-                                
-                                uploaded_url = await upload_to_imgbb(base64_data)
+                                # upload_to_imgbb will clean the base64 data
+                                uploaded_url = await upload_to_imgbb(image_base64)
                                 if uploaded_url:
                                     image_urls.append(uploaded_url)
                                     print(f"✅ Uploaded infographic to ImgBB: {uploaded_url[:50]}...")
