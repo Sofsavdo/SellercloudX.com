@@ -407,7 +407,15 @@ IMPORTANT: Absolutely NO text or letters in the image!"""
         brand: str = "",
         marketplace: str = "yandex"
     ) -> Dict[str, Any]:
-        """6 ta mukammal infografika yaratish"""
+        """6 ta mukammal infografika yaratish - ImgBB'ga avtomatik yuklash"""
+        
+        # ImgBB yuklash funksiyasini import qilish
+        try:
+            from nano_banana_service import upload_to_imgbb
+            IMGBB_AVAILABLE = True
+        except ImportError:
+            IMGBB_AVAILABLE = False
+            print("⚠️ ImgBB upload not available, will return base64")
         
         # Marketplace o'lchamlari
         sizes = {
@@ -448,9 +456,31 @@ IMPORTANT: Absolutely NO text or letters in the image!"""
             )
             
             if result.get("success"):
+                image_base64 = result["image_base64"]
+                image_url = None
+                
+                # ImgBB'ga yuklash (Yandex API uchun zarur - 500 KB limit)
+                if IMGBB_AVAILABLE and image_base64:
+                    try:
+                        # Remove data:image prefix if present
+                        base64_data = image_base64
+                        if "base64," in base64_data:
+                            base64_data = base64_data.split("base64,")[1]
+                        
+                        print(f"📤 Uploading image {i+1}/6 to ImgBB...")
+                        image_url = await upload_to_imgbb(base64_data)
+                        if image_url:
+                            print(f"✅ Image {i+1}/6 uploaded: {image_url[:50]}...")
+                        else:
+                            print(f"⚠️ ImgBB upload failed for image {i+1}, using base64")
+                    except Exception as e:
+                        print(f"❌ ImgBB upload error for image {i+1}: {e}")
+                
                 images.append({
                     "index": i + 1,
-                    "image_base64": result["image_base64"],
+                    "image_base64": image_base64,  # Keep for fallback
+                    "image_url": image_url,  # NEW: ImgBB URL
+                    "url": image_url,  # Alias for compatibility
                     "style": styles[i]
                 })
             else:

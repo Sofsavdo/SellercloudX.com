@@ -255,6 +255,33 @@ class YandexMarketAPI:
                 ]
             }
             
+            # Check payload size (Yandex limit: 500 KB)
+            import json as json_module
+            payload_str = json_module.dumps(payload)
+            payload_size = len(payload_str.encode('utf-8'))
+            payload_size_kb = payload_size / 1024
+            
+            print(f"📦 Payload size: {payload_size_kb:.2f} KB (limit: 500 KB)")
+            
+            if payload_size_kb > 500:
+                # Try to reduce image count
+                if len(pictures) > 5:
+                    print(f"⚠️ Payload too large ({payload_size_kb:.2f} KB), reducing images from {len(pictures)} to 5")
+                    offer_data["pictures"] = pictures[:5]
+                    payload_str = json_module.dumps(payload)
+                    payload_size = len(payload_str.encode('utf-8'))
+                    payload_size_kb = payload_size / 1024
+                    print(f"📦 Reduced payload size: {payload_size_kb:.2f} KB")
+                
+                if payload_size_kb > 500:
+                    return {
+                        "success": False,
+                        "error": f"Payload juda katta: {payload_size_kb:.2f} KB (limit: 500 KB)",
+                        "help": "Rasmlar ImgBB'ga yuklanishi kerak, base64 emas. Yoki kamroq rasm ishlatish kerak.",
+                        "payload_size_kb": payload_size_kb,
+                        "image_count": len(pictures)
+                    }
+            
             async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(
                     f"{YANDEX_API_BASE}/v2/businesses/{self.business_id}/offer-mappings/update",

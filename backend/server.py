@@ -7446,32 +7446,32 @@ async def _create_card_background(
                 )
                 if infographic_result.get("success"):
                     images = infographic_result.get("images", [])
-                    # Convert base64 to URLs or use as-is if already URLs
+                    # Use URL if available (already uploaded to ImgBB), otherwise upload base64
                     for img in images:
-                        img_data = img.get("image_base64") or img.get("url") or img.get("image_url")
-                        if img_data:
-                            # If it's a base64 string, upload it to ImgBB
-                            if img_data.startswith("data:image") or img_data.startswith("/9j/") or (len(img_data) > 200 and not img_data.startswith("http")):
-                                # Base64 detected - upload to ImgBB
-                                try:
-                                    # Remove data:image prefix if present
-                                    base64_data = img_data
-                                    if "base64," in base64_data:
-                                        base64_data = base64_data.split("base64,")[1]
-                                    
-                                    uploaded_url = await upload_to_imgbb(base64_data)
-                                    if uploaded_url:
-                                        image_urls.append(uploaded_url)
-                                        print(f"✅ Uploaded image to ImgBB: {uploaded_url[:50]}...")
-                                    else:
-                                        print(f"⚠️ ImgBB upload failed, using placeholder")
-                                        image_urls.append("https://images.unsplash.com/photo-1541643600914-78b084683601?w=800")
-                                except Exception as e:
-                                    print(f"❌ ImgBB upload error: {e}")
-                                    image_urls.append("https://images.unsplash.com/photo-1541643600914-78b084683601?w=800")
-                            else:
-                                # Already a URL
-                                image_urls.append(img_data)
+                        # Prefer URL (already uploaded by perfect_infographic_service)
+                        image_url = img.get("image_url") or img.get("url")
+                        image_base64 = img.get("image_base64")
+                        
+                        if image_url and image_url.startswith("http"):
+                            # Already uploaded to ImgBB
+                            image_urls.append(image_url)
+                            print(f"✅ Using pre-uploaded URL: {image_url[:50]}...")
+                        elif image_base64:
+                            # Upload base64 to ImgBB
+                            try:
+                                # Remove data:image prefix if present
+                                base64_data = image_base64
+                                if "base64," in base64_data:
+                                    base64_data = base64_data.split("base64,")[1]
+                                
+                                uploaded_url = await upload_to_imgbb(base64_data)
+                                if uploaded_url:
+                                    image_urls.append(uploaded_url)
+                                    print(f"✅ Uploaded base64 to ImgBB: {uploaded_url[:50]}...")
+                                else:
+                                    print(f"⚠️ ImgBB upload failed, skipping image")
+                            except Exception as e:
+                                print(f"❌ ImgBB upload error: {e}")
             except Exception as e:
                 print(f"Background infographic error: {e}")
         
