@@ -608,11 +608,18 @@ async function initializePostgresTables() {
         WHERE table_name = 'orders' AND column_name = 'tracking_number'
       `);
       
-      if (!checkTrackingNumber || checkTrackingNumber.length === 0) {
+      // Check if column exists - result might be array or object
+      const trackingNumberExists = Array.isArray(checkTrackingNumber) 
+        ? checkTrackingNumber.length > 0 
+        : (checkTrackingNumber && Object.keys(checkTrackingNumber).length > 0);
+      
+      if (!trackingNumberExists) {
         await db.execute(sql`
           ALTER TABLE orders ADD COLUMN tracking_number VARCHAR(255)
         `);
         console.log('✅ Added tracking_number column to orders table');
+      } else {
+        console.log('✅ tracking_number column already exists');
       }
     } catch (e: any) {
       // Column might already exist or other error

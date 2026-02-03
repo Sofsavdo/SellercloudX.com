@@ -433,6 +433,9 @@ async def _generate_text_with_provider(
     
     elif provider == "gemini":
         import httpx
+        if not GOOGLE_API_KEY:
+            raise Exception("GOOGLE_API_KEY not set. Please configure it in environment variables.")
+        
         async with httpx.AsyncClient(timeout=30) as client:
             response = await client.post(
                 f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GOOGLE_API_KEY}",
@@ -441,7 +444,20 @@ async def _generate_text_with_provider(
                 }
             )
             
+            if response.status_code == 400:
+                data = response.json()
+                error_msg = data.get("error", {}).get("message", "Unknown error")
+                if "API key not valid" in error_msg or "invalid API key" in error_msg.lower():
+                    raise Exception(f"Gemini API key is invalid. Please check GOOGLE_API_KEY in environment variables. Error: {error_msg}")
+                raise Exception(f"Gemini API error: {error_msg}")
+            
+            if response.status_code != 200:
+                raise Exception(f"Gemini API returned status {response.status_code}: {response.text}")
+            
             data = response.json()
+            if "candidates" not in data or not data.get("candidates"):
+                raise Exception(f"Gemini API returned unexpected format: {data}")
+            
             return data["candidates"][0]["content"]["parts"][0]["text"]
     
     else:

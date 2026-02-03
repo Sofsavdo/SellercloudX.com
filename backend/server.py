@@ -7436,6 +7436,8 @@ async def _create_card_background(
         image_urls = []
         if body.generate_infographics and PERFECT_INFOGRAPHIC_AVAILABLE:
             try:
+                from nano_banana_service import upload_to_imgbb
+                
                 infographic_result = await generate_6_perfect_infographics(
                     product_name=product_name,
                     features=features if features else ["Yuqori sifat", "Kafolat bor", "Tez yetkazib berish"],
@@ -7448,11 +7450,25 @@ async def _create_card_background(
                     for img in images:
                         img_data = img.get("image_base64") or img.get("url") or img.get("image_url")
                         if img_data:
-                            # If it's a base64 string, we need to upload it to CDN first
-                            # For now, use placeholder if base64 detected
-                            if img_data.startswith("data:image") or img_data.startswith("/9j/") or len(img_data) > 200:
-                                # Base64 detected - use placeholder for now (TODO: upload to CDN)
-                                image_urls.append("https://images.unsplash.com/photo-1541643600914-78b084683601?w=800")
+                            # If it's a base64 string, upload it to ImgBB
+                            if img_data.startswith("data:image") or img_data.startswith("/9j/") or (len(img_data) > 200 and not img_data.startswith("http")):
+                                # Base64 detected - upload to ImgBB
+                                try:
+                                    # Remove data:image prefix if present
+                                    base64_data = img_data
+                                    if "base64," in base64_data:
+                                        base64_data = base64_data.split("base64,")[1]
+                                    
+                                    uploaded_url = await upload_to_imgbb(base64_data)
+                                    if uploaded_url:
+                                        image_urls.append(uploaded_url)
+                                        print(f"✅ Uploaded image to ImgBB: {uploaded_url[:50]}...")
+                                    else:
+                                        print(f"⚠️ ImgBB upload failed, using placeholder")
+                                        image_urls.append("https://images.unsplash.com/photo-1541643600914-78b084683601?w=800")
+                                except Exception as e:
+                                    print(f"❌ ImgBB upload error: {e}")
+                                    image_urls.append("https://images.unsplash.com/photo-1541643600914-78b084683601?w=800")
                             else:
                                 # Already a URL
                                 image_urls.append(img_data)
@@ -7465,10 +7481,25 @@ async def _create_card_background(
         
         # === STEP 5: PRICE ===
         selling_price = body.sale_price if body.sale_price and body.sale_price > 0 else body.cost_price * 1.5
+        # Yandex requires integer price
+        selling_price = int(selling_price)
         
         # === STEP 6: GET CATEGORY ID ===
         category_id = get_yandex_category_id(category)
         print(f"🔍 Background: Using category_id={category_id} for category={category}")
+        
+        # === STEP 6.5: ENSURE BUSINESS_ID IS SET ===
+        if not yandex_api.business_id:
+            print("⚠️ business_id not set, trying to get from test_connection...")
+            test_result = await yandex_api.test_connection()
+            if test_result.get("success") and test_result.get("business_id"):
+                yandex_api.business_id = test_result.get("business_id")
+                print(f"✅ Got business_id from test_connection: {yandex_api.business_id}")
+            else:
+                print(f"❌ Could not get business_id: {test_result.get('error')}")
+                result["success"] = False
+                result["error"] = "business_id topilmadi. Yandex Market integratsiyasini qayta ulang."
+                return
         
         # === STEP 7: CREATE ON YANDEX ===
         import re
@@ -7477,7 +7508,7 @@ async def _create_card_background(
         model_part = brand[:3].upper() if brand else "MDL"
         sku = f"{sku_prefix}-{model_part}-{body.quantity}"
         
-        print(f"🔍 Background: Creating product with SKU={sku}, images={len(image_urls)}, category_id={category_id}, price={selling_price}")
+        print(f"🔍 Background: Creating product with SKU={sku}, images={len(image_urls)}, category_id={category_id}, price={selling_price} (integer), business_id={yandex_api.business_id}")
         
         create_result = await yandex_api.create_product(
             offer_id=sku,
@@ -7486,7 +7517,7 @@ async def _create_card_background(
             vendor=brand or "SellerCloudX Partner",
             pictures=image_urls[:10],
             category_id=category_id,  # NEW: Add category_id
-            price=selling_price,
+            price=selling_price,  # Already converted to int
             currency="UZS",
             ikpu_code=ikpu_code,
             weight_kg=0.5,  # Default weight
@@ -7496,19 +7527,25 @@ async def _create_card_background(
         print(f"🔍 Background: create_product result - success={create_result.get('success')}, error={create_result.get('error')}, details={create_result.get('details')}")
         
         if create_result.get("success"):
-            # === STEP 7: QUALITY CHECK & AUTO-FIX ===
-            quality_result = await yandex_api.get_offer_quality(sku)
-            if quality_result.get("success") and quality_result.get("quality_score", 0) < 100:
-                await yandex_api.fix_product_quality(sku, quality_result.get("errors", []), product_name, brand, category)
+            # === STEP 8: QUALITY CHECK & AUTO-FIX ===
+            try:
+                quality_result = await yandex_api.get_offer_quality(sku)
+                if quality_result.get("success") and quality_result.get("quality_score", 0) < 100:
+                    await yandex_api.fix_product_quality(sku, quality_result.get("errors", []), product_name, brand, category)
+            except Exception as e:
+                print(f"⚠️ Quality check error (non-critical): {e}")
             
             result["success"] = True
             result["sku"] = sku
             result["message"] = "✅ Kartochka yaratildi!"
+            result["quality_score"] = quality_result.get("quality_score", 100) if quality_result else 100
             print(f"✅ Background: Card created - {sku}")
         else:
             result["success"] = False
             result["error"] = create_result.get("error")
-            print(f"❌ Background: Card creation failed - {create_result.get('error')}")
+            result["details"] = create_result.get("details")  # Include full error details
+            result["errors"] = create_result.get("errors", [])  # Include specific errors from Yandex
+            print(f"❌ Background: Card creation failed - {create_result.get('error')}, details: {create_result.get('details')}, errors: {create_result.get('errors')}")
             
     except Exception as e:
         print(f"❌ Background card creation error: {e}")
