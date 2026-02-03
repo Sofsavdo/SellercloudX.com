@@ -7539,10 +7539,17 @@ async def _create_card_background(
         ]
         is_electronics = any(k in name_lower for k in electronics_keywords)
 
-        # Kategoriya tanlash (smart detection)
-        if category_lower in ["beauty", "parfum", "perfume", "парфюмерия"] or is_perfume:
-            category_id = _get_yandex_category_id("beauty", "perfume")
-            print(f"🔍 Background: Detected perfume product. Using perfume leaf category_id={category_id}")
+        # Kategoriya tanlash (smart detection - ORDER MATTERS!)
+        # IMPORTANT: Check hair care BEFORE perfume to avoid false positives
+        # "Soch quritgich" should NOT match "sexy" in perfume keywords
+        
+        # First: Check for hair care products/appliances (most specific)
+        if ("soch" in name_lower or "hair" in name_lower) and ("quritgich" in name_lower or "stilizator" in name_lower or "taroq" in name_lower or "dryer" in name_lower or "straightener" in name_lower):
+            # Hair care appliances - appliances kategoriyasiga tegishli
+            category_id = _get_yandex_category_id("appliances", "hairdryer")
+            if not category_id or category_id == 90586:  # If not found, use default
+                category_id = 90590  # Direct ID for hair dryers
+            print(f"🔍 Background: Detected hair care appliance. Using appliances/hairdryer category_id={category_id}")
         elif is_beauty or category_lower in ["beauty", "cosmetics"] or ("soch" in name_lower and "parvarish" in name_lower):
             # Beauty/Cosmetics/Hair care products
             if "soch" in name_lower or "hair" in name_lower:
@@ -7554,17 +7561,20 @@ async def _create_card_background(
             else:
                 category_id = _get_yandex_category_id("beauty", "cosmetics")
                 print(f"🔍 Background: Detected beauty/cosmetics product. Using cosmetics category_id={category_id}")
-        elif is_electronics or category_lower in ["electronics"]:
-            # Electronics - hair care appliances uchun appliances kategoriyasini tekshirish
-            if "quritgich" in name_lower or "stilizator" in name_lower or "hairdryer" in name_lower or "straightener" in name_lower:
-                # Hair care appliances - appliances kategoriyasiga tegishli
-                category_id = _get_yandex_category_id("appliances", "hairdryer")
-                if not category_id or category_id == 90586:  # If not found, use default
-                    category_id = 90590  # Direct ID for hair dryers
-                print(f"🔍 Background: Detected hair care appliance. Using appliances/hairdryer category_id={category_id}")
+        elif category_lower in ["beauty", "parfum", "perfume", "парфюмерия"] or is_perfume:
+            # Perfume - only if NOT hair care related
+            if "soch" not in name_lower and "hair" not in name_lower:
+                category_id = _get_yandex_category_id("beauty", "perfume")
+                print(f"🔍 Background: Detected perfume product. Using perfume leaf category_id={category_id}")
             else:
-                category_id = _get_yandex_category_id("electronics")
-                print(f"🔍 Background: Detected electronics product. Using category_id={category_id}")
+                # Hair care product, not perfume
+                category_id = _get_yandex_category_id("beauty", "hair_care")
+                if not category_id or category_id == 90509:  # If not found, use cosmetics
+                    category_id = _get_yandex_category_id("beauty", "cosmetics")
+                print(f"🔍 Background: Detected hair care product (not perfume). Using beauty/hair_care category_id={category_id}")
+        elif is_electronics or category_lower in ["electronics"]:
+            category_id = _get_yandex_category_id("electronics")
+            print(f"🔍 Background: Detected electronics product. Using category_id={category_id}")
         else:
             category_id = _get_yandex_category_id(category)
             print(f"🔍 Background: Using category_id={category_id} for category={category}")

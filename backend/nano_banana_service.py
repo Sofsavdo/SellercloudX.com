@@ -29,22 +29,38 @@ IMGBB_API_KEY = os.getenv("IMGBB_API_KEY", "ae8d1c66d2c3b97a5fbed414c9ee4b4f")
 async def upload_to_imgbb(base64_data: str) -> Optional[str]:
     """Upload base64 image to ImgBB for permanent URL"""
     try:
+        # Remove data:image prefix if present
+        clean_base64 = base64_data
+        if "base64," in clean_base64:
+            clean_base64 = clean_base64.split("base64,")[1]
+        
+        # ImgBB requires form-urlencoded format
+        import urllib.parse
+        form_data = urllib.parse.urlencode({
+            'key': IMGBB_API_KEY,
+            'image': clean_base64
+        })
+        
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 'https://api.imgbb.com/1/upload',
-                data={
-                    'key': IMGBB_API_KEY,
-                    'image': base64_data
-                }
+                content=form_data,
+                headers={'Content-Type': 'application/x-www-form-urlencoded'}
             )
             
             if response.status_code == 200:
                 data = response.json()
-                if data.get('success'):
-                    return data['data']['url']
+                if data.get('success') and data.get('data', {}).get('url'):
+                    url = data['data']['url']
+                    print(f"✅ ImgBB upload success: {url[:50]}...")
+                    return url
+                else:
+                    print(f"⚠️ ImgBB upload failed: {data.get('error', {}).get('message', 'Unknown error')}")
+            else:
+                print(f"⚠️ ImgBB upload HTTP error: {response.status_code} - {response.text[:200]}")
         return None
     except Exception as e:
-        print(f"ImgBB upload error: {e}")
+        print(f"❌ ImgBB upload error: {e}")
         return None
 
 

@@ -327,12 +327,24 @@ class IKPUService:
         import json
         
         # STEP 1: Try to load from JSON file (Excel converted)
-        mxik_file_path = "/app/server/data/mxik_codes.json"
-        if not os.path.exists(mxik_file_path):
-            # Try relative path
-            mxik_file_path = os.path.join(os.path.dirname(__file__), "..", "..", "server", "data", "mxik_codes.json")
+        # Try multiple paths
+        possible_paths = [
+            "/app/server/data/mxik_codes.json",  # Production (Railway)
+            os.path.join(os.path.dirname(__file__), "..", "..", "server", "data", "mxik_codes.json"),  # Relative
+            os.path.join(os.path.dirname(__file__), "..", "..", "..", "server", "data", "mxik_codes.json"),  # Alternative relative
+            "server/data/mxik_codes.json",  # Local dev
+            "../server/data/mxik_codes.json",  # Another relative
+        ]
         
-        if os.path.exists(mxik_file_path):
+        mxik_file_path = None
+        for path in possible_paths:
+            abs_path = os.path.abspath(path) if not os.path.isabs(path) else path
+            if os.path.exists(abs_path):
+                mxik_file_path = abs_path
+                print(f"✅ Found MXIK file at: {mxik_file_path}")
+                break
+        
+        if mxik_file_path and os.path.exists(mxik_file_path):
             try:
                 with open(mxik_file_path, 'r', encoding='utf-8') as f:
                     mxik_codes = json.load(f)
@@ -342,22 +354,45 @@ class IKPUService:
                 if brand:
                     search_query = f"{brand.lower()} {search_query}"
                 
-                # Search in JSON file
+                # Search in JSON file (improved matching)
                 best_match = None
                 best_score = 0
+                
+                # Normalize search query (remove common words)
+                stop_words = ["va", "to'plami", "uchun", "moslamasi", "vositalari", "и", "для", "набор"]
+                query_words = [w for w in search_query.split() if w not in stop_words and len(w) > 2]
+                normalized_query = " ".join(query_words)
                 
                 for item in mxik_codes:
                     name_uz = (item.get("nameUz", "") or "").lower()
                     name_ru = (item.get("nameRu", "") or "").lower()
                     full_code = item.get("fullCode", "")
                     
-                    # Calculate match score
-                    score = 0
-                    query_words = search_query.split()
+                    if not full_code or len(full_code) < 8:
+                        continue
                     
+                    # Calculate match score (improved algorithm)
+                    score = 0
+                    
+                    # Exact phrase match (highest score)
+                    if normalized_query in name_uz or normalized_query in name_ru:
+                        score += 100
+                    
+                    # Word-by-word matching
                     for word in query_words:
+                        if len(word) < 3:
+                            continue
                         if word in name_uz or word in name_ru:
-                            score += len(word)  # Longer words = higher score
+                            score += len(word) * 2  # Longer words = higher score
+                        # Partial match (substring)
+                        elif any(word in n or n in word for n in [name_uz, name_ru]):
+                            score += len(word)
+                    
+                    # Category-based bonus
+                    if category:
+                        cat_lower = category.lower()
+                        if cat_lower in name_uz or cat_lower in name_ru:
+                            score += 20
                     
                     if score > best_score:
                         best_score = score
