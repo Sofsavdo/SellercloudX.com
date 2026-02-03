@@ -319,16 +319,72 @@ class IKPUService:
         brand: str = ""
     ) -> Dict[str, Any]:
         """
-        Get best matching IKPU code for a product
+        Get best matching IKPU code for a product from JSON file
         
         Returns 17-digit IKPU code
         """
-        # Build search query
+        import os
+        import json
+        
+        # STEP 1: Try to load from JSON file (Excel converted)
+        mxik_file_path = "/app/server/data/mxik_codes.json"
+        if not os.path.exists(mxik_file_path):
+            # Try relative path
+            mxik_file_path = os.path.join(os.path.dirname(__file__), "..", "..", "server", "data", "mxik_codes.json")
+        
+        if os.path.exists(mxik_file_path):
+            try:
+                with open(mxik_file_path, 'r', encoding='utf-8') as f:
+                    mxik_codes = json.load(f)
+                
+                # Build search query
+                search_query = product_name.lower()
+                if brand:
+                    search_query = f"{brand.lower()} {search_query}"
+                
+                # Search in JSON file
+                best_match = None
+                best_score = 0
+                
+                for item in mxik_codes:
+                    name_uz = (item.get("nameUz", "") or "").lower()
+                    name_ru = (item.get("nameRu", "") or "").lower()
+                    full_code = item.get("fullCode", "")
+                    
+                    # Calculate match score
+                    score = 0
+                    query_words = search_query.split()
+                    
+                    for word in query_words:
+                        if word in name_uz or word in name_ru:
+                            score += len(word)  # Longer words = higher score
+                    
+                    if score > best_score:
+                        best_score = score
+                        best_match = {
+                            "code": full_code if len(full_code) == 17 else full_code.ljust(17, '0'),
+                            "name_uz": item.get("nameUz", ""),
+                            "name_ru": item.get("nameRu", ""),
+                            "score": score
+                        }
+                
+                if best_match and best_score > 0:
+                    return {
+                        "success": True,
+                        "ikpu_code": best_match["code"],
+                        "ikpu_name": best_match["name_uz"] or best_match["name_ru"],
+                        "confidence": "high" if best_score > 10 else "medium",
+                        "source": "json_file",
+                        "is_17_digit": len(best_match["code"]) == 17
+                    }
+            except Exception as e:
+                print(f"MXIK JSON file error: {e}")
+        
+        # STEP 2: Try API search
         search_query = product_name.lower()
         if brand:
             search_query = f"{brand.lower()} {search_query}"
         
-        # Try API search first
         results = await IKPUService.search_ikpu(search_query, limit=5)
         
         if results and results[0].get("is_valid"):
@@ -342,7 +398,7 @@ class IKPUService:
                 "is_17_digit": len(best_match.get("code", "")) == 17
             }
         
-        # Fallback to category-based
+        # STEP 3: Fallback to category-based
         if category:
             ikpu_data = IKPUService.get_ikpu_by_category(category)
             return {

@@ -7423,7 +7423,7 @@ async def _create_card_background(
         except Exception as e:
             print(f"Background IKPU error: {e}")
         
-        # === STEP 3: AI CARD GENERATION ===
+        # === STEP 3: AI CARD GENERATION (RU + UZ) ===
         card = {}
         try:
             card_result = await YandexCardGenerator.generate_card(
@@ -7434,6 +7434,9 @@ async def _create_card_background(
             )
             if card_result.get("success"):
                 card = card_result.get("card", {})
+                print(f"✅ Background: Card generated - name_ru: {card.get('name', 'N/A')[:50]}, name_uz: {card.get('name_uz', 'N/A')[:50]}")
+            else:
+                print(f"⚠️ Background: Card generation failed: {card_result.get('error')}")
         except Exception as e:
             print(f"Background card error: {e}")
         
@@ -7508,25 +7511,52 @@ async def _create_card_background(
         # Yandex requires integer price
         selling_price = int(selling_price)
         
-        # === STEP 6: GET CATEGORY ID ===
+        # === STEP 6: GET CATEGORY ID (SMART DETECTION) ===
         # Yandex talabiga ko'ra faqat "leaf" kategoriyalar bilan mahsulot yaratish mumkin.
-        # AI skaner "beauty" yoki parfyum bilan bog'liq mahsulotlarni qaytarganda,
-        # ularni maxsus "perfume" subkategoriya bilan xaritalaymiz.
         from yandex_rules import get_yandex_category_id as _get_yandex_category_id
         category_lower = (category or "").lower()
         name_lower = (product_name or "").lower()
 
-        # Perfume / atir / duxi / parfyum kabi mahsulotlar uchun
+        # Smart kategoriya aniqlash - mahsulot nomiga qarab
+        # Perfume / atir / duxi / parfyum
         perfume_keywords = [
             "parfum", "parfyum", "perfume", "atir",
             "духи", "парфюм", "pheromone", "sexy"
         ]
         is_perfume = any(k in name_lower for k in perfume_keywords)
+        
+        # Beauty / cosmetics / soch parvarishi
+        beauty_keywords = [
+            "soch", "sochni", "parvarish", "parvarishlash", "cosmetics", "beauty",
+            "шампунь", "кондиционер", "маска", "красота", "косметика", "уход"
+        ]
+        is_beauty = any(k in name_lower for k in beauty_keywords)
+        
+        # Electronics / texnika
+        electronics_keywords = [
+            "quritgich", "stilizator", "fen", "hair dryer", "hair straightener",
+            "фен", "стайлер", "выпрямитель", "электроника"
+        ]
+        is_electronics = any(k in name_lower for k in electronics_keywords)
 
+        # Kategoriya tanlash
         if category_lower in ["beauty", "parfum", "perfume", "парфюмерия"] or is_perfume:
-            # "beauty" kategoriyasining "perfume" subkategoriyasini ishlatamiz
             category_id = _get_yandex_category_id("beauty", "perfume")
-            print(f"🔍 Background: Detected perfume product. Using perfume leaf category_id={category_id} for category={category}")
+            print(f"🔍 Background: Detected perfume product. Using perfume leaf category_id={category_id}")
+        elif is_beauty or category_lower in ["beauty", "cosmetics"]:
+            # Beauty uchun cosmetics subkategoriya
+            category_id = _get_yandex_category_id("beauty", "cosmetics")
+            print(f"🔍 Background: Detected beauty/cosmetics product. Using cosmetics category_id={category_id}")
+        elif is_electronics or category_lower in ["electronics", "electronics"]:
+            # Hair care appliances uchun to'g'ri kategoriya
+            # Yandex Market'da hair care appliances uchun alohida kategoriya bor
+            if is_beauty or "soch" in name_lower or "hair" in name_lower:
+                # Hair care appliances - beauty kategoriyasiga tegishli
+                category_id = _get_yandex_category_id("beauty", "cosmetics")
+                print(f"🔍 Background: Detected hair care appliance. Using beauty/cosmetics category_id={category_id}")
+            else:
+                category_id = _get_yandex_category_id("electronics")
+                print(f"🔍 Background: Detected electronics product. Using category_id={category_id}")
         else:
             category_id = _get_yandex_category_id(category)
             print(f"🔍 Background: Using category_id={category_id} for category={category}")
@@ -7553,16 +7583,31 @@ async def _create_card_background(
         
         print(f"🔍 Background: Creating product with SKU={sku}, images={len(image_urls)}, category_id={category_id}, price={selling_price} (integer), business_id={yandex_api.business_id}")
         
-        # Nom 60 belgidan oshmasligi kerak!
+        # Nom 60 belgidan oshmasligi kerak! (RU + UZ)
         product_name_ru = card.get("name", product_name)
         if len(product_name_ru) > 60:
             product_name_ru = product_name_ru[:57] + "..."
         
-        # Tasnif ikki tilda
-        description_ru = card.get("description", f"{product_name} - yuqori sifatli mahsulot")
-        description_uz = card.get("description_uz", f"{product_name} - yuqori sifatli mahsulot")
+        # O'zbekcha nom ham saqlanadi (frontend uchun)
+        product_name_uz = card.get("name_uz", product_name)
+        if len(product_name_uz) > 60:
+            product_name_uz = product_name_uz[:57] + "..."
+        
+        # Tasnif ikki tilda (majburiy to'ldirilishi kerak!)
+        description_ru = card.get("description", "")
+        description_uz = card.get("description_uz", "")
+        
+        # Agar tasnif bo'sh bo'lsa, AI yordamida yaratish
+        if not description_ru or len(description_ru) < 100:
+            description_ru = f"{product_name_ru} - yuqori sifatli mahsulot. Professional xususiyatlar, afzalliklar va ishlatish usuli bilan to'liq tavsif."
+        
+        if not description_uz or len(description_uz) < 100:
+            description_uz = f"{product_name_uz} - yuqori sifatli mahsulot. Professional xususiyatlar, afzalliklar va ishlatish usuli bilan to'liq tavsif."
+        
         # Yandex Market faqat ruscha tasnifni qabul qiladi, lekin biz o'zbekcha tasnifni ham saqlaymiz
         full_description = f"{description_ru}\n\n{description_uz}"[:6000]  # Max 6000 belgi
+        
+        print(f"✅ Background: Using name_ru={product_name_ru[:50]}, description_ru length={len(description_ru)}, description_uz length={len(description_uz)}")
         
         create_result = await yandex_api.create_product(
             offer_id=sku,

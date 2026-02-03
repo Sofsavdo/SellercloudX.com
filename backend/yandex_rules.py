@@ -241,6 +241,7 @@ YANDEX_CATEGORIES = {
             "headphones": {"id": 90555, "name": "Наушники"},
             "smartwatch": {"id": 10498025, "name": "Умные часы"},
             "tv": {"id": 90639, "name": "Телевизоры"},
+            "hair_care": {"id": 90555, "name": "Приборы для ухода за волосами"},  # Hair care appliances
         }
     },
     "clothing": {
