@@ -256,8 +256,14 @@ YANDEX_CATEGORIES = {
         "id": 90509,
         "name": "Красота",
         "subcategories": {
+            # Cosmetics umumiy kategoriya, lekin ko'pincha leaf bo'lmagan bo'lishi mumkin.
+            # Perfumelar uchun esa Yandex Market'dagi real leaf kategoriyadan foydalanamiz.
+            # Sizning do'koningiz javoblarida "Парфюмерия" uchun marketCategoryId 15927546 sifatida kelgan.
             "cosmetics": {"id": 90509, "name": "Косметика"},
-            "perfume": {"id": 90601, "name": "Парфюмерия"},
+            "perfume": {
+                "id": 15927546,  # Leaf category: Парфюмерия (real Yandex javobidan olingan)
+                "name": "Парфюмерия"
+            },
         }
     },
     "home": {

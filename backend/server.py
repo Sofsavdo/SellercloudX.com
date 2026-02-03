@@ -7485,8 +7485,27 @@ async def _create_card_background(
         selling_price = int(selling_price)
         
         # === STEP 6: GET CATEGORY ID ===
-        category_id = get_yandex_category_id(category)
-        print(f"🔍 Background: Using category_id={category_id} for category={category}")
+        # Yandex talabiga ko'ra faqat "leaf" kategoriyalar bilan mahsulot yaratish mumkin.
+        # AI skaner "beauty" yoki parfyum bilan bog'liq mahsulotlarni qaytarganda,
+        # ularni maxsus "perfume" subkategoriya bilan xaritalaymiz.
+        from yandex_rules import get_yandex_category_id as _get_yandex_category_id
+        category_lower = (category or "").lower()
+        name_lower = (product_name or "").lower()
+
+        # Perfume / atir / duxi / parfyum kabi mahsulotlar uchun
+        perfume_keywords = [
+            "parfum", "parfyum", "perfume", "atir",
+            "духи", "парфюм", "pheromone", "sexy"
+        ]
+        is_perfume = any(k in name_lower for k in perfume_keywords)
+
+        if category_lower in ["beauty", "parfum", "perfume", "парфюмерия"] or is_perfume:
+            # "beauty" kategoriyasining "perfume" subkategoriyasini ishlatamiz
+            category_id = _get_yandex_category_id("beauty", "perfume")
+            print(f"🔍 Background: Detected perfume product. Using perfume leaf category_id={category_id} for category={category}")
+        else:
+            category_id = _get_yandex_category_id(category)
+            print(f"🔍 Background: Using category_id={category_id} for category={category}")
         
         # === STEP 6.5: ENSURE BUSINESS_ID IS SET ===
         if not yandex_api.business_id:
