@@ -7610,20 +7610,41 @@ async def yandex_auto_create_product(body: YandexAutoCreateRequest, request: Req
         
         # Get partner ID from session if "current"
         partner_id = body.partner_id
+        print(f"🔍 Initial partner_id: {partner_id}")
+        print(f"🔍 Request headers: X-User-Id={request.headers.get('X-User-Id')}, X-Partner-Id={request.headers.get('X-Partner-Id')}")
+        
         if partner_id == "current":
             user = await get_current_user(request=request)
+            print(f"🔍 get_current_user result: {user}")
             if not user:
+                print(f"❌ No user found from session")
                 return {
                     "success": False,
-                    "error": "Avtorizatsiya talab etiladi"
+                    "error": "Avtorizatsiya talab etiladi",
+                    "debug": {
+                        "headers": {
+                            "X-User-Id": request.headers.get("X-User-Id"),
+                            "X-Partner-Id": request.headers.get("X-Partner-Id"),
+                            "Authorization": request.headers.get("Authorization")[:50] if request.headers.get("Authorization") else None
+                        }
+                    }
                 }
+            print(f"✅ User found: {user.get('id')}, role: {user.get('role')}")
+            
             partner = await get_partner_by_user_id(user["id"])
+            print(f"🔍 get_partner_by_user_id result: {partner.get('id') if partner else 'None'}")
             if not partner:
+                print(f"❌ No partner found for user_id: {user.get('id')}")
                 return {
                     "success": False,
-                    "error": "Partner topilmadi"
+                    "error": "Partner topilmadi",
+                    "debug": {
+                        "user_id": user.get("id"),
+                        "user_role": user.get("role")
+                    }
                 }
             partner_id = partner["id"]
+            print(f"✅ Partner ID resolved: {partner_id}")
         
         # === STEP 1: AI SCANNER FIRST (doesn't need credentials) ===
         print("1️⃣ AI Scanner...")
@@ -7655,11 +7676,12 @@ async def yandex_auto_create_product(body: YandexAutoCreateRequest, request: Req
         
         # === STEP 2: CHECK CREDENTIALS (after scanner, before card creation) ===
         print("2️⃣ Checking Yandex credentials...")
-        creds = await get_marketplace_credentials(partner_id)
-        yandex_creds = None
-        
         print(f"🔍 Getting Yandex credentials for partner: {partner_id}")
-        print(f"🔍 Found {len(creds)} marketplace credentials")
+        creds = await get_marketplace_credentials(partner_id)
+        print(f"🔍 get_marketplace_credentials returned {len(creds)} credentials")
+        print(f"🔍 Credentials details: {[{'marketplace': c.get('marketplace'), 'has_api_credentials': bool(c.get('api_credentials')), 'has_credentials': bool(c.get('credentials'))} for c in creds]}")
+        
+        yandex_creds = None
         
         for c in creds:
             if c.get("marketplace") == "yandex":
