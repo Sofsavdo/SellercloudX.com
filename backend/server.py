@@ -7410,11 +7410,16 @@ async def _create_card_background(
         # === STEP 2: MXIK/IKPU CODE ===
         ikpu_code = None
         try:
-            from ikpu_service import find_ikpu_code
-            ikpu_result = await find_ikpu_code(product_name)
+            from ikpu_service import IKPUService
+            ikpu_result = await IKPUService.get_ikpu_for_product(
+                product_name=product_name,
+                category=category,
+                brand=brand
+            )
             if ikpu_result.get("success"):
-                ikpu_code = ikpu_result.get("code")
+                ikpu_code = ikpu_result.get("ikpu_code")
                 result["ikpu_code"] = ikpu_code
+                print(f"✅ Background: Found IKPU code: {ikpu_code}")
         except Exception as e:
             print(f"Background IKPU error: {e}")
         
@@ -7432,8 +7437,27 @@ async def _create_card_background(
         except Exception as e:
             print(f"Background card error: {e}")
         
-        # === STEP 4: INFOGRAPHICS ===
+        # === STEP 4: IMAGES ===
+        # MUHIM: Avval skaner qilingan rasmdan foydalanish, keyin infografikalar
         image_urls = []
+        
+        # STEP 4.1: Skaner qilingan rasmni yuklash (asosiy rasm)
+        if body.image_base64:
+            try:
+                from nano_banana_service import upload_to_imgbb
+                # Remove data:image prefix if present
+                base64_data = body.image_base64
+                if "base64," in base64_data:
+                    base64_data = base64_data.split("base64,")[1]
+                
+                scanned_image_url = await upload_to_imgbb(base64_data)
+                if scanned_image_url:
+                    image_urls.append(scanned_image_url)
+                    print(f"✅ Uploaded scanned image to ImgBB: {scanned_image_url[:50]}...")
+            except Exception as e:
+                print(f"⚠️ Scanned image upload error: {e}")
+        
+        # STEP 4.2: Infografikalar (qo'shimcha rasmlar)
         if body.generate_infographics and PERFECT_INFOGRAPHIC_AVAILABLE:
             try:
                 from nano_banana_service import upload_to_imgbb
@@ -7455,7 +7479,7 @@ async def _create_card_background(
                         if image_url and image_url.startswith("http"):
                             # Already uploaded to ImgBB
                             image_urls.append(image_url)
-                            print(f"✅ Using pre-uploaded URL: {image_url[:50]}...")
+                            print(f"✅ Using pre-uploaded infographic URL: {image_url[:50]}...")
                         elif image_base64:
                             # Upload base64 to ImgBB
                             try:
@@ -7467,9 +7491,9 @@ async def _create_card_background(
                                 uploaded_url = await upload_to_imgbb(base64_data)
                                 if uploaded_url:
                                     image_urls.append(uploaded_url)
-                                    print(f"✅ Uploaded base64 to ImgBB: {uploaded_url[:50]}...")
+                                    print(f"✅ Uploaded infographic to ImgBB: {uploaded_url[:50]}...")
                                 else:
-                                    print(f"⚠️ ImgBB upload failed, skipping image")
+                                    print(f"⚠️ ImgBB upload failed for infographic, skipping")
                             except Exception as e:
                                 print(f"❌ ImgBB upload error: {e}")
             except Exception as e:
@@ -7529,13 +7553,24 @@ async def _create_card_background(
         
         print(f"🔍 Background: Creating product with SKU={sku}, images={len(image_urls)}, category_id={category_id}, price={selling_price} (integer), business_id={yandex_api.business_id}")
         
+        # Nom 60 belgidan oshmasligi kerak!
+        product_name_ru = card.get("name", product_name)
+        if len(product_name_ru) > 60:
+            product_name_ru = product_name_ru[:57] + "..."
+        
+        # Tasnif ikki tilda
+        description_ru = card.get("description", f"{product_name} - yuqori sifatli mahsulot")
+        description_uz = card.get("description_uz", f"{product_name} - yuqori sifatli mahsulot")
+        # Yandex Market faqat ruscha tasnifni qabul qiladi, lekin biz o'zbekcha tasnifni ham saqlaymiz
+        full_description = f"{description_ru}\n\n{description_uz}"[:6000]  # Max 6000 belgi
+        
         create_result = await yandex_api.create_product(
             offer_id=sku,
-            name=card.get("name", product_name)[:120],
-            description=card.get("description", f"{product_name} - yuqori sifatli mahsulot"),
+            name=product_name_ru[:60],  # MAX 60 belgi!
+            description=full_description,
             vendor=brand or "SellerCloudX Partner",
             pictures=image_urls[:10],
-            category_id=category_id,  # NEW: Add category_id
+            category_id=category_id,
             price=selling_price,  # Already converted to int
             currency="UZS",
             ikpu_code=ikpu_code,

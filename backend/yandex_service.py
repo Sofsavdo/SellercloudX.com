@@ -967,11 +967,15 @@ KATEGORIYA: {category}
 QISQACHA: {description or "yo'q"}
 {detected_text}
 
-YANDEX MARKET UCHUN PROFESSIONAL KARTOCHKA YARAT (RUSCHA):
+YANDEX MARKET UCHUN PROFESSIONAL KARTOCHKA YARAT (RUSCHA VA O'ZBEKCHA):
+
+MUHIM: Yandex Market nomi MAX 60 BELGI bo'lishi kerak!
 
 {{
-    "name": "Полное название товара на русском (max 120 символов, формат: Бренд + Тип + Модель)",
+    "name": "Полное название товара на русском (MAX 60 символов! Формат: Бренд + Тип + Модель)",
+    "name_uz": "O'zbekcha nom (MAX 60 belgi! Format: Brend + Tur + Model)",
     "description": "Полное описание на русском (200-500 слов). Профессионально опиши характеристики, преимущества, способ использования.",
+    "description_uz": "O'zbek tilida to'liq tavsif (200-500 so'z). Xususiyatlar, afzalliklar, ishlatish usuli haqida professional yoz.",
     "vendor": "{brand or 'Бренд'}",
     "vendorCode": "MODEL-001",
     "category": "{category}",
@@ -1012,8 +1016,13 @@ YANDEX MARKET UCHUN PROFESSIONAL KARTOCHKA YARAT (RUSCHA):
             if title_check["has_stop_words"]:
                 validation_errors.append(f"Taqiqlangan so'zlar: {', '.join(title_check['found_words'])}")
             
-            if len(card.get("name", "")) > 120:
-                card["name"] = card["name"][:117] + "..."
+            # Yandex Market nomi MAX 60 belgi bo'lishi kerak!
+            if len(card.get("name", "")) > 60:
+                card["name"] = card["name"][:57] + "..."
+            
+            # O'zbekcha nom ham 60 belgidan oshmasligi kerak
+            if card.get("name_uz") and len(card.get("name_uz", "")) > 60:
+                card["name_uz"] = card["name_uz"][:57] + "..."
             
             return {
                 "success": True,
