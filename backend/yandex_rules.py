@@ -265,6 +265,15 @@ YANDEX_CATEGORIES = {
                 "id": 15927546,  # Leaf category: Парфюмерия (real Yandex javobidan olingan)
                 "name": "Парфюмерия"
             },
+            "hair_care": {"id": 91156, "name": "Уход за волосами"},  # Hair care products
+        }
+    },
+    "appliances": {
+        "id": 90586,
+        "name": "Бытовая техника",
+        "subcategories": {
+            "hairdryer": {"id": 90590, "name": "Фены"},  # Hair dryers
+            "hair_straightener": {"id": 90590, "name": "Выпрямители волос"},  # Hair straighteners
         }
     },
     "home": {
