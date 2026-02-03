@@ -7444,31 +7444,56 @@ async def _create_card_background(
                 )
                 if infographic_result.get("success"):
                     images = infographic_result.get("images", [])
-                    # Upload to CDN or use base64
-                    image_urls = [img.get("image_base64") for img in images]
+                    # Convert base64 to URLs or use as-is if already URLs
+                    for img in images:
+                        img_data = img.get("image_base64") or img.get("url") or img.get("image_url")
+                        if img_data:
+                            # If it's a base64 string, we need to upload it to CDN first
+                            # For now, use placeholder if base64 detected
+                            if img_data.startswith("data:image") or img_data.startswith("/9j/") or len(img_data) > 200:
+                                # Base64 detected - use placeholder for now (TODO: upload to CDN)
+                                image_urls.append("https://images.unsplash.com/photo-1541643600914-78b084683601?w=800")
+                            else:
+                                # Already a URL
+                                image_urls.append(img_data)
             except Exception as e:
                 print(f"Background infographic error: {e}")
+        
+        # Ensure at least one image (Yandex requires at least 1 image)
+        if not image_urls:
+            image_urls = ["https://images.unsplash.com/photo-1541643600914-78b084683601?w=800"]
         
         # === STEP 5: PRICE ===
         selling_price = body.sale_price if body.sale_price and body.sale_price > 0 else body.cost_price * 1.5
         
-        # === STEP 6: CREATE ON YANDEX ===
+        # === STEP 6: GET CATEGORY ID ===
+        category_id = get_yandex_category_id(category)
+        print(f"🔍 Background: Using category_id={category_id} for category={category}")
+        
+        # === STEP 7: CREATE ON YANDEX ===
         import re
         name_parts = re.sub(r'[^a-zA-Z0-9\s]', '', product_name).split()[:3]
         sku_prefix = ''.join([w[:3].upper() for w in name_parts])[:8]
         model_part = brand[:3].upper() if brand else "MDL"
         sku = f"{sku_prefix}-{model_part}-{body.quantity}"
         
+        print(f"🔍 Background: Creating product with SKU={sku}, images={len(image_urls)}, category_id={category_id}, price={selling_price}")
+        
         create_result = await yandex_api.create_product(
             offer_id=sku,
             name=card.get("name", product_name)[:120],
             description=card.get("description", f"{product_name} - yuqori sifatli mahsulot"),
             vendor=brand or "SellerCloudX Partner",
-            pictures=image_urls[:10] if image_urls else [],
+            pictures=image_urls[:10],
+            category_id=category_id,  # NEW: Add category_id
             price=selling_price,
             currency="UZS",
-            ikpu_code=ikpu_code
+            ikpu_code=ikpu_code,
+            weight_kg=0.5,  # Default weight
+            dimensions={"length": 20, "width": 15, "height": 10}  # Default dimensions
         )
+        
+        print(f"🔍 Background: create_product result - success={create_result.get('success')}, error={create_result.get('error')}, details={create_result.get('details')}")
         
         if create_result.get("success"):
             # === STEP 7: QUALITY CHECK & AUTO-FIX ===
